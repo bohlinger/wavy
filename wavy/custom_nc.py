@@ -103,6 +103,19 @@ class custom_nc():
         self.model = model
         self.basetime = model_dict[model]['basetime']
 
+def get_nc_time(timestep,pathtofile):
+    """
+    timestep: "first" or "last" time step in nc-file
+    pathtofile: complete path to file
+    """
+    nc = netCDF4.Dataset(
+                    pathtofile,mode='r',
+                    clobber=False
+                    )
+    time_var = nc.variables['time']
+    dtime = netCDF4.num2date(time_var[:],time_var.units)
+    return dtime[timestep]
+
 def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     """
     1. check if nc file already exists
