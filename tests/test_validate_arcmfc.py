@@ -104,6 +104,7 @@ while (tmp_date <= end_date):
     else:
         init_dates = list(map(lambda x: tmp_date 
                             - timedelta(hours=x),forecasts))
+    print ('init_dates: ')
     print (init_dates)
     print (type(init_dates))
     print (type(init_dates[0]))

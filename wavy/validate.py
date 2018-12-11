@@ -101,7 +101,8 @@ if (args.sat == 's3a' and (args.m != 'ARCMFC' and args.m != 'MoskNC'\
 
 if (args.sat == 's3a' and args.m == 'ARCMFC'):
     # get model collocated values
-    sa_obj = sa(fc_date,timewin=timewin,region=args.m,mode=args.m)
+    #sa_obj = sa(fc_date,timewin=timewin,region=args.m,mode=args.m)
+    sa_obj = sa(fc_date,timewin=timewin,region=args.m)
     #get_model
     model_Hs,model_lats,model_lons,model_time,model_time_dt = \
         get_model(simmode="fc",model=args.m,fc_date=fc_date,
@@ -140,7 +141,7 @@ if args.dts is not None:
     from custom_nc import dumptonc_ts
     basetime=model_dict[args.m]['basetime']
     outpath=args.dts
-    filename_ts="nc_ts.nc"
+    filename_ts= model + "_nc_ts.nc"
     title_ts='collocated time series'
     dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
 
@@ -150,7 +151,7 @@ if args.dval is not None:
     from custom_nc import dumptonc_stats
     basetime=model_dict[args.m]['basetime']
     outpath=args.dval
-    filename_stat="nc_val.nc"
+    filename_stat= model + "_nc_val.nc"
     title_stat='validation file'
     time_dt = fc_date
     dumptonc_stats(outpath,filename_stat,title_stat,basetime,time_dt,valid_dict)

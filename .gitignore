@@ -1,0 +1,6 @@
+*.pyc
+*.swp
+*.png
+*.pdf
+*.log
+outpath

@@ -28,12 +28,22 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     import numpy as np
+    from region_specs import region_dict
     mHs = MHs.squeeze()
     mHs[np.where(mHs<0)[0],np.where(mHs<0)[1]]=np.nan
     clevs = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
     cmap=cm.GMT_haxby
     norm = mpl.colors.BoundaryNorm(clevs, cmap.N)
-    m = Basemap(width=4100000,
+    if sa_obj.region == 'ARCMFC':
+        # Polar Stereographic Projection
+        m = Basemap(
+            projection='npstere',
+            boundinglat=region_dict[sa_obj.region]["boundinglat"],
+            lon_0=0,
+            resolution='l',area_thresh=1000
+            )
+    else:
+        m = Basemap(width=4100000,
                 height=4500000,
                 resolution='l',
                 projection='laea',
