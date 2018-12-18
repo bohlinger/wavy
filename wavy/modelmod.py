@@ -176,11 +176,14 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     elif model == 'ecwam':
         multsix = int(leadtime/12)
         restsix = leadtime%12
-        if (fc_date.hour%12 == 0 and leadtime%12 < 12 and leadtime%12 != 0):
+        if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
+            (fc_date - timedelta(hours=leadtime)).hour !=12):
             sys.exit('error: --> leadtime is not available')
-        elif (fc_date.hour%12 != 0
-            and leadtime < fc_date.hour%12 + leadtime/12*12):
-            sys.exit('error: --> leadtime is not available')
+        #if (fc_date.hour%12 == 0 and leadtime%12 < 12 and leadtime%12 != 0):
+        #    sys.exit('error: --> leadtime is not available')
+        #elif (fc_date.hour%12 != 0
+        #    and leadtime < fc_date.hour%12 + leadtime/12*12):
+        #    sys.exit('error: --> leadtime is not available')
         if leadtime>60:
             sys.exit('error: --> Leadtime must be less than 60')
         if leadtime is None:
