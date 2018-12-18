@@ -103,18 +103,40 @@ class custom_nc():
         self.model = model
         self.basetime = model_dict[model]['basetime']
 
-def get_nc_time(timestep,pathtofile):
+def get_nc_time(pathtofile):
     """
     timestep: "first" or "last" time step in nc-file
     pathtofile: complete path to file
     """
-    nc = netCDF4.Dataset(
+    import os.path
+    indicator = os.path.isfile(pathtofile)
+    if indicator is False:
+        dtime = False
+    else:
+        nc = netCDF4.Dataset(
                     pathtofile,mode='r',
-                    clobber=False
                     )
-    time_var = nc.variables['time']
-    dtime = netCDF4.num2date(time_var[:],time_var.units)
-    return dtime[timestep]
+        time_var = nc.variables['time']
+        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        nc.close()
+    return dtime
+
+def get_arcmfc_ts(pathtofile):
+    import os.path
+    indicator = os.path.isfile(pathtofile)
+    if indicator is False:
+        dtime = False
+        sys.exit('File does not exist')
+    else:
+        nc = netCDF4.Dataset(
+            pathtofile,mode='r',
+            )
+        time_var = nc.variables['time']
+        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        sHs = nc.variables['sHs'][:]
+        mHs = nc.variables['mHs'][:]
+        nc.close()
+    return dtime,sHs,mHs
 
 def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     """

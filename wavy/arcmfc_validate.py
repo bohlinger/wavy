@@ -9,32 +9,47 @@ from stationmod import matchtime, get_model
 from modelmod import get_model, collocate
 from satmod import validate
 from copy import deepcopy
+from model_specs import model_dict
+from custom_nc import dumptonc_stats
 
-startdate = datetime(2018,11,1,0)
-tmpdate = deepcopy(startdate)
-enddate = datetime(2018,11,2,0)
+sdate = datetime(2018,11,1,0)
+tmpdate = deepcopy(sdate)
+edate = datetime(2018,11,3,0)
 
-while tmpdate <= enddate:
-    # settings
-    fc_date = tmpdate
-    region = 'ARCMFC'
-    model = 'ARCMFC'
-    # get model collocated values
-    results_dict = 
+forecasts = [12]
 
-    try:
+while tmpdate <= edate:
+    for element in forecasts:
+        # settings
+        fc_date = deepcopy(tmpdate)
+        region = 'ARCMFC'
+        model = 'ARCMFC'
+        basetime=model_dict[model]['basetime']
+        # get model collocated values
+        from custom_nc import get_arcmfc_ts
+        inpath = '/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+        filename_ts=fc_date.strftime("ARCMFC_coll_ts_lt"
+                                            + "{:0>3d}".format(element)
+                                            + "h_%Y%m.nc")
+        dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_ts)
+        del filename_ts
+        results_dict = {'date_matches':dtime,
+                        'model_Hs_matches':mHs,
+                        'sat_Hs_matches':sHs}
+        # find collocations for given model time step and validate
+        from stationmod import matchtime
+        time_lst = []
+        for dt in dtime:
+            time_lst.append((dt-basetime).total_seconds())
+        ctime,idx = matchtime(tmpdate, tmpdate, time_lst, basetime, timewin=30)
         #print results_dict
         valid_dict=validate(results_dict)
-        from model_specs import model_dict
         # dump to nc-file: validation
-        from custom_nc import dumptonc_stats
-        basetime=model_dict[model]['basetime']
         outpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
-        filename_ts=tmpdate.strftime("ARCMFC_val_%Y%m.nc")
         title_stat='validation file'
+        filename_stat=fc_date.strftime("ARCMFC_val_ts_lt"
+                                        + "{:0>3d}".format(element)
+                                        + "h_%Y%m.nc")
         time_dt = fc_date
-        dumptonc_stats(outpath,filename_stat,title_stat,basetime,time_dt,valid_dict)
-    except:
-        print('no matches')
-        pass
-    tmpdate = tmpdate + timedelta(hours=1)
+        dumptonc_stats(outpath,filename_stat,title_stat,basetime,dtime,valid_dict)
+    tmpdate = tmpdate + timedelta(hours=6)

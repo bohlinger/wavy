@@ -48,7 +48,8 @@ else:
 
 # get data
 if args.r == "ARCMFC":
-    sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r,mode="ARCMFC")
+    #sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r,mode="ARCMFC")
+    sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r)
 else:
     sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r)
 

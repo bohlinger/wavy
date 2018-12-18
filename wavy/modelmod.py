@@ -327,7 +327,11 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
                     + timedelta(seconds=element))
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
-    model_Hs_valid = model_Hs[model_time_dt.index(fc_date),:,:].squeeze()
+    print(model_Hs.shape)
+    if len(model_Hs.shape)>2:
+        model_Hs_valid = model_Hs[model_time_dt.index(fc_date),:,:].squeeze()
+    else:
+        model_Hs_valid = model_Hs[:,:].squeeze()
     #return model_time_dt, model_hs_valid, model_lons, model_lats
     return model_Hs_valid, model_lats, model_lons, model_time_valid,\
          model_time_dt_valid
@@ -582,7 +586,8 @@ def get_model(simmode=None,model=None,sdate=None,edate=None,
             model_time, \
             model_time_dt = \
             get_model_fc_mode(filestr=element,model=model,
-                    fc_date=fc_date,init_date=init_date)
+                    fc_date=fc_date,init_date=init_date,
+                    leadtime=leadtime)
             model_Hs_lst, \
             model_time_lst, \
             model_time_dt_lst = [],[],[]

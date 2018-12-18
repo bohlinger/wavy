@@ -13,6 +13,7 @@ from utils import identify_outliers
 import os
 import argparse
 from argparse import RawTextHelpFormatter
+from  utils import disp_validation
 
 # parser
 parser = argparse.ArgumentParser(
@@ -84,78 +85,80 @@ if (args.plat is None and args.sat is None and args.buoy is None):
 if (args.m is None):
     sys.exit("-> Error: A model to validate needs to be given!")
 
-if (args.sat == 's3a' and (args.m != 'ARCMFC' and args.m != 'MoskNC'\
-    and args.m != 'MoskWC')):
-    # get model collocated values
-    check_date(args.m,fc_date=fc_date,leadtime=args.lt)
-    sa_obj = sa(fc_date,timewin=timewin,region=args.m)
-    #get_model
-    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-        get_model(simmode="fc",model=args.m,fc_date=fc_date,
-        leadtime=args.lt)
-    #collocation
-    results_dict = collocate(args.m,model_Hs,model_lats,
-        model_lons,model_time_dt,sa_obj,fc_date,distlim=6)
-    valid_dict=validate(results_dict)
-    print(valid_dict)
+# Get S3a data
+sa_obj = sa(fc_date,timewin=timewin,region=args.m)
+if len(sa_obj.rtime)==0:
+    print("If possible proceed with another time step...")
+else:
+    if (args.sat == 's3a' and (args.m != 'ARCMFC' and args.m != 'MoskNC'\
+        and args.m != 'MoskWC')):
+        # get model collocated values
+        check_date(args.m,fc_date=fc_date,leadtime=args.lt)
+        #get_model
+        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+            get_model(simmode="fc",model=args.m,fc_date=fc_date,
+            leadtime=args.lt)
+        #collocation
+        results_dict = collocate(args.m,model_Hs,model_lats,
+            model_lons,model_time_dt,sa_obj,fc_date,distlim=6)
+        valid_dict=validate(results_dict)
+        #print(valid_dict)
+        disp_validation(valid_dict)
 
-if (args.sat == 's3a' and args.m == 'ARCMFC'):
-    # get model collocated values
-    #sa_obj = sa(fc_date,timewin=timewin,region=args.m,mode=args.m)
-    sa_obj = sa(fc_date,timewin=timewin,region=args.m)
-    #get_model
-    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-        get_model(simmode="fc",model=args.m,fc_date=fc_date,
-        init_date=init_date)
-    #collocation
-    results_dict = collocate(args.m,model_Hs,model_lats,
-        model_lons,model_time_dt,sa_obj,fc_date,distlim=6)
-    valid_dict=validate(results_dict)
-    print(valid_dict)
+    if (args.sat == 's3a' and args.m == 'ARCMFC'):
+        # get model collocated values
+        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+            get_model(simmode="fc",model=args.m,fc_date=fc_date,
+            init_date=init_date)
+        #collocation
+        results_dict = collocate(args.m,model_Hs,model_lats,
+            model_lons,model_time_dt,sa_obj,fc_date,distlim=6)
+        valid_dict=validate(results_dict)
+        #print(valid_dict)
+        disp_validation(valid_dict)
 
-if (args.sat == 's3a' and (args.m == 'MoskNC' or args.m == 'MoskWC')):
-    region = "Mosk_dom"
-    # get model collocated values
-    sa_obj = sa(fc_date,timewin=timewin,region=region)
-    #get_model
-    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-        get_model(simmode="fc",model=args.m,fc_date=fc_date,
-        init_date=init_date)
-    #collocation
-    results_dict = collocate(args.m,model_Hs,model_lats,
-        model_lons,model_time_dt,sa_obj,fc_date,distlim=6)
-    #print results_dict
-    valid_dict=validate(results_dict)
-    print(valid_dict)
+    if (args.sat == 's3a' and (args.m == 'MoskNC' or args.m == 'MoskWC')):
+        region = "Mosk_dom"
+        # get model collocated values
+        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+            get_model(simmode="fc",model=args.m,fc_date=fc_date,
+            init_date=init_date)
+        #collocation
+        results_dict = collocate(args.m,model_Hs,model_lats,
+            model_lons,model_time_dt,sa_obj,fc_date,distlim=6)
+        #print results_dict
+        valid_dict=validate(results_dict)
+        #print(valid_dict)
+        disp_validation(valid_dict)
 
-if args.show is True:
-    #sa_obj.quip(region=args.m,show=True)
-    comp_fig(args.m,sa_obj,model_Hs,model_lons,model_lats,results_dict)
+    if args.show is True:
+        #sa_obj.quip(region=args.m,show=True)
+        comp_fig(args.m,sa_obj,model_Hs,model_lons,model_lats,results_dict)
 
-#if args.sfig is not None:
-#    sa_obj.quip(region=args.m,save=True, outpath=args.sfig)
+    #if args.sfig is not None:
+    #    sa_obj.quip(region=args.m,save=True, outpath=args.sfig)
 
-if args.dts is not None:
-    # dump to nc-file
-    from model_specs import model_dict
-    from custom_nc import dumptonc_ts
-    basetime=model_dict[args.m]['basetime']
-    outpath=args.dts
-    filename_ts= model + "_nc_ts.nc"
-    title_ts='collocated time series'
-    dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
+    if args.dts is not None:
+        # dump to nc-file
+        from model_specs import model_dict
+        from custom_nc import dumptonc_ts
+        basetime=model_dict[args.m]['basetime']
+        outpath=args.dts
+        filename_ts= args.m + "_nc_ts.nc"
+        title_ts='collocated time series'
+        dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
 
-if args.dval is not None:
-    # dump to nc-file
-    from model_specs import model_dict
-    from custom_nc import dumptonc_stats
-    basetime=model_dict[args.m]['basetime']
-    outpath=args.dval
-    filename_stat= model + "_nc_val.nc"
-    title_stat='validation file'
-    time_dt = fc_date
-    dumptonc_stats(outpath,filename_stat,title_stat,basetime,time_dt,valid_dict)
+    if args.dval is not None:
+        # dump to nc-file
+        from model_specs import model_dict
+        from custom_nc import dumptonc_stats
+        basetime=model_dict[args.m]['basetime']
+        outpath=args.dval
+        filename_stat= args.m + "_nc_val.nc"
+        title_stat='validation file'
+        time_dt = fc_date
+        dumptonc_stats(outpath,filename_stat,title_stat,basetime,time_dt,valid_dict)
 
-if args.plat is not None:
-    sc_obj = sc(args.plat,sdate,edate)
-    ctime, cidx = matchtime(fc_date,fc_date,sc_obj.time,sc_obj.basedate)
+    if args.plat is not None:
+        sc_obj = sc(args.plat,sdate,edate)
+        ctime, cidx = matchtime(fc_date,fc_date,sc_obj.time,sc_obj.basedate)

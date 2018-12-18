@@ -308,3 +308,17 @@ def marginalize(a,b=None):
         b1=b[idx]
         return a1,b1,idx
 
+def disp_validation(valid_dict):
+    print('\n')
+    print('# ---')
+    print('Validation stats')
+    print('# ---')
+    print('Correlation Coefficient: ' + '{:0.2f}'.format(valid_dict['corr']))
+    print('Root Mean Squared Error: ' + '{:0.2f}'.format(valid_dict['rmsd']))
+    print('Mean Absolute Error: ' + '{:0.2f}'.format(valid_dict['mad']))
+    print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
+    print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
+    print('Mean of Observations: ' + '{:0.2f}'.format(valid_dict['mor']))
+    print('Number of Collocated Values: ' + str(valid_dict['nov']))
+    print('\n')
+    pass

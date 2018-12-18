@@ -39,6 +39,6 @@ else:
 
 start_time = time.time()
 sa_obj = get_remotefiles(satpath_ftp_014_001,satpath_lustre,
-            sdate,edate,timewin=30,corenum=8,download=True)
+            sdate,edate,timewin=30,corenum=4,download=True)
 time1 = time.time() - start_time
 print("Time used for collecting data: ", time1, " seconds")
