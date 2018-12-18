@@ -132,11 +132,11 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     if model == 'mwam4':
         multsix = int(leadtime/6)
         restsix = leadtime%6
-        if (fc_date.hour%6 == 0 and leadtime%6 < 6 and leadtime%6 != 0):
-            sys.exit('error: --> leadtime is not available')
-        elif (fc_date.hour%6 != 0 
-            and leadtime < fc_date.hour%6 + leadtime/6*6):
-            sys.exit('error: --> leadtime is not available')
+        if ((fc_date - timedelta(hours=leadtime)).hour != 0 and 
+            (fc_date - timedelta(hours=leadtime)).hour != 6 and 
+            (fc_date - timedelta(hours=leadtime)).hour !=12 and 
+            (fc_date - timedelta(hours=leadtime)).hour !=18):
+            sys.exit('error: --> leadtime is not available') 
         if leadtime>60:
             sys.exit('error: --> Leadtime must be less than 60')
         if leadtime is None:
@@ -149,10 +149,8 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         multsix = int(leadtime/12)
         restsix = leadtime%12
         dummy_date = fc_date + timedelta(hours=6)
-        if (dummy_date.hour%12 == 0 and leadtime%12 < 12 and leadtime%12 != 0):
-            sys.exit('error: --> leadtime is not available')
-        elif (dummy_date.hour%12 != 0 
-            and leadtime < dummy_date.hour%12 + leadtime/12*12):
+        if ((dummy_date - timedelta(hours=leadtime)).hour != 0 and 
+            (dummy_date - timedelta(hours=leadtime)).hour !=12):
             sys.exit('error: --> leadtime is not available')
         if leadtime>60:
             sys.exit('error: --> Leadtime must be less than 60')
@@ -165,10 +163,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     elif model == 'ARCMFC':
         multsix = int(leadtime/24)
         restsix = leadtime%24
-        if (fc_date.hour%24 == 0 and leadtime%24 < 24 and leadtime%24 != 0):
-            sys.exit('error: --> leadtime is not available')
-        elif (fc_date.hour%24 != 0 
-            and leadtime < fc_date.hour%24 + leadtime/24*24):
+        if ((fc_date - timedelta(hours=leadtime)).hour != 0):
             sys.exit('error: --> leadtime is not available')
         if leadtime>60:
             sys.exit('error: --> Leadtime must be less than 60')

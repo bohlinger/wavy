@@ -107,6 +107,7 @@ else:
 
     if (args.sat == 's3a' and args.m == 'ARCMFC'):
         # get model collocated values
+        check_date(args.m,fc_date=fc_date,leadtime=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
             get_model(simmode="fc",model=args.m,fc_date=fc_date,
             init_date=init_date)
