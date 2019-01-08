@@ -316,6 +316,7 @@ def disp_validation(valid_dict):
     print('Correlation Coefficient: ' + '{:0.2f}'.format(valid_dict['corr']))
     print('Root Mean Squared Error: ' + '{:0.2f}'.format(valid_dict['rmsd']))
     print('Mean Absolute Error: ' + '{:0.2f}'.format(valid_dict['mad']))
+    print('Bias: ' + '{:0.2f}'.format(valid_dict['bias']))
     print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
     print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
     print('Mean of Observations: ' + '{:0.2f}'.format(valid_dict['mor']))

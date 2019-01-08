@@ -56,7 +56,7 @@ else:
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
 
-forecasts = [228]#[12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
+forecasts = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
 
 # settings
 timewin = 30
@@ -88,11 +88,15 @@ while tmpdate <= edate:
             #dtime=get_nc_time(outpath+filename_ts)
             init_date = fc_date - timedelta(hours=element)
             #get_model
-            model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                get_model(simmode="fc",model=model,fc_date=fc_date,
-                init_date=init_date,leadtime=element)
-            #collocation
-            results_dict = collocate(model,model_Hs,model_lats,
-                model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
-            dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
+            try:
+                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                    get_model(simmode="fc",model=model,fc_date=fc_date,
+                    init_date=init_date,leadtime=element)
+                #collocation
+                results_dict = collocate(model,model_Hs,model_lats,
+                    model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
+                dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
+            except ValueError:
+                print('Model wave field not available.')
+                print('Continuing with next time step.')
     tmpdate = tmpdate + timedelta(hours=6)

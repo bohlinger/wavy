@@ -25,13 +25,6 @@ __status__ = "under development with operation ARCMFC branch"
 List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
-# ignore irrelevant warnings from matplotlib for stdout
-import warnings
-warnings.filterwarnings("ignore")
-
-# plotting
-import matplotlib.pyplot as plt
-
 # read files
 from netCDF4 import Dataset
 import netCDF4
@@ -137,6 +130,41 @@ def get_arcmfc_ts(pathtofile):
         mHs = nc.variables['mHs'][:]
         nc.close()
     return dtime,sHs,mHs
+
+def get_arcmfc_stats(pathtofile):
+    import os.path
+    indicator = os.path.isfile(pathtofile)
+    if indicator is False:
+        dtime = False
+        sys.exit('File does not exist')
+    else:
+        nc = netCDF4.Dataset(
+            pathtofile,mode='r',
+            )
+        time_var = nc.variables['time']
+        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        mop = nc.variables['mop'][:]
+        mor = nc.variables['mor'][:]
+        rmsd = nc.variables['rmsd'][:]
+        msd = nc.variables['msd'][:]
+        corr = nc.variables['corr'][:]
+        mad = nc.variables['mad'][:]
+        bias = nc.variables['bias'][:]
+        SI = nc.variables['SI'][:]
+        nov = nc.variables['nov'][:]
+        nc.close()
+        valid_dict = {
+            'mop':mop,
+            'mor':mor,
+            'msd':msd,
+            'nov':nov,
+            'rmsd':rmsd,
+            'msd':msd,
+            'corr':corr,
+            'mad':mad,
+            'bias':bias,
+            'SI':SI}
+    return valid_dict, dtime
 
 def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     """
@@ -285,6 +313,7 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
     mop = np.array(valid_dict['mop'])
     mor = np.array(valid_dict['mor'])
     rmsd = np.array(valid_dict['rmsd'])
+    msd = np.array(valid_dict['msd'])
     corr = np.array(valid_dict['corr'])
     mad = np.array(valid_dict['mad'])
     bias = np.array(valid_dict['bias'])
@@ -300,15 +329,13 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
         # variables
         startidx = len(nc['time'])
         endidx = len(nc['time'])+1
-        #print(time)
-        #startidx = len(nc['time'])-1
         print(startidx)
-        #endidx = len(nc['time'])
         print(endidx)
         nc.variables['time'][startidx:endidx] = time
         nc.variables['mop'][startidx:endidx] = mop
         nc.variables['mor'][startidx:endidx] = mor
         nc.variables['rmsd'][startidx:endidx] = rmsd
+        nc.variables['msd'][startidx:endidx] = msd
         nc.variables['corr'][startidx:endidx] = corr
         nc.variables['mad'][startidx:endidx] = mad
         nc.variables['bias'][startidx:endidx] = bias
@@ -345,6 +372,11 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
                                )
         ncrmsd = nc.createVariable(
                                'rmsd',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncmsd = nc.createVariable(
+                               'msd',
                                np.float64,
                                dimensions=('time')
                                )
@@ -394,6 +426,11 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
         ncrmsd.long_name = 'root mean square deviation'
         ncrmsd.units = 'm'
         ncrmsd[:] = rmsd
+        # msd
+        ncmsd.standard_name = 'msd'
+        ncmsd.long_name = 'mean square deviation'
+        ncmsd.units = 'm^2'
+        ncmsd[:] = msd
         # corr
         nccorr.standard_name = 'corr'
         nccorr.long_name = 'correlation coefficient'
