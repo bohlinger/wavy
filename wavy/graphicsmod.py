@@ -88,7 +88,7 @@ val_fig_lim_dict =  {'SI':[0,30],
                     'corr':[-1,1],
                     'rmsd':[0,1],
                     'mor':[0,10],
-                    'nov':[0,800],
+                    'nov':[0,700],
                     'mop':[0,10],
                     'bias':[-.6,.6],
                     'mad':[0,1]
@@ -141,7 +141,24 @@ def make_val_ts_fig_arcmfc(val_name,ts,dtime,filename_fig):
     plt.tick_params(axis='both', which='major', labelsize=fs)
     plt.ylim([val_fig_lim_dict[val_name][0],val_fig_lim_dict[val_name][1]])
     plt.xlim([sdate,edate])
-    plt.savefig(filename_fig,format='png',dpi=200)
+    plt.savefig(filename_fig,format='png',dpi=100)
+    #plt.show()
+    return
+
+def make_val_scatter_fig_arcmfc(ts_model,ts_obs,filename_fig):
+    fig = plt.figure(figsize=(16*2/3.,9*2/3.))
+    ax = fig.add_subplot(111)
+    fs = 15
+    plt.plot(ts_obs,ts_model,'ko',markersize=5,alpha=.8)
+    lmin=0.
+    #lmax=np.nanmax(list(mHs)+list(sHs))+.5
+    lmax=14
+    plt.plot([lmin, lmax], [lmin,lmax], ls="--", c=".3")
+    plt.ylabel('model',fontsize=fs)
+    plt.xlabel('observations',fontsize=fs)
+    plt.ylim([0,lmax])
+    plt.xlim([0,lmax])
+    plt.savefig(filename_fig,format='png',dpi=100)
     #plt.show()
     return
 

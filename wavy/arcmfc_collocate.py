@@ -15,10 +15,6 @@ from argparse import RawTextHelpFormatter
 from custom_nc import get_nc_time, dumptonc_ts
 from model_specs import model_dict
 
-
-# retrieve PID
-grab_PID()
-
 # parser
 parser = argparse.ArgumentParser(
     description="""
@@ -27,13 +23,10 @@ If file exists, data is appended.
 
 Usage:
 ./arcmfc_collocate.py
-./arcmfc_collocate.py -fc 2018110112
 ./arcmfc_collocate.py -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )
-parser.add_argument("-fc", metavar='fc_date',
-    help="forecast date")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -42,7 +35,6 @@ parser.add_argument("-ed", metavar='enddate',
 args = parser.parse_args()
 
 now = datetime.now()
-#fc_date = datetime(int(args.fc[0:4]),int(args.fc[4:6]),int(args.fc[6:8]),int(args.fc[8:10]))
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
@@ -50,11 +42,13 @@ else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    edate = datetime(now.year,now.month,now.day,now.hour)
+    edate = datetime(now.year,now.month,now.day)-timedelta(hours=1)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+# retrieve PID
+grab_PID()
 
 forecasts = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
 
@@ -96,6 +90,8 @@ while tmpdate <= edate:
                 results_dict = collocate(model,model_Hs,model_lats,
                     model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
                 dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
+            except IOError:
+                print('Model output not available')
             except ValueError:
                 print('Model wave field not available.')
                 print('Continuing with next time step.')
