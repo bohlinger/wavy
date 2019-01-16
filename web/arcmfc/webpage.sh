@@ -1,27 +1,46 @@
 #!/bin/bash
 
+YEAR=`date +%Y`
+MONTH=`date +%m`
 
 # Create graph plots based on validation results:
 
 # image files
-VALpath=/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFigures
-rmseImg=${VALpath}/ARCMFC_fig_val_ts_rmsd_lt012h_201901.png
-madImg=${VALpath}/ARCMFC_fig_val_ts_mad_lt012h_201901.png
-biasImg=${VALpath}/ARCMFC_fig_val_ts_bias_lt012h_201901.png
-corrImg=${VALpath}/ARCMFC_fig_val_ts_corr_lt012h_201901.png
-SIImg=${VALpath}/ARCMFC_fig_val_ts_SI_lt012h_201901.png
-novImg=${VALpath}/ARCMFC_fig_val_ts_nov_lt012h_201901.png
-scatterImg=${VALpath}/ARCMFC_fig_val_scatter_lt012h_201901.png
+Imgpath=/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFigures/${YEAR}/${MONTH}/
+Figtempl=ARCMFC_fig_val_ts
+rmseImg=${Imgpath}${Figtempl}_rmsd_lt012h_${YEAR}${MONTH}.png
+madImg=${Imgpath}${Figtempl}_mad_lt012h_${YEAR}${MONTH}.png
+biasImg=${Imgpath}${Figtempl}_bias_lt012h_${YEAR}${MONTH}.png
+corrImg=${Imgpath}${Figtempl}_corr_lt012h_${YEAR}${MONTH}.png
+SIImg=${Imgpath}${Figtempl}_SI_lt012h_${YEAR}${MONTH}.png
+novImg=${Imgpath}${Figtempl}_nov_lt012h_${YEAR}${MONTH}.png
+scatterImg=${Imgpath}ARCMFC_fig_val_scatter_lt012h_${YEAR}${MONTH}.png
+
+Webpath=/lustre/storeB/project/fou/om/ARCMFC/S3a/WebPage/
+mkdir -p ${Webpath}${YEAR}/${MONTH}/
+cp ${Imgpath}* ${Webpath}${YEAR}/${MONTH}/.
 
 # Create html document:
-htmlFile=index.html
-bname=test
+Imgpath=${YEAR}/${MONTH}/
+Figtempl=ARCMFC_fig_val_ts
+rmseImg=${Imgpath}${Figtempl}_rmsd_lt012h_${YEAR}${MONTH}.png
+madImg=${Imgpath}${Figtempl}_mad_lt012h_${YEAR}${MONTH}.png
+biasImg=${Imgpath}${Figtempl}_bias_lt012h_${YEAR}${MONTH}.png
+corrImg=${Imgpath}${Figtempl}_corr_lt012h_${YEAR}${MONTH}.png
+SIImg=${Imgpath}${Figtempl}_SI_lt012h_${YEAR}${MONTH}.png
+novImg=${Imgpath}${Figtempl}_nov_lt012h_${YEAR}${MONTH}.png
+scatterImg=${Imgpath}ARCMFC_fig_val_scatter_lt012h_${YEAR}${MONTH}.png
+
+htmlFile=${Webpath}index.html
+
+bName='Bulletin date: '`date +%Y-%m-%d`
+echo $bName
 
 cp head1.html ${htmlFile}
 echo '<title>'${bName}'</title>'       >> ${htmlFile}
 cat head2.html                         >> ${htmlFile}
 
-#echo '<h2>Results for '${bName}'</h2>' >> ${htmlFile}
+echo '<h2>Results for '${bName}'</h2>' >> ${htmlFile}
 
 echo '<table><tr><td>'                 >> ${htmlFile}
 #echo 'Time series of root mean square error' >> ${htmlFile}

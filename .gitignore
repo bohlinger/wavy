@@ -3,4 +3,6 @@
 *.png
 *.pdf
 *.log
+*.out
+*.html
 outpath

@@ -63,7 +63,7 @@ filestr=('product_quality_stats_ARCTIC_ANALYSIS_FORECAST_WAV_002_006_'
         + str(monthrange(now.year, now.month)[1]) + '.nc')
 
 # cp original validation file to new file that can be changed
-filestr_new = pathstr + filestr + ".test"
+filestr_new = pathstr + filestr + ".test_new"
 os.system("cp " + pathstr + filestr + " " + filestr_new)
 
 nc = Dataset(pathstr + filestr , 'r')
@@ -97,58 +97,31 @@ while (tmp_date <= end_date):
     dictlst = []
     excepts = []
     count2 = 0
-    for element in init_dates:
+#    for element in init_dates:
+    for element in forecasts:
         print ("Validation for init_date: " 
-        + str(element) 
+        #+ str(element) 
+        + str(fc_date - timedelta(hours=element)) 
         + "\n" 
         + " and fc_date: " 
         + str(fc_date))
-        try:
-            init_date = element
-            start_time = time.time()
-            # ---
-            # Get stats ts
-            inpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
-            filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
+        init_date = fc_date - timedelta(hours=element)
+        # ---
+        # Get stats ts
+        inpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+        filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
-            valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
-            # ---
+        valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
+        try:
+            idx = list(dtime).index(fc_date)
             dictlst.append(valid_dict)
-            if np.isnan(valid_dict['msd']):
-                print ("msd is np.nan --> no values in range")
-                print ("For init_date: ", init_date)
-                print ("and fc_date: ", fc_date)
-                M[count1,count2,0,3,0]=0
-                excepts.append([fc_date,init_date])
-                dictlst.append(9999.)
-            else:
-                dictnames=['mop','mor','msd','nov']
-                for i in range(len(dictnames)):
-                    M[count1,count2,0,i,0]=valid_dict[dictnames[i]]
-            count2=count2+1
-        except IOError as error:
-            #print "No pass for date: ", str(init_date)
-            print (error, " for date: ", str(init_date))
-            print ("!!! Model run missing !!!")
-            excepts.append([fc_date,init_date])
-            dictlst.append(9999.)
-            M[count1,count2,0,3,0]=0
-            count2=count2+1
-        except IndexError as error:
-            print (error, " for date: ", str(init_date))
-            print ("!!! No Sentinel pass !!!")
-            excepts.append([fc_date,init_date])
-            dictlst.append(9999.)
-            M[count1,count2,0,3,0]=0
-            count2=count2+1
-        except ValueError as error:
-            print (error, " for date: ", str(init_date))
-            print ("!!! Date not in model file !!!")
-            excepts.append([fc_date,init_date])
-            dictlst.append(9999.)
-            M[count1,count2,0,3,0]=0
-            count2=count2+1
+            dictnames=['mop','mor','msd','nov']
+            for i in range(len(dictnames)):
+                M[count1,count2,0,i,0]=valid_dict[dictnames[i]][idx]
+        except ValueError:
+            pass
+        count2=count2+1
     count1=count1+1
     dictlst_all.append(dictlst)
     excepts_all.append(excepts)
@@ -156,28 +129,28 @@ while (tmp_date <= end_date):
 loop_time = time.time() - loop_time_start
 print ("Seconds needed for entire loop: ", loop_time)
 
-#print ("\nAppending results to existing netcdf validation file ...")
-#
-#nc = Dataset(filestr_new, 'r+')
-#nc.renameVariable('stats_VHM0','stats_VHM0_platform')
-#nc_stats_VHM0_altimeter = nc.createVariable(
-#                        'stats_VHM0_altimeter',
-#                        np.float64,
-#                        dimensions=('time',
-#                        'forecasts',
-#                        'surface',
-#                        'metrics',
-#                        'areas',),
-#                        fill_value=9999.)
-#nc_stats_VHM0_altimeter[:] = M
-#nc_stats_VHM0_altimeter.standard_name = \
-#                        "sea_surface_wave_significant_height"
-#nc_stats_VHM0_altimeter.parameter = "stats_VHM0_altimeter"
-#nc_stats_VHM0_altimeter.units = "m"
-#nc_stats_VHM0_altimeter.reference = \
-#                        "wave data from Sentinel-3a altimeter"
-#nc_stats_VHM0_altimeter.reference_source = \
-#                        "WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001"
-#nc.close()
-#print ("Data appended")
-#print ("### VALIDATION FINISHED ###")
+print ("\nAppending results to existing netcdf validation file ...")
+
+nc = Dataset(filestr_new, 'r+')
+nc.renameVariable('stats_VHM0','stats_VHM0_platform')
+nc_stats_VHM0_altimeter = nc.createVariable(
+                        'stats_VHM0_altimeter',
+                        np.float64,
+                        dimensions=('time',
+                        'forecasts',
+                        'surface',
+                        'metrics',
+                        'areas',),
+                        fill_value=9999.)
+nc_stats_VHM0_altimeter[:] = M
+nc_stats_VHM0_altimeter.standard_name = \
+                        "sea_surface_wave_significant_height"
+nc_stats_VHM0_altimeter.parameter = "stats_VHM0_altimeter"
+nc_stats_VHM0_altimeter.units = "m"
+nc_stats_VHM0_altimeter.reference = \
+                        "wave data from Sentinel-3a altimeter"
+nc_stats_VHM0_altimeter.reference_source = \
+                        "WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001"
+nc.close()
+print ("Data appended")
+print ("### VALIDATION FINISHED ###")

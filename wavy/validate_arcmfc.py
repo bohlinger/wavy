@@ -65,7 +65,7 @@ filestr=('product_quality_stats_ARCTIC_ANALYSIS_FORECAST_WAV_002_006_'
         + str(monthrange(now.year, now.month)[1]) + '.nc')
 
 # cp original validation file to new file that can be changed
-filestr_new = pathstr + filestr + ".test"
+filestr_new = pathstr + filestr + ".test_old"
 os.system("cp " + pathstr + filestr + " " + filestr_new)
 
 nc = Dataset(pathstr + filestr , 'r')

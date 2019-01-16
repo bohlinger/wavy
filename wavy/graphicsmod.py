@@ -19,6 +19,10 @@ __status__ = "under development with operation ARCMFC branch"
 List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
+# control backend
+import matplotlib
+matplotlib.use('Agg')
+
 # progress bar and other stuff
 import sys
 
@@ -83,7 +87,7 @@ def add_colorbar(im, aspect=20, pad_fraction=0.5, **kwargs):
     plt.sca(current_ax)
     return im.axes.figure.colorbar(im, cax=cax, **kwargs)
 
-val_fig_lim_dict =  {'SI':[0,30],
+val_fig_lim_dict =  {'SI':[0,50],
                     'msd':[0,1],
                     'corr':[-1,1],
                     'rmsd':[0,1],
@@ -136,12 +140,13 @@ def make_val_ts_fig_arcmfc(val_name,ts,dtime,filename_fig):
     plt.ylabel(val_fig_varname_dict[val_name],fontsize=fs)
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=2))
     plt.gca().xaxis.set_minor_locator(mdates.DayLocator(interval=1))
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     plt.gcf().autofmt_xdate()
     plt.tick_params(axis='both', which='major', labelsize=fs)
     plt.ylim([val_fig_lim_dict[val_name][0],val_fig_lim_dict[val_name][1]])
     plt.xlim([sdate,edate])
-    plt.savefig(filename_fig,format='png',dpi=100)
+    plt.tight_layout()
+    plt.savefig(filename_fig,format='png',dpi=50)
     #plt.show()
     return
 
@@ -158,7 +163,8 @@ def make_val_scatter_fig_arcmfc(ts_model,ts_obs,filename_fig):
     plt.xlabel('observations',fontsize=fs)
     plt.ylim([0,lmax])
     plt.xlim([0,lmax])
-    plt.savefig(filename_fig,format='png',dpi=100)
+    plt.tight_layout()
+    plt.savefig(filename_fig,format='png',dpi=50)
     #plt.show()
     return
 
