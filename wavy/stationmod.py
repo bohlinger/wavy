@@ -87,8 +87,7 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 class station_class():
     '''
-    class to handle netcdf files containing satellite altimeter derived
-    level 3 data i.e. Hs[time], lat[time], lon[time] 
+    class to handle station files on  Hs[time], lat[time], lon[time] 
     This class offers the following added functionality:
      - get the closest time stamp(s)
      - get Hs value for this time
@@ -144,6 +143,55 @@ class station_class():
         elif mode == 'd22':
             print ("no d22 fileformat included yet")
         return hs, hs_obs, time, timedt
+
+def read_Tennholmen(date):
+    from buoy_specs import buoy_dict
+    url=date.strftime(buoy_dict['Tennholmen']['url_template'])
+    filename=date.strftime(buoy_dict['Tennholmen']['file_template'])
+    basetime=buoy_dict['Tennholmen']['basetime']
+    tmpdir = 'tmp_Tennholmen/'
+    t=os.system('mkdir -p ' + tmpdir)
+    t=os.system('wget ' + url + filename + ' -P ' + tmpdir)
+    time_s, Hs, Tm0 = np.loadtxt(tmpdir + filename, skiprows=1, \
+                            usecols=(buoy_dict['Tennholmen']['time'],
+                                     buoy_dict['Tennholmen']['Hs'],
+                                     buoy_dict['Tennholmen']['Tm0']), 
+                            unpack=True)
+    time_dt = [basetime + timedelta(seconds=time_s[i]) \
+                for i in range(len(time_s))]
+    print('cleaning up ...')
+    t=os.system('rm -r tmp_Tennholmen')
+    return time_s, time_dt, Hs, Tm0
+    
+def get_buoy(sdate,edate,buoyname=None,mode=None):
+    if (sdate.month == edate.month and sdate.year == edate.year):
+        time_s, time_dt, Hs, Tm0 = read_Tennholmen(sdate)
+        sidx=time_dt.index(sdate)
+        eidx=time_dt.index(edate) + 1
+        time_dt_lst = time_dt[sidx:eidx]
+        Hs_lst = time_dt[sidx:eidx]
+        Tm0_lst = time_dt[sidx:eidx]
+    else:
+        tmpdate = deepcopy(sdate)
+        time_dt_lst = []
+        Hs_lst = []
+        Tm0_lst = []
+        while tmpdate <= edate:
+            time_s, time_dt, Hs, Tm0 = read_Tennholmen(tmpdate)
+            time_dt_lst.append(time_dt)
+            Hs_lst.append(Hs)
+            Tm0_lst.append(Tm0)
+            tmpdate = tmpdate + relativedelta(months = +1)
+        del tmpdate
+        time_dt_lst = flatten(time_dt_lst)
+        Hs_lst = flatten(Hs_lst)
+        Tm0_lst = flatten(Tm0_lst)
+        sidx=time_dt_lst.index(sdate)
+        eidx=time_dt_lst.index(edate) + 1
+        time_dt_lst = time_dt_lst[sidx:eidx]
+        Hs_lst = Hs_lst[sidx:eidx]
+        Tm0_lst = Tm0_lst[sidx:eidx]
+    return time_dt_lst, Hs_lst, Tm0_lst
 
 def parse_d22(statname,sdate,edate):
     # Read all lines in file and append to searchlines

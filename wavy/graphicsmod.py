@@ -127,7 +127,7 @@ val_fig_varname_dict =  {'SI':'scatter index',
 #    return fig
 
 def make_val_ts_fig_arcmfc(val_name,ts,dtime,filename_fig):
-    fig = plt.figure(figsize=(20,5))
+    fig = plt.figure(figsize=(15,5))
     ax = fig.add_subplot(111)
     fs = 14
     days_in_month = calendar.monthrange(dtime[0].year,dtime[0].month)[1]
