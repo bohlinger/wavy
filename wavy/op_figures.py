@@ -5,7 +5,7 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 import os
 from datetime import datetime, timedelta
 from copy import deepcopy
-from graphicsmod import make_val_ts_fig_arcmfc, make_val_scatter_fig_arcmfc
+from graphicsmod import make_val_ts_fig_op, make_val_scatter_fig_op
 from custom_nc import get_arcmfc_stats, get_arcmfc_ts
 import argparse
 from argparse import RawTextHelpFormatter
@@ -53,7 +53,7 @@ for element in forecasts:
                                 + "_lt{:0>3d}".format(element)
                                 + "h_%Y%m.png")
         ts = valid_dict[val_name]
-        make_val_ts_fig_arcmfc(val_name,ts,dtime,filename_fig)
+        make_val_ts_fig_op(val_name,ts,dtime,filename_fig)
 
     # Get collocation ts
     inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
@@ -68,7 +68,7 @@ for element in forecasts:
     filename_fig = fc_date.strftime(model + "_fig_val_scatter"
                             + "_lt{:0>3d}".format(element)
                             + "h_%Y%m.png")
-    make_val_scatter_fig_arcmfc(mHs,sHs,filename_fig)
+    make_val_scatter_fig_op(mHs,sHs,filename_fig)
     outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
          + model
          + '/ValidationFigures/')

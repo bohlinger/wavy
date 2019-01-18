@@ -87,15 +87,15 @@ def add_colorbar(im, aspect=20, pad_fraction=0.5, **kwargs):
     plt.sca(current_ax)
     return im.axes.figure.colorbar(im, cax=cax, **kwargs)
 
-val_fig_lim_dict =  {'SI':[0,50],
-                    'msd':[0,1],
+val_fig_lim_dict =  {'SI':[0,60],
+                    'msd':[0,1.5],
                     'corr':[-1,1],
-                    'rmsd':[0,1],
+                    'rmsd':[0,1.5],
                     'mor':[0,10],
                     'nov':[0,700],
                     'mop':[0,10],
-                    'bias':[-.6,.6],
-                    'mad':[0,1]
+                    'bias':[-1,1],
+                    'mad':[0,1.5]
                     }
 val_fig_varname_dict =  {'SI':'scatter index',
                          'msd':'mean square error',
@@ -126,9 +126,41 @@ val_fig_varname_dict =  {'SI':'scatter index',
 #    #plt.show()
 #    return fig
 
-def make_val_ts_fig_arcmfc(val_name,ts,dtime,filename_fig):
+def make_val_ts_fig_arcmfc(val_name,ts_lst,dtime_lst,filename_fig,forecasts):
     fig = plt.figure(figsize=(15,5))
     ax = fig.add_subplot(111)
+    fs = 14
+    days_in_month = calendar.monthrange(dtime_lst[0][0].year,dtime_lst[0][0].month)[1]
+    sdate = datetime(dtime_lst[0][0].year,dtime_lst[0][0].month,1)
+    edate = datetime(dtime_lst[0][0].year,dtime_lst[0][0].month,days_in_month,23)
+    ax.plot([sdate,edate],[np.zeros(len(dtime_lst[0])),np.zeros(len(dtime_lst[0]))],
+        color='lightgray', linestyle='-',lw=1)
+    pltcolors = ['k','skyblue','orange']
+    pltlw = [2,2,2]
+    pltms = [5,3,3]
+    for i in range(len(forecasts)):
+        ax.plot(dtime_lst[i],ts_lst[i],linestyle='-',
+                color=pltcolors[i],lw=pltlw[i])
+        ax.plot(dtime_lst[i],ts_lst[i],'o',markersize=pltms[i],
+                color=pltcolors[i],label=str(forecasts[i]) + "h")
+    plt.ylabel(val_fig_varname_dict[val_name],fontsize=fs)
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=2))
+    plt.gca().xaxis.set_minor_locator(mdates.DayLocator(interval=1))
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.gcf().autofmt_xdate()
+    plt.tick_params(axis='both', which='major', labelsize=fs)
+    plt.ylim([val_fig_lim_dict[val_name][0],val_fig_lim_dict[val_name][1]])
+    plt.xlim([sdate,edate])
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig(filename_fig,format='png',dpi=50)
+    #plt.show()
+    return
+
+def make_val_ts_fig_op(val_name,ts,dtime,filename_fig):
+    if fig is None:
+        fig = plt.figure(figsize=(15,5))
+        ax = fig.add_subplot(111)
     fs = 14
     days_in_month = calendar.monthrange(dtime[0].year,dtime[0].month)[1]
     sdate = datetime(dtime[0].year,dtime[0].month,1)
@@ -150,7 +182,38 @@ def make_val_ts_fig_arcmfc(val_name,ts,dtime,filename_fig):
     #plt.show()
     return
 
-def make_val_scatter_fig_arcmfc(ts_model,ts_obs,filename_fig):
+def make_val_scatter_fig_arcmfc(ts_model_lst,ts_obs_lst,
+                                filename_fig,forecasts,i):
+    #fig = plt.figure(figsize=(16*2/3.,9*2/3.))
+    fig = plt.figure(figsize=(4*1.25,3*1.25))
+    ax = fig.add_subplot(111)
+    fs = 15
+    pltcolors = ['k','skyblue','orange']
+#    pltms = [4,2,2]
+#    for i in range(len(forecasts)):
+#        plt.plot(ts_obs_lst[i],ts_model_lst[i],'o',markersize=pltms[i],
+#                color=pltcolors[i],alpha=.8,
+#                markeredgecolor=pltcolors[i],
+#                label=str(forecasts[i]) + 'h')
+    plt.plot(ts_obs_lst,ts_model_lst,'o',markersize=5,
+            color=pltcolors[i],alpha=.8,
+            markeredgecolor=pltcolors[0],
+            label=str(forecasts[i]) + 'h')
+    lmin=0.
+    #lmax=np.nanmax(list(mHs)+list(sHs))+.5
+    lmax=14
+    plt.plot([lmin, lmax], [lmin,lmax], ls="--", c=".3")
+    plt.ylabel('model',fontsize=fs)
+    plt.xlabel('observations',fontsize=fs)
+    plt.ylim([0,lmax])
+    plt.xlim([0,lmax])
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig(filename_fig,format='png',dpi=50)
+    #plt.show()
+    return
+
+def make_val_scatter_fig_op(ts_model,ts_obs,filename_fig):
     fig = plt.figure(figsize=(16*2/3.,9*2/3.))
     ax = fig.add_subplot(111)
     fs = 15

@@ -152,46 +152,51 @@ def read_Tennholmen(date):
     tmpdir = 'tmp_Tennholmen/'
     t=os.system('mkdir -p ' + tmpdir)
     t=os.system('wget ' + url + filename + ' -P ' + tmpdir)
-    time_s, Hs, Tm0 = np.loadtxt(tmpdir + filename, skiprows=1, \
+    time_s, Hm0, Tm02 = np.loadtxt(tmpdir + filename, skiprows=1, \
                             usecols=(buoy_dict['Tennholmen']['time'],
-                                     buoy_dict['Tennholmen']['Hs'],
-                                     buoy_dict['Tennholmen']['Tm0']), 
+                                     buoy_dict['Tennholmen']['Hm0'],
+                                     buoy_dict['Tennholmen']['Tm02']), 
                             unpack=True)
     time_dt = [basetime + timedelta(seconds=time_s[i]) \
                 for i in range(len(time_s))]
     print('cleaning up ...')
     t=os.system('rm -r tmp_Tennholmen')
-    return time_s, time_dt, Hs, Tm0
+    return time_s, time_dt, Hm0, Tm02
     
 def get_buoy(sdate,edate,buoyname=None,mode=None):
     if (sdate.month == edate.month and sdate.year == edate.year):
-        time_s, time_dt, Hs, Tm0 = read_Tennholmen(sdate)
+        time_s, time_dt, Hm0, Tm02 = read_Tennholmen(sdate)
         sidx=time_dt.index(sdate)
         eidx=time_dt.index(edate) + 1
+        time_s_lst = time_s[sidx:eidx]
         time_dt_lst = time_dt[sidx:eidx]
-        Hs_lst = time_dt[sidx:eidx]
-        Tm0_lst = time_dt[sidx:eidx]
+        Hm0_lst = Hm0[sidx:eidx]
+        Tm02_lst = Tm02[sidx:eidx]
     else:
         tmpdate = deepcopy(sdate)
+        time_s_lst = []
         time_dt_lst = []
-        Hs_lst = []
-        Tm0_lst = []
+        Hm0_lst = []
+        Tm02_lst = []
         while tmpdate <= edate:
-            time_s, time_dt, Hs, Tm0 = read_Tennholmen(tmpdate)
+            time_s, time_dt, Hm0, Tm02 = read_Tennholmen(tmpdate)
+            time_s_lst.append(time_s)
             time_dt_lst.append(time_dt)
-            Hs_lst.append(Hs)
-            Tm0_lst.append(Tm0)
+            Hm0_lst.append(Hm0)
+            Tm02_lst.append(Tm02)
             tmpdate = tmpdate + relativedelta(months = +1)
         del tmpdate
+        time_s_lst = flatten(time_s_lst)
         time_dt_lst = flatten(time_dt_lst)
-        Hs_lst = flatten(Hs_lst)
-        Tm0_lst = flatten(Tm0_lst)
+        Hm0_lst = flatten(Hm0_lst)
+        Tm02_lst = flatten(Tm02_lst)
         sidx=time_dt_lst.index(sdate)
         eidx=time_dt_lst.index(edate) + 1
+        time_s_lst = time_s_lst[sidx:eidx]
         time_dt_lst = time_dt_lst[sidx:eidx]
-        Hs_lst = Hs_lst[sidx:eidx]
-        Tm0_lst = Tm0_lst[sidx:eidx]
-    return time_dt_lst, Hs_lst, Tm0_lst
+        Hm0_lst = Hm0_lst[sidx:eidx]
+        Tm02_lst = Tm02_lst[sidx:eidx]
+    return time_s_lst, time_dt_lst, Hm0_lst, Tm02_lst
 
 def parse_d22(statname,sdate,edate):
     # Read all lines in file and append to searchlines

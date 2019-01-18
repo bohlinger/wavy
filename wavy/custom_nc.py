@@ -302,6 +302,98 @@ def dumptonc_ts(outpath,filename,title,basetime,results_dict):
         ncdists[:] = dists
     nc.close()
 
+def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time_dt = obs_dict['time_dt']
+    time = obs_dict['time_s']
+    Hm0 = obs_dict['Hm0']
+    Tm02 = obs_dict['Tm02']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hm0'][startidx:endidx] = Hm0[:]
+        nc.variables['Tm02'][startidx:endidx] = Tm02[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = "Tennholmen"
+        nc.buoy_type = "Directional Waverider DWR MkIII"
+        nc.buoy_specs = "http://www.datawell.nl/products/buoys.aspx"
+        nc.buoy_manufacturer = "Datawell"
+        nc.netcdf_version = "4"
+        nc.data_owner = ("Norwegian Coastal Administration, " 
+                        + "Institute of Marine Research, "
+                        + "and Norwegian Meteorological Institute")
+        nc.licence = ("Data and products are licensed under Norwegian" 
+                    + "license for public data (NLOD) and " 
+                    + "Creative Commons Attribution 3.0 Norway. "
+                    + "See https://www.met.no/en/"
+                    + "free-meteorological-data/Licensing-and-crediting")
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHm0 = nc.createVariable(
+                               'Hm0',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        ncTm02 = nc.createVariable(
+                               'Tm02',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+#        time.comment = "hourly values" ;
+        nctime[:] = time
+        # Hm0
+        ncHm0.standard_name = 'sea_surface_wave_significant_height'
+        ncHm0.long_name = 'Significant wave height estimate from spectrum'
+        ncHm0.units = 'm'
+        ncHm0.valid_range = 0., 25.
+        ncHm0[:] = Hm0
+        # Tm02
+        ncTm02.standard_name = ('sea_surface_wave_mean_period'
+                                + '_from_variance_spectral_density'
+                                + '_second_frequency_moment')
+        ncTm02.long_name = ('Mean wave period estimated from 0th' 
+                            + 'and 2nd moment of spectrum')
+        ncTm02.units = 's'
+        ncTm02.valid_range = 0., 30.
+        ncTm02[:] = Tm02
+    nc.close()
+
 def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
     """
     1. check if nc file already exists
