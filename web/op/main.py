@@ -10,14 +10,14 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 import subprocess
 import os
-cmd = 'python /home/patrikb/wavy/wavy/op_collocate.py -m mwam4 -sd 2019010100 -ed 2019012023'
-#cmd = 'python /home/patrikb/wavy/wavy/op_collocate.py -m mwam4'
+#cmd = 'python /home/patrikb/wavy/wavy/op/op_collocate.py -m mwam4 -sd 2019010100 -ed 2019012023'
+cmd = 'python /home/patrikb/wavy/wavy/op/op_collocate.py -m mwam4'
 t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/wavy/op_validate.py -m mwam4 -sd 2019010100 -ed 2019012023'
-#cmd = 'python /home/patrikb/wavy/wavy/op_validate.py -m mwam4'
+#cmd = 'python /home/patrikb/wavy/wavy/op/op_validate.py -m mwam4 -sd 2019010100 -ed 2019012023'
+cmd = 'python /home/patrikb/wavy/wavy/op/op_validate.py -m mwam4'
 t = os.system(cmd)
 
-cmd = 'python /home/patrikb/wavy/wavy/op_figures.py'
+cmd = 'python /home/patrikb/wavy/wavy/op/op_figures.py'
 t = os.system(cmd)
 
 cmd = 'sh /home/patrikb/wavy/web/op/webpage.sh'
