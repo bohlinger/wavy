@@ -37,6 +37,9 @@ import argparse
 from argparse import RawTextHelpFormatter
 import os
 
+# specs
+from buoy_specs import buoy_dict
+
 # progress bar
 import sys
 
@@ -165,6 +168,26 @@ def get_arcmfc_stats(pathtofile):
             'bias':bias,
             'SI':SI}
     return valid_dict, dtime
+
+def get_nc_ts(pathtofile,varlst):
+    import os.path
+    indicator = os.path.isfile(pathtofile)
+    if indicator is False:
+        dtime = False
+        sys.exit('File does not exist')
+    else:
+        vardict = {}
+        for name in varlst:
+            nc = netCDF4.Dataset(
+                pathtofile,mode='r',
+                )
+            var = nc.variables[name][:]
+            vardict[name]=var
+        time_var = nc.variables['time']
+        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        vardict['dtime']=dtime
+        nc.close()
+    return vardict
 
 def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     """
@@ -312,6 +335,8 @@ def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
     time = obs_dict['time_s']
     Hm0 = obs_dict['Hm0']
     Tm02 = obs_dict['Tm02']
+    lons = obs_dict['lons']
+    lats = obs_dict['lats']
     fullpath = outpath + filename
     print ('Dump data to file: ' + fullpath)
     if os.path.isfile(fullpath):
@@ -325,6 +350,8 @@ def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
         nc.variables['time'][startidx:endidx] = time[:]
         nc.variables['Hm0'][startidx:endidx] = Hm0[:]
         nc.variables['Tm02'][startidx:endidx] = Tm02[:]
+        nc.variables['longitude'][startidx:endidx] = lons[:]
+        nc.variables['latitude'][startidx:endidx] = lats[:]
     else:
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
@@ -370,6 +397,16 @@ def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
                                dimensions=('time'),
                                fill_value=9999.,
                                )
+        nclons = nc.createVariable(
+                               'longitude',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        nclats = nc.createVariable(
+                               'latitude',
+                               np.float64,
+                               dimensions=('time'),
+                               )
         # generate time for netcdf file
         # time
         nctime.standard_name = 'time'
@@ -392,6 +429,190 @@ def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
         ncTm02.units = 's'
         ncTm02.valid_range = 0., 30.
         ncTm02[:] = Tm02
+        # lons
+        nclons.standard_name = ('longitude')
+        nclons.units = 'degree_east'
+        nclons.valid_min = -180.
+        nclons.valid_max = 180.
+        nclons[:] = lons
+        # lats
+        nclats.standard_name = ('latitude')
+        nclats.units = 'degree_north'
+        nclats.valid_min = -90.
+        nclats.valid_max = 90.
+        nclats[:] = lats
+    nc.close()
+
+def dumptonc_coll_ts_Tennholmen(outpath,filename,title,basetime,obs_dict,model):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = obs_dict['time']
+    Hm0_model = obs_dict['Hm0_model']
+#    Tm02 = obs_dict['Tm02']
+    lons_model = obs_dict['lons_model']
+    lats_model = obs_dict['lats_model']
+    Hm0_buoy = obs_dict['Hm0_buoy']
+    lons_buoy = obs_dict['lons_buoy']
+    lats_buoy = obs_dict['lats_buoy']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hm0_model'][startidx:endidx] = Hm0_model[:]
+#        nc.variables['Tm02'][startidx:endidx] = Tm02[:]
+        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
+        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
+        nc.variables['Hm0_buoy'][startidx:endidx] = Hm0_buoy[:]
+        nc.variables['longitude_buoy'][startidx:endidx] = lons_buoy[:]
+        nc.variables['latitude_buoy'][startidx:endidx] = lats_buoy[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = "Tennholmen"
+        nc.buoy_type = "Directional Waverider DWR MkIII"
+        nc.buoy_specs = "http://www.datawell.nl/products/buoys.aspx"
+        nc.buoy_manufacturer = "Datawell"
+        nc.netcdf_version = "4"
+        nc.data_owner = ("Norwegian Coastal Administration, "
+                        + "Institute of Marine Research, "
+                        + "and Norwegian Meteorological Institute")
+        nc.licence = ("Data and products are licensed under Norwegian"
+                    + "license for public data (NLOD) and "
+                    + "Creative Commons Attribution 3.0 Norway. "
+                    + "See https://www.met.no/en/"
+                    + "free-meteorological-data/Licensing-and-crediting")
+#        nc.processing_level = "Missing data has been filled with fillValue."
+#        nc.processing_level = "No imputation for missing values."
+        nc.static_position =  ("Latitude: "
+                            + str(buoy_dict['Tennholmen']['lat']) 
+                            + ", Longitude: " 
+                            + str(buoy_dict['Tennholmen']['lon']))
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHm0_model = nc.createVariable(
+                               'Hm0_model',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=-999.,
+                               )
+#        ncTm02 = nc.createVariable(
+#                               'Tm02',
+#                               np.float64,
+#                               dimensions=('time'),
+#                               fill_value=9999.,
+#                               )
+        nclons_model = nc.createVariable(
+                               'longitude_model',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        nclats_model = nc.createVariable(
+                               'latitude_model',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncHm0_buoy = nc.createVariable(
+                               'Hm0_buoy',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        nclons_buoy = nc.createVariable(
+                               'longitude_buoy',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        nclats_buoy = nc.createVariable(
+                               'latitude_buoy',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+        nctime[:] = time
+        # Hm0_model
+        ncHm0_model.standard_name = (
+                          'sea_surface_wave_significant_height '\
+                        + 'from wave model'
+                                    )
+        ncHm0_model.long_name = ( 
+                          'Significant wave height estimate '\
+                        + 'from spectrum from wave model'
+                                )
+        ncHm0_model.units = 'm'
+        ncHm0_model.valid_range = 0., 25.
+        ncHm0_model[:] = Hm0_model
+#        # Tm02
+#        ncTm02.standard_name = ('sea_surface_wave_mean_period'
+#                                + '_from_variance_spectral_density'
+#                                + '_second_frequency_moment')
+#        ncTm02.long_name = ('Mean wave period estimated from 0th'
+#                            + 'and 2nd moment of spectrum')
+#        ncTm02.units = 's'
+#        ncTm02.valid_range = 0., 30.
+#        ncTm02[:] = Tm02
+        # lons_model
+        nclons_model.standard_name = ('longitude_model')
+        nclons_model.units = 'degree_east'
+        nclons_model.valid_min = -180.
+        nclons_model.valid_max = 180.
+        nclons_model[:] = lons_model
+        # lats_model
+        nclats_model.standard_name = ('latitude_model')
+        nclats_model.units = 'degree_north'
+        nclats_model.valid_min = -90.
+        nclats_model.valid_max = 90.
+        nclats_model[:] = lats_model
+        # Hm0_buoy
+        ncHm0_buoy.standard_name = (
+                          'sea_surface_wave_significant_height '\
+                        + 'from buoy'
+                                    )
+        ncHm0_buoy.long_name = ( 'Significant wave height estimate'\
+                                + 'from spectrum from buoy')
+        ncHm0_buoy.units = 'm'
+        ncHm0_buoy.valid_range = 0., 25.
+        ncHm0_buoy[:] = Hm0_buoy
+        # lons_buoy
+        nclons_buoy.standard_name = ('longitude_buoy')
+        nclons_buoy.units = 'degree_east'
+        nclons_buoy.valid_min = -180.
+        nclons_buoy.valid_max = 180.
+        nclons_buoy[:] = lons_buoy
+        # lats_buoy
+        nclats_buoy.standard_name = ('latitude_buoy')
+        nclats_buoy.units = 'degree_north'
+        nclats_buoy.valid_min = -90.
+        nclats_buoy.valid_max = 90.
+        nclats_buoy[:] = lats_buoy
     nc.close()
 
 def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):

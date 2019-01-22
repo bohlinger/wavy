@@ -38,7 +38,7 @@ args = parser.parse_args()
 now = datetime.now()
 
 if args.m is None:
-    sdate = 'mwam4'
+    model = 'mwam4'
 else:
     model = args.m
 
@@ -61,11 +61,11 @@ leadtimes = [0, 6, 12, 18, 24]
 # settings
 timewin = 30
 distlim = 6
-region = args.m
-#model = args.m
-outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/' 
-           + args.m 
-           + '/CollocationFiles/')
+region = model
+outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + model
+           + '/S3a/'
+           + 'CollocationFiles/')
 
 tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
@@ -84,11 +84,10 @@ while tmpdate <= edate:
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
             title_ts=('collocated time series for model '
-                    + args.m
+                    + model
                     + ' with leadtime '
                     + "{:0>3d}".format(element)
                     + ' h')
-            #dtime=get_nc_time(outpath+filename_ts)
             init_date = fc_date - timedelta(hours=element)
             #get_model
             try:
@@ -98,7 +97,8 @@ while tmpdate <= edate:
                 #collocation
                 results_dict = collocate(model,model_Hs,model_lats,
                     model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
-                dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
+                dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
+                            filename_ts,title_ts,basetime,results_dict)
             except IOError:
                 print('Model output not available')
             except ValueError:

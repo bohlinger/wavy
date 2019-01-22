@@ -38,9 +38,15 @@ forecasts = [0]
 
 for element in forecasts:
     # Get stats ts
-    inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
-         + model
-         + '/ValidationFiles/')
+#    inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
+#         + model
+#         + '/ValidationFiles/'
+#         + fc_date.strftime('%Y/%m/'))
+    inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+                + model
+                + '/S3a/'
+                + 'ValidationFiles/'
+                + fc_date.strftime('%Y/%m/'))
     filename_stats = fc_date.strftime(model + "_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
@@ -56,9 +62,15 @@ for element in forecasts:
         make_val_ts_fig_op(val_name,ts,dtime,filename_fig)
 
     # Get collocation ts
-    inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
-         + model
-         + '/CollocationFiles/')
+#    inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
+#         + model
+#         + '/CollocationFiles/'
+#         + fc_date.strftime('%Y/%m/'))
+    inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+            + model
+            + '/S3a/'
+            + 'CollocationFiles/'
+            + fc_date.strftime('%Y/%m/'))
     filename_coll = fc_date.strftime(model + "_coll_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
@@ -69,8 +81,16 @@ for element in forecasts:
                             + "_lt{:0>3d}".format(element)
                             + "h_%Y%m.png")
     make_val_scatter_fig_op(mHs,sHs,filename_fig)
-    outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
-         + model
-         + '/ValidationFigures/')
+#    outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
+#         + model
+#         + '/ValidationFigures/'
+#         + fc_date.strftime('%Y/%m/'))
+    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + model
+           + '/S3a/'
+           + 'ValidationFigures/'
+           + fc_date.strftime('%Y/%m/'))
+    cmd = 'mkdir -p ' + outpath
+    os.system(cmd)
     cmd = 'mv ' + model + '_fig_val*.png ' + outpath
     os.system(cmd)

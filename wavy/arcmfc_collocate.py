@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime, get_model
-from modelmod import get_model, collocate
+from modelmod import get_model, collocate, check_date
 from satmod import validate
 from copy import deepcopy
 from utils import grab_PID
@@ -83,6 +83,7 @@ while tmpdate <= edate:
             init_date = fc_date - timedelta(hours=element)
             #get_model
             try:
+#                check_date(model,fc_date=fc_date,leadtime=element)
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc",model=model,fc_date=fc_date,
                     init_date=init_date,leadtime=element)
@@ -90,9 +91,11 @@ while tmpdate <= edate:
                 results_dict = collocate(model,model_Hs,model_lats,
                     model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
                 dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
+            except SystemExit: 
+                print('error: --> leadtime is not available')
             except IOError:
-                print('Model output not available')
+                print('error: --> Model output not available')
             except ValueError:
-                print('Model wave field not available.')
+                print('error: --> Model wave field not available.')
                 print('Continuing with next time step.')
     tmpdate = tmpdate + timedelta(hours=6)

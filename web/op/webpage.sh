@@ -1,34 +1,36 @@
 #!/bin/bash
 
+YEAR=`date +%Y`
+MONTH=`date +%m`
 
 # Create graph plots based on validation results:
 
 # image files
-VALpath=/lustre/storeB/project/fou/om/waveverification/S3a/mwam4/ValidationFigures
-rmseImg=${VALpath}/mwam4_fig_val_ts_rmsd_lt000h_201901.png
-madImg=${VALpath}/mwam4_fig_val_ts_mad_lt000h_201901.png
-biasImg=${VALpath}/mwam4_fig_val_ts_bias_lt000h_201901.png
-corrImg=${VALpath}/mwam4_fig_val_ts_corr_lt000h_201901.png
-SIImg=${VALpath}/mwam4_fig_val_ts_SI_lt000h_201901.png
-novImg=${VALpath}/mwam4_fig_val_ts_nov_lt000h_201901.png
-scatterImg=${VALpath}/mwam4_fig_val_scatter_lt000h_201901.png
-
+Imgpath=/lustre/storeB/project/fou/om/waveverification/mwam4/S3a/ValidationFigures/${YEAR}/${MONTH}/
+Webpath=/lustre/storeB/project/fou/om/waveverification/mwam4/S3a/
 # Create html document:
-htmlFile=index.html
-bname=test
+Figtempl=ARCMFC_fig_val_ts
+rmseImg=${Imgpath}${Figtempl}_rmsd_lt000h_${YEAR}${MONTH}.png
+madImg=${Imgpath}${Figtempl}_mad_lt000h_${YEAR}${MONTH}.png
+biasImg=${Imgpath}${Figtempl}_bias_lt000h_${YEAR}${MONTH}.png
+corrImg=${Imgpath}${Figtempl}_corr_lt000h_${YEAR}${MONTH}.png
+SIImg=${Imgpath}${Figtempl}_SI_lt000h_${YEAR}${MONTH}.png
+novImg=${Imgpath}${Figtempl}_nov_lt000h_${YEAR}${MONTH}.png
+scatterImg1=${Imgpath}ARCMFC_fig_val_scatter_lt000h_${YEAR}${MONTH}.png
 
-cp head1.html ${htmlFile}
+htmlFile=${Webpath}index.html
+
+bName='Bulletin date: '`date +%Y-%m-%d`
+echo $bName
+
+cat head1.html               >  ${htmlFile}
 echo '<title>'${bName}'</title>'       >> ${htmlFile}
-cat head2.html                         >> ${htmlFile}
+cat head2.html               >> ${htmlFile}
 
-#echo '<h2>Results for '${bName}'</h2>' >> ${htmlFile}
+echo '<h2>Results for '${bName}'</h2>' >> ${htmlFile}
 
-echo '<table><tr><td>'                 >> ${htmlFile}
 #echo 'Time series of root mean square error' >> ${htmlFile}
 echo '<img src="'${rmseImg}'">'        >> ${htmlFile}
-#echo '</td><td>'                       >> ${htmlFile}
-#echo '<br>'                            >> ${htmlFile}
-#echo '<img src="'${madImg}'">'         >> ${htmlFile}
 echo '<br>'                            >> ${htmlFile}
 echo '<img src="'${biasImg}'">'        >> ${htmlFile}
 echo '<br>'                            >> ${htmlFile}
@@ -37,13 +39,13 @@ echo '<br>'                            >> ${htmlFile}
 echo '<img src="'${SIImg}'">'          >> ${htmlFile}
 echo '<br>'                            >> ${htmlFile}
 echo '<img src="'${novImg}'">'         >> ${htmlFile}
-echo '<img src="'${scatterImg}'">'     >> ${htmlFile}
-echo '</td></tr></table>'              >> ${htmlFile}
+echo '<br>'                            >> ${htmlFile}
+echo '<img src="'${scatterImg1}'">'    >> ${htmlFile}
 
 echo '<p><small>'                      >> ${htmlFile}
 echo 'Generated on '`date`             >> ${htmlFile}
 echo '</small></p>'                    >> ${htmlFile}
 
-cat tail.html                          >> ${htmlFile}
+cat tail.html                >> ${htmlFile}
 
 exit

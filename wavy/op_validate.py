@@ -58,12 +58,21 @@ grab_PID()
 
 # Settings
 region = args.m
-inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/' 
-        + model
-        + '/CollocationFiles/')
-outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
-        + model 
-        + '/ValidationFiles/')
+#inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/' 
+#        + model
+#        + '/CollocationFiles/')
+#outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
+#        + model 
+#        + '/ValidationFiles/')
+
+inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + args.m
+           + '/S3a/'
+           + 'CollocationFiles/')
+outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + args.m
+           + '/S3a/'
+           + 'ValidationFiles/')
 
 tmpdate = deepcopy(sdate)
 
@@ -80,7 +89,9 @@ while tmpdate <= edate:
         filename_ts=fc_date.strftime(model + "_coll_ts_lt"
                                             + "{:0>3d}".format(element)
                                             + "h_%Y%m.nc")
-        dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_ts)
+        dtime, sHs, mHs = get_arcmfc_ts(inpath 
+                                        + fc_date.strftime('%Y/%m/') 
+                                        + filename_ts)
         del filename_ts
         # find collocations for given model time step and validate
         from stationmod import matchtime
@@ -102,5 +113,6 @@ while tmpdate <= edate:
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
             time_dt = fc_date
-            dumptonc_stats(outpath,filename_stat,title_stat,basetime,time_dt,valid_dict)
+            dumptonc_stats(outpath + fc_date.strftime('%Y/%m/'), \
+                    filename_stat,title_stat,basetime,time_dt,valid_dict)
     tmpdate = tmpdate + timedelta(hours=6)

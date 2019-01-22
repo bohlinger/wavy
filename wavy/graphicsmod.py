@@ -158,9 +158,8 @@ def make_val_ts_fig_arcmfc(val_name,ts_lst,dtime_lst,filename_fig,forecasts):
     return
 
 def make_val_ts_fig_op(val_name,ts,dtime,filename_fig):
-    if fig is None:
-        fig = plt.figure(figsize=(15,5))
-        ax = fig.add_subplot(111)
+    fig = plt.figure(figsize=(15,5))
+    ax = fig.add_subplot(111)
     fs = 14
     days_in_month = calendar.monthrange(dtime[0].year,dtime[0].month)[1]
     sdate = datetime(dtime[0].year,dtime[0].month,1)
