@@ -178,6 +178,60 @@ def read_Tennholmen(date):
     lons = lons * 180. / np.pi
     lats = lats * 180. / np.pi
     return time_s, time_dt, Hm0, Tm02, lons, lats
+
+def read_Tennholmen_ext(date):
+    # extended version of read_Tennholmen
+    from buoy_specs import buoy_dict
+    url=date.strftime(buoy_dict['Tennholmen']['url_template'])
+    filename=date.strftime(buoy_dict['Tennholmen']['file_template'])
+    filename_spec_ext=date.strftime(buoy_dict['Tennholmen']
+                                    ['file_template_spec_ext'])
+    filename_heave_spec=date.strftime(buoy_dict['Tennholmen']
+                                    ['file_template_heave_spec'])
+    filename_prim_dir_spec=date.strftime(buoy_dict['Tennholmen']
+                                    ['file_template_prim_dir_spec'])
+    filename_sec_dir_spec=date.strftime(buoy_dict['Tennholmen']
+                                    ['file_template_sec_dir_spec'])
+    filename_pos=date.strftime(buoy_dict['Tennholmen']
+                                    ['file_template_pos'])
+    basetime=buoy_dict['Tennholmen']['basetime']
+    tmpdir = 'tmp_Tennholmen/'
+    t=os.system('mkdir -p ' + tmpdir)
+    t=os.system('wget ' + url + filename + ' -P ' + tmpdir)
+    time_s, Hm0, Tm02 = np.loadtxt(tmpdir + filename, skiprows=1, \
+                        usecols=(buoy_dict['Tennholmen']['time'],
+                                    buoy_dict['Tennholmen']['Hm0'],
+                                    buoy_dict['Tennholmen']['Tm02']),
+                        unpack=True)
+    t=os.system('wget ' + url + filename_pos + ' -P ' + tmpdir)
+    lons, lats        = np.loadtxt(tmpdir + filename_pos, skiprows=1, \
+                        usecols=(buoy_dict['Tennholmen']['lons'],
+                                buoy_dict['Tennholmen']['lats']),
+                        unpack=True)
+    t=os.system('wget ' + url + filename_spec_ext + ' -P ' + tmpdir)
+    Hs,TI,TE,T1,TZ,T3,Tc,Tdw,Tp,Qp = \
+                        np.loadtxt(tmpdir + filename_spec_ext, skiprows=1, \
+                        usecols=(buoy_dict['Tennholmen']['Hs'],
+                                buoy_dict['Tennholmen']['TI'],
+                                buoy_dict['Tennholmen']['TE'],
+                                buoy_dict['Tennholmen']['T1'],
+                                buoy_dict['Tennholmen']['TZ'],
+                                buoy_dict['Tennholmen']['T3'],
+                                buoy_dict['Tennholmen']['Tc'],
+                                buoy_dict['Tennholmen']['Tdw'],
+                                buoy_dict['Tennholmen']['Tp'],
+                                buoy_dict['Tennholmen']['Qp']),
+                        unpack=True)
+    # time conversion
+    time_dt = [basetime + timedelta(seconds=time_s[i]) \
+                for i in range(len(time_s))]
+    print('cleaning up ...')
+    t=os.system('rm -r tmp_Tennholmen')
+    # convert lons, lats from radians to degree
+    lons = lons * 180. / np.pi
+    lats = lats * 180. / np.pi
+    return time_s,time_dt,Hm0,Tm02,lons,lats,\
+            Hs,TI,TE,T1,TZ,T3,Tc,Tdw,Tp,Qp
     
 def get_buoy(sdate,edate,buoyname=None,mode=None):
     if (sdate.month == edate.month and sdate.year == edate.year):
@@ -225,6 +279,108 @@ def get_buoy(sdate,edate,buoyname=None,mode=None):
         lons_lst = lons_lst[sidx:eidx]
         lats_lst = lats_lst[sidx:eidx]
     return time_s_lst, time_dt_lst, Hm0_lst, Tm02_lst, lons_lst, lats_lst
+
+def get_buoy_ext(sdate,edate,buoyname=None,mode=None):
+    # extended version of get_buoy
+    if (sdate.month == edate.month and sdate.year == edate.year):
+        time_s, time_dt, Hm0, Tm02, lons, lats, \
+        Hs, TI, TE, T1, TZ, T3, Tc, Tdw, Tp, Qp \
+                             = read_Tennholmen_ext(sdate)
+        sidx=time_dt.index(sdate)
+        eidx=time_dt.index(edate) + 1
+        time_s_lst = time_s[sidx:eidx]
+        time_dt_lst = time_dt[sidx:eidx]
+        Hm0_lst = Hm0[sidx:eidx]
+        Tm02_lst = Tm02[sidx:eidx]
+        lons_lst = lons[sidx:eidx]
+        lats_lst = lats[sidx:eidx]
+        Hs_lst = Hs[sidx:eidx]
+        TI_lst = TI[sidx:eidx]
+        TE_lst = TE[sidx:eidx]
+        T1_lst = T1[sidx:eidx]
+        TZ_lst = TZ[sidx:eidx]
+        T3_lst = T3[sidx:eidx]
+        Tc_lst = Tc[sidx:eidx]
+        Tdw_lst = Tdw[sidx:eidx]
+        Tp_lst = Tp[sidx:eidx]
+        Qp_lst = Qp[sidx:eidx]
+    else:
+        tmpdate = deepcopy(sdate)
+        time_s_lst = []
+        time_dt_lst = []
+        Hm0_lst = []
+        Tm02_lst = []
+        lons_lst = []
+        lats_lst = []
+        Hs_lst = []
+        TI_lst = []
+        TE_lst = []
+        T1_lst = []
+        TZ_lst = []
+        T3_lst = []
+        Tc_lst = []
+        Tdw_lst = []
+        Tp_lst = []
+        Qp_lst = []
+        while tmpdate <= edate:
+            time_s, time_dt, Hm0, Tm02, lons, lats, \
+            Hs, TI, TE, T1, TZ, T3, Tc, Tdw, Tp, Qp \
+                            = read_Tennholmen_ext(tmpdate)
+            time_s_lst.append(time_s)
+            time_dt_lst.append(time_dt)
+            Hm0_lst.append(Hm0)
+            Tm02_lst.append(Tm02)
+            lons_lst.append(lons)
+            lats_lst.append(lats)
+            Hs_lst.append(Hs)
+            TI_lst.append(TI)
+            TE_lst.append(TE)
+            T1_lst.append(T1)
+            TZ_lst.append(TZ)
+            T3_lst.append(T3)
+            Tc_lst.append(Tc)
+            Tdw_lst.append(Tdw)
+            Tp_lst.append(Tp)
+            Qp_lst.append(Qp)
+            tmpdate = tmpdate + relativedelta(months = +1)
+        del tmpdate
+        time_s_lst = flatten(time_s_lst)
+        time_dt_lst = flatten(time_dt_lst)
+        Hm0_lst = flatten(Hm0_lst)
+        Tm02_lst = flatten(Tm02_lst)
+        lons_lst = flatten(lons_lst)
+        lats_lst = flatten(lats_lst)
+        Hs_lst = flatten(Hs_lst)
+        TI_lst = flatten(TI_lst)
+        TE_lst = flatten(TE_lst)
+        T1_lst = flatten(T1_lst)
+        TZ_lst = flatten(TZ_lst)
+        T3_lst = flatten(T3_lst)
+        Tc_lst = flatten(Tc_lst)
+        Tdw_lst = flatten(Tdw_lst)
+        Tp_lst = flatten(Tp_lst)
+        Qp_lst = flatten(Qp_lst)
+        sidx = time_dt_lst.index(sdate)
+        eidx = time_dt_lst.index(edate) + 1
+        time_s_lst = time_s_lst[sidx:eidx]
+        time_dt_lst = time_dt_lst[sidx:eidx]
+        Hm0_lst = Hm0_lst[sidx:eidx]
+        Tm02_lst = Tm02_lst[sidx:eidx]
+        lons_lst = lons_lst[sidx:eidx]
+        lats_lst = lats_lst[sidx:eidx]
+        Hs_lst = Hs_lst[sidx:eidx]
+        TI_lst = TI_lst[sidx:eidx]
+        TE_lst = TE_lst[sidx:eidx]
+        T1_lst = T1_lst[sidx:eidx]
+        TZ_lst = TZ_lst[sidx:eidx]
+        T3_lst = T3_lst[sidx:eidx]
+        Tc_lst = Tc_lst[sidx:eidx]
+        Tdw_lst = Tdw_lst[sidx:eidx]
+        Tp_lst = Tp_lst[sidx:eidx]
+        Qp_lst = Qp_lst[sidx:eidx]
+    return time_s_lst, time_dt_lst, Hm0_lst, Tm02_lst,\
+            lons_lst, lats_lst, Hs_lst,TI_lst,TE_lst,T1_lst,\
+            TZ_lst,T3_lst,Tc_lst,Tdw_lst,Tp_lst,Qp_lst
 
 def parse_d22(statname,sdate,edate):
     # Read all lines in file and append to searchlines

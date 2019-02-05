@@ -443,6 +443,237 @@ def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
         nclats[:] = lats
     nc.close()
 
+def dumptonc_ts_Tennholmen_ext(outpath,filename,title,basetime,obs_dict):
+    """
+    Extended version of dumptonc_ts_Tennholmen
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time_dt = obs_dict['time_dt']
+    time = obs_dict['time_s']
+    Hm0 = obs_dict['Hm0']
+    Tm02 = obs_dict['Tm02']
+    lons = obs_dict['lons']
+    lats = obs_dict['lats']
+    Hs = obs_dict['Hs']
+    TI = obs_dict['TI']
+    TE = obs_dict['TE']
+    T1 = obs_dict['T1']
+    TZ = obs_dict['TZ']
+    T3 = obs_dict['T3']
+    Tc = obs_dict['Tc']
+    Tdw = obs_dict['Tdw']
+    Tp = obs_dict['Tp']
+    Qp = obs_dict['Qp']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hm0'][startidx:endidx] = Hm0[:]
+        nc.variables['Tm02'][startidx:endidx] = Tm02[:]
+        nc.variables['longitude'][startidx:endidx] = lons[:]
+        nc.variables['latitude'][startidx:endidx] = lats[:]
+        nc.variables['Hs'][startidx:endidx] = Hs[:]
+        nc.variables['TI'][startidx:endidx] = TI[:]
+        nc.variables['TE'][startidx:endidx] = TE[:]
+        nc.variables['T1'][startidx:endidx] = T1[:]
+        nc.variables['TZ'][startidx:endidx] = TZ[:]
+        nc.variables['T3'][startidx:endidx] = T3[:]
+        nc.variables['Tc'][startidx:endidx] = Tc[:]
+        nc.variables['Tdw'][startidx:endidx] = Tdw[:]
+        nc.variables['Tp'][startidx:endidx] = Tp[:]
+        nc.variables['Qp'][startidx:endidx] = Qp[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = "Tennholmen"
+        nc.buoy_type = "Directional Waverider DWR MkIII"
+        nc.buoy_specs = "http://www.datawell.nl/products/buoys.aspx"
+        nc.buoy_manufacturer = "Datawell"
+        nc.netcdf_version = "4"
+        nc.data_owner = ("Norwegian Coastal Administration, "
+                        + "Institute of Marine Research, "
+                        + "and Norwegian Meteorological Institute")
+        nc.licence = ("Data and products are licensed under Norwegian"
+                    + "license for public data (NLOD) and "
+                    + "Creative Commons Attribution 3.0 Norway. "
+                    + "See https://www.met.no/en/"
+                    + "free-meteorological-data/Licensing-and-crediting")
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHm0 = nc.createVariable(
+                               'Hm0',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        ncTm02 = nc.createVariable(
+                               'Tm02',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        nclons = nc.createVariable(
+                               'longitude',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        nclats = nc.createVariable(
+                               'latitude',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncHs = nc.createVariable(
+                               'Hs',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        ncTI = nc.createVariable(
+                               'TI',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncTE = nc.createVariable(
+                               'TE',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncT1 = nc.createVariable(
+                               'T1',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncTZ = nc.createVariable(
+                               'TZ',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        ncT3 = nc.createVariable(
+                               'T3',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncTc = nc.createVariable(
+                               'Tc',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncTdw = nc.createVariable(
+                               'Tdw',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncTp = nc.createVariable(
+                               'Tp',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncQp = nc.createVariable(
+                               'Qp',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+#        time.comment = "hourly values" ;
+        nctime[:] = time
+        # Hm0
+        ncHm0.standard_name = 'sea_surface_wave_significant_height'
+        ncHm0.long_name = 'Significant wave height estimate from spectrum'
+        ncHm0.units = 'm'
+        ncHm0.valid_range = 0., 25.
+        ncHm0[:] = Hm0
+        # Tm02
+        ncTm02.standard_name = ('sea_surface_wave_mean_period'
+                                + '_from_variance_spectral_density'
+                                + '_second_frequency_moment')
+        ncTm02.long_name = ('Mean wave period estimated from 0th'
+                            + 'and 2nd moment of spectrum')
+        ncTm02.units = 's'
+        ncTm02.valid_range = 0., 30.
+        ncTm02[:] = Tm02
+        # lons
+        nclons.standard_name = ('longitude')
+        nclons.units = 'degree_east'
+        nclons.valid_min = -180.
+        nclons.valid_max = 180.
+        nclons[:] = lons
+        # lats
+        nclats.standard_name = ('latitude')
+        nclats.units = 'degree_north'
+        nclats.valid_min = -90.
+        nclats.valid_max = 90.
+        nclats[:] = lats
+        # Hs
+        ncHs.standard_name = ('Hs')
+        ncHs.units = 'm'
+        ncHs[:] = Hs
+        # TI
+        ncTI.standard_name = ('TI')
+        ncTI.units = 's'
+        ncTI[:] = TI
+        # TE
+        ncTE.standard_name = ('TE')
+        ncTE.units = 's'
+        ncTE[:] = TE
+        # T1
+        ncT1.standard_name = ('T1')
+        ncT1.units = 's'
+        ncT1[:] = T1
+        # TZ
+        ncTZ.standard_name = ('TZ')
+        ncTZ.units = 's'
+        ncTZ[:] = TZ
+        # T3
+        ncT3.standard_name = ('T3')
+        ncT3.units = 's'
+        ncT3[:] = T3
+        # Tc
+        ncTc.standard_name = ('Tc')
+        ncTc.units = 's'
+        ncTc[:] = Tc
+        # Tdw
+        ncTdw.standard_name = ('Tdw')
+        ncTdw.units = 's'
+        ncTdw[:] = Tdw
+        # Tp
+        ncTp.standard_name = ('Tp')
+        ncTp.units = 's'
+        ncTp[:] = Tp
+        # Qp
+        ncQp.standard_name = ('Qp')
+        ncQp.units = 'None'
+        ncQp[:] = Qp
+    nc.close()
+
 def dumptonc_coll_ts_Tennholmen(outpath,filename,title,basetime,obs_dict,model):
     """
     1. check if nc file already exists
