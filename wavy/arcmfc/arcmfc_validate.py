@@ -64,7 +64,8 @@ while tmpdate <= edate:
         basetime=model_dict[model]['basetime']
         # get model collocated values
         from custom_nc import get_arcmfc_ts
-        inpath = '/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+        inpath = ('/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+                + fc_date.strftime('%Y/%m/'))
         filename_ts=fc_date.strftime("ARCMFC_coll_ts_lt"
                                             + "{:0>3d}".format(element)
                                             + "h_%Y%m.nc")
@@ -85,11 +86,13 @@ while tmpdate <= edate:
             valid_dict=validate(results_dict)
             print(valid_dict)
             # dump to nc-file: validation
-            outpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+            outpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+                    + fc_date.strftime('%Y/%m/'))
             title_stat='validation file'
             filename_stat=fc_date.strftime("ARCMFC_val_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
             time_dt = fc_date
-            dumptonc_stats(outpath,filename_stat,title_stat,basetime,time_dt,valid_dict)
+            dumptonc_stats(outpath,filename_stat,title_stat,basetime,
+                          time_dt,valid_dict)
     tmpdate = tmpdate + timedelta(hours=6)

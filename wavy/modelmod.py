@@ -128,6 +128,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     mwam8   12 hourly (06h, 18h)
     ecwam   12 hourly (00h, 12h)
     ARCMFC  24 hourly (00h)
+    Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
     """
     if model == 'mwam4':
         multsix = int(leadtime/6)
@@ -187,6 +188,26 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*12)
                        - timedelta(hours=restsix))
+    if (model == 'Erin1W' or model == 'Erin2W'):
+        multsix = int(leadtime/3)
+        restsix = leadtime%3
+        if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
+            (fc_date - timedelta(hours=leadtime)).hour != 3 and
+            (fc_date - timedelta(hours=leadtime)).hour != 6 and
+            (fc_date - timedelta(hours=leadtime)).hour != 9 and
+            (fc_date - timedelta(hours=leadtime)).hour !=12 and
+            (fc_date - timedelta(hours=leadtime)).hour !=15 and
+            (fc_date - timedelta(hours=leadtime)).hour !=18 and
+            (fc_date - timedelta(hours=leadtime)).hour !=21):
+            sys.exit('error: --> leadtime is not available')
+        if leadtime>60:
+            sys.exit('error: --> Leadtime must be less than 60')
+        if leadtime is None:
+            pass
+        else:
+            tmp_date = (fc_date 
+                       - timedelta(hours=multsix*3)
+                       - timedelta(hours=restsix))
     return tmp_date
 
 def make_filename(simmode=None,model=None,datein=None,
@@ -197,6 +218,9 @@ def make_filename(simmode=None,model=None,datein=None,
             filename = (model_dict[model]['path']
               + fc_date.strftime('%Y%m%d')
               + init_date.strftime(model_dict[model]['file_template']))
+        elif (model == 'Erin1W' or model == 'Erin2W'):
+            filename = (model_dict[model]['path']
+              + fc_date.strftime(model_dict[model]['file_template']))
         elif (model == 'mwam4' or model=='mwam8' or model=='ecwam'):
             if (fc_date == init_date or leadtime == 0):
                 if ((fc_date.hour != 6 and fc_date.hour != 18) 
@@ -242,7 +266,8 @@ def make_filename(simmode=None,model=None,datein=None,
 def get_model_filepathlst(simmode=None,model=None,sdate=None,edate=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
     if (model == 'ARCMFC' or model == 'MoskNC' or model == 'MoskWC' or \
-        model == 'mwam4' or model=='mwam8' or model=='ecwam'):
+        model == 'mwam4' or model=='mwam8' or model=='ecwam' or \
+        model=='Erin1W' or model == 'Erin2W'):
         filestr = make_filename(simmode=simmode,model=model,
                         fc_date=fc_date,init_date=init_date,
                         leadtime=leadtime)
@@ -314,9 +339,16 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
     model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
     f.close()
     model_basetime = model_dict[model]['basetime']
-    model_time_dt=[]
-    for element in model_time:
-        model_time_dt.append(model_basetime
+    print(model_basetime)
+    if model == 'Erin1W' or model == 'Erin2W':
+        model_time_dt=[]
+        for element in model_time:
+            model_time_dt.append(model_basetime
+                    + timedelta(days=element))
+    else:
+        model_time_dt=[]
+        for element in model_time:
+            model_time_dt.append(model_basetime
                     + timedelta(seconds=element))
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]

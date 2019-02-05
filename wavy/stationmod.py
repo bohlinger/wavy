@@ -324,7 +324,8 @@ def extract_d22(searchlines):
                     wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
                     wmt[[0,1,-2,-1]]= sp.nan
                     WM['Tm_1hr'] = sp.sqrt(wmt)
-    return WM, WI, WL, dat
+    # CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
+    return WM1, WM2, WM3, dat
 
 def matchtime(sdate,edate,time,basetime,timewin=None):
     '''

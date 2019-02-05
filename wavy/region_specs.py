@@ -58,5 +58,17 @@ region_dict = {"Global":            {
                                     "llcrnrlat":36,
                                     "urcrnrlon":140,
                                     "urcrnrlat":84
+                                    },
+                "Erin1W":           {
+                                    "llcrnrlon":-20.,
+                                    "llcrnrlat":60.,
+                                    "urcrnrlon":80.,
+                                    "urcrnrlat":89.
+                                    },
+                "Erin2W":           {
+                                    "llcrnrlon":-20.,
+                                    "llcrnrlat":60.,
+                                    "urcrnrlon":80.,
+                                    "urcrnrlat":89.
                                     }
                 }

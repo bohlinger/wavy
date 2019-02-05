@@ -13,7 +13,8 @@
 
 '''
 import sys
-#sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy/op')
 
 import os
 from stationmod import get_buoy, get_loc_idx
@@ -62,7 +63,7 @@ else:
 # retrieve PID
 grab_PID()
 #sdate=datetime(2019,1,1)
-#edate=datetime(2019,1,21,23)
+#edate=datetime(2019,1,28,23)
 model='mwam4'
 basetime = buoy_dict['Tennholmen']['basetime']
 

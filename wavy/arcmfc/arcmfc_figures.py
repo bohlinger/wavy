@@ -21,7 +21,8 @@ corr_lst = []
 SI_lst = []
 nov_lst = []
 for element in forecasts:
-    inpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+    inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+            + fc_date.strftime('%Y/%m/'))
     filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
@@ -52,7 +53,8 @@ dtime_lst = []
 sHs_lst = []
 mHs_lst = []
 for element in forecasts:
-    inpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+    inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+            + fc_date.strftime('%Y/%m/'))
     filename_coll = fc_date.strftime("ARCMFC_coll_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")

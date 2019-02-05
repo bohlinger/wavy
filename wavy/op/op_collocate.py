@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy/op')
 
 from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
@@ -80,7 +81,7 @@ while tmpdate <= edate:
             print("leadtime: ", element, "h")
             print("fc_date: ", fc_date)
             basetime=model_dict[model]['basetime']
-            filename_ts=fc_date.strftime(args.m + "_coll_ts_lt"
+            filename_ts=fc_date.strftime(model + "_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
             title_ts=('collocated time series for model '

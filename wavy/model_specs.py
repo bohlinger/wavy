@@ -128,7 +128,43 @@ model_dict={'ARCMFC':
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'
+            },
+        'Erin1W': # one way coupled experiment
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'time':'time',
+            'path':('/lustre/storeB/users/erinet/coup_exp_output/'
+                    + 'ST3_experiments/1waycoup_direct_ST3/'),
+            'path_template':('/lustre/storeB/users/erinet'
+                    + '/coup_exp_output/ST3_experiments/'
+                    + '1waycoup_direct_ST3/'),
+            'file_template':'ww3.%Y%m%dT%H_hs.nc',
+            'basetime':datetime(1990,01,01),
+            'units_time':'days since 1990-01-01 00:00:00',
+            'time_conventions': ('relative julian days with decimal part' 
+                        + ' as parts of the day'),
+            'delta_t':'3h',
+            '_FillValue':9.96921e+36
+            },
+        'Erin2W': # two way coupled experiment
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'time':'time',
+            'path':('/lustre/storeB/users/erinet/coup_exp_output/'
+                    + 'ST3_experiments/Exp2_direct_ST3/'),
+            'path_template':('/lustre/storeB/users/erinet/'
+                    + 'coup_exp_output/ST3_experiments/'
+                    + 'Exp2_direct_ST3/'),
+            'file_template':'ww3.%Y%m%dT%H_hs.nc',
+            'basetime':datetime(1990,01,01),
+            'units_time':'days since 1990-01-01 00:00:00',
+            'time_conventions': ('relative julian days with decimal part'
+                        + ' as parts of the day'),
+            'delta_t':'3h',
+            '_FillValue':9.96921e+36
             }
         }
 
-explst = ['OPEWAVE','NoCBM1.2WAVE','withCurrBM1.2WAVE','BETAM106OPEWAVE','NoCWAVE','WithCWAVE']
+explst = ['OPEWAVE','NoCBM1.2WAVE','withCurrBM1.2WAVE','BETAM106OPEWAVE','NoCWAVE','WithCWAVE','Erin1W','Erin2W']

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy/op')
 
 from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
@@ -66,11 +67,11 @@ region = args.m
 #        + '/ValidationFiles/')
 
 inpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + args.m
+           + model
            + '/S3a/'
            + 'CollocationFiles/')
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + args.m
+           + model
            + '/S3a/'
            + 'ValidationFiles/')
 

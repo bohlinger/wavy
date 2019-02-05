@@ -72,7 +72,8 @@ while tmpdate <= edate:
             print("fc_date: ", fc_date)
             basetime=model_dict[model]['basetime']
             outpath=('/lustre/storeB/project/fou/om/ARCMFC/'
-                    + 'S3a/CollocationFiles/')
+                    + 'S3a/CollocationFiles/'
+                    + fc_date.strftime("%Y/%m/"))
             filename_ts=fc_date.strftime("ARCMFC_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
@@ -83,7 +84,7 @@ while tmpdate <= edate:
             init_date = fc_date - timedelta(hours=element)
             #get_model
             try:
-#                check_date(model,fc_date=fc_date,leadtime=element)
+                check_date(model,fc_date=fc_date,leadtime=element)
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc",model=model,fc_date=fc_date,
                     init_date=init_date,leadtime=element)
