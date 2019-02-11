@@ -39,6 +39,7 @@ import os
 
 # specs
 from buoy_specs import buoy_dict
+from station_specs import station_dict
 
 # progress bar
 import sys
@@ -846,6 +847,134 @@ def dumptonc_coll_ts_Tennholmen(outpath,filename,title,basetime,obs_dict,model):
         nclats_buoy[:] = lats_buoy
     nc.close()
 
+def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
+                        obs_dict,model,statname,sensorname):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = obs_dict['time']
+    Hm0_model = obs_dict['Hm0_model']
+    lons_model = obs_dict['lons_model']
+    lats_model = obs_dict['lats_model']
+    Hs_stat_1h = obs_dict['Hs_stat_1h']
+    Hs_stat_10min = obs_dict['Hs_stat_10min']
+    idx = obs_dict['idx']
+    idy = obs_dict['idy']
+    hdist = obs_dict['hdist']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hm0_model'][startidx:endidx] = Hm0_model[:]
+        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
+        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
+        nc.variables['Hs_station_1h'][startidx:endidx] = Hs_stat_1h[:]
+        nc.variables['Hs_station_10min'][startidx:endidx] = Hs_stat_10min[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = statname
+        nc.instrument_type = "? " + sensorname + " ?"
+        nc.instrument_specs = "?"
+        nc.instrument_manufacturer = "?"
+        nc.netcdf_version = "4"
+        nc.data_owner = ("?")
+        nc.licence = ("?")
+        nc.processing_level = "No imputation for missing or erroneous values."
+        nc.static_position_station =  ("Latitude: "
+                            + str(station_dict['ekofiskL']['coords']['lat'])
+                            + ", Longitude: "
+                            + str(station_dict['ekofiskL']['coords']['lon']))
+        nc.static_position_model =  ("Latitude: "
+                            + "{:.2f}".format(lats_model[0])
+                            + ", Longitude: "
+                            + "{:.2f}".format(lons_model[0]))
+        nc.collocation_distance = "{:.2f}".format(hdist[0][0]) + " km"
+        nc.static_collocation_idx =  ("idx: "
+                            + str(idx[0])
+                            + ", idy: "
+                            + str(idy[0]))
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHm0_model = nc.createVariable(
+                               'Hm0_model',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHs_stat_1h = nc.createVariable(
+                               'Hs_station_1h',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncHs_stat_10min = nc.createVariable(
+                               'Hs_station_10min',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+        nctime[:] = time
+        # Hm0_model
+        ncHm0_model.standard_name = (
+                          'sea_surface_wave_significant_height '\
+                        + 'from wave model'
+                                    )
+        ncHm0_model.long_name = (
+                          'Significant wave height estimate '\
+                        + 'from spectrum from wave model'
+                                )
+        ncHm0_model.units = 'm'
+        ncHm0_model.valid_range = 0., 25.
+        ncHm0_model[:] = Hm0_model
+        # Hs_stat_1h
+        ncHs_stat_1h.standard_name = (
+                          'sea_surface_wave_significant_height_hourly '\
+                        + 'from ' + statname
+                                    )
+        ncHs_stat_1h.long_name = ( 'Significant wave height hourly estimate'\
+                                + 'from ?spectrum? from ' + statname)
+        ncHs_stat_1h.units = 'm'
+        ncHs_stat_1h.valid_range = 0., 25.
+        ncHs_stat_1h[:] = Hs_stat_1h
+        # Hs_stat_10min
+        ncHs_stat_10min.standard_name = (
+                          'sea_surface_wave_significant_height_10min '\
+                        + 'from ' + statname
+                                    )
+        ncHs_stat_10min.long_name = ( 'Significant wave heigh 10 min estimate'\
+                                + 'from ?spectrum? from ' + statname)
+        ncHs_stat_10min.units = 'm'
+        ncHs_stat_10min.valid_range = 0., 25.
+        ncHs_stat_10min[:] = Hs_stat_10min
+    nc.close()
+
 def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
     """
     1. check if nc file already exists
@@ -1000,4 +1129,85 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
         ncnov.long_name = 'number of values'
         ncnov.units = 'none'
         ncnov[:] = nov
+    nc.close()
+
+def dumptonc_S3a(sa_obj,outpath,mode=None):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    3. make sure files are only for one single month
+    """
+    sdate=sa_obj.sdate
+    edate=sa_obj.edate
+    if mode == 'diana':
+        filename = ("S3a_"
+                + sa_obj.region
+                + "_region.nc")
+    else:
+        filename = ("altimeter_"
+                + sa_obj.region
+                + "_"
+                + sdate.strftime("%Y%m%d%H%M%S")
+                + "_"
+                + edate.strftime("%Y%m%d%H%M%S")
+                + ".nc")
+    fullpath = outpath + filename
+    # 1. check if nc file already exists
+    os.system('mkdir -p ' + outpath)
+    print ('Dump altimeter wave data to file: ' + fullpath)
+    nc = netCDF4.Dataset(
+                    fullpath,mode='w',
+                    format='NETCDF4'
+                    )
+    nc.title = 'S3a altimeter significant wave height'
+    timerange=len(sa_obj.ridx)
+    dimsize = None
+    # dimensions
+    dimtime = nc.createDimension(
+                            'time',
+                            size=dimsize
+                            )
+    # variables
+    nctime = nc.createVariable(
+                           'time',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    nclatitude = nc.createVariable(
+                           'latitude',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    nclongitude = nc.createVariable(
+                           'longitude',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    ncHs = nc.createVariable(
+                           'Hs',
+                           np.float64,
+                           dimensions=('time')
+                           )
+
+    # generate time for netcdf file
+    basetime=datetime(2000,1,1)
+    nctime.units = 'seconds since 2000-01-01 00:00:00'
+    nctime[:] = sa_obj.rTIME
+    ncHs.units = 'm'
+    ncHs[:] = sa_obj.rHs
+    ncHs.standard_name = 'sea_surface_wave_significant_height'
+    ncHs.long_name = \
+        'Significant wave height estimate from altimeter wave form'
+    ncHs.valid_range = 0., 25.
+    nclongitude.units = 'degree_east'
+    nclongitude[:] = sa_obj.rloc[1]
+    nclongitude.standard_name = 'longitude'
+    nclongitude.valid_min = -180.
+    nclongitude.valid_max = 180.
+    nclatitude[:] = sa_obj.rloc[0]
+    nclatitude.standard_name = 'latitude'
+    nclatitude.units = 'degree_north'
+    nclatitude.valid_min = -90.
+    nclatitude.valid_max = 90.
     nc.close()

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys
+sys.path.append(r'/home/patrikb/wavy/wavy')
+
 import time
 from datetime import datetime, timedelta
 import calendar
@@ -21,7 +23,7 @@ parser = argparse.ArgumentParser(
 Main program to run the monthly ARCMFC validation
 with Sentinel.\n
 Usage example in unix command line: 
-./validate_arcmfc.py -d 201808\n
+./arcmfc_ncfile.py -d 201808\n
 The argument consists of the year and month to be validated
 If no date is given the last month is validated.
     """,
@@ -63,7 +65,7 @@ filestr=('product_quality_stats_ARCTIC_ANALYSIS_FORECAST_WAV_002_006_'
         + str(monthrange(now.year, now.month)[1]) + '.nc')
 
 # cp original validation file to new file that can be changed
-filestr_new = pathstr + filestr + ".test_new"
+filestr_new = pathstr + filestr + ".platform"
 os.system("cp " + pathstr + filestr + " " + filestr_new)
 
 nc = Dataset(pathstr + filestr , 'r')
@@ -108,10 +110,15 @@ while (tmp_date <= end_date):
         init_date = fc_date - timedelta(hours=element)
         # ---
         # Get stats ts
-        inpath='/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+        inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+                + fc_date.strftime('%Y')
+                + '/'
+                + fc_date.strftime('%m')
+                + '/')
         filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
+        print(inpath + filename_stats)
         valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
         try:
             idx = list(dtime).index(fc_date)
@@ -131,7 +138,8 @@ print ("Seconds needed for entire loop: ", loop_time)
 
 print ("\nAppending results to existing netcdf validation file ...")
 
-nc = Dataset(filestr_new, 'r+')
+#nc = Dataset(filestr_new, 'r+')
+nc = Dataset(pathstr + filestr, 'r+')
 nc.renameVariable('stats_VHM0','stats_VHM0_platform')
 nc_stats_VHM0_altimeter = nc.createVariable(
                         'stats_VHM0_altimeter',

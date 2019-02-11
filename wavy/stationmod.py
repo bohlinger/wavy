@@ -481,9 +481,10 @@ def extract_d22(searchlines):
                     wmt[[0,1,-2,-1]]= sp.nan
                     WM['Tm_1hr'] = sp.sqrt(wmt)
     # CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
-    return WM1, WM2, WM3, dat
+    sensor_lst = [WM1,WM2,WM3]
+    return sensor_lst, dat
 
-def matchtime(sdate,edate,time,basetime,timewin=None):
+def matchtime(sdate,edate,time,basetime=None,timewin=None):
     '''
     fct to obtain the index of the time step closest to the 
     requested time including the respective time stamp(s). 
@@ -499,7 +500,10 @@ def matchtime(sdate,edate,time,basetime,timewin=None):
     print ('Time window is: ', timewin)
     if (edate is None or sdate==edate):
         for element in time:
-            tmp=basetime + timedelta(seconds=element)
+            if basetime is None:
+                tmp = element
+            else:
+                tmp = basetime + timedelta(seconds=element)
             timelst.append(tmp)
             # choose closest match within window of win[minutes]
             if (tmp >= sdate-timedelta(minutes=timewin)
@@ -510,7 +514,10 @@ def matchtime(sdate,edate,time,basetime,timewin=None):
             idx=idx+1
     if (edate is not None and edate!=sdate):
         for element in time:
-            tmp=basetime + timedelta(seconds=element)
+            if basetime is None:
+                tmp = element
+            else:
+                tmp = basetime + timedelta(seconds=element)
             timelst.append(tmp)
             if (tmp >= sdate-timedelta(minutes=timewin)
             and tmp < edate+timedelta(minutes=timewin)):

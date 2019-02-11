@@ -100,14 +100,14 @@ model_dict={'ARCMFC':
             'rotlons':'rlon',
             'rotlats':'rlat',
             'time': 'time',
-            'path_template':('/lustre/storeB/users/anac/'
-                            + 'resultscurr/experimet/NOcurrents/'),
-            'path':('/lustre/storeB/users/anac/resultscurr/'
-                            + 'experimet/NOcurrents/'),
+            'path_template':('/lustre/storeB/users/anac/resultscurr'
+                            +'/experiment/NOcurrents/'),
+            'path':('/lustre/storeB/users/anac/resultscurr'
+                            +'/experiment/NOcurrents/'),
             # NOcurrentsWAVE2018021401.nc, NOcurrentsWAVE2018030100.nc
             'file_template':'NOcurrentsWAVE%Y%m*.nc',
             'file_coords':('/lustre/storeB/users/anac/resultscurr/' 
-                     + 'experimet/NOcurrents/TRUEcoordDepthc1exte.nc'),
+                     + 'experiment/TRUEcoordDepthc1exte.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'
@@ -117,14 +117,13 @@ model_dict={'ARCMFC':
             'rotlons':'rlon',
             'rotlats':'rlat',
             'time': 'time',
-            'path_template':('/lustre/storeB/users/anac/'
-                            +'resultscurr/experimet/withcurrents/'),
-            'path':('/lustre/storeB/users/anac/resultscurr/'
-                            +'experimet/withcurrents/'),
-            # NOcurrentsWAVE2018021401.nc, NOcurrentsWAVE2018030100.nc
-            'file_template':'WithcurrentsWAVE%Y%m*.nc',
+            'path_template':('/lustre/storeB/users/anac/resultscurr'
+                            +'/experiment/withcurrents/'),
+            'path':('/lustre/storeB/users/anac/resultscurr'
+                            +'/experiment/withcurrents/'),
+            'file_template':'withCWAVE%Y%m*.nc',
             'file_coords':('/lustre/storeB/users/anac/resultscurr/'
-                    +'experimet/NOcurrents/TRUEcoordDepthc1exte.nc'),
+                    +'experiment/TRUEcoordDepthc1exte.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'

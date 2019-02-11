@@ -9,14 +9,14 @@ MONTH=`date +%m`
 Imgpath=/lustre/storeB/project/fou/om/waveverification/mwam4/S3a/ValidationFigures/${YEAR}/${MONTH}/
 Webpath=/lustre/storeB/project/fou/om/waveverification/mwam4/S3a/
 # Create html document:
-Figtempl=ARCMFC_fig_val_ts
+Figtempl=mwam4_fig_val_ts
 rmseImg=${Imgpath}${Figtempl}_rmsd_lt000h_${YEAR}${MONTH}.png
 madImg=${Imgpath}${Figtempl}_mad_lt000h_${YEAR}${MONTH}.png
 biasImg=${Imgpath}${Figtempl}_bias_lt000h_${YEAR}${MONTH}.png
 corrImg=${Imgpath}${Figtempl}_corr_lt000h_${YEAR}${MONTH}.png
 SIImg=${Imgpath}${Figtempl}_SI_lt000h_${YEAR}${MONTH}.png
 novImg=${Imgpath}${Figtempl}_nov_lt000h_${YEAR}${MONTH}.png
-scatterImg1=${Imgpath}ARCMFC_fig_val_scatter_lt000h_${YEAR}${MONTH}.png
+scatterImg1=${Imgpath}mwam4_fig_val_scatter_lt000h_${YEAR}${MONTH}.png
 
 htmlFile=${Webpath}index.html
 
