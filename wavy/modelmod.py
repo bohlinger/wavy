@@ -130,7 +130,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     ARCMFC  24 hourly (00h)
     Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
     """
-    if model == 'mwam4':
+    if (model == 'mwam4' or model == 'mwam4force'):
         multsix = int(leadtime/6)
         restsix = leadtime%6
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and 
@@ -174,7 +174,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*24)
                        - timedelta(hours=restsix))
-    elif model == 'ecwam':
+    elif (model == 'ecwam' or model == 'mwam800c3'):
         multsix = int(leadtime/12)
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
@@ -213,31 +213,34 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
 def make_filename(simmode=None,model=None,datein=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
     from model_specs import explst
+    filetemplate = 'file_template'
     if simmode == 'fc':
         if model == 'ARCMFC':
             filename = (model_dict[model]['path']
               + fc_date.strftime('%Y%m%d')
-              + init_date.strftime(model_dict[model]['file_template']))
+              + init_date.strftime(model_dict[model][filetemplate]))
         elif (model == 'Erin1W' or model == 'Erin2W'):
             filename = (model_dict[model]['path']
-              + fc_date.strftime(model_dict[model]['file_template']))
-        elif (model == 'mwam4' or model=='mwam8' or model=='ecwam'):
+              + fc_date.strftime(model_dict[model][filetemplate]))
+        elif (model == 'mwam4' or model=='mwam8' or model=='ecwam' or\
+            model=='mwam800c3' or model == 'mwam4force' or \
+            model=='mwam8force' or model=='ecwamforce'):
             if (fc_date == init_date or leadtime == 0):
                 if ((fc_date.hour != 6 and fc_date.hour != 18) 
-                    and model == 'mwam8'):
+                    and (model == 'mwam8' or model == 'mwam8force')):
                     sys.exit('error: --> Check your date. mwam8 is only' 
                             + ' initiated at 06 and 18')
-                elif (fc_date.hour%6 != 0 and model == 'mwam4'):
+                elif (fc_date.hour%6 != 0 and (model == 'mwam4' or model == 'mwam4force')):
                     sys.exit('error: --> Check your date. mwam4 is only' 
                             + ' initiated at 06, 12, 18, and 00')
-                elif (fc_date.hour%12 != 0 and model == 'ecwam'):
+                elif (fc_date.hour%12 != 0 and (model == 'ecwam' or mode == 'mwam800c3')):
                     sys.exit('error: --> Check your date. ecwam is only' 
                             + ' initiated at 00, 12')
                 else:
                     filename = (fc_date.strftime(
                             model_dict[model]['path_template'])
                             + fc_date.strftime(
-                            model_dict[model]['file_template'])
+                            model_dict[model][filetemplate])
                             )
             else:
                 filedate = check_date(model,
@@ -245,11 +248,11 @@ def make_filename(simmode=None,model=None,datein=None,
                 filename = (filedate.strftime(
                             model_dict[model]['path_template'])
                             + filedate.strftime(
-                            model_dict[model]['file_template'])
+                            model_dict[model][filetemplate])
                             )
         elif (model == 'MoskNC' or model == 'MoskWC'):
             filename = (model_dict[model]['path'] 
-                    + fc_date.strftime(model_dict[model]['file_template']))
+                    + fc_date.strftime(model_dict[model][filetemplate]))
     elif simmode == 'cont':
         if expname in explst:
             days = [1,10,20]
@@ -267,6 +270,8 @@ def get_model_filepathlst(simmode=None,model=None,sdate=None,edate=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
     if (model == 'ARCMFC' or model == 'MoskNC' or model == 'MoskWC' or \
         model == 'mwam4' or model=='mwam8' or model=='ecwam' or \
+        model=='mwam800c3' or\
+        model == 'mwam4force' or model=='mwam8force' or model=='ecwamforce' or \
         model=='Erin1W' or model == 'Erin2W'):
         filestr = make_filename(simmode=simmode,model=model,
                         fc_date=fc_date,init_date=init_date,
@@ -312,7 +317,7 @@ def get_model_cont_mode(model,sdate,edate,filestr,expname,
     return model_Hs, model_lats, model_lons, model_time, model_time_dt
 
 def get_model_fc_mode(filestr=None,model=None,fc_date=None,
-    init_date=None,leadtime=None):
+    init_date=None,leadtime=None,varname=None):
     """ 
     fct to get model data
     if model ARCMFC you need fc_date, init_date
@@ -336,7 +341,10 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
         model_lats = f.variables[model_dict[model]['lats']][:]
     model_time = f.variables[model_dict[model]['time']][:]
     # Hs [time,lat,lon]
-    model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
+    if (varname == 'Hs' or varname is None):
+        model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
+    else: 
+        model_Hs = f.variables[model_dict[model][varname]][:].squeeze()
     f.close()
     model_basetime = model_dict[model]['basetime']
     print(model_basetime)
@@ -357,10 +365,8 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
         model_Hs_valid = model_Hs[model_time_dt.index(fc_date),:,:].squeeze()
     else:
         model_Hs_valid = model_Hs[:,:].squeeze()
-    #return model_time_dt, model_hs_valid, model_lons, model_lats
     return model_Hs_valid, model_lats, model_lons, model_time_valid,\
          model_time_dt_valid
-
 
 def tmploop_get_model(
     j,sat_time_dt,model_time_dt_valid,distlim,model,
@@ -569,7 +575,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
 
 def get_model(simmode=None,model=None,sdate=None,edate=None,
     fc_date=None,init_date=None,leadtime=None,expname=None,
-    sa_obj=None,timewin=None):
+    sa_obj=None,timewin=None,varname=None):
     """ 
     Get model data.
     """
@@ -612,7 +618,7 @@ def get_model(simmode=None,model=None,sdate=None,edate=None,
             model_time_dt = \
             get_model_fc_mode(filestr=element,model=model,
                     fc_date=fc_date,init_date=init_date,
-                    leadtime=leadtime)
+                    leadtime=leadtime,varname=varname)
             model_Hs_lst, \
             model_time_lst, \
             model_time_dt_lst = [],[],[]

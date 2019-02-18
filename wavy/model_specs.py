@@ -69,6 +69,55 @@ model_dict={'ARCMFC':
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'
             },
+        'mwam800c3':
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'rotlons':'rlon',
+            'rotlats':'rlat',
+            'time': 'time',
+            'path_template':('/lustre/storeB/immutable/archive/'
+                            + 'projects/metproduction/MyWavewam_800m/'
+                            + '%Y/%m/%d/'),
+            'path':('/lustre/storeB/immutable/archive/' +
+                    'projects/metproduction/MyWavewam_800m/'),
+            'file_template':'MyWave_wam800_c3WAVE%H.nc',
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)'
+            },
+        'mwam4force':
+            {'u10':'Uwind',
+            'v10':'Vwind',
+            'lons':'lon',
+            'lats':'lat',
+            'time': 'time',
+            'path_template':('/lustre/storeB/immutable/' +
+                           'archive/projects/metproduction/' +
+                           'DNMI_WAVE/%Y/%m/%d/'),
+            'path':('/lustre/storeB/immutable/archive/' +
+                    'projects/metproduction/DNMI_WAVE/'),
+            'file_template':'W4km_force_%Y%m%dT%HZ.nc',
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)'
+            },
+        'mwam8force':
+            {'u10':'Uwind',
+            'v10':'Vwind',
+            'lons':'lon',
+            'lats':'lat',
+            'time': 'time',
+            'path_template':('/lustre/storeB/immutable/' +
+                           'archive/projects/metproduction/' +
+                           'DNMI_WAVE/%Y/%m/%d/'),
+            'path':('/lustre/storeB/immutable/archive/' +
+                    'projects/metproduction/DNMI_WAVE/'),
+            'file_template':'W8km_force_%Y%m%dT%HZ.nc',
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)'
+            },
         'ecwam':
             {'Hs':'significant_wave_height',
             'lons':'longitude',

@@ -1211,3 +1211,200 @@ def dumptonc_S3a(sa_obj,outpath,mode=None):
     nclatitude.valid_min = -90.
     nclatitude.valid_max = 90.
     nc.close()
+
+def dumptonc_ts_pos(outpath,filename,title,basetime,\
+                    obs_dict,model,statname,sensorname):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = obs_dict['time']
+    Hm0_model = obs_dict['Hm0_model']
+    lons_model = obs_dict['lons_model']
+    lats_model = obs_dict['lats_model']
+    lons_stat = obs_dict['lons_stat']
+    lats_stat = obs_dict['lats_stat']
+    idx = obs_dict['idx']
+    idy = obs_dict['idy']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hm0_model'][startidx:endidx] = Hm0_model[:]
+        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
+        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = statname
+        nc.instrument_type = "? " + sensorname + " ?"
+        nc.instrument_specs = "?"
+        nc.instrument_manufacturer = "?"
+        nc.netcdf_version = "4"
+        nc.data_owner = ("?")
+        nc.licence = ("?")
+        nc.processing_level = "No imputation for missing or erroneous values."
+        nc.static_position_station =  ("Latitude: "
+                            + "{:.4f}".format(lats_stat[0])
+                            + ", Longitude: "
+                            + "{:.4f}".format(lons_stat[0]))
+        nc.static_position_model =  ("Latitude: "
+                            + "{:.4f}".format(lats_model[0])
+                            + ", Longitude: "
+                            + "{:.4f}".format(lons_model[0]))
+        nc.static_collocation_idx =  ("idx: "
+                            + str(idx[0])
+                            + ", idy: "
+                            + str(idy[0]))
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHm0_model = nc.createVariable(
+                               'Hm0_model',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+        nctime[:] = time
+        # Hm0_model
+        ncHm0_model.standard_name = (
+                          'sea_surface_wave_significant_height '\
+                        + 'from wave model'
+                                    )
+        ncHm0_model.long_name = (
+                          'Significant wave height estimate '\
+                        + 'from spectrum from wave model'
+                                )
+        ncHm0_model.units = 'm'
+        ncHm0_model.valid_range = 0., 25.
+        ncHm0_model[:] = Hm0_model
+    nc.close()
+
+def dumptonc_ts_pos_wind(outpath,filename,title,basetime,\
+                    obs_dict,model,statname,sensorname):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = obs_dict['time']
+    u10_model = obs_dict['u10_model']
+    v10_model = obs_dict['v10_model']
+    lons_model = obs_dict['lons_model']
+    lats_model = obs_dict['lats_model']
+    lons_stat = obs_dict['lons_stat']
+    lats_stat = obs_dict['lats_stat']
+    idx = obs_dict['idx']
+    idy = obs_dict['idy']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['u10_model'][startidx:endidx] = u10_model[:]
+        nc.variables['v10_model'][startidx:endidx] = v10_model[:]
+        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
+        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = statname
+        nc.instrument_type = "? " + sensorname + " ?"
+        nc.instrument_specs = "?"
+        nc.instrument_manufacturer = "?"
+        nc.netcdf_version = "4"
+        nc.data_owner = ("?")
+        nc.licence = ("?")
+        nc.processing_level = "No imputation for missing or erroneous values."
+        nc.static_position_station =  ("Latitude: "
+                            + "{:.4f}".format(lats_stat[0])
+                            + ", Longitude: "
+                            + "{:.4f}".format(lons_stat[0]))
+        nc.static_position_model =  ("Latitude: "
+                            + "{:.4f}".format(lats_model[0])
+                            + ", Longitude: "
+                            + "{:.4f}".format(lons_model[0]))
+        nc.static_collocation_idx =  ("idx: "
+                            + str(idx[0])
+                            + ", idy: "
+                            + str(idy[0]))
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncu10_model = nc.createVariable(
+                               'u10_model',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncv10_model = nc.createVariable(
+                               'v10_model',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+        nctime[:] = time
+        # u10_model
+        ncu10_model.standard_name = 'u10'
+        ncu10_model.long_name = (
+                            '10m wind speed in x-direction from ' 
+                            + model + ' forcing file' )
+        ncu10_model.units = 'm/s'
+        ncu10_model[:] = u10_model
+        # v10_model
+        ncv10_model.standard_name = 'v10'
+        ncv10_model.long_name = (
+                            '10m wind speed in y-direction from '
+                            + model + ' forcing file' )
+        ncv10_model.units = 'm/s'
+        ncv10_model[:] = v10_model
+    nc.close()

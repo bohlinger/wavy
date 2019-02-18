@@ -20,7 +20,7 @@ buoy_dict={'Tennholmen':
             'TZ':7,
             'T3':8,
             'Tc':9,
-            'Tdw':10,
+            #'Tdw':10,
             'Tp':11,
             'Qp':12,
             'url_template':'157.249.178.22/datawell/waved/Tennholmen/%Y/%m/',

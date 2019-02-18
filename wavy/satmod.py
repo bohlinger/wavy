@@ -429,7 +429,7 @@ class sentinel_altimeter():
     from region_specs import region_dict
 
     def __init__(self,sdate,edate=None,timewin=None,download=None,region=None,
-                corenum=None,mode=None):
+                corenum=None,mode=None,polyreg=None):
         print ('# ----- ')
         print (" ### Initializing sentinel_altimeter instance ###")
         print ('# ----- ')
@@ -465,7 +465,7 @@ class sentinel_altimeter():
         cHs_smooth = list(np.array(gHs_smooth)[cidx])
         cTIME = list(np.array(fTIME)[cidx])
         latlst,lonlst,rlatlst,rlonlst,ridx = \
-                self.matchregion(cloc[0],cloc[1],region=region)
+                self.matchregion(cloc[0],cloc[1],region=region,polyreg=polyreg)
         rloc = [cloc[0][ridx],cloc[1][ridx]]
         rHs = list(np.array(cHs)[ridx])
         rHs_smooth = list(np.array(cHs_smooth)[ridx])
@@ -856,21 +856,34 @@ class sentinel_altimeter():
                 idx=idx+1
         return ctime, cidx, timelst
 
-    def matchregion(self,LATS,LONS,region=None):
+    def matchregion(self,LATS,LONS,region,polyreg):
+        from region_specs import poly_dict
+        print polyreg
         if ~isinstance(region,str)==True:
             print ("Manuall specified region " 
                 + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n" 
                 + " --> Bounds: " + str(region))
+        elif polyreg is not None:
+            print ("Specified region: " + polyreg + "\n" 
+              + " --> Bounded by polygon: \n" 
+              + "lons: " + str(poly_dict[polyreg]['lons']) + "\n"
+              + "lats: " + str(poly_dict[polyreg]['lats']))
         else:
             print ("Specified region: " + region + "\n" 
               + " --> Bounds: " + str(self.region_dict[region]))   
-        if region is None:
+        if (region is None or region == "Global" and polyreg is None):
             region = "Global"
             latlst = LATS
             lonlst = LONS
             rlatlst= LATS
             rlonlst= LONS
             ridx = range(len(LATS))
+        elif polyreg is not None:
+            print("Here1")
+            from matplotlib.patches import Polygon
+            from matplotlib.path import Path
+            poly = Polygon(list(zip(poly_dict[polyreg]['lons'], 
+                    poly_dict[polyreg]['lats'])), closed=True)
         else:
             if isinstance(region,str)==True:
                 if (region=='ARCMFC' or region=='Arctic'):
@@ -911,6 +924,15 @@ class sentinel_altimeter():
                     rlatlst.append(LATS[i])
                     rlonlst.append(LONS[i])
                     ridx.append(i)
+                elif(
+                polyreg is not None and 
+                Path(poly.xy).contains_points(np.c_(LATS[i],LONS[i])) is True
+                    ):
+                    print("Here2")
+                    rlatlst.append(LATS[i])
+                    rlonlst.append(LONS[i])
+                    ridx.append(i)
+            
         if not ridx:
             print ("No values for chosen region and time frame!!!")
         else:

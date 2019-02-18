@@ -31,7 +31,10 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     from region_specs import region_dict
     mHs = MHs.squeeze()
     mHs[np.where(mHs<0)[0],np.where(mHs<0)[1]]=np.nan
-    clevs = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
+    if (sa_obj.region == 'MoskWC' or sa_obj.region == 'MoskNC'):
+        clevs = np.arange(0,5,0.1)
+    else:
+        clevs = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
     cmap=cm.GMT_haxby
     norm = mpl.colors.BoundaryNorm(clevs, cmap.N)
     if sa_obj.region == 'ARCMFC':
@@ -66,4 +69,29 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
             ,fontsize=8)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Hs [m]')
+    plt.show()
+
+def ts_fig(results_dict):
+    import numpy as np
+    from datetime import datetime, timedelta
+    import matplotlib.dates as mdates
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as mplcm
+    import matplotlib as mpl
+    mHs = results_dict["model_Hs_matches"]
+    sHs = results_dict["sat_Hs_matches"]
+    time = results_dict["date_matches"]
+    fig = plt.figure(figsize=(16,9))
+    ax = fig.add_subplot(111)
+    fs = 12
+    plt.plot(time,sHs,'ko',label='sHs')
+    plt.plot(time,mHs,'ro',label='mHs')
+    plt.legend(fontsize=fs,loc='best')
+    plt.ylabel('Hs [m]',fontsize=fs)
+    #plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=4))
+    plt.gca().xaxis.set_major_locator(mdates.SecondLocator(interval=1))
+    #plt.gca().xaxis.set_minor_locator(mdates.SecondLocator(interval=1))
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d %H:%M:%S'))
+    plt.gcf().autofmt_xdate()
+    plt.tick_params(axis='both', which='major', labelsize=fs)
     plt.show()
