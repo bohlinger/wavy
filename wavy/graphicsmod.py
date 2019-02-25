@@ -230,6 +230,141 @@ def make_val_scatter_fig_op(ts_model,ts_obs,filename_fig):
     #plt.show()
     return
 
+def polyonmap(poly,proj,mtype=None,\
+    region=None,llclat=None,llclon=None,trclat=None,trclon=None):
+    from mpl_toolkits.basemap import Basemap
+    import matplotlib.pyplot as plt
+    from matplotlib.collections import PatchCollection
+    from matplotlib.patches import Polygon
+    import numpy as np
+    # Make the figure
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    # create the map object, m
+    if proj=='cyl':
+        m = Basemap(resolution='i', projection='cyl', \
+            llcrnrlon=llclon, llcrnrlat=llclat, \
+            urcrnrlon=trclon, urcrnrlat=trclat)
+        # choose map illustration type
+        # Drawing ArcGIS Basemap (only works with cylc projections??)
+        # Examples of what each map looks like can be found here:
+        # http://kbkb-wx-python.blogspot.com/2016/04/
+        #       python-basemap-background-image-from.htm
+        maps = ['ESRI_Imagery_World_2D',    # 0
+            'ESRI_StreetMap_World_2D',  # 1
+            'NatGeo_World_Map',         # 2
+            'NGS_Topo_US_2D',           # 3
+            'Ocean_Basemap',            # 4
+            'USA_Topo_Maps',            # 5
+            'World_Imagery',            # 6
+            'World_Physical_Map',       # 7
+            'World_Shaded_Relief',      # 8
+            'World_Street_Map',         # 9
+            'World_Terrain_Base',       # 10
+            'World_Topo_Map'            # 11
+            ]
+        print "drawing image from arcGIS server...",
+        m.arcgisimage(service=maps[mtype], xpixels=1000, verbose=False)
+    elif (proj=='merc' or proj =='lcc'):
+        if proj=='merc':
+            m = Basemap(resolution='i',projection=proj,area_thresh=10000,\
+                llcrnrlon=llclon, llcrnrlat=llclat,\
+                urcrnrlon=trclon, urcrnrlat=trclat,\
+                lat_ts=trclat-(trclat-llclat))
+        elif proj=='lcc':
+            m = Basemap(resolution='i',projection=proj,area_thresh=10000,\
+                width=10000000,height=8000000,\
+                rsphere=(6378137.00,6356752.3142),\
+                #lat_0=trclat-(trclat-llclat),\
+                lat_0=60,\
+                lat_1=llclat,\
+                lat_2=trclat,\
+                lon_0=0)
+        m.drawcoastlines()
+        # convert polygon to points on map
+        x,y = m(poly.xy[:,0],poly.xy[:,1])
+        poly = Polygon(list(zip(x,y)), closed=True)
+    elif (proj=='auto'):
+        m=quim(region)
+        # convert polygon to points on map
+        x,y = m(poly.xy[:,0],poly.xy[:,1])
+        poly = Polygon(list(zip(x,y)), closed=True)
+    # Fill polygon shape
+    patches = []
+    patches.append(poly)
+    ax.add_collection(PatchCollection(patches, facecolor='lightgreen',
+        alpha=0.4, edgecolor='k', linewidths=1.5))
+    plt.savefig('polytest.png')
+
+def quim(region=None):
+    # ignore irrelevant warnings from matplotlib for stdout
+    import warnings
+    warnings.filterwarnings("ignore")
+    from mpl_toolkits.basemap import Basemap, cm
+    from region_specs import region_dict
+    if (region is None or region == 'Global'):
+        # Mollweide
+        m = Basemap(
+                projection='moll',lon_0=0,resolution='c',
+                area_thresh=10000
+                )
+        # labels = [left,right,top,bottom]
+        m.drawparallels(
+                    np.arange(-80.,81.,20.),
+                    labels=[True,False,False,False]
+                    )
+        m.drawparallels(
+                    np.arange(-180.,181.,20.),
+                    labels=[True,False,False,False]
+                    )
+    elif (region=='Arctic' or region=='ARCMFC' or region=='mwam8'):
+        # Polar Stereographic Projection
+        m = Basemap(
+            projection='npstere',
+            boundinglat=region_dict[region]["boundinglat"],
+            lon_0=0,
+            resolution='l',area_thresh=100
+            )
+        m.drawparallels(
+                np.arange(40.,81.,10.),
+                labels=[True,False,False,False]
+                )
+        m.drawmeridians(
+                np.arange(-180.,181.,10.),
+                labels=[False,False,False,True]
+                )
+    elif (region=='Moskenes' or region=='Sulafj' or
+        region=='mwam4' or region=='Mosk_dom'):
+        # Lambert Conformal Projection over Moskenes
+        m = Basemap(
+            llcrnrlon=region_dict[region]["llcrnrlon"],
+            llcrnrlat=region_dict[region]["llcrnrlat"],
+            urcrnrlon=region_dict[region]["urcrnrlon"],
+            urcrnrlat=region_dict[region]["urcrnrlat"],
+            projection='lcc', resolution='f',area_thresh=1,
+            lat_1=67.2,lat_2=68,lat_0=67.6,lon_0=12.5
+            )
+        if (region=='Moskenes' or region=='Sulafj'):
+            m.drawparallels(
+                np.arange(40.,81.,1.),
+                labels=[True,False,False,False]
+                )
+            m.drawmeridians(
+                np.arange(-180.,181.,1.),
+                labels=[False,False,False,True]
+                )
+        elif (region=='mwam4' or region=='man'):
+            m.drawparallels(
+                np.arange(40.,81.,5.),
+                labels=[True,False,False,False]
+                )
+            m.drawmeridians(
+                np.arange(-180.,181.,5.),
+                labels=[False,False,False,True]
+                )
+    m.drawcoastlines()
+    #m.fillcontinents(color='navajowhite')
+    return m
 # ---------------------------------------------------------------------#
 
 

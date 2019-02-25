@@ -233,7 +233,7 @@ def make_filename(simmode=None,model=None,datein=None,
                 elif (fc_date.hour%6 != 0 and (model == 'mwam4' or model == 'mwam4force')):
                     sys.exit('error: --> Check your date. mwam4 is only' 
                             + ' initiated at 06, 12, 18, and 00')
-                elif (fc_date.hour%12 != 0 and (model == 'ecwam' or mode == 'mwam800c3')):
+                elif (fc_date.hour%12 != 0 and (model == 'ecwam' or model == 'mwam800c3')):
                     sys.exit('error: --> Check your date. ecwam is only' 
                             + ' initiated at 00, 12')
                 else:
@@ -380,7 +380,7 @@ def tmploop_get_model(
         sat_rlon=sat_rlons[j]
         # constraints to reduce workload
         if model == 'ecwam':
-            print"ECWAM not yet implemented, caution ecwam has other dimensions!"
+            print("ECWAM not yet implemented, caution ecwam has other dimensions!")
             pass
         else:
             model_rlats_new=model_rlats[

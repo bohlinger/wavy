@@ -62,7 +62,8 @@ region_dict = {"Global":            {
                                     "llcrnrlon":-220.,
                                     "llcrnrlat":36,
                                     "urcrnrlon":140,
-                                    "urcrnrlat":84
+                                    "urcrnrlat":84,
+                                    "boundinglat":50
                                     },
                 "ecwam":            {
                                     "llcrnrlon":-180,
@@ -90,30 +91,23 @@ region_dict = {"Global":            {
                                     }
                 }
 
-poly_dict = {"NordicSeas": {
-                            "lats":[61.,66.,79.,76.,70.],
-                            "lons":[5.,-35.,-19.,15.,19.]
+# - for larger regions polygons need to be defined with dense points 
+#   along the borders to avoid a misrepresentation
+# - the order of the points matter!
+poly_dict = {"NorwegianSea": {
+                "lats":[62.1,62.3,63.2,64.7,68.5,71.1,72.6,74.0,76.9,\
+                        76.3,74.5,70.2,68.3,66.0,64.1,62.1],
+                "lons":[5.1,-0.8,-6.6,-9.6,-8.6,-7.5,1.7,8.5,7.2,16.8,\
+                        18.7,22.6,18.4,14.7,11.7,5.1]
                             },
-             "BarentsSea": {None
-                            }, 
-             "mwam800c3":  {"lats":[58.16,63.35,63.11,57.55],
-                           "lons":[2.47,4.56,8.55,6.10]
+             "BarentsSea": {
+                "lats":[70.6,74.4,76.5,80.1,80.2,80.7,77.0,74.6,70.6,\
+                        69.4,67.4,66.3,70.6],
+                "lons":[21.9,18.7,16.7,27.7,37.5,52.3,67.3,57.7,56.8,\
+                        61.2,50.3,43.12,21.9]
                             },
-             "mwam4":      {"lats":[42.55,53.09,83.06,61.56],
-                           "lons":[2.18,30.58,92.53,65.33]
+            "NordicSeas": {
+                "lats":[62.1,61.9,62.3,64.3,66.2,68.6,70.4,73.4,76.2,79.5,79.5,79.5,76.6,74.4,72.4,70.5,69.1,68.0,66.2,64.3,62.5,62.1],
+                "lons":[5.1,-0.9,-6.3,-14.8,-27.0,-34.8,-34.9,-34.39,-32.8,-30.0,0.5,11.0,17.4,19.0,20.5,22.5,22.5,18.2,15.4,12.8,9.5,5.1]
                             },
-             "mwam8":      {"lats":[42.18,53.10,36.14,53.16,51.02,54.50,56.33],
-                           "lons":[3.21,35.15,91.36,134.23,176.43,160.11,101.23]
-                            },
-             "arcmfc":     {"lats":[42.18,53.10,36.14,53.16,51.02,54.50,56.33],
-                           "lons":[3.21,35.15,91.36,134.23,176.43,160.11,101.23]
-                            }
             }
-#from matplotlib.patches import Polygon
-#from matplotlib.path import Path
-#import numpy as np
-#poly = Polygon(list(zip(poly_dict['NordicSeas']['lons'], poly_dict['NordicSeas']['lats'])), closed=True)
-#lon=np.array([1,2]).ravel()
-#lat=np.array([69,70]).ravel()
-#points=np.c_[lon,lat]
-#Path(poly.xy).contains_points(points)

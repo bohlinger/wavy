@@ -87,6 +87,8 @@ if (args.m is None):
 
 # Get S3a data
 sa_obj = sa(fc_date,timewin=timewin,region=args.m)
+#sa_obj = sa(fc_date,timewin=timewin,polyreg='BarentsSea')
+#sa_obj = sa(fc_date,timewin=timewin,polyreg=args.m)
 if len(sa_obj.rtime)==0:
     print("If possible proceed with another time step...")
 else:
