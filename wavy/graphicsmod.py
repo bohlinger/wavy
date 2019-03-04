@@ -296,75 +296,30 @@ def polyonmap(poly,proj,mtype=None,\
         alpha=0.4, edgecolor='k', linewidths=1.5))
     plt.savefig('polytest.png')
 
-def quim(region=None):
+def quip_ia(sa_obj, region=None, save=None, outpath=None, filetype=None):
     # ignore irrelevant warnings from matplotlib for stdout
     import warnings
     warnings.filterwarnings("ignore")
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
     from mpl_toolkits.basemap import Basemap, cm
-    from region_specs import region_dict
-    if (region is None or region == 'Global'):
-        # Mollweide
-        m = Basemap(
-                projection='moll',lon_0=0,resolution='c',
-                area_thresh=10000
-                )
-        # labels = [left,right,top,bottom]
-        m.drawparallels(
-                    np.arange(-80.,81.,20.),
-                    labels=[True,False,False,False]
+    if region is None:
+        region = 'Global'
+    if outpath is None:
+        outpath = 'outpath/'
+    if save == True:
+        os.system('mkdir -p ' + outpath)
+        plt.savefig(
+                    outpath
+                    + 's3a_'
+                    + region
+                    + "_"
+                    + sa_obj.sdate.strftime("%Y%m%d%H%M%S")
+                    + "_"
+                    + sa_obj.edate.strftime("%Y%m%d%H%M%S")
+                    + '.pdf',
+                    format='pdf'
                     )
-        m.drawparallels(
-                    np.arange(-180.,181.,20.),
-                    labels=[True,False,False,False]
-                    )
-    elif (region=='Arctic' or region=='ARCMFC' or region=='mwam8'):
-        # Polar Stereographic Projection
-        m = Basemap(
-            projection='npstere',
-            boundinglat=region_dict[region]["boundinglat"],
-            lon_0=0,
-            resolution='l',area_thresh=100
-            )
-        m.drawparallels(
-                np.arange(40.,81.,10.),
-                labels=[True,False,False,False]
-                )
-        m.drawmeridians(
-                np.arange(-180.,181.,10.),
-                labels=[False,False,False,True]
-                )
-    elif (region=='Moskenes' or region=='Sulafj' or
-        region=='mwam4' or region=='Mosk_dom'):
-        # Lambert Conformal Projection over Moskenes
-        m = Basemap(
-            llcrnrlon=region_dict[region]["llcrnrlon"],
-            llcrnrlat=region_dict[region]["llcrnrlat"],
-            urcrnrlon=region_dict[region]["urcrnrlon"],
-            urcrnrlat=region_dict[region]["urcrnrlat"],
-            projection='lcc', resolution='f',area_thresh=1,
-            lat_1=67.2,lat_2=68,lat_0=67.6,lon_0=12.5
-            )
-        if (region=='Moskenes' or region=='Sulafj'):
-            m.drawparallels(
-                np.arange(40.,81.,1.),
-                labels=[True,False,False,False]
-                )
-            m.drawmeridians(
-                np.arange(-180.,181.,1.),
-                labels=[False,False,False,True]
-                )
-        elif (region=='mwam4' or region=='man'):
-            m.drawparallels(
-                np.arange(40.,81.,5.),
-                labels=[True,False,False,False]
-                )
-            m.drawmeridians(
-                np.arange(-180.,181.,5.),
-                labels=[False,False,False,True]
-                )
-    m.drawcoastlines()
-    #m.fillcontinents(color='navajowhite')
-    return m
 # ---------------------------------------------------------------------#
 
 
