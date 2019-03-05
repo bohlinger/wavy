@@ -5,7 +5,7 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
 from stationmod import station_class as sc
-from stationmod import matchtime, get_model
+from stationmod import matchtime
 from modelmod import get_model, collocate, check_date
 from satmod import validate
 from copy import deepcopy

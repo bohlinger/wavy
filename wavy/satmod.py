@@ -629,10 +629,10 @@ class sentinel_altimeter():
             tiles = []
             for i in range(g):
                 for j in range(g):
-                    tiles.append([model_lons[xidx[i]:xidx[i+1],
-                                yidx[j]:yidx[j+1]],
-                                model_lats[xidx[i]:xidx[i+1],
-                                yidx[j]:yidx[j+1]]])
+                    tiles.append([model_lons[int(xidx[i]):int(xidx[i+1]),
+                                int(yidx[j]):int(yidx[j+1])],
+                                model_lats[int(xidx[i]):int(xidx[i+1]),
+                                int(yidx[j]):int(yidx[j+1])]])
             # create polygon for each tile
             rlatlst = []
             rlonlst = []
