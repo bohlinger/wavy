@@ -309,21 +309,6 @@ flat_list.append(item)
 '''
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def add_colorbar(im, aspect=20, pad_fraction=0.5, **kwargs):
-    '''
-    Add a vertical color bar to an image plot.
-    '''
-    from mpl_toolkits import axes_grid1
-    import matplotlib.pyplot as plt
-    divider = axes_grid1.make_axes_locatable(im.axes)
-    width = axes_grid1.axes_size.AxesY(im.axes, 
-                                    aspect=1./aspect)
-    pad = axes_grid1.axes_size.Fraction(pad_fraction, width)
-    current_ax = plt.gca()
-    cax = divider.append_axes("right", size=width, pad=pad)
-    plt.sca(current_ax)
-    return im.axes.figure.colorbar(im, cax=cax, **kwargs)
-
 def check_date(filelst,date):
     '''
     returns idx for file
@@ -514,10 +499,6 @@ class sentinel_altimeter():
         fVAVHS_smooth,fVAVHS_std = runmean(fVAVHS,5,'centered')
         return fLATS, fLONS, fTIME, fVAVHS, fMAXS, fVAVHS_smooth
 
-    def quip(self,region=None,show=None,save=None, outpath=None):
-        # do nothing
-        return
-
     def bintime(self,binframe=None):
         '''
         fct to return frequency of occurrence per chose time interval
@@ -550,10 +531,6 @@ class sentinel_altimeter():
             dincr=dincr+1
             datelst.append(lodt)
         return freqlst,datelst
-
-    def plotavail(self,btr_dates,btr_freq,show=None,save=None):
-        # do nothing
-        return
 
     def matchtime(self,sdate,edate,fTIME,timewin=None):
         '''
@@ -729,7 +706,10 @@ class sentinel_altimeter():
             tiles = []
             for i in range(g):
                 for j in range(g):
-                    tiles.append([model_lons[xidx[i]:xidx[i+1],yidx[j]:yidx[j+1]],model_lats[xidx[i]:xidx[i+1],yidx[j]:yidx[j+1]]])
+                    tiles.append([model_lons[xidx[i]:xidx[i+1],
+                                yidx[j]:yidx[j+1]],
+                                model_lats[xidx[i]:xidx[i+1],
+                                yidx[j]:yidx[j+1]]])
             # create polygon for each tile
             rlatlst = []
             rlonlst = []

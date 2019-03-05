@@ -111,7 +111,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     m.drawcountries()
     m.drawmeridians(np.arange(0,360,5))
     m.drawparallels(np.arange(-90,90,5))
-    x, y = m(sa_obj.rloc[1],sa_obj.rloc[0])
+    x, y = m(sa_obj.loc[1],sa_obj.loc[0])
     x2, y2 = m(results_dict["model_lons_matches"],results_dict["model_lats_matches"])
     lons, lats = m(Mlons,Mlats)
     cs = m.contourf(lons,lats,mHs,clevs,cmap=cmap,norm=norm)

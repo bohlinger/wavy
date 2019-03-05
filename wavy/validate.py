@@ -7,8 +7,8 @@ from satmod import sentinel_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime, get_model
 from modelmod import get_model, collocate, check_date
-from satmod import validate
-from validationmod import comp_fig
+#from satmod import validate
+from validationmod import comp_fig, validate
 from utils import identify_outliers
 import os
 import argparse
@@ -89,7 +89,7 @@ if (args.m is None):
 sa_obj = sa(fc_date,timewin=timewin,region=args.m)
 #sa_obj = sa(fc_date,timewin=timewin,polyreg='BarentsSea')
 #sa_obj = sa(fc_date,timewin=timewin,polyreg=args.m)
-if len(sa_obj.rtime)==0:
+if len(sa_obj.dtime)==0:
     print("If possible proceed with another time step...")
 else:
     if (args.sat == 's3a' and (args.m != 'ARCMFC' and args.m != 'MoskNC'\

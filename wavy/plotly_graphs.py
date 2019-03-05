@@ -9,15 +9,26 @@ import pandas as pd
 from region_specs import poly_dict
 from matplotlib.patches import Polygon
 
-def ggt(a, b):
-    if a < b: a,b = b,a
-    while a%b != 0:
-        a,b = b,a%b
-    return b
+def plotly_s3a_map(sa_obj=None,\
+                    region=None,domain=None,proj=None,\
+                    model=None,grid_date=None,tiling=None,
+                    outpath=None):
 
-def make_plotly_figure(sa_obj=None,\
-                       region=None,domain=None,proj=None,\
-                       model=None,grid_date=None,tiling=None):
+    # --- basic functions ---#
+    # define ggt-fct for automatic tiling
+    def ggt(a, b):
+        if a < b: a,b = b,a
+        while a%b != 0:
+            a,b = b,a%b
+        return b
+    # compute center of figure
+    def angular_mean(angles_deg):
+        N = len(angles_deg)
+        mean_c = 1.0 / N * np.sum(np.exp(1j * angles_deg * np.pi/180.0))
+        return np.angle(mean_c, deg=True)
+    # ---#
+
+    # define dates for retrieving model output file for grid information   
     if grid_date is None:
         if model == 'mwam8':
             grid_date = datetime(2019,2,1,6)
@@ -32,6 +43,7 @@ def make_plotly_figure(sa_obj=None,\
     if domain is None:
         domain = 'Global'
 
+    # get model domain if model is available
     if model is not None:
         # get model grid
         if (model == 'ARCMFC' or model == 'MoskNC' or model=='MoskWC'):
@@ -68,8 +80,12 @@ def make_plotly_figure(sa_obj=None,\
             tiles = []
             for i in range(g):
                 for j in range(g):
-                    tiles.append([model_lons[xidx[i]:xidx[i+1],yidx[j]:yidx[j+1]],model_lats[xidx[i]:xidx[i+1],yidx[j]:yidx[j+1]]])
+                    tiles.append([model_lons[xidx[i]:xidx[i+1],
+                                yidx[j]:yidx[j+1]],
+                                model_lats[xidx[i]:xidx[i+1],
+                                yidx[j]:yidx[j+1]]])
 
+    # make polygon if model and region differ
     if(model is not None and region is not model):
         # get only edge indices
         lontmp1=list(model_lons[:,0])
@@ -85,6 +101,8 @@ def make_plotly_figure(sa_obj=None,\
         pdmlons = pd.Series(mlons)
         pdmlats = pd.Series(mlats)
 
+    # make polygon 
+    # apply tiling to model domain polygon to increase accuracy
     if region == model:
         if tiling is not None:
             mlats_lst = []
@@ -93,7 +111,7 @@ def make_plotly_figure(sa_obj=None,\
                 model_lons = tiles[i][0]
                 model_lats = tiles[i][1]
                 # create polygon of model domain
-                idx = 1
+                idx = 1 # sparseness of tile boundary points
                 lontmp1=list(model_lons[:,0])
                 lontmp2=list(model_lons[:,-1])
                 lontmp3=list(model_lons[0,:])
@@ -125,7 +143,7 @@ def make_plotly_figure(sa_obj=None,\
             pdnames = pd.Series(names)
         else:
             # create polygon of model domain
-            idx = 10
+            idx = 10 # sparseness of model domain boundary points
             lontmp1=list(model_lons[:,0])
             lontmp2=list(model_lons[:,-1])
             lontmp3=list(model_lons[0,:])
@@ -192,12 +210,6 @@ def make_plotly_figure(sa_obj=None,\
                        + '{:0.2f}'.format(poly.xy[i,1]))
         pdnames = pd.Series(names)
 
-    # compute center of figure
-    def angular_mean(angles_deg):
-        N = len(angles_deg)
-        mean_c = 1.0 / N * np.sum(np.exp(1j * angles_deg * np.pi/180.0))
-        return np.angle(mean_c, deg=True)
-
     if (model is not None and model is not region):
         latmean = (angular_mean(pdmlats) + angular_mean(pdlats))/2
         lonmean = (angular_mean(pdmlons) + angular_mean(pdlons))/2
@@ -227,9 +239,10 @@ def make_plotly_figure(sa_obj=None,\
                 np.max(list(pdlats)) + \
                 coefflat * np.max(list(pdlats))]
 
+    # --- define datasets to be included --- #
     # region polygon
     print("adding polygon nodes to map")
-    airports = [ dict(
+    polygon_nodes = [ dict(
             type = 'scattergeo',
             lon = pdlons,
             lat = pdlats,
@@ -244,15 +257,15 @@ def make_plotly_figure(sa_obj=None,\
                     color='rgba(68, 68, 68, 0)'
                 )
             ))]
-    data = airports
+    data = polygon_nodes
 
     if model is not region:    
 #    if model is not None:    
         # connecting polygon nodes
         print("connecting polygon nodes")
-        flight_paths = []
+        internode_paths = []
         for i in range( len( poly.xy[:,0] ) - 1):
-            flight_paths.append(
+            internode_paths.append(
                 dict(
                     type = 'scattergeo',
                     lon = [ poly.xy[:,0][i], poly.xy[:,0][i+1] ],
@@ -265,12 +278,12 @@ def make_plotly_figure(sa_obj=None,\
                     opacity = float(0.8),
                 )
             )
-        data = data + flight_paths
+        data = data + internode_paths
 
     if (model is not None and region is not model):
         print("adding model boundary points to map")
         # model grid
-        mgrid = [ dict(
+        model_domain = [ dict(
             type = 'scattergeo',
             lon = pdmlons,
             lat = pdmlats,
@@ -285,46 +298,38 @@ def make_plotly_figure(sa_obj=None,\
                     color='rgba(68, 68, 68, 0)'
                 )
             ))]
-        data = data + mgrid
+        data = data + model_domain
 
     # adding S3a Hs data
     sanames = []
     if sa_obj is not None:
         print("adding S3a hovering legend")
         thin = 1
-        if len(sa_obj.rHs) > 5000:
+        if len(sa_obj.Hs) > 5000:
             thin = 2
-        if len(sa_obj.rHs) > 15000:
+        if len(sa_obj.Hs) > 15000:
             thin = 3
-        if len(sa_obj.rHs) > 25000:
+        if len(sa_obj.Hs) > 25000:
             thin = 5
-        if len(sa_obj.rHs) > 60000:
+        if len(sa_obj.Hs) > 60000:
             thin = 10
-        for i in range(len(sa_obj.rHs[::thin])):
+        for i in range(len(sa_obj.Hs[::thin])):
             sanames.append('Hs: ' 
-                        + '{:0.2f}'.format(sa_obj.rHs[::thin][i])
+                        + '{:0.2f}'.format(sa_obj.Hs[::thin][i])
                         + ' (' 
-                        + sa_obj.rtime[::thin][i].strftime('%Y-%m-%d %H:%M:%S')
+                        + sa_obj.dtime[::thin][i].strftime('%Y-%m-%d %H:%M:%S')
                         + ')')
             pdsanames = pd.Series(sanames)
         # model grid
-        sa_grid = [ dict(
+        sa_points = [ dict(
             type = 'scattergeo',
-            lon = sa_obj.rloc[1][::thin],
-            lat = sa_obj.rloc[0][::thin],
+            lon = sa_obj.loc[1][::thin],
+            lat = sa_obj.loc[0][::thin],
             hoverinfo = 'text',
             text = pdsanames,
             mode = 'markers',
-#            marker = dict(
-#                size=5,
-#                color=sa_obj.rHs,
-#                line = dict(
-#                    width=3,
-#                    color='rgba(68, 68, 68, 0)'
-#                )
-#            )
             marker = dict(
-                color = sa_obj.rHs,
+                color = sa_obj.Hs,
                 colorscale = 'Portland',
                 reversescale = False,
                 opacity = 0.9,
@@ -341,10 +346,11 @@ def make_plotly_figure(sa_obj=None,\
                 )
             )
             )]
-        data = data + sa_grid
+        data = data + sa_points
 
-    # make map
+    # --- make map --- #
     print("make map")
+    # make title
     titlestr = (sa_obj.sdate.strftime('%Y-%m-%d %H:%M:%S UTC')
                 + ' - '
                 + sa_obj.edate.strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -356,6 +362,7 @@ def make_plotly_figure(sa_obj=None,\
                 + '<br>'
                 + 'displaying ' + str(len(sanames)) + ' footprints'
                 + ' (applied thinning: ' + str(thin) + ')')
+    # make layout and projection
     if (proj=='ortho' and domain=='auto'):
         layout = dict(
                 title = titlestr,
@@ -439,8 +446,14 @@ def make_plotly_figure(sa_obj=None,\
                 ),
             )
         )
+    # define figure from data and layout
     fig = dict( data=data, layout=layout )
+    # save stuff
     print("save figure")
-    plotly.offline.plot( fig, filename=('/lustre/storeB/project/fou/om/'
+    if outpath is not None:
+        plotly.offline.plot( fig, filename=(outpath), auto_open=False)
+    else:
+        plotly.offline.plot( fig, filename=('/lustre/storeB/project/fou/om/'
                                        +'waveverification/d3-flight-paths')
                                        , auto_open=False)
+    print('finished sa3 map')

@@ -6,13 +6,7 @@ Module to handle all visualization related functions.
 
 I try to mostly follow the PEP convention for python code style. 
 Constructive comments on style and effecient programming are most welcome!
-
 '''
-__version__ = "0.5.0"
-__author__="Patrik Bohlinger, Norwegian Meteorological Institute"
-__maintainer__ = "Patrik Bohlinger"
-__email__ = "patrikb@met.no"
-__status__ = "under development with operation ARCMFC branch"
 
 # --- import libraries ------------------------------------------------#
 '''
@@ -109,23 +103,6 @@ val_fig_varname_dict =  {'SI':'scatter index',
                         }
 
 
-#def make_coll_ts_fig_arcmfc(name,ts,dtime):
-#    import matplotlib.dates as mdates
-#    fig = plt.figure(figsize=(20,5))
-#    ax = fig.add_subplot(111)
-#    fs = 14
-#    ax.plot(all_dates,ts,'ko',markersize=6,label='Obs')
-#    ax.plot(all_dates,ts,'ro',markersize=1.5,markeredgecolor='r',label='Model')
-#    plt.legend(fontsize=fs,loc='upper left')
-#    plt.ylabel('Hs [m]',fontsize=fs)
-#    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=4))
-#    #plt.gca().xaxis.set_minor_locator(mdates.DayLocator(interval=1))
-#    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%y-%m-%d'))
-#    plt.gcf().autofmt_xdate()
-#    plt.tick_params(axis='both', which='major', labelsize=fs)
-#    #plt.show()
-#    return fig
-
 def make_val_ts_fig_arcmfc(val_name,ts_lst,dtime_lst,filename_fig,forecasts):
     fig = plt.figure(figsize=(15,5))
     ax = fig.add_subplot(111)
@@ -183,17 +160,10 @@ def make_val_ts_fig_op(val_name,ts,dtime,filename_fig):
 
 def make_val_scatter_fig_arcmfc(ts_model_lst,ts_obs_lst,
                                 filename_fig,forecasts,i):
-    #fig = plt.figure(figsize=(16*2/3.,9*2/3.))
     fig = plt.figure(figsize=(4*1.25,3*1.25))
     ax = fig.add_subplot(111)
     fs = 15
     pltcolors = ['k','skyblue','orange']
-#    pltms = [4,2,2]
-#    for i in range(len(forecasts)):
-#        plt.plot(ts_obs_lst[i],ts_model_lst[i],'o',markersize=pltms[i],
-#                color=pltcolors[i],alpha=.8,
-#                markeredgecolor=pltcolors[i],
-#                label=str(forecasts[i]) + 'h')
     plt.plot(ts_obs_lst,ts_model_lst,'o',markersize=5,
             color=pltcolors[i],alpha=.8,
             markeredgecolor=pltcolors[0],

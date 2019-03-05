@@ -447,9 +447,9 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     if distlim is None:
         distlim = int(6)
     timewin = sa_obj.timewin
-    ctime, cidx = matchtime(datein,datein,sa_obj.rTIME,
+    ctime, cidx = matchtime(datein,datein,sa_obj.time,
                     sa_obj.basetime,timewin=sa_obj.timewin)
-    sat_time_dt=np.array(sa_obj.rtime)[cidx]
+    sat_time_dt=np.array(sa_obj.dtime)[cidx]
     model_time_idx = model_time_dt.index(datein)
     model_time_dt_valid=[model_time_dt[model_time_idx]]
     print ("date matches found:")
@@ -524,9 +524,9 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     nearest_all_model_lons_matches=[]
     nearest_all_model_lats_matches=[]
     # create local variables before loop
-    sat_rlats=sa_obj.rloc[0][cidx]
-    sat_rlons=sa_obj.rloc[1][cidx]
-    sat_rHs=np.array(sa_obj.rHs)[cidx]
+    sat_rlats=sa_obj.loc[0][cidx]
+    sat_rlons=sa_obj.loc[1][cidx]
+    sat_rHs=np.array(sa_obj.Hs)[cidx]
     # moving window compensating for increasing latitudes
     try:
         moving_win = round(
