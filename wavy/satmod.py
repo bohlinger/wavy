@@ -770,11 +770,6 @@ class sentinel_altimeter():
             print ("Values found for chosen region and time frame.")
         return latlst, lonlst, rlatlst, rlonlst, ridx
 
-    def dumptonc(self,outpath,ncmode=None,timeframe=None):
-        """
-        should use functions from ncmod
-        """
-        nc.close()
 
 def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
     from utils import haversine

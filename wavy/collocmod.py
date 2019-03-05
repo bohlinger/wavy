@@ -99,65 +99,6 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     model_time_dt_valid=[model_time_dt[model_time_idx]]
     print ("date matches found:")
     print (model_time_dt_valid)
-    # Constrain to region
-    if ((model in model_dict)
-    and (sa_obj.region=='ecwam'
-    and (sa_obj.region=='Global' or sa_obj.region=='ecwam'))):
-        model_rlats = model_lats
-        model_rlons = model_lons
-        model_rHs = model_Hs.squeeze()
-    elif ((model in model_dict)
-    and (sa_obj.region!='Arctic' and sa_obj.region!='ARCMFC')):
-        model_rlats = model_lats[
-                    (model_lats
-                    >= sa_obj.region_dict[sa_obj.region]["llcrnrlat"])
-                  & (model_lats
-                    <= sa_obj.region_dict[sa_obj.region]["urcrnrlat"])
-                  & (model_lons
-                    >= sa_obj.region_dict[sa_obj.region]["llcrnrlon"])
-                  & (model_lons
-                    <= sa_obj.region_dict[sa_obj.region]["urcrnrlon"])
-                            ]
-        model_rlons = model_lons[
-                    (model_lats
-                    >= sa_obj.region_dict[sa_obj.region]["llcrnrlat"])
-                  & (model_lats
-                    <= sa_obj.region_dict[sa_obj.region]["urcrnrlat"])
-                  & (model_lons
-                    >= sa_obj.region_dict[sa_obj.region]["llcrnrlon"])
-                  & (model_lons
-                    <= sa_obj.region_dict[sa_obj.region]["urcrnrlon"])
-                            ]
-        tmpA=model_Hs.squeeze()
-        tmpB = tmpA[
-                (model_lats
-                >= sa_obj.region_dict[sa_obj.region]["llcrnrlat"])
-                & (model_lats
-                <= sa_obj.region_dict[sa_obj.region]["urcrnrlat"])
-              & (model_lons
-                >= sa_obj.region_dict[sa_obj.region]["llcrnrlon"])
-              & (model_lons
-                <= sa_obj.region_dict[sa_obj.region]["urcrnrlon"])                            ]
-        model_rHs=tmpB
-        del tmpA, tmpB
-    elif ((model in model_dict)
-    and (sa_obj.region=='Arctic' or sa_obj.region=='ARCMFC')):
-        model_rlats = model_lats[
-                    (model_lats
-                    >= sa_obj.region_dict[sa_obj.region]["boundinglat"])
-                            ]
-        model_rlons = model_lons[
-                    (model_lats
-                    >= sa_obj.region_dict[sa_obj.region]["boundinglat"])
-                            ]
-        model_rHs=[]
-        tmpA = model_Hs[model_time_idx,:]
-        tmpB = tmpA[
-                (model_lats
-                >= sa_obj.region_dict[sa_obj.region]["boundinglat"])
-                        ]
-        model_rHs = tmpB
-        del tmpA, tmpB
     # Compare wave heights of satellite with model with 
     # constraint on distance and time frame
     nearest_all_date_matches=[]
@@ -172,6 +113,10 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     sat_rlats=sa_obj.loc[0][cidx]
     sat_rlons=sa_obj.loc[1][cidx]
     sat_rHs=np.array(sa_obj.Hs)[cidx]
+    # flatten numpy arrays
+    model_rHs = model_Hs.flatten()
+    model_rlons = model_lons.flatten()
+    model_rlats = model_lats.flatten()
     # moving window compensating for increasing latitudes
     try:
         moving_win = round(
