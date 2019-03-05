@@ -6,3 +6,4 @@ netCDF4>=1.0.0
 scikit-learn
 basemap
 matplotlib
+plotly

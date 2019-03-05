@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
-sys.path.append(r'/home/patrikb/wavy/wavy/op')
 
 from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa

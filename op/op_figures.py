@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
-sys.path.append(r'/home/patrikb/wavy/wavy/op')
 
 import os
 from datetime import datetime, timedelta

@@ -57,12 +57,20 @@ def collocation_loop(
                     (model_rlons<=sat_rlon+moving_win)
                     ]
             # compute distances
-            distlst=map(
-                haversine,
-                [sat_rlon]*len(model_rlons_new),
-                [sat_rlat]*len(model_rlons_new),
-                model_rlons_new,model_rlats_new
-                )
+            if sys.version_info <= (3, 0):
+                distlst=map(
+                    haversine,
+                    [sat_rlon]*len(model_rlons_new),
+                    [sat_rlat]*len(model_rlons_new),
+                    model_rlons_new,model_rlats_new
+                    )
+            else:
+                distlst=list(map(
+                    haversine,
+                    [sat_rlon]*len(model_rlons_new),
+                    [sat_rlat]*len(model_rlons_new),
+                    model_rlons_new,model_rlats_new
+                    ))
             tmp_idx2 = distlst.index(np.min(distlst))
             idx_valid = tmp_idx[tmp_idx2]
         if (distlst[tmp_idx2]<=distlim and model_rHs[idx_valid]>=0):

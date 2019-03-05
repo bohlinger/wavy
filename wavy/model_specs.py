@@ -205,7 +205,7 @@ model_dict={'ARCMFC':
                     + '/coup_exp_output/ST3_experiments/'
                     + '1waycoup_direct_ST3/'),
             'file_template':'ww3.%Y%m%dT%H_hs.nc',
-            'basetime':datetime(1990,01,01),
+            'basetime':datetime(1990,1,1),
             'units_time':'days since 1990-01-01 00:00:00',
             'time_conventions': ('relative julian days with decimal part' 
                         + ' as parts of the day'),
@@ -223,7 +223,7 @@ model_dict={'ARCMFC':
                     + 'coup_exp_output/ST3_experiments/'
                     + 'Exp2_direct_ST3/'),
             'file_template':'ww3.%Y%m%dT%H_hs.nc',
-            'basetime':datetime(1990,01,01),
+            'basetime':datetime(1990,1,1),
             'units_time':'days since 1990-01-01 00:00:00',
             'time_conventions': ('relative julian days with decimal part'
                         + ' as parts of the day'),
