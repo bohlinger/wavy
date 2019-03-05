@@ -15,10 +15,6 @@ effortless orientation. May be combined at some point.
 # progress bar and other stuff
 import sys
 
-# ignore irrelevant warnings from matplotlib for stdout
-import warnings
-#warnings.filterwarnings("ignore")
-
 # all class
 import numpy as np
 from datetime import datetime, timedelta

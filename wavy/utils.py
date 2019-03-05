@@ -142,6 +142,15 @@ def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None):
         print('no outliers detected')
         return []
 
+def progress(count, total, status=''):
+    "from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3"
+    bar_len = 60
+    filled_len = int(round(bar_len * count / float(total)))
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
+    sys.stdout.flush()
+
 def grab_PID():
     """
     function to retrieve PID and display it to be able to kill the 

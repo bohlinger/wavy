@@ -6,20 +6,7 @@ This module encompasses classes and methods to read and write to netcdf
 files from model, station, or sentinel output. I try to mostly follow 
 the PEP convention for python code style. Constructive comments on style 
 and effecient programming are most welcome!
-
-I wish it to work something like this in future:
- 1: get_model for given time period
- 2: dumptonc based on model (e.g. MWAM4, ARCMFC, ARCMFCnew)
- 3: choose create or append based on the existence of the file
-    Must have one unlimited dimension (time), and two spatial dimensions
-    (latitude, longitude, which depend on rlat,rlon)
 '''
-__version__ = "0.5.0"
-__author__="Patrik Bohlinger, Norwegian Meteorological Institute"
-__maintainer__ = "Patrik Bohlinger"
-__email__ = "patrikb@met.no"
-__status__ = "under development with operation ARCMFC branch"
-
 # --- import libraries ------------------------------------------------#
 '''
 List of libraries needed for this class. Sorted in categories to serve
@@ -57,7 +44,7 @@ import pathfinder
 """
 definition of some global functions
 """
-# Currently None
+# currently None
 # ---------------------------------------------------------------------#
 
 
