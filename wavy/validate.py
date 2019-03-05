@@ -145,7 +145,7 @@ else:
     if args.dts is not None:
         # dump to nc-file
         from model_specs import model_dict
-        from custom_nc import dumptonc_ts
+        from ncmod import dumptonc_ts
         basetime=model_dict[args.m]['basetime']
         outpath=args.dts
         filename_ts= args.m + "_nc_ts.nc"
@@ -155,7 +155,7 @@ else:
     if args.dval is not None:
         # dump to nc-file
         from model_specs import model_dict
-        from custom_nc import dumptonc_stats
+        from ncmod import dumptonc_stats
         basetime=model_dict[args.m]['basetime']
         outpath=args.dval
         filename_stat= args.m + "_nc_val.nc"
