@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
-from modelmod import get_model, collocate
-from satmod import validate
+from modelmod import get_model
+from collocmod import collocate
+from validationmod import validate
 from copy import deepcopy
 from model_specs import model_dict
 from ncmod import dumptonc_stats

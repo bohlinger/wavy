@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
-from modelmod import get_model, collocate, check_date
-from satmod import validate
+from modelmod import get_model, check_date
+from collocmod import collocate
+from validationmod import validate
 from copy import deepcopy
 from utils import grab_PID
 import argparse
