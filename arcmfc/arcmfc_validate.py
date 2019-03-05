@@ -10,7 +10,7 @@ from modelmod import get_model, collocate
 from satmod import validate
 from copy import deepcopy
 from model_specs import model_dict
-from custom_nc import dumptonc_stats
+from ncmod import dumptonc_stats
 import argparse
 from argparse import RawTextHelpFormatter
 from utils import grab_PID
@@ -63,7 +63,7 @@ while tmpdate <= edate:
         model = 'ARCMFC'
         basetime=model_dict[model]['basetime']
         # get model collocated values
-        from custom_nc import get_arcmfc_ts
+        from ncmod import get_arcmfc_ts
         inpath = ('/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
                 + fc_date.strftime('%Y/%m/'))
         filename_ts=fc_date.strftime("ARCMFC_coll_ts_lt"

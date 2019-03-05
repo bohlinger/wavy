@@ -11,7 +11,7 @@ from modelmod import get_model, collocate
 from satmod import validate
 from copy import deepcopy
 from model_specs import model_dict
-from custom_nc import dumptonc_stats
+from ncmod import dumptonc_stats
 import argparse
 from argparse import RawTextHelpFormatter
 from utils import grab_PID
@@ -86,7 +86,7 @@ while tmpdate <= edate:
         fc_date = deepcopy(tmpdate)
         basetime=model_dict[model]['basetime']
         # get model collocated values
-        from custom_nc import get_arcmfc_ts
+        from ncmod import get_arcmfc_ts
         filename_ts=fc_date.strftime(model + "_coll_ts_lt"
                                             + "{:0>3d}".format(element)
                                             + "h_%Y%m.nc")

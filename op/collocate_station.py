@@ -20,7 +20,7 @@ from station_specs import station_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from custom_nc import dumptonc_coll_ts_station
+from ncmod import dumptonc_coll_ts_station
 from copy import deepcopy
 from utils import grab_PID
 import argparse

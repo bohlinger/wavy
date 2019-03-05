@@ -16,7 +16,7 @@ from stationmod import matchtime
 import os
 import argparse
 from argparse import RawTextHelpFormatter
-from custom_nc import get_arcmfc_stats
+from ncmod import get_arcmfc_stats
 
 parser = argparse.ArgumentParser(
     description="""

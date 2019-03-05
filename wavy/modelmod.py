@@ -79,7 +79,7 @@ class model_class():
 
     def __init__(self,sdate,edate=None,model=None,timewin=None,region=None):
         print ('# ----- ')
-        print (" ### Initializing custom_nc instance ###")
+        print (" ### Initializing modelmod instance ###")
         print ('# ----- ')
         if region is None:
             model='ARCMFC'

@@ -13,7 +13,7 @@ from copy import deepcopy
 from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
-from custom_nc import get_nc_time, dumptonc_ts
+from ncmod import get_nc_time, dumptonc_ts
 from model_specs import model_dict
 
 # parser

@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timedelta
 from copy import deepcopy
 from graphicsmod import make_val_ts_fig_arcmfc, make_val_scatter_fig_arcmfc
-from custom_nc import get_arcmfc_stats, get_arcmfc_ts
+from ncmod import get_arcmfc_stats, get_arcmfc_ts
 
 # settings
 fc_date = datetime.now()

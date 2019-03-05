@@ -6,7 +6,7 @@
             model time series together and one netcdf file including the 
             computed validation statistics for each considered model time 
             step
-            May use functions from netcdf module custom_nc
+            May use functions from netcdf module ncmod
             Any new time step (e.g. continuing for a month) is appended
         2. Function to produce chosen validation figure
         3. 

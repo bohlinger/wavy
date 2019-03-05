@@ -23,7 +23,7 @@ from buoy_specs import buoy_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from custom_nc import dumptonc_coll_ts_Tennholmen
+from ncmod import dumptonc_coll_ts_Tennholmen
 from copy import deepcopy
 from utils import grab_PID
 import argparse
