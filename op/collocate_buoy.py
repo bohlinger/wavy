@@ -17,7 +17,8 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 
 import os
 from stationmod import get_buoy, get_loc_idx
-from modelmod import get_model, collocate, check_date
+from modelmod import get_model, check_date
+from collocmod import collocate
 from buoy_specs import buoy_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta

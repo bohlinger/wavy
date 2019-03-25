@@ -32,8 +32,12 @@ def plotly_s3a_map(sa_obj=None,\
     if grid_date is None:
         if model == 'mwam8':
             grid_date = datetime(2019,2,1,6)
+        if model == 'ww3':
+            grid_date = datetime(2019,3,4,18)
         elif (model == 'MoskNC' or model == 'MoskWC'):
             grid_date = datetime(2018,3,1)
+        elif (model == 'swanKC'):
+            grid_date = datetime(2007,2,1)
         else:
             grid_date = datetime(2019,2,1)
     if region is None and sa_obj is None:
@@ -54,6 +58,8 @@ def plotly_s3a_map(sa_obj=None,\
             model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                 get_model(simmode="fc",model=model,fc_date=grid_date,
                 leadtime=0)
+        if region == 'swanKC':
+            model_lats, model_lons = np.meshgrid(model_lats, model_lons)
         if tiling is not None:
             # tiling of model domain
             in1,in2 = model_lats.shape[0],model_lats.shape[1]
@@ -302,9 +308,9 @@ def plotly_s3a_map(sa_obj=None,\
 
     # adding S3a Hs data
     sanames = []
-    if sa_obj is not None:
+    thin = 1
+    if (sa_obj is not None and len(sa_obj.Hs) > 0):
         print("adding S3a hovering legend")
-        thin = 1
         if len(sa_obj.Hs) > 5000:
             thin = 2
         if len(sa_obj.Hs) > 15000:
@@ -329,7 +335,7 @@ def plotly_s3a_map(sa_obj=None,\
             text = pdsanames,
             mode = 'markers',
             marker = dict(
-                color = sa_obj.Hs,
+                color = sa_obj.Hs[::thin],
                 colorscale = 'Portland',
                 reversescale = False,
                 opacity = 0.9,

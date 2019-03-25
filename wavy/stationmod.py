@@ -64,9 +64,9 @@ import time
 from pathfinder import station_d22_starc, station_d22_opdate
 from pathfinder import stationpath_lustre_om, stationpath_lustre_hi
 import pylab as pl
-from d22_var_dicts import dat,  WM1, WM2, WM3, \
-                                WL1, WL2, WL3, \
-                                WIA, WIB, WIC
+#from d22_var_dicts import dat,  WM1, WM2, WM3, \
+#                                WL1, WL2, WL3, \
+#                                WIA, WIB, WIC
 from datetime import datetime
 import scipy as sp
 
@@ -92,20 +92,23 @@ class station_class():
      - get the closest time stamp(s)
      - get Hs value for this time
     '''
-    #stationpath_lustre_om = '/lustre/storeA/project/fou/om/' + \
-    #                        'waveverification/data/'
-    #stationpath_lustre_hi = '/lustre/storeA/project/fou/hi/' + \
-    #                        'waveverification/data/'
     basedate = datetime(1970,1,1)
     from stationlist import locations
 
-    def __init__(self,statname,sdate,edate,mode=None):
+    def __init__(self,statname,sdate,edate,
+                mode=None,deltat=None,sensorname=None):
         print ('# ----- ')
-        print (" ### Initializing station_class instance ###")
+        print (" ### Initializing station_class object ###")
+        print (" Please wait ...")
         print ('# ----- ')
         if mode is None:
             mode = 'nc' # or if 'd22' in future
-        hs, hs_obs, time, timedt = self.get_station(statname,sdate,edate,mode)
+        hs, hs_obs, time, timedt = self.get_station(
+                                    statname,
+                                    sdate,edate,
+                                    mode,deltat,
+                                    sensorname
+                                )
         self.hs = hs
         self.hs_obs = hs_obs
         self.time = time
@@ -113,8 +116,11 @@ class station_class():
         self.basedate = self.basedate
         self.lat = self.locations[statname][0]
         self.lon = self.locations[statname][1]
+        self.sensorname = sensorname
+        self.statname = statname
+        print (" ### station_class object initialized ###")
 
-    def get_station(self,statname,sdate,edate,mode):
+    def get_station(self,statname,sdate,edate,mode,deltat,sensorname):
         if mode == 'nc':
             basedate = self.basedate
             tmpdate = sdate
@@ -141,7 +147,28 @@ class station_class():
             hs = flatten(hs)
             time = flatten(time)
         elif mode == 'd22':
-            print ("no d22 fileformat included yet")
+            from station_specs import station_dict
+            sdatetmp = sdate - timedelta(days=1)
+            edatetmp = sdate + timedelta(days=1)
+            sl = parse_d22(statname,sdatetmp,edatetmp)
+            sensor_lst, dates = extract_d22(sl)
+            tmpdate = sdate
+            hs = []
+            hs_obs = []
+            time = []
+            timedt = []
+            while (tmpdate <= edate):
+                ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
+                                        timewin=1)
+                hs_obs_hourly = sensor_lst[station_dict[statname]['sensor']
+                                            [sensorname]]['Hs_1hr'][idxtmp]
+                hs_obs_10min = sensor_lst[station_dict[statname]['sensor']
+                                            [sensorname]]['Hs_10min'][idxtmp]
+                time.append((tmpdate-self.basedate).total_seconds())
+                hs_obs.append(hs_obs_10min)
+                hs.append(hs_obs_hourly)
+                timedt.append(tmpdate)
+                tmpdate = tmpdate + timedelta(minutes=deltat)
         return hs, hs_obs, time, timedt
 
 def read_Tennholmen(date):
@@ -400,6 +427,7 @@ def parse_d22(statname,sdate,edate):
             f = open(ifile_starc, "r")
             searchlines = searchlines + f.readlines()
             f.close()
+        f.close()
     return searchlines
 
 # Function that converts 's' to float32 or nan if floater throws exception 
@@ -412,6 +440,21 @@ def floater(s):
 
 def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
+    import d22_var_dicts
+    try:
+        reload(d22_var_dicts)
+    except:
+        pass
+    dat=d22_var_dicts.dat
+    WM1=d22_var_dicts.WM1
+    WM2=d22_var_dicts.WM2
+    WM3=d22_var_dicts.WM3
+    WL1=d22_var_dicts.WL1
+    WL2=d22_var_dicts.WL2
+    WL3=d22_var_dicts.WL3
+    WIA=d22_var_dicts.WIA
+    WIB=d22_var_dicts.WIB
+    WIC=d22_var_dicts.WIC
     tseries=[]
     for i, line in enumerate(searchlines):
         if "!!!!" in line: 
@@ -446,7 +489,6 @@ def extract_d22(searchlines):
             if str(WL['name']) in line:
                 for l in searchlines[i+2:i+3]:
                     WL['Hlat'][-1]=floater(l.strip())
-    # From here ....
     N = len(dat['10min'])
     #Convert data to arrays
     dat['10min']=sp.array(dat['10min'])
@@ -454,11 +496,6 @@ def extract_d22(searchlines):
         for var in WM.keys():
             if var != 'name':
                 WM[var] = sp.array(WM[var])
-                #Set all negative values to nan
-                #WM[var][WM[var]<0] = sp.nan
-                #If variable does not exist
-                #if len(sp.array(WM[var]))==0:
-                #print len(dat['10min'])
                 if len(sp.array(WM[var]))!=N:
                     WM[var] = np.empty(len(dat['10min']))
                     WM[var][:] = sp.nan
@@ -482,7 +519,9 @@ def extract_d22(searchlines):
                     WM['Tm_1hr'] = sp.sqrt(wmt)
     # CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
     sensor_lst = [WM1,WM2,WM3]
-    return sensor_lst, dat
+    dates = deepcopy(dat)
+    del dat
+    return sensor_lst, dates
 
 def matchtime(sdate,edate,time,basetime=None,timewin=None):
     '''
@@ -497,7 +536,6 @@ def matchtime(sdate,edate,time,basetime=None,timewin=None):
     ctime=[]
     cidx=[]
     idx=0
-    print ('Time window is: ', timewin)
     if (edate is None or sdate==edate):
         for element in time:
             if basetime is None:

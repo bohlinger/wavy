@@ -11,7 +11,7 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 import subprocess
 import os
 #cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate.py -sd 2019010100 -ed 2019022118'
-cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate.py'
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
 t = os.system(cmd)
 #p = subprocess.Popen(cmd,stdout=subprocess.PIPE,shell=True)
 #(output, err) = p.communicate()
@@ -22,10 +22,10 @@ t = os.system(cmd)
 #print("Command output: " + output)
 
 #cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_validate.py -sd 2019020100 -ed 2019022118'
-cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_validate.py'
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py'
 t = os.system(cmd)
 
-cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_figures.py'
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures.py'
 t = os.system(cmd)
 
 #cmd = 'sh /home/patrikb/wavy/web/arcmfc/webpage.sh'

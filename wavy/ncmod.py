@@ -962,6 +962,84 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
         ncHs_stat_10min[:] = Hs_stat_10min
     nc.close()
 
+def dumptonc_ts_station(outpath,filename,title,basetime,\
+                        obs_dict,statname,sensorname):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = obs_dict['time']
+    Hs_stat_10min = obs_dict['Hs_stat_10min']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hs'][startidx:endidx] = Hs_stat_10min[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = statname
+        nc.instrument_type = sensorname
+        nc.instrument_specs = "?"
+        nc.instrument_manufacturer = station_dict[statname]\
+                                    ['manufacturer'][sensorname]
+        nc.netcdf_version = "4"
+        nc.data_owner = "?"
+        nc.licence = "?"
+        nc.processing_level = "No imputation for missing or erroneous values."
+        nc.static_position_station =  ("Latitude: "
+                            + str(station_dict[statname]['coords']['lat'])
+                            + ", Longitude: "
+                            + str(station_dict[statname]['coords']['lon']))
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHs_stat_10min = nc.createVariable(
+                               'Hs',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+        nctime.delta_t = '10 min'
+        nctime[:] = time
+        # Hs_stat_10min
+        ncHs_stat_10min.standard_name = (
+                          'sea_surface_wave_significant_height_10min'                                       )
+        ncHs_stat_10min.long_name = ( 'Significant wave height retrieved '
+                                    + 'at imposed 10 min interval, '
+                                    + 'estimation method currently unknown '
+                                    + '(spectrum or zero crossings?)')
+        ncHs_stat_10min.units = 'm'
+        ncHs_stat_10min.valid_range = 0., 25.
+        ncHs_stat_10min[:] = Hs_stat_10min
+    nc.close()
+
 def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
     """
     1. check if nc file already exists

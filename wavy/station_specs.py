@@ -6,12 +6,159 @@ station_dict = {'ekofiskL':
                     'sensor':
                         {
                         'waverider':0, # python indexing
-                        'laser':1,
-                        'radar':2
+                        'OptechLaser':1,
+                        'SAABWaveRadar':2
+                        },
+                    'manufacturer':
+                        {
+                        'waverider':'Datawell',
+                        'OptechLaser':'Optech',
+                        'SAABWaveRadar':'Rosemount'
                         },
                     'coords':
                         {'lat':56.54,
                         'lon':3.21
+                        }
+                    },
+                'grane':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':59.17,
+                        'lon':2.48
+                        }
+                    },
+                'gullfaksc':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':56.28,
+                        'lon':3.39
+                        }
+                    },
+                'heidrun':
+                    {
+                    'sensor':
+                        {
+                        'NA':0, # python indexing
+                        'NA':1 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'NA':'NA',
+                        'NA':'NA'
+                        },
+                    'coords':
+                        {'lat':65.32,
+                        'lon':7.32
+                        }
+                    },
+                'heimdal':
+                    {
+                    'sensor':
+                        {
+                        'NA':0, # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'NA':'NA'
+                        },
+                    'coords':
+                        {'lat':59.57,
+                        'lon':2.23
+                        }
+                    },
+                'norne':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':66.02,
+                        'lon':8.08
+                        }
+                    },
+                'sleipner':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0, # python indexing
+                        'NA':1 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros',
+                        'NA':'NA'
+                        },
+                    'coords':
+                        {'lat':58.37,
+                        'lon':1.91
+                        }
+                    },
+                'snorrea':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':61.45,
+                        'lon':2.15
+                        }
+                    },
+                'trolla':
+                    {
+                    'sensor':
+                        {
+                        'MKIII_radar':0, # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':56.28,
+                        'lon':3.39
+                        }
+                    },
+                'valhall':
+                    {
+                    'sensor':
+                        {
+                        'SAABWaveRadar_1':0, # python indexing
+                        'SAABWaveRadar_2':1
+                        },
+                    'manufacturer':
+                        {
+                        'SAABWaveRadar':'Rosemount',
+                        'SAABWaveRadar':'Rosemount'
+                        },
+                    'coords':
+                        {'lat':56.28,
+                        'lon':3.39
                         }
                     }
                 }

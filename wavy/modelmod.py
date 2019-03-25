@@ -28,7 +28,7 @@ import os
 import math
 
 # progress bar
-from utils import progress
+from utils import progress, hour_rounder
 
 # get_remote
 from dateutil.relativedelta import relativedelta
@@ -106,6 +106,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     ecwam   12 hourly (00h, 12h)
     ARCMFC  24 hourly (00h)
     Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
+    ww3        hourly
     """
     if (model == 'mwam4' or model == 'mwam4force'):
         multsix = int(leadtime/6)
@@ -165,7 +166,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*12)
                        - timedelta(hours=restsix))
-    if (model == 'Erin1W' or model == 'Erin2W'):
+    elif (model == 'Erin1W' or model == 'Erin2W'):
         multsix = int(leadtime/3)
         restsix = leadtime%3
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
@@ -185,6 +186,8 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date 
                        - timedelta(hours=multsix*3)
                        - timedelta(hours=restsix))
+    elif (model=='ww3'):
+        tmp_date = fc_date
     return tmp_date
 
 def make_filename(simmode=None,model=None,datein=None,
@@ -203,18 +206,7 @@ def make_filename(simmode=None,model=None,datein=None,
             model=='mwam800c3' or model == 'mwam4force' or \
             model=='mwam8force' or model=='ecwamforce'):
             if (fc_date == init_date or leadtime == 0):
-                if ((fc_date.hour != 6 and fc_date.hour != 18) 
-                    and (model == 'mwam8' or model == 'mwam8force')):
-                    sys.exit('error: --> Check your date. mwam8 is only' 
-                            + ' initiated at 06 and 18')
-                elif (fc_date.hour%6 != 0 and (model == 'mwam4' or model == 'mwam4force')):
-                    sys.exit('error: --> Check your date. mwam4 is only' 
-                            + ' initiated at 06, 12, 18, and 00')
-                elif (fc_date.hour%12 != 0 and (model == 'ecwam' or model == 'mwam800c3')):
-                    sys.exit('error: --> Check your date. ecwam is only' 
-                            + ' initiated at 00, 12')
-                else:
-                    filename = (fc_date.strftime(
+                filename = (fc_date.strftime(
                             model_dict[model]['path_template'])
                             + fc_date.strftime(
                             model_dict[model][filetemplate])
@@ -227,7 +219,8 @@ def make_filename(simmode=None,model=None,datein=None,
                             + filedate.strftime(
                             model_dict[model][filetemplate])
                             )
-        elif (model == 'MoskNC' or model == 'MoskWC'):
+        elif (model == 'MoskNC' or model == 'MoskWC' or \
+            model=='swanKC' or model=='ww3'):
             filename = (model_dict[model]['path'] 
                     + fc_date.strftime(model_dict[model][filetemplate]))
     elif simmode == 'cont':
@@ -245,11 +238,7 @@ def make_filename(simmode=None,model=None,datein=None,
 
 def get_model_filepathlst(simmode=None,model=None,sdate=None,edate=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
-    if (model == 'ARCMFC' or model == 'MoskNC' or model == 'MoskWC' or \
-        model == 'mwam4' or model=='mwam8' or model=='ecwam' or \
-        model=='mwam800c3' or\
-        model == 'mwam4force' or model=='mwam8force' or model=='ecwamforce' or \
-        model=='Erin1W' or model == 'Erin2W'):
+    if (model in model_dict.keys() and model is not 'ARCNFCnew'):
         filestr = make_filename(simmode=simmode,model=model,
                         fc_date=fc_date,init_date=init_date,
                         leadtime=leadtime)
@@ -324,12 +313,18 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
         model_Hs = f.variables[model_dict[model][varname]][:].squeeze()
     f.close()
     model_basetime = model_dict[model]['basetime']
-    print(model_basetime)
-    if model == 'Erin1W' or model == 'Erin2W':
+    if (model == 'Erin1W' or model == 'Erin2W' or model == 'ww3'):
         model_time_dt=[]
         for element in model_time:
+            # hour_rounder used because ww3 deviates slightly from hours
+            model_time_dt.append(hour_rounder(model_basetime
+                    + timedelta(days=element)))
+    elif model == 'swanKC':
+        model_time_dt=[]
+        for element in model_time:
+            minutes = element/60.
             model_time_dt.append(model_basetime
-                    + timedelta(days=element))
+                    + timedelta(minutes=minutes))
     else:
         model_time_dt=[]
         for element in model_time:

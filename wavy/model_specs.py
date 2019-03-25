@@ -33,6 +33,20 @@ model_dict={'ARCMFC':
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'
             },
+        'ww3':
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'time': 'time',
+            'path_template':('/lustre/storeB/project/fou/om/'
+                            + 'WW3/EXP/benchmark/0060-060-060-015/'),
+            'path':('/lustre/storeB/project/fou/om/'
+                            + 'WW3/EXP/benchmark/0060-060-060-015/'),
+            'file_template':'ww3.%Y%m%d.nc',
+            'basetime':datetime(1990,1,1),
+            'units_time':'days since 1990-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)'
+            },
         'mwam4':
             {'Hs':'hs',
             'lons':'longitude',
@@ -148,15 +162,15 @@ model_dict={'ARCMFC':
             'delta_t':'0000-00-00 (01:00:00)'
             },
         'swanKC': # incomplete
-            {'Hs':'VHM0',
+            {'Hs':'hs',
             'lons':'longitude',
             'lats':'latitude',
             'time': 'time',
             'path_template':('/lustre/storeB/project/fou/om/SWAN/' 
-                            + 'Sula/Nowind/OUTER/'),
+                            + 'Sula/OUTER/Ut/'),
             'path':('/lustre/storeB/project/fou/om/SWAN/' 
-                            + 'Sula/Nowind/OUTER/'),
-            'file_template':'swan_0wind%Y/%m/%d/.nc',
+                            + 'Sula/OUTER/Ut/'),
+            'file_template':'swan_%Y%m%d.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'

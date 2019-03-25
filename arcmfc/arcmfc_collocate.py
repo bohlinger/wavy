@@ -64,7 +64,7 @@ while tmpdate <= edate:
     # get S3a values
     fc_date = deepcopy(tmpdate)
     sa_obj = sa(fc_date,timewin=timewin,region=region)
-    if len(sa_obj.rtime)==0:
+    if len(sa_obj.dtime)==0:
         print("If possible proceed with another time step...")
     else:
         # loop over all forecast lead times

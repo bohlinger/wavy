@@ -588,8 +588,12 @@ class sentinel_altimeter():
             from modelmod import get_model
             if region == 'mwam8':
                 grid_date = datetime(2019,2,1,6)
+            elif region == 'ww3':
+                grid_date = datetime(2019,3,4,18)
             elif (region == 'MoskNC' or region == 'MoskWC'):
                 grid_date = datetime(2018,3,1)
+            elif (region == 'swanKC'):
+                grid_date = datetime(2007,2,1)
             else:
                 grid_date = datetime(2019,2,1)
             if region == 'ARCMFC':
@@ -606,6 +610,8 @@ class sentinel_altimeter():
                     a,b = b,a%b
                 return b
             # tiling of model domain
+            if region == 'swanKC':
+                model_lats, model_lons = np.meshgrid(model_lats, model_lons)
             in1,in2 = model_lats.shape[0],model_lats.shape[1]
             if isinstance(tiling,int):
                 g = tiling
