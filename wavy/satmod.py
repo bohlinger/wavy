@@ -199,7 +199,8 @@ def get_remotefiles(satpath_ftp_014_001,destination,sdate,edate,timewin,
                             + str(tmpdate)[8:10]
                             + 'T'
                             + str(tmpdate)[11:13])
-                        in s]
+                            in s
+                            ]
             tmplst = tmplst + matchingtmp
             tmpdate = tmpdate + timedelta(minutes=timewin)
         matching = tmplst
@@ -281,9 +282,11 @@ class sentinel_altimeter():
                 str(sdate) + " - " + str(edate))
         get_remotefiles(self.satpath_ftp_014_001,self.satpath_lustre,
                         sdate,edate,timewin,corenum,download)
-        pathlst, filelst = self.get_localfilelst(sdate,edate,timewin,mode,region)
+        pathlst, filelst = self.get_localfilelst(
+                                sdate,edate,timewin,mode,region
+                                )
         fLATS,fLONS,fTIME,fVAVHS,fMAXS,fVAVHS_smooth = \
-                                        self.read_localfiles(pathlst,mode)
+                                    self.read_localfiles(pathlst,mode)
         idx = np.array(range(len(fVAVHS)))[~np.isnan(fVAVHS)]
         fLATS = list(np.array(fLATS)[idx])
         fLONS = list(np.array(fLONS)[idx])
@@ -348,8 +351,7 @@ class sentinel_altimeter():
                             + '/')
                 tmplst = np.sort(os.listdir(tmpdatestr))
                 filelst.append(tmplst)
-                for element in tmplst:
-                    pathlst.append(tmpdatestr + element)
+                pathlst = [(tmpdatestr + e) for e in tmplst]
                 if (edate is not None and edate!=sdate):
                     tmpdate = tmpdate + timedelta(hours=1)
                 else:
@@ -622,23 +624,24 @@ class sentinel_altimeter():
                     g = ggt(in1,in2)
             xtilesize = model_lats.shape[0]/g
             ytilesize = model_lats.shape[1]/g
-            xidx = []
-            for i in range(g):
-                xidx.append(xtilesize*i)
+            xidx = [(xtilesize*i) for i in range(g)]
             xidx.append(model_lats.shape[0])
-            yidx = []
-            for i in range(g):
-                yidx.append(ytilesize*i)
+            yidx = [(ytilesize*i) for i in range(g)]
             yidx.append(model_lats.shape[1])
-            print(xidx)
-            print(yidx)
-            tiles = []
-            for i in range(g):
-                for j in range(g):
-                    tiles.append([model_lons[int(xidx[i]):int(xidx[i+1]),
-                                int(yidx[j]):int(yidx[j+1])],
-                                model_lats[int(xidx[i]):int(xidx[i+1]),
-                                int(yidx[j]):int(yidx[j+1])]])
+            print("computed tiles: ")
+            print("xidx: ", xidx)
+            print("yidx: ", yidx)
+            tiles = [
+                        [
+                        model_lons[
+                            int(xidx[i]):int(xidx[i+1]),
+                            int(yidx[j]):int(yidx[j+1])], 
+                        model_lats[
+                            int(xidx[i]):int(xidx[i+1]),
+                            int(yidx[j]):int(yidx[j+1])]
+                        ] 
+                        for j in range(g) for i in range(g) 
+                    ]
             # create polygon for each tile
             rlatlst = []
             rlonlst = []

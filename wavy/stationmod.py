@@ -458,9 +458,7 @@ def extract_d22(searchlines):
     tseries=[]
     for i, line in enumerate(searchlines):
         if "!!!!" in line: 
-            tseriesl = []
-            for l in searchlines[i+3:i+5]:
-                tseriesl.append(l.strip())
+            tseriesl = [l.strip() for l in searchlines[i+3:i+5]]
             tseries.append(' '.join(tseriesl))
             date_object = datetime.strptime(' '.join(tseriesl),'%d-%m-%Y %H:%M')
             dat['10min'].append(date_object)

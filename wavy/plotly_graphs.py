@@ -8,6 +8,7 @@ import plotly.plotly as py
 import pandas as pd
 from region_specs import poly_dict
 from matplotlib.patches import Polygon
+from copy import deepcopy
 
 def plotly_s3a_map(sa_obj=None,\
                     region=None,domain=None,proj=None,\
@@ -73,23 +74,24 @@ def plotly_s3a_map(sa_obj=None,\
             print('tile size is: ' + str(g))
             xtilesize = model_lats.shape[0]/g
             ytilesize = model_lats.shape[1]/g
-            xidx = []
-            for i in range(g):
-                xidx.append(xtilesize*i)        
+            xidx = [(xtilesize*i) for i in range(g)]
             xidx.append(model_lats.shape[0])
-            yidx = []
-            for i in range(g):
-                yidx.append(ytilesize*i)
+            yidx = [(ytilesize*i) for i in range(g)]
             yidx.append(model_lats.shape[1])
-            print(xidx)
-            print(yidx)
-            tiles = []
-            for i in range(g):
-                for j in range(g):
-                    tiles.append([model_lons[xidx[i]:xidx[i+1],
-                                yidx[j]:yidx[j+1]],
-                                model_lats[xidx[i]:xidx[i+1],
-                                yidx[j]:yidx[j+1]]])
+            print("computed tiles: ")
+            print("xidx: ", xidx)
+            print("yidx: ", yidx)
+            tiles = [
+                        [
+                        model_lons[
+                            int(xidx[i]):int(xidx[i+1]),
+                            int(yidx[j]):int(yidx[j+1])],
+                        model_lats[
+                            int(xidx[i]):int(xidx[i+1]),
+                            int(yidx[j]):int(yidx[j+1])]
+                        ]
+                        for j in range(g) for i in range(g)
+                    ]
 
     # make polygon if model and region differ
     if(model is not None and region is not model):
@@ -140,12 +142,12 @@ def plotly_s3a_map(sa_obj=None,\
             pdlons = pd.Series(poly.xy[:,0])
             pdlats = pd.Series(poly.xy[:,1])
             # interactive text
-            names = []
-            for i in range(len(pdlons)):
-                names.append('polygon node: E'
+            names = [('polygon node: E'
                            + '{:0.2f}'.format(poly.xy[i,0])
                            + ', N'
                            + '{:0.2f}'.format(poly.xy[i,1]))
+                    for i in range(len(pdlons))
+                    ]
             pdnames = pd.Series(names)
         else:
             # create polygon of model domain
@@ -170,12 +172,12 @@ def plotly_s3a_map(sa_obj=None,\
             pdlons = pd.Series(poly.xy[:,0])
             pdlats = pd.Series(poly.xy[:,1])
             # interactive text
-            names = []
-            for i in range(len(pdlons)):
-                names.append('polygon node: E' 
-                       + '{:0.2f}'.format(poly.xy[i,0]) 
-                       + ', N' 
-                       + '{:0.2f}'.format(poly.xy[i,1]))
+            names = [('polygon node: E'
+                           + '{:0.2f}'.format(poly.xy[i,0])
+                           + ', N'
+                           + '{:0.2f}'.format(poly.xy[i,1]))
+                    for i in range(len(pdlons))
+                    ]
             pdnames = pd.Series(names)
     elif (region != model and model is not None):
         # get region
@@ -185,21 +187,21 @@ def plotly_s3a_map(sa_obj=None,\
         pdlons = pd.Series(poly.xy[:,0])
         pdlats = pd.Series(poly.xy[:,1])
         # interactive text for polygon
-        names = []
-        for i in range(len(pdlons)):
-            names.append('polygon node: E' 
-                       + '{:0.2f}'.format(poly.xy[i,0]) 
-                       + ', N' 
-                       + '{:0.2f}'.format(poly.xy[i,1]))
+        names = [('polygon node: E'
+                        + '{:0.2f}'.format(poly.xy[i,0])
+                        + ', N'
+                        + '{:0.2f}'.format(poly.xy[i,1]))
+                for i in range(len(pdlons))
+                ]
         pdnames = pd.Series(names)
         # for model
-        mnames=[]
-        for i in range(len(pdmlons)):
-            mnames.append('model domain: E' 
-                        + '{:0.2f}'.format(pdmlons[i]) 
-                        + ', N' 
-                        + '{:0.2f}'.format(pdmlats[i]))
-            pdmnames = pd.Series(mnames)
+        mnames = [('model domain: E'
+                    + '{:0.2f}'.format(pdmlons[i])
+                    + ', N'
+                    + '{:0.2f}'.format(pdmlats[i]))
+                for i in range(len(pdmlons))
+                ]
+        pdmnames = pd.Series(mnames)
     elif (region != model and model is None):
         # get region
         poly = Polygon(list(zip(poly_dict[region]['lons'],\
@@ -208,12 +210,12 @@ def plotly_s3a_map(sa_obj=None,\
         pdlons = pd.Series(poly.xy[:,0])
         pdlats = pd.Series(poly.xy[:,1])
         # interactive text for polygon
-        names = []
-        for i in range(len(pdlons)):
-            names.append('polygon node: E' 
-                       + '{:0.2f}'.format(poly.xy[i,0]) 
-                       + ', N' 
-                       + '{:0.2f}'.format(poly.xy[i,1]))
+        names = [('polygon node: E'
+                        + '{:0.2f}'.format(poly.xy[i,0])
+                        + ', N'
+                        + '{:0.2f}'.format(poly.xy[i,1]))
+                for i in range(len(pdlons))
+                ]
         pdnames = pd.Series(names)
 
     if (model is not None and model is not region):
@@ -249,24 +251,23 @@ def plotly_s3a_map(sa_obj=None,\
     # region polygon
     print("adding polygon nodes to map")
     polygon_nodes = [ dict(
-            type = 'scattergeo',
-            lon = pdlons,
-            lat = pdlats,
-            hoverinfo = 'text',
-            text = pdnames,
-            mode = 'markers',
-            marker = dict(
-                size=2,
-                color='red',
-                line = dict(
-                    width=.5,
-                    color='rgba(68, 68, 68, 0)'
-                )
-            ))]
-    data = polygon_nodes
+        type = 'scattergeo',
+        lon = pdlons,
+        lat = pdlats,
+        hoverinfo = 'text',
+        text = pdnames,
+        mode = 'markers',
+        marker = dict(
+            size=2,
+            color='red',
+            line = dict(
+                width=.5,
+                color='rgba(68, 68, 68, 0)'
+            )
+        ))]
+    data = deepcopy(polygon_nodes)
 
     if model is not region:    
-#    if model is not None:    
         # connecting polygon nodes
         print("connecting polygon nodes")
         internode_paths = []
@@ -307,7 +308,6 @@ def plotly_s3a_map(sa_obj=None,\
         data = data + model_domain
 
     # adding S3a Hs data
-    sanames = []
     thin = 1
     if (sa_obj is not None and len(sa_obj.Hs) > 0):
         print("adding S3a hovering legend")
@@ -319,13 +319,14 @@ def plotly_s3a_map(sa_obj=None,\
             thin = 5
         if len(sa_obj.Hs) > 60000:
             thin = 10
-        for i in range(len(sa_obj.Hs[::thin])):
-            sanames.append('Hs: ' 
-                        + '{:0.2f}'.format(sa_obj.Hs[::thin][i])
-                        + ' (' 
-                        + sa_obj.dtime[::thin][i].strftime('%Y-%m-%d %H:%M:%S')
-                        + ')')
-            pdsanames = pd.Series(sanames)
+        sanames = [('Hs: '
+                    + '{:0.2f}'.format(sa_obj.Hs[::thin][i])
+                    + ' ('
+                    + sa_obj.dtime[::thin][i].strftime('%Y-%m-%d %H:%M:%S')
+                    + ')')
+                    for i in range(len(sa_obj.Hs[::thin]))
+                    ]
+        pdsanames = pd.Series(sanames)
         # model grid
         sa_points = [ dict(
             type = 'scattergeo',
