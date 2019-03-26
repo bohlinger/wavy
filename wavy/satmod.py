@@ -590,8 +590,15 @@ class sentinel_altimeter():
             from modelmod import get_model
             if region == 'mwam8':
                 grid_date = datetime(2019,2,1,6)
+                proj4 = ("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                        + "+o_lat_p=25 +R=6.371e+06 +no_defs")
+            elif region == 'mwam4':
+                proj4 = ("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                        + "+o_lat_p=22 +R=6.371e+06 +no_defs")
             elif region == 'ww3':
                 grid_date = datetime(2019,3,4,18)
+                proj4 = ("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                        + "+o_lat_p=22 +R=6.371e+06 +no_defs")
             elif (region == 'MoskNC' or region == 'MoskWC'):
                 grid_date = datetime(2018,3,1)
             elif (region == 'swanKC'):
@@ -602,6 +609,8 @@ class sentinel_altimeter():
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc", model=region, fc_date=grid_date,
                     init_date=grid_date)
+                proj4 = ("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
+                        + "+R=6371000 +no_defs")
             else:
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc", model=region, fc_date=grid_date,

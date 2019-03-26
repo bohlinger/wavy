@@ -362,7 +362,7 @@ def plotly_s3a_map(sa_obj=None,\
                 + ' - '
                 + sa_obj.edate.strftime('%Y-%m-%d %H:%M:%S UTC')
                 + '<br>'
-                + model 
+                + str(model)
                 + ' domain (black) and chosen region ' 
                 + region 
                 + ' (red)'
