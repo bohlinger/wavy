@@ -607,6 +607,8 @@ class sentinel_altimeter():
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc", model=region, fc_date=grid_date,
                     leadtime=0)
+            if region == 'swanKC':
+                model_lats, model_lons = np.meshgrid(model_lats, model_lons)
             proj4 = model_dict[region]['proj4']
             proj_model = pyproj.Proj(proj4)
             Mx, My = proj_model(model_lons,model_lats,inverse=False)
