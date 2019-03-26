@@ -12,16 +12,9 @@ from copy import deepcopy
 
 def plotly_s3a_map(sa_obj=None,\
                     region=None,domain=None,proj=None,\
-                    model=None,grid_date=None,tiling=None,
+                    model=None,grid_date=None,
                     outpath=None):
 
-    # --- basic functions ---#
-    # define ggt-fct for automatic tiling
-    def ggt(a, b):
-        if a < b: a,b = b,a
-        while a%b != 0:
-            a,b = b,a%b
-        return b
     # compute center of figure
     def angular_mean(angles_deg):
         N = len(angles_deg)
@@ -61,37 +54,6 @@ def plotly_s3a_map(sa_obj=None,\
                 leadtime=0)
         if region == 'swanKC':
             model_lats, model_lons = np.meshgrid(model_lats, model_lons)
-        if tiling is not None:
-            # tiling of model domain
-            in1,in2 = model_lats.shape[0],model_lats.shape[1]
-            if isinstance(tiling,int):
-                g = tiling
-            else:
-                if ggt(in1,in2)==1:
-                    g = ggt(in1-1,in2-1)
-                else:
-                    g = ggt(in1,in2)
-            print('tile size is: ' + str(g))
-            xtilesize = model_lats.shape[0]/g
-            ytilesize = model_lats.shape[1]/g
-            xidx = [(xtilesize*i) for i in range(g)]
-            xidx.append(model_lats.shape[0])
-            yidx = [(ytilesize*i) for i in range(g)]
-            yidx.append(model_lats.shape[1])
-            print("computed tiles: ")
-            print("xidx: ", xidx)
-            print("yidx: ", yidx)
-            tiles = [
-                        [
-                        model_lons[
-                            int(xidx[i]):int(xidx[i+1]),
-                            int(yidx[j]):int(yidx[j+1])],
-                        model_lats[
-                            int(xidx[i]):int(xidx[i+1]),
-                            int(yidx[j]):int(yidx[j+1])]
-                        ]
-                        for j in range(g) for i in range(g)
-                    ]
 
     # make polygon if model and region differ
     if(model is not None and region is not model):
@@ -110,77 +72,38 @@ def plotly_s3a_map(sa_obj=None,\
         pdmlats = pd.Series(mlats)
 
     # make polygon 
-    # apply tiling to model domain polygon to increase accuracy
     if region == model:
-        if tiling is not None:
-            mlats_lst = []
-            mlons_lst = []
-            for i in range(len(tiles)):
-                model_lons = tiles[i][0]
-                model_lats = tiles[i][1]
-                # create polygon of model domain
-                idx = 1 # sparseness of tile boundary points
-                lontmp1=list(model_lons[:,0])
-                lontmp2=list(model_lons[:,-1])
-                lontmp3=list(model_lons[0,:])
-                lontmp4=list(model_lons[-1,:])
-                mlons = (lontmp3[::-1][::idx] + lontmp1[::idx] \
-                    + lontmp4[::idx] + lontmp2[::-1][::idx] \
-                    + [lontmp3[::-1][0]] + [lontmp3[::-1][0]])
-                lattmp1=list(model_lats[:,0])
-                lattmp2=list(model_lats[:,-1])
-                lattmp3=list(model_lats[0,:])
-                lattmp4=list(model_lats[-1,:])
-                mlats = (lattmp3[::-1][::idx] + lattmp1[::idx] \
-                    + lattmp4[::idx] + lattmp2[::-1][::idx] \
-                    + [lattmp3[::-1][0]] + [lattmp3[::-1][0]])
-                mlats_lst = mlats_lst + mlats
-                mlons_lst = mlons_lst + mlons
-            pdlons = pd.Series(mlons_lst)
-            pdlats = pd.Series(mlats_lst)
-            poly = Polygon(list(zip(pdlons,pdlats)), closed=False)
-            pdlons = pd.Series(poly.xy[:,0])
-            pdlats = pd.Series(poly.xy[:,1])
-            # interactive text
-            names = [('polygon node: E'
-                           + '{:0.2f}'.format(poly.xy[i,0])
-                           + ', N'
-                           + '{:0.2f}'.format(poly.xy[i,1]))
-                    for i in range(len(pdlons))
-                    ]
-            pdnames = pd.Series(names)
-        else:
-            # create polygon of model domain
-            idx = 10 # sparseness of model domain boundary points
-            lontmp1=list(model_lons[:,0])
-            lontmp2=list(model_lons[:,-1])
-            lontmp3=list(model_lons[0,:])
-            lontmp4=list(model_lons[-1,:])
-            mlons = (lontmp3[::-1][::idx] + lontmp1[::idx] \
+        # create polygon of model domain
+        idx = 10 # sparseness of model domain boundary points
+        lontmp1=list(model_lons[:,0])
+        lontmp2=list(model_lons[:,-1])
+        lontmp3=list(model_lons[0,:])
+        lontmp4=list(model_lons[-1,:])
+        mlons = (lontmp3[::-1][::idx] + lontmp1[::idx] \
                 + lontmp4[::idx] + lontmp2[::-1][::idx] \
                 + [lontmp3[::-1][0]] + [lontmp3[::-1][0]])
-            lattmp1=list(model_lats[:,0])
-            lattmp2=list(model_lats[:,-1])
-            lattmp3=list(model_lats[0,:])
-            lattmp4=list(model_lats[-1,:])
-            mlats = (lattmp3[::-1][::idx] + lattmp1[::idx] \
+        lattmp1=list(model_lats[:,0])
+        lattmp2=list(model_lats[:,-1])
+        lattmp3=list(model_lats[0,:])
+        lattmp4=list(model_lats[-1,:])
+        mlats = (lattmp3[::-1][::idx] + lattmp1[::idx] \
                 + lattmp4[::idx] + lattmp2[::-1][::idx] \
                 + [lattmp3[::-1][0]] + [lattmp3[::-1][0]])
-            pdlons = pd.Series(mlons)
-            pdlats = pd.Series(mlats)
-            poly = Polygon(list(zip(pdlons,pdlats)), closed=False)
-            pdlons = pd.Series(poly.xy[:,0])
-            pdlats = pd.Series(poly.xy[:,1])
-            # interactive text
-            names = [('polygon node: E'
+        pdlons = pd.Series(mlons)
+        pdlats = pd.Series(mlats)
+        poly = Polygon(list(zip(pdlons,pdlats)), closed=False)
+        pdlons = pd.Series(poly.xy[:,0])
+        pdlats = pd.Series(poly.xy[:,1])
+        # interactive text
+        names = [('polygon node: E'
                            + '{:0.2f}'.format(poly.xy[i,0])
                            + ', N'
                            + '{:0.2f}'.format(poly.xy[i,1]))
                     for i in range(len(pdlons))
                     ]
-            pdnames = pd.Series(names)
+        pdnames = pd.Series(names)
     elif (region != model and model is not None):
-        # get region
+        # get region for model
         poly = Polygon(list(zip(poly_dict[region]['lons'],\
                                 poly_dict[region]['lats'])),\
                                 closed=True)
@@ -194,6 +117,7 @@ def plotly_s3a_map(sa_obj=None,\
                 for i in range(len(pdlons))
                 ]
         pdnames = pd.Series(names)
+        print(pdnames)
         # for model
         mnames = [('model domain: E'
                     + '{:0.2f}'.format(pdmlons[i])

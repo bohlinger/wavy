@@ -18,7 +18,9 @@ model_dict={'ARCMFC':
             'file_template':'_MyWaveWam8r625_b%Y%m%d.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
+                    + "+R=6371000 +no_defs")
             },
         'ARCMFCnew':
             {'Hs':'VHM0',
@@ -31,7 +33,9 @@ model_dict={'ARCMFC':
             'file_template':'%Y%m%d00.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
+                    + "+R=6371000 +no_defs")
             },
         'ww3':
             {'Hs':'hs',
@@ -45,7 +49,9 @@ model_dict={'ARCMFC':
             'file_template':'ww3.%Y%m%d.nc',
             'basetime':datetime(1990,1,1),
             'units_time':'days since 1990-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=22 +R=6.371e+06 +no_defs")
             },
         'mwam4':
             {'Hs':'hs',
@@ -63,7 +69,9 @@ model_dict={'ARCMFC':
             'file_template':'MyWave_wam4_WAVE_%Y%m%dT%HZ.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=22 +R=6.371e+06 +no_defs")
             },
         'mwam8':
             {'Hs':'VHM0',
@@ -81,7 +89,9 @@ model_dict={'ARCMFC':
             'file_template':'MyWave_wam8_WAVE_%Y%m%dT%HZ.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=25 +R=6.371e+06 +no_defs")
             },
         'mwam800c3':
             {'Hs':'hs',
@@ -131,7 +141,9 @@ model_dict={'ARCMFC':
             'file_template':'W4km_force_%Y%m%dT%HZ.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=22 +R=6.371e+06 +no_defs")
             },
         'mwam8force':
             {'u10':'Uwind',
@@ -147,7 +159,9 @@ model_dict={'ARCMFC':
             'file_template':'W8km_force_%Y%m%dT%HZ.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=25 +R=6.371e+06 +no_defs")
             },
         'ecwam':
             {'Hs':'significant_wave_height',
