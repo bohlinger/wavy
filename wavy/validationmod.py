@@ -107,16 +107,22 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
                 resolution='l',
                 projection='laea',
                 lat_ts=66,lat_0=66,lon_0=1.)
-    m.drawcoastlines()
-    m.drawcountries()
-    m.drawmeridians(np.arange(0,360,5))
-    m.drawparallels(np.arange(-90,90,5))
+    if (model == 'swan_karmoy250'):
+        m.drawmeridians(np.arange(0,360,0.5))
+        m.drawparallels(np.arange(-90,90,0.5))
+    else:
+        m.drawcoastlines()
+        m.drawcountries()
+        m.drawmeridians(np.arange(0,360,5))
+        m.drawparallels(np.arange(-90,90,5))
     x, y = m(sa_obj.loc[1],sa_obj.loc[0])
     x2, y2 = m(results_dict["model_lons_matches"],results_dict["model_lats_matches"])
+    if (model == 'swan_karmoy250'):
+        Mlons, Mlats = np.meshgrid(Mlons,Mlats)
     lons, lats = m(Mlons,Mlats)
     cs = m.contourf(lons,lats,mHs,clevs,cmap=cmap,norm=norm)
     sc = m.scatter(x2,y2,s=30,c=results_dict['sat_Hs_matches'],marker='o',cmap=cmap,norm=norm,edgecolor='k',linewidths=0.05,verts=clevs)
-    plt.title('Model time step: '
+    plt.title(model + ' model time step: '
             + results_dict['valid_date'][0].strftime("%Y-%m-%d %H:%M:%S UTC") 
             + '\n'
             + 'S3a coverage from ' 

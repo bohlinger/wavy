@@ -23,56 +23,59 @@ def collocation_loop(
         sat_rlat=sat_rlats[j]
         sat_rlon=sat_rlons[j]
         # constraints to reduce workload
-        if model == 'ecwam':
-            print("ECWAM not yet implemented, "
-                  + "caution ecwam has other dimensions!")
-            pass
+        if (model == 'ecwam' or model == 'swan_karmoy250'):
+            model_rlons_M, model_rlats_M = np.meshgrid(
+                                            model_rlons, model_rlats
+                                            )
+            model_rlats_flat = model_rlats_M.flatten()
+            model_rlons_flat = model_rlons_M.flatten()
+            model_rlons = model_rlons_flat
+            model_rlats = model_rlats_flat
+        model_rlats_new=model_rlats[
+                    (model_rlats>=sat_rlat-lat_win)
+                    &
+                    (model_rlats<=sat_rlat+lat_win)
+                    &
+                    (model_rlons>=sat_rlon-moving_win)
+                    &
+                    (model_rlons<=sat_rlon+moving_win)
+                    ]
+        model_rlons_new=model_rlons[
+                    (model_rlats>=sat_rlat-lat_win)
+                    &
+                    (model_rlats<=sat_rlat+lat_win)
+                    &
+                    (model_rlons>=sat_rlon-moving_win)
+                    &
+                    (model_rlons<=sat_rlon+moving_win)
+                    ]
+        tmp=range(len(model_rlats))
+        tmp_idx=np.array(tmp)[
+                    (model_rlats>=sat_rlat-lat_win)
+                    &
+                    (model_rlats<=sat_rlat+lat_win)
+                    &
+                    (model_rlons>=sat_rlon-moving_win)
+                    &
+                    (model_rlons<=sat_rlon+moving_win)
+                    ]
+        # compute distances
+        if sys.version_info <= (3, 0):
+            distlst=map(
+                        haversine,
+                        [sat_rlon]*len(model_rlons_new),
+                        [sat_rlat]*len(model_rlons_new),
+                        model_rlons_new,model_rlats_new
+                        )
         else:
-            model_rlats_new=model_rlats[
-                    (model_rlats>=sat_rlat-lat_win)
-                    &
-                    (model_rlats<=sat_rlat+lat_win)
-                    &
-                    (model_rlons>=sat_rlon-moving_win)
-                    &
-                    (model_rlons<=sat_rlon+moving_win)
-                    ]
-            model_rlons_new=model_rlons[
-                    (model_rlats>=sat_rlat-lat_win)
-                    &
-                    (model_rlats<=sat_rlat+lat_win)
-                    &
-                    (model_rlons>=sat_rlon-moving_win)
-                    &
-                    (model_rlons<=sat_rlon+moving_win)
-                    ]
-            tmp=range(len(model_rlats))
-            tmp_idx=np.array(tmp)[
-                    (model_rlats>=sat_rlat-lat_win)
-                    &
-                    (model_rlats<=sat_rlat+lat_win)
-                    &
-                    (model_rlons>=sat_rlon-moving_win)
-                    &
-                    (model_rlons<=sat_rlon+moving_win)
-                    ]
-            # compute distances
-            if sys.version_info <= (3, 0):
-                distlst=map(
-                    haversine,
-                    [sat_rlon]*len(model_rlons_new),
-                    [sat_rlat]*len(model_rlons_new),
-                    model_rlons_new,model_rlats_new
-                    )
-            else:
-                distlst=list(map(
-                    haversine,
-                    [sat_rlon]*len(model_rlons_new),
-                    [sat_rlat]*len(model_rlons_new),
-                    model_rlons_new,model_rlats_new
-                    ))
-            tmp_idx2 = distlst.index(np.min(distlst))
-            idx_valid = tmp_idx[tmp_idx2]
+            distlst=list(map(
+                        haversine,
+                        [sat_rlon]*len(model_rlons_new),
+                        [sat_rlat]*len(model_rlons_new),
+                        model_rlons_new,model_rlats_new
+                        ))
+        tmp_idx2 = distlst.index(np.min(distlst))
+        idx_valid = tmp_idx[tmp_idx2]
         if (distlst[tmp_idx2]<=distlim and model_rHs[idx_valid]>=0):
             nearest_all_dist_matches=distlst[tmp_idx2]
             nearest_all_date_matches=sat_time_dt[j]
@@ -135,6 +138,8 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
                     np.max(np.abs(sat_rlats)))
                 ),
                 2)
+        if moving_win == 0.0:
+            raise ValueError
     except (ValueError):
         moving_win = .6
     print ("Searching for matches with moving window of degree:",\
@@ -156,7 +161,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
             nearest_all_model_lons_matches.append(resultlst[6])
             nearest_all_model_lats_matches.append(resultlst[7])
         except:
-#            print "Unexpected error:", sys.exc_info()[0]
+            print "Unexpected error:", sys.exc_info()[0]
             pass
     results_dict = {
         'valid_date':np.array(model_time_dt_valid),

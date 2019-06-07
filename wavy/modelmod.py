@@ -186,7 +186,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date 
                        - timedelta(hours=multsix*3)
                        - timedelta(hours=restsix))
-    elif (model=='ww3'):
+    elif (model=='ww3' or model == 'swan_karmoy250'):
         tmp_date = fc_date
     return tmp_date
 
@@ -220,7 +220,7 @@ def make_filename(simmode=None,model=None,datein=None,
                             model_dict[model][filetemplate])
                             )
         elif (model == 'MoskNC' or model == 'MoskWC' or \
-            model=='swanKC' or model=='ww3'):
+            model=='swanKC' or model=='ww3' or model=='swan_karmoy250'):
             filename = (model_dict[model]['path'] 
                     + fc_date.strftime(model_dict[model][filetemplate]))
     elif simmode == 'cont':

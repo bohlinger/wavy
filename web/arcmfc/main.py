@@ -10,7 +10,7 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 import subprocess
 import os
-#cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate.py -sd 2019010100 -ed 2019022118'
+#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py -sd 2019030100 -ed 2019033118'
 cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
 t = os.system(cmd)
 #p = subprocess.Popen(cmd,stdout=subprocess.PIPE,shell=True)
@@ -21,7 +21,7 @@ t = os.system(cmd)
 #This will give you the output of the command being executed
 #print("Command output: " + output)
 
-#cmd = 'python /home/patrikb/wavy/wavy/arcmfc/arcmfc_validate.py -sd 2019020100 -ed 2019022118'
+#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py -sd 2019030100 -ed 2019033118'
 cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py'
 t = os.system(cmd)
 

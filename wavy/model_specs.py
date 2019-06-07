@@ -37,7 +37,7 @@ model_dict={'ARCMFC':
             'proj4':("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
                     + "+R=6371000 +no_defs")
             },
-        'ww3':
+        'ww3bench':
             {'Hs':'hs',
             'lons':'longitude',
             'lats':'latitude',
@@ -46,6 +46,38 @@ model_dict={'ARCMFC':
                             + 'WW3/EXP/benchmark/0060-060-060-015/'),
             'path':('/lustre/storeB/project/fou/om/'
                             + 'WW3/EXP/benchmark/0060-060-060-015/'),
+            'file_template':'ww3.%Y%m%d.nc',
+            'basetime':datetime(1990,1,1),
+            'units_time':'days since 1990-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=22 +R=6.371e+06 +no_defs")
+            },
+        'ww3':
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'time': 'time',
+            'path_template':('/lustre/storeB/project/fou/om/'
+                            + 'WW3/EXP/test_season/'),
+            'path':('/lustre/storeB/project/fou/om/'
+                            + 'WW3/EXP/test_season/'),
+            'file_template':'ww3.%Y%m%d.nc',
+            'basetime':datetime(1990,1,1),
+            'units_time':'days since 1990-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
+                    + "+o_lat_p=22 +R=6.371e+06 +no_defs")
+            },
+        'ww3_test':
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'time': 'time',
+            'path_template':('/lustre/storeB/project/fou/om/'
+                            + 'WW3/EXP/test_season_large_time_step/'),
+            'path':('/lustre/storeB/project/fou/om/'
+                            + 'WW3/EXP/test_season_large_time_step/'),
             'file_template':'ww3.%Y%m%d.nc',
             'basetime':datetime(1990,1,1),
             'units_time':'days since 1990-01-01 00:00:00',
@@ -185,6 +217,22 @@ model_dict={'ARCMFC':
             'path':('/lustre/storeB/project/fou/om/SWAN/' 
                             + 'Sula/OUTER/Ut/'),
             'file_template':'swan_%Y%m%d.nc',
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)'
+            },
+        'swan_karmoy250': # incomplete
+            {'Hs':'hs',
+            'lons':'longitude',
+            'lats':'latitude',
+            'time': 'time',
+            'path_template':('/lustre/storeB/project/fou/om/SWAN/'
+                            + 'KarmoyN/olejaa/'
+                            + 'swan_karmoy250_bspec_3near25km/daily/'),
+            'path':('/lustre/storeB/project/fou/om/SWAN/'
+                            + 'KarmoyN/olejaa/'
+                            + 'swan_karmoy250_bspec_3near25km/daily/'),
+            'file_template':'swan_karmoy250_%Y%m%d.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'

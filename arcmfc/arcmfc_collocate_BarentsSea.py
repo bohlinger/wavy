@@ -55,7 +55,7 @@ forecasts = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
 
 # settings
 timewin = 30
-region = 'NordicSeas'
+region = 'BarentsSea'
 model = 'ARCMFC'
 distlim = 6
 

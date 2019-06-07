@@ -29,7 +29,9 @@ Validate a wave model (mwam4, mwam8, ARCMFC) against observations
     formatter_class = RawTextHelpFormatter
     )
 parser.add_argument("-m", metavar='model', type=str,
-    help="model/region to check (mwam4,mwam8,ARCMFC)")
+    help="model to check (mwam4,mwam8,ARCMFC)")
+parser.add_argument("-r", metavar='region', type=str,
+    help="region to check")
 parser.add_argument("-lt", metavar='leadtime', type=int,
     help="leadtime in hours")
 parser.add_argument("-fc", metavar='fcdate',
@@ -85,11 +87,12 @@ if (args.plat is None and args.sat is None and args.buoy is None):
     sys.exit("-> Error: A source of observations needs to be given!")
 if (args.m is None):
     sys.exit("-> Error: A model to validate needs to be given!")
-
+if (args.r is None):
+    args.r = args.m
 # Get S3a data
 #sa_obj = sa(fc_date,timewin=timewin,region=args.m)
 #sa_obj = sa(fc_date,timewin=timewin,polyreg='BarentsSea')
-sa_obj = sa(fc_date,timewin=timewin,polyreg=args.m)
+sa_obj = sa(fc_date,timewin=timewin,polyreg=args.r)
 if len(sa_obj.dtime)==0:
     print("If possible proceed with another time step...")
 else:
@@ -136,11 +139,7 @@ else:
         disp_validation(valid_dict)
 
     if args.show is True:
-        #sa_obj.quip(region=args.m,show=True)
         comp_fig(args.m,sa_obj,model_Hs,model_lons,model_lats,results_dict)
-
-    #if args.sfig is not None:
-    #    sa_obj.quip(region=args.m,save=True, outpath=args.sfig)
 
     if args.dts is not None:
         # dump to nc-file

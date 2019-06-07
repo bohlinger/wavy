@@ -35,8 +35,6 @@ from ftplib import FTP
 # read_altim
 import netCDF4 as netCDF4
 
-# libraries for quip and quim imported in fct for speedup
-
 # create_file
 import calendar
 
@@ -592,11 +590,13 @@ class sentinel_altimeter():
             if region == 'mwam8':
                 grid_date = datetime(2019,2,1,6)
             elif region == 'ww3':
-                grid_date = datetime(2019,3,4,18)
+                grid_date = datetime(2018,12,27,12)
             elif (region == 'MoskNC' or region == 'MoskWC'):
                 grid_date = datetime(2018,3,1)
             elif (region == 'swanKC'):
                 grid_date = datetime(2007,2,1)
+            elif (region == 'swan_karmoy250'):
+                grid_date = datetime(2018,1,1)
             else:
                 grid_date = datetime(2019,2,1)
             if region == 'ARCMFC':
@@ -607,7 +607,7 @@ class sentinel_altimeter():
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc", model=region, fc_date=grid_date,
                     leadtime=0)
-            if region == 'swanKC':
+            if (region == 'swanKC' or region == 'swan_karmoy250'):
                 model_lats, model_lons = np.meshgrid(model_lats, model_lons)
             proj4 = model_dict[region]['proj4']
             proj_model = pyproj.Proj(proj4)

@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
@@ -9,9 +9,11 @@ from graphicsmod import make_val_ts_fig_arcmfc, make_val_scatter_fig_arcmfc
 from ncmod import get_arcmfc_stats, get_arcmfc_ts
 
 # settings
-fc_date = datetime.now()
+#fc_date = datetime.now()
+fc_date = datetime(2019,2,1)
 forecasts = [12, 36, 60]
 val_names = ['rmsd','bias','corr','SI','nov']
+region = ['NordicSeas']
 
 # Get stats ts
 dtime_lst = []
@@ -23,7 +25,9 @@ nov_lst = []
 for element in forecasts:
     inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
             + fc_date.strftime('%Y/%m/'))
-    filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
+    filename_stats = fc_date.strftime("ARCMFC_"
+                                + region[0]
+                                + "_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
     valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
@@ -42,7 +46,9 @@ valid_dict_lst = {'rmsd':rmsd_lst,
 
 # Make ts-plots
 for val_name in val_names:
-    filename_fig = fc_date.strftime("ARCMFC_fig_val" 
+    filename_fig = fc_date.strftime("ARCMFC_"
+                            + region[0]
+                            + "_fig_val" 
                             + "_ts_" + val_name
                             + "_%Y%m.png")
     ts = valid_dict_lst[val_name]
@@ -55,7 +61,9 @@ mHs_lst = []
 for element in forecasts:
     inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
             + fc_date.strftime('%Y/%m/'))
-    filename_coll = fc_date.strftime("ARCMFC_coll_ts_lt"
+    filename_coll = fc_date.strftime("ARCMFC_"
+                                + region[0]
+                                + "_coll_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
     dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_coll)
@@ -65,7 +73,9 @@ for element in forecasts:
 
 # Make scatter-plots
 for i in range(len(forecasts)):
-    filename_fig = fc_date.strftime("ARCMFC_fig_val_scatter_lt"
+    filename_fig = fc_date.strftime("ARCMFC_"
+                            + region[0]
+                            + "_fig_val_scatter_lt"
                             + "{:0>3d}".format(forecasts[i])
                             + "h_%Y%m.png")
     make_val_scatter_fig_arcmfc(mHs_lst[i],sHs_lst[i],filename_fig,forecasts,i)
@@ -75,5 +85,5 @@ outpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFigures/'
         + fc_date.strftime('%Y') + '/' + fc_date.strftime('%m') + '/')
 cmd = 'mkdir -p ' + outpath
 os.system(cmd)
-cmd = 'mv ARCMFC_fig_val*.png ' + outpath
+cmd = 'mv ARCMFC_*fig_val*.png ' + outpath
 os.system(cmd)

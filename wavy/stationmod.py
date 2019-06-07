@@ -39,8 +39,6 @@ from ftplib import FTP
 # read_altim
 import netCDF4 as netCDF4
 
-# libraries for quip and quim imported in fct for speedup
-
 # create_file
 import calendar
 

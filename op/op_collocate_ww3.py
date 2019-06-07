@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
-from modelmod import get_model, check_date
+from modelmod import get_model
 from collocmod import collocate
 from validationmod import validate
 from copy import deepcopy
@@ -23,11 +23,12 @@ Collocate wave model output and S3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./arcmfc_collocate_specreg.py
-./arcmfc_collocate_specreg.py -sd 2018110112 -ed 2018110118
+./op_collocate.py -m mwam4 -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )
+parser.add_argument("-m", metavar='model',
+    help="model to be used for collocation")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -36,6 +37,11 @@ parser.add_argument("-ed", metavar='enddate',
 args = parser.parse_args()
 
 now = datetime.now()
+
+if args.m is None:
+    model = 'ww3'
+else:
+    model = args.m
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
@@ -51,13 +57,16 @@ else:
 # retrieve PID
 grab_PID()
 
-forecasts = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
+leadtimes = [0]
 
 # settings
 timewin = 30
-region = 'NordicSeas'
-model = 'ARCMFC'
 distlim = 6
+region = model
+outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + model
+           + '/S3a/'
+           + 'CollocationFiles/')
 
 tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
@@ -68,40 +77,32 @@ while tmpdate <= edate:
         print("If possible proceed with another time step...")
     else:
         # loop over all forecast lead times
-        for element in forecasts:
+        for element in leadtimes:
             print("leadtime: ", element, "h")
             print("fc_date: ", fc_date)
             basetime=model_dict[model]['basetime']
-            outpath=('/lustre/storeB/project/fou/om/ARCMFC/'
-                    + 'S3a/CollocationFiles/'
-                    + fc_date.strftime("%Y/%m/"))
-            filename_ts=fc_date.strftime("ARCMFC_"
-                                        + region
-                                        + "_coll_ts_lt"
+            filename_ts=fc_date.strftime(model + "_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
-            title_ts=('collocated time series for ARCMFC ' 
-                    + region 
+            title_ts=('collocated time series for model '
+                    + model
                     + ' with leadtime '
                     + "{:0>3d}".format(element)
                     + ' h')
-            #dtime=get_nc_time(outpath+filename_ts)
             init_date = fc_date - timedelta(hours=element)
             #get_model
             try:
-                check_date(model,fc_date=fc_date,leadtime=element)
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc",model=model,fc_date=fc_date,
                     init_date=init_date,leadtime=element)
                 #collocation
                 results_dict = collocate(model,model_Hs,model_lats,
                     model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
-                dumptonc_ts(outpath,filename_ts,title_ts,basetime,results_dict)
-            except SystemExit: 
-                print('error: --> leadtime is not available')
+                dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
+                            filename_ts,title_ts,basetime,results_dict)
             except IOError:
-                print('error: --> Model output not available')
+                print('Model output not available')
             except ValueError:
-                print('error: --> Model wave field not available.')
+                print('Model wave field not available.')
                 print('Continuing with next time step.')
     tmpdate = tmpdate + timedelta(hours=6)
