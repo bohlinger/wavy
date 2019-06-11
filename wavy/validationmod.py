@@ -133,6 +133,61 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     cbar.ax.set_ylabel('Hs [m]')
     plt.show()
 
+def plot_S3a(sa_obj):
+    print(sa_obj.dtime)
+    from mpl_toolkits.basemap import Basemap, cm
+    import matplotlib.cm as mplcm
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from region_specs import region_dict
+    if (sa_obj.region == 'MoskWC' or sa_obj.region == 'MoskNC'):
+        clevs = np.arange(0,5,0.1)
+    elif (sa_obj.region == 'swan_karmoy'):
+        clevs = np.arange(0,4.1,0.1)
+    else:
+        clevs = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
+    cmap=cm.GMT_haxby
+    norm = mpl.colors.BoundaryNorm(clevs, cmap.N)
+    if sa_obj.region == 'ARCMFC':
+        # Polar Stereographic Projection
+        m = Basemap(
+            projection='npstere',
+            boundinglat=region_dict[sa_obj.region]["boundinglat"],
+            lon_0=0,
+            resolution='l',area_thresh=1000
+            )
+    elif (sa_obj.region == 'swan_karmoy'):
+        m = Basemap(width=140000,
+                height=140000,
+                resolution='h',
+                projection='laea',
+                lat_ts=59.2,lat_0=59.2,lon_0=5.)
+    else:
+        m = Basemap(width=4100000,
+                height=4500000,
+                resolution='l',
+                projection='laea',
+                lat_ts=66,lat_0=66,lon_0=1.)
+    if (sa_obj.region == 'swan_karmoy'):
+        m.drawmeridians(np.arange(0,360,0.5))
+        m.drawparallels(np.arange(-90,90,0.5))
+    else:
+        m.drawmeridians(np.arange(0,360,5))
+        m.drawparallels(np.arange(-90,90,5))
+    m.drawcoastlines()
+    m.drawcountries()
+    x, y = m(sa_obj.loc[1],sa_obj.loc[0])
+    sc = m.scatter(x,y,s=30,c=sa_obj.Hs,marker='o',cmap=cmap,norm=norm,edgecolor='k',linewidths=0.05,verts=clevs)
+    plt.title('time period: '
+            + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )
+            + ' to '
+            + sa_obj.edate.strftime("%Y-%m-%d %H:%M:%S UTC" )
+            ,fontsize=10)
+    cbar = plt.colorbar()
+    cbar.ax.set_ylabel('Hs [m]')
+    plt.show()
+
 def ts_fig(results_dict):
     import numpy as np
     from datetime import datetime, timedelta

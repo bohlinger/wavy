@@ -3,6 +3,7 @@
 # import libraries
 from datetime import datetime, timedelta
 from satmod import sentinel_altimeter as sa
+from validationmod import plot_S3a
 import argparse
 from argparse import RawTextHelpFormatter
 import os
@@ -45,17 +46,14 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                     int(args.ed[6:8]),int(args.ed[8:10]))
     timewin = 0
+print(timewin)
 
 # get data
-if args.r == "ARCMFC":
-    #sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r,mode="ARCMFC")
-    sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r)
-else:
-    sa_obj = sa(sdate,edate=edate,timewin=timewin,region=args.r)
+sa_obj = sa(sdate,edate=edate,timewin=timewin,polyreg=args.r)
 
 # plot
 if bool(args.m)==True:
-    sa_obj.quip(region=args.r,show=bool(args.show),save=bool(args.save))
+    plot_S3a(sa_obj)
 
 # check availability
 if bool(args.a)==True:
