@@ -324,44 +324,30 @@ class sentinel_altimeter():
                 + str(len(self.Hs)) + " footprints.")
 
     def get_localfilelst(self,sdate,edate,timewin,mode,region):
-        if mode == 'ARCMFC':
-            tmpdatestr=(self.satpath_lustre + '/monthly/')
+        print ("Time window: ", timewin)
+        tmpdate=deepcopy(sdate-timedelta(minutes=timewin))
+        pathlst = []
+        filelst = []
+        while (tmpdate <= edate + timedelta(minutes=timewin)):
+            tmpdatestr=(self.satpath_lustre
+                        + str(tmpdate.year)
+                        + '/' + tmpdate.strftime('%m')
+                        + '/')
             tmplst = np.sort(os.listdir(tmpdatestr))
-            pathlst = []
-            filelst = []
-            tmpdate = deepcopy(sdate)
-            while (tmpdate <= edate + timedelta(minutes=timewin)):
-                for element in tmplst:
-                    if (element.find(tmpdate.strftime("%Y%m"))>0 and \
-                    element.find(region))>0:
-                        pathlst.append(tmpdatestr + element)
-                        filelst.append(element)
+            filelst.append(tmplst)
+            pathlst = [(tmpdatestr + e) for e in tmplst]
+            if (edate is not None and edate!=sdate):
+                tmpdate = tmpdate + timedelta(hours=1)
+            else:
                 tmpdate = tmpdate + relativedelta(months=+1)
-        else:
-            print ("Time window: ", timewin)
-            tmpdate=deepcopy(sdate-timedelta(minutes=timewin))
-            pathlst = []
-            filelst = []
-            while (tmpdate <= edate + timedelta(minutes=timewin)):
-                tmpdatestr=(self.satpath_lustre
-                            + str(tmpdate.year)
-                            + '/' + tmpdate.strftime('%m')
-                            + '/')
-                tmplst = np.sort(os.listdir(tmpdatestr))
-                filelst.append(tmplst)
-                pathlst = [(tmpdatestr + e) for e in tmplst]
-                if (edate is not None and edate!=sdate):
-                    tmpdate = tmpdate + timedelta(hours=1)
-                else:
-                    tmpdate = tmpdate + relativedelta(months=+1)
-            filelst=np.sort(flatten(filelst))
-            pathlst=np.sort(pathlst)
-            idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=timewin))
-            tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=timewin))
-            del tmp
-            pathlst = np.unique(pathlst[idx_start:idx_end+1])
-            filelst = np.unique(filelst[idx_start:idx_end+1])
-            print (str(int(len(pathlst))) + " valid files found")
+        filelst=np.sort(flatten(filelst))
+        pathlst=np.sort(pathlst)
+        idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=timewin))
+        tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=timewin))
+        del tmp
+        pathlst = np.unique(pathlst[idx_start:idx_end+1])
+        filelst = np.unique(filelst[idx_start:idx_end+1])
+        print (str(int(len(pathlst))) + " valid files found")
         return pathlst,filelst
 
     def read_localfiles(self,pathlst,mode):
@@ -384,27 +370,18 @@ class sentinel_altimeter():
             try:
                 # file includes a 1-D dataset with dimension time
                 f = netCDF4.Dataset(element,'r')
-                if mode=='ARCMFC':
-                    TIME.append(f.variables['rtime'][:])
-                    LATS.append(f.variables['rlats'][:])
-                    LONS.append(f.variables['rlons'][:])
-                    VAVH=f.variables['rHs'][:]
-                    VAVHS.append(f.variables['rHs'][:])
-                    MAXS.append(np.max(VAVH.astype('float')))
-                    f.close()
-                else:
-                    tmp = f.variables['longitude'][:]
-                    # transform
-                    lons = ((tmp - 180) % 360) - 180
-                    lats = f.variables['latitude'][:]
-                    time = f.variables['time'][:]
-                    VAVH = f.variables['VAVH'][:]
-                    f.close()
-                    LATS.append(lats)
-                    LONS.append(lons)
-                    TIME.append(time)
-                    VAVHS.append(VAVH)
-                    MAXS.append(np.max(VAVH.astype('float')))
+                tmp = f.variables['longitude'][:]
+                # transform
+                lons = ((tmp - 180) % 360) - 180
+                lats = f.variables['latitude'][:]
+                time = f.variables['time'][:]
+                VAVH = f.variables['VAVH'][:]
+                f.close()
+                LATS.append(lats)
+                LONS.append(lons)
+                TIME.append(time)
+                VAVHS.append(VAVH)
+                MAXS.append(np.max(VAVH.astype('float')))
             except (IOError):
                 print ("No such file or directory")
             count = count + 1
