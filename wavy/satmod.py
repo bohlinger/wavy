@@ -125,7 +125,7 @@ def tmploop_get_remotefiles(i,matching,user,pw,
     print("File: ",matching[i])
     dlstr=('ftp://' + user + ':' + pw + '@' 
                 + server + path + matching[i])
-    for attempt in range(2):
+    for attempt in range(10):
         print ("Attempt to download data: ")
         try:
             print ("Downloading file")
@@ -144,16 +144,11 @@ def tmploop_get_remotefiles(i,matching,user,pw,
         print ('Exit program')
         sys.exit()
 
-def get_remotefiles(satpath_ftp_014_001,destination,sdate,edate,timewin,
+def get_remotefiles(satpath,destination,sdate,edate,timewin,
                     corenum,download):
     '''
     Download swath files and store them at defined location
-    Example file:
-    fname='global_vavh_l3_rt_s3a' 
-          + '_C0028_P0624_' 
-          + '20180306T174941_20180306T183759_20180306T203441.nc.gz'
-    time stamps in file name stand for:
-        from,to,creation
+    time stamps in file name stand for: from, to, creation
     '''
     if download is None:
         print ("No download initialized, checking local files")
@@ -167,7 +162,7 @@ def get_remotefiles(satpath_ftp_014_001,destination,sdate,edate,timewin,
         # server and path
         if sdate >= datetime(2017,7,9):
             server='nrt.cmems-du.eu'
-            path=(satpath_ftp_014_001
+            path=(satpath
                  + '/'
                  + str(tmpdate.year)
                  + '/'
@@ -215,7 +210,8 @@ def get_remotefiles(satpath_ftp_014_001,destination,sdate,edate,timewin,
         # update time
         tmpdate = tmpdate + relativedelta(months=+1)
     print ('Organizing downloaded files')
-    os.system('cd /lustre/storeA/project/fou/om/altimeter '
+    os.system('cd '
+               + destination
                + '&& pwd '
                + '&& ./organize.sh')
     print ('Files downloaded to: \n' + destination)
@@ -258,27 +254,35 @@ class sentinel_altimeter():
      - get the location (lon, lat) for this time stamp
      - get Hs value for this time
     '''
-    satpath_lustre = pathfinder.satpath_lustre
     satpath_copernicus = pathfinder.satpath_copernicus
-    satpath_ftp_014_001 = pathfinder.satpath_ftp_014_001 
     from region_specs import region_dict
 
-    def __init__(self,sdate,edate=None,timewin=None,download=None,region=None,
-                corenum=None,mode=None,polyreg=None):
+    def __init__(self,sdate,sat=None,edate=None,timewin=None,download=None,
+        region=None,corenum=None,mode=None,polyreg=None):
         print ('# ----- ')
         print (" ### Initializing sentinel_altimeter instance ###")
         print ('# ----- ')
+        if sat is None:
+            sat = ''
         if corenum is None:
-            corenum=1
+            corenum = 1
         if edate is None:
             print ("Requested time: ", str(sdate))
-            edate=sdate
+            edate = sdate
             if timewin is None:
                 timewin = int(30)
         else:
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
-        get_remotefiles(self.satpath_ftp_014_001,self.satpath_lustre,
+        # make satpaths
+        satpath_lustre = pathfinder.satpath_lustre + sat + '/'
+        satpath_ftp_014_001 = (pathfinder.satpath_ftp_014_001 
+                            + 'dataset-wav-alti-l3-swh-rt-global-' 
+                            +  sat + '/'
+                            )
+        self.satpath_lustre = satpath_lustre
+        # retrieve files
+        get_remotefiles(satpath_ftp_014_001,satpath_lustre,
                         sdate,edate,timewin,corenum,download)
         pathlst, filelst = self.get_localfilelst(
                                 sdate,edate,timewin,mode,region

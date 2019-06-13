@@ -13,7 +13,7 @@ Download S3a netcdf from Copernicus DU.
 
 Usage:
 ./download.py
-./download.py -sd 2018110112 -ed 2018110118
+./download.py -sat s3a -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -21,10 +21,16 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period to be downloaded")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period to be downloaded")
+parser.add_argument("-sat", metavar='satellite',
+    help="source satellite mission")
 
 args = parser.parse_args()
 
 now=datetime.now()
+if args.sat is None:
+    sat = 's3a'
+else:
+    sat = args.sat
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(days=1)
 else:
@@ -37,8 +43,12 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+satpath = satpath_ftp_014_001 + sat + '/'
+destination = satpath_lustre + sat + '/'
+print('source: ' + satpath)
+print('destination: ' + destination)
 start_time = time.time()
-sa_obj = get_remotefiles(satpath_ftp_014_001,satpath_lustre,
-            sdate,edate,timewin=30,corenum=1,download=True)
+sa_obj = get_remotefiles(satpath, destination,
+                        sdate,edate,timewin=30,corenum=1,download=True)
 time1 = time.time() - start_time
 print("Time used for collecting data: ", time1, " seconds")

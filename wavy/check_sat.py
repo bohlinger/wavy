@@ -11,13 +11,15 @@ import os
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Check Sentinel-3a data. Example:
-./check_S3a.py -r ARCMFC -sd 2018080112 -ed 2018080718 -m -a --show -save outpath/ -dump outpath/
+Check availability of satellite SWH data. Example:
+./check_sat.py -sat s3a -r ARCMFC -sd 2018080112 -ed 2018080718 -m -a --show -save outpath/ -dump outpath/
     """,
     formatter_class = RawTextHelpFormatter
     )
 parser.add_argument("-r", metavar='region',
     help="region to check")
+parser.add_argument("-sat", metavar='satellite',
+    help="source satellite mission")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period to check")
 parser.add_argument("-ed", metavar='enddate',
@@ -49,7 +51,7 @@ else:
 print(timewin)
 
 # get data
-sa_obj = sa(sdate,edate=edate,timewin=timewin,polyreg=args.r)
+sa_obj = sa(sdate,edate=edate,sat=args.sat,timewin=timewin,polyreg=args.r)
 
 # plot
 if bool(args.m)==True:
