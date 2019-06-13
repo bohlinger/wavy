@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 # import libraries
+import sys
 from datetime import datetime, timedelta
-from satmod import sentinel_altimeter as sa
-from validationmod import plot_S3a
+from satmod import satellite_altimeter as sa
+from validationmod import plot_sat
 import argparse
 from argparse import RawTextHelpFormatter
 import os
@@ -51,11 +52,11 @@ else:
 print(timewin)
 
 # get data
-sa_obj = sa(sdate,edate=edate,sat=args.sat,timewin=timewin,polyreg=args.r)
+sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,polyreg=args.r)
 
 # plot
 if bool(args.m)==True:
-    plot_S3a(sa_obj)
+    plot_sat(sa_obj)
 
 # check availability
 if bool(args.a)==True:

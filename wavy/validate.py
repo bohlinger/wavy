@@ -3,7 +3,7 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
 from datetime import datetime, timedelta
-from satmod import sentinel_altimeter as sa
+from satmod import satellite_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
 from modelmod import get_model, check_date
@@ -89,15 +89,19 @@ if (args.m is None):
     sys.exit("-> Error: A model to validate needs to be given!")
 if (args.r is None):
     args.r = args.m
-# Get S3a data
+if (args.sat is None):
+    sat = 's3a'
+else: sat = args.sat
+
+# Get sat data
 #sa_obj = sa(fc_date,timewin=timewin,region=args.m)
 #sa_obj = sa(fc_date,timewin=timewin,polyreg='BarentsSea')
-sa_obj = sa(fc_date,timewin=timewin,polyreg=args.r)
+sa_obj = sa(fc_date,sat=sat,timewin=timewin,polyreg=args.r)
 if len(sa_obj.dtime)==0:
     print("If possible proceed with another time step...")
 else:
-    if (args.sat == 's3a' and (args.m != 'ARCMFC' and args.m != 'MoskNC'\
-        and args.m != 'MoskWC')):
+    if (args.m != 'ARCMFC' and args.m != 'MoskNC'\
+        and args.m != 'MoskWC'):
         # get model collocated values
         check_date(args.m,fc_date=fc_date,leadtime=args.lt)
         #get_model
@@ -111,7 +115,7 @@ else:
         #print(valid_dict)
         disp_validation(valid_dict)
 
-    if (args.sat == 's3a' and args.m == 'ARCMFC'):
+    if (args.m == 'ARCMFC'):
         # get model collocated values
         check_date(args.m,fc_date=fc_date,leadtime=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
@@ -124,7 +128,7 @@ else:
         #print(valid_dict)
         disp_validation(valid_dict)
 
-    if (args.sat == 's3a' and (args.m == 'MoskNC' or args.m == 'MoskWC')):
+    if (args.m == 'MoskNC' or args.m == 'MoskWC'):
         region = "Mosk_dom"
         # get model collocated values
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \

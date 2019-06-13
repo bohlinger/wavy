@@ -244,7 +244,7 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class sentinel_altimeter():
+class satellite_altimeter():
     '''
     class to handle netcdf files containing satellite altimeter derived
     level 3 data i.e. Hs[time], lat[time], lon[time] 
@@ -260,7 +260,7 @@ class sentinel_altimeter():
     def __init__(self,sdate,sat=None,edate=None,timewin=None,download=None,
         region=None,corenum=None,mode=None,polyreg=None):
         print ('# ----- ')
-        print (" ### Initializing sentinel_altimeter instance ###")
+        print (" ### Initializing satellite_altimeter instance ###")
         print ('# ----- ')
         if sat is None:
             sat = ''
@@ -285,10 +285,10 @@ class sentinel_altimeter():
         get_remotefiles(satpath_ftp_014_001,satpath_lustre,
                         sdate,edate,timewin,corenum,download)
         pathlst, filelst = self.get_localfilelst(
-                                sdate,edate,timewin,mode,region
+                                sdate,edate,timewin,region
                                 )
         fLATS,fLONS,fTIME,fVAVHS,fMAXS,fVAVHS_smooth = \
-                                    self.read_localfiles(pathlst,mode)
+                                    self.read_localfiles(pathlst)
         idx = np.array(range(len(fVAVHS)))[~np.isnan(fVAVHS)]
         fLATS = list(np.array(fLATS)[idx])
         fLONS = list(np.array(fLONS)[idx])
@@ -324,10 +324,11 @@ class sentinel_altimeter():
         self.time = rTIME # region time steps in seconds from basedate
         self.timewin = timewin
         self.region = region
+        self.sat = sat
         print ("Sentinel object initialized including " 
                 + str(len(self.Hs)) + " footprints.")
 
-    def get_localfilelst(self,sdate,edate,timewin,mode,region):
+    def get_localfilelst(self,sdate,edate,timewin,region):
         print ("Time window: ", timewin)
         tmpdate=deepcopy(sdate-timedelta(minutes=timewin))
         pathlst = []
@@ -339,13 +340,14 @@ class sentinel_altimeter():
                         + '/')
             tmplst = np.sort(os.listdir(tmpdatestr))
             filelst.append(tmplst)
-            pathlst = [(tmpdatestr + e) for e in tmplst]
+            #pathlst = [(tmpdatestr + e) for e in tmplst]
+            pathlst.append([(tmpdatestr + e) for e in tmplst])
             if (edate is not None and edate!=sdate):
                 tmpdate = tmpdate + timedelta(hours=1)
             else:
                 tmpdate = tmpdate + relativedelta(months=+1)
         filelst=np.sort(flatten(filelst))
-        pathlst=np.sort(pathlst)
+        pathlst=np.sort(flatten(pathlst))
         idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=timewin))
         tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=timewin))
         del tmp
@@ -354,7 +356,7 @@ class sentinel_altimeter():
         print (str(int(len(pathlst))) + " valid files found")
         return pathlst,filelst
 
-    def read_localfiles(self,pathlst,mode):
+    def read_localfiles(self,pathlst):
         '''
         read and concatenate all data to one timeseries for each variable
         '''

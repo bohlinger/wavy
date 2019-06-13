@@ -140,7 +140,9 @@ model_dict={'ARCMFC':
             'file_template':'MyWave_wam800_c3WAVE%H.nc',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-8 "
+                    + "+o_lat_p=22 +R=6.371e+06 +no_defs")
             },
         'mwam800c2':
             {'Hs':'hs',

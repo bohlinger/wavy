@@ -1,4 +1,4 @@
-from satmod import sentinel_altimeter as sa
+from satmod import satellite_altimeter as sa
 from datetime import datetime, timedelta
 #sdate=datetime(2018,8,1)
 #edate=datetime(2018,9,10)
