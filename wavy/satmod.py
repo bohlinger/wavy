@@ -325,7 +325,7 @@ class satellite_altimeter():
         self.timewin = timewin
         self.region = region
         self.sat = sat
-        print ("Sentinel object initialized including " 
+        print ("Satellite object initialized including " 
                 + str(len(self.Hs)) + " footprints.")
 
     def get_localfilelst(self,sdate,edate,timewin,region):

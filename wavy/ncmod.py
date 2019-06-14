@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------#
 '''
 This module encompasses classes and methods to read and write to netcdf 
-files from model, station, or sentinel output. I try to mostly follow 
+files from model, station, or satellite output. I try to mostly follow 
 the PEP convention for python code style. Constructive comments on style 
 and effecient programming are most welcome!
 '''
@@ -50,11 +50,11 @@ definition of some global functions
 
 class ncmod():
     '''
-    class to write to netcdf files from sentinel, station, or model data
-    sentinel: level 3 data i.e. Hs[time], lat[time], lon[time] 
+    class to write to netcdf files from satellite, station, or model data
+    satellite: level 3 data i.e. Hs[time], lat[time], lon[time] 
     station: e.g. Hs[time], lat, lon
     model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
-    This class should communicate with the sentinel, model, and 
+    This class should communicate with the satellite, model, and 
     station classes.
     '''
     satpath_lustre = pathfinder.satpath_lustre

@@ -45,7 +45,7 @@ from model_specs import model_dict
 # matchtime fct
 from stationmod import matchtime
 
-# module to dump sentinel_class object into nc-file
+# module to dump satellite_class object into nc-file
 # should also treat other similar type data
 
 # 1: get_model for given time period
@@ -66,7 +66,7 @@ class model_class():
     '''
     class to read and process model data 
     model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
-    This class should communicate with the sentinel, model, and 
+    This class should communicate with the satellite, model, and 
     station classes.
     '''
     satpath_lustre = pathfinder.satpath_lustre
