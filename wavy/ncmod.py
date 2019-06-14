@@ -59,7 +59,6 @@ class ncmod():
     '''
     satpath_lustre = pathfinder.satpath_lustre
     satpath_copernicus = pathfinder.satpath_copernicus
-    satpath_ftp_008_052 = pathfinder.satpath_ftp_008_052
     satpath_ftp_014_001 = pathfinder.satpath_ftp_014_001
     
     from region_specs import region_dict

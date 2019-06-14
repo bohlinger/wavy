@@ -3,7 +3,7 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
 from datetime import datetime, timedelta
-from satmod import sentinel_altimeter as sa
+from satmod import satellite_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
 from modelmod import get_model, check_date
@@ -63,7 +63,7 @@ tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
     # get S3a values
     fc_date = deepcopy(tmpdate)
-    sa_obj = sa(fc_date,timewin=timewin,region=region)
+    sa_obj = sa(fc_date,sat='s3a',timewin=timewin,region=region)
     if len(sa_obj.dtime)==0:
         print("If possible proceed with another time step...")
     else:
