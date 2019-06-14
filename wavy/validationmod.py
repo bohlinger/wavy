@@ -127,7 +127,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
             + results_dict['valid_date'][0].strftime("%Y-%m-%d %H:%M:%S UTC") 
             + '\n'
             + sa_obj.sat
-            + ' coverage from ' 
+            + ' coverage \n from ' 
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=8)
@@ -181,7 +181,11 @@ def plot_sat(sa_obj):
     m.drawcountries()
     x, y = m(sa_obj.loc[1],sa_obj.loc[0])
     sc = m.scatter(x,y,s=30,c=sa_obj.Hs,marker='o',cmap=cmap,norm=norm,edgecolor='k',linewidths=0.05,verts=clevs)
-    plt.title( sa_obj.sat + ': '
+    plt.title(sa_obj.sat 
+            + ' with ' 
+            + str(len(sa_obj.Hs)) 
+            + ' footprints: '
+            + '\n'
             + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )
             + ' to '
             + sa_obj.edate.strftime("%Y-%m-%d %H:%M:%S UTC" )
