@@ -19,7 +19,7 @@ from utils import grab_PID
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Validate wave model output against S3a data and dump to monthly nc-file.
+Validate wave model output against s3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
@@ -59,20 +59,20 @@ grab_PID()
 
 # Settings
 region = args.m
-#inpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/' 
+#inpath = ('/lustre/storeB/project/fou/om/waveverification/s3a/' 
 #        + model
 #        + '/CollocationFiles/')
-#outpath = ('/lustre/storeB/project/fou/om/waveverification/S3a/'
+#outpath = ('/lustre/storeB/project/fou/om/waveverification/s3a/'
 #        + model 
 #        + '/ValidationFiles/')
 
 inpath = ('/lustre/storeB/project/fou/om/waveverification/'
            + model
-           + '/S3a/'
+           + '/s3a/'
            + 'CollocationFiles/')
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
            + model
-           + '/S3a/'
+           + '/s3a/'
            + 'ValidationFiles/')
 
 tmpdate = deepcopy(sdate)

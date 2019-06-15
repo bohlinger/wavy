@@ -1,5 +1,5 @@
 '''
-    Pogram to manage the workflow for the arcmfc product quality web page
+    Program to manage the workflow for the arcmfc product quality web page
     Executes in order:
         - arcmfc_collocate (collocation of obs and mod)
         - arcmfc_validate (compute arcmfc validation stats)
@@ -29,5 +29,5 @@ cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures.py'
 t = os.system(cmd)
 
 #cmd = 'sh /home/patrikb/wavy/web/arcmfc/webpage.sh'
-cmd = 'sh /lustre/storeB/project/fou/om/ARCMFC/S3a/WebPage/webpage.sh'
+cmd = 'sh /lustre/storeB/project/fou/om/ARCMFC/s3a/WebPage/webpage.sh'
 t = os.system(cmd)

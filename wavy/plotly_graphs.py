@@ -26,7 +26,7 @@ def plotly_s3a_map(sa_obj=None,\
     if grid_date is None:
         if model == 'mwam8':
             grid_date = datetime(2019,2,1,6)
-        if model == 'ww3':
+        elif model == 'ww3':
             grid_date = datetime(2019,3,4,18)
         elif (model == 'MoskNC' or model == 'MoskWC'):
             grid_date = datetime(2018,3,1)
@@ -231,10 +231,10 @@ def plotly_s3a_map(sa_obj=None,\
             ))]
         data = data + model_domain
 
-    # adding S3a Hs data
+    # adding s3a Hs data
     thin = 1
     if (sa_obj is not None and len(sa_obj.Hs) > 0):
-        print("adding S3a hovering legend")
+        print("adding s3a hovering legend")
         if len(sa_obj.Hs) > 5000:
             thin = 2
         if len(sa_obj.Hs) > 15000:

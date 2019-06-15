@@ -19,7 +19,7 @@ from model_specs import model_dict
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Collocate wave model output and S3a data and dump to monthly nc-file.
+Collocate wave model output and s3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
@@ -61,7 +61,7 @@ distlim = 6
 
 tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
-    # get S3a values
+    # get s3a values
     fc_date = deepcopy(tmpdate)
     sa_obj = sa(fc_date,timewin=timewin,polyreg=region)
     if len(sa_obj.dtime)==0:
@@ -73,7 +73,7 @@ while tmpdate <= edate:
             print("fc_date: ", fc_date)
             basetime=model_dict[model]['basetime']
             outpath=('/lustre/storeB/project/fou/om/ARCMFC/'
-                    + 'S3a/CollocationFiles/'
+                    + 's3a/CollocationFiles/'
                     + fc_date.strftime("%Y/%m/"))
             filename_ts=fc_date.strftime("ARCMFC_"
                                         + region

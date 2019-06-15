@@ -124,6 +124,8 @@ model_dict={'ARCMFC':
             'delta_t':'0000-00-00 (01:00:00)',
             'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
                     + "+o_lat_p=25 +R=6.371e+06 +no_defs")
+#            'proj4':("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
+#                    + "+R=6371000 +no_defs")
             },
         'mwam800c3':
             {'Hs':'hs',

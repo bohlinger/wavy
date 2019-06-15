@@ -1195,7 +1195,7 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
         ncnov[:] = nov
     nc.close()
 
-def dumptonc_S3a(sa_obj,outpath,mode=None):
+def dumptonc_s3a(sa_obj,outpath,mode=None):
     """
     1. check if nc file already exists
     2. - if so use append mode
@@ -1205,7 +1205,7 @@ def dumptonc_S3a(sa_obj,outpath,mode=None):
     sdate=sa_obj.sdate
     edate=sa_obj.edate
     if mode == 'diana':
-        filename = ("S3a_"
+        filename = ("s3a_"
                 + sa_obj.region
                 + "_region.nc")
     else:
@@ -1224,7 +1224,7 @@ def dumptonc_S3a(sa_obj,outpath,mode=None):
                     fullpath,mode='w',
                     format='NETCDF4'
                     )
-    nc.title = 'S3a altimeter significant wave height'
+    nc.title = 's3a altimeter significant wave height'
     timerange=len(sa_obj.ridx)
     dimsize = None
     # dimensions

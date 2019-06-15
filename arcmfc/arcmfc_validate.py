@@ -3,7 +3,7 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
 from datetime import datetime, timedelta
-from satmod import sentinel_altimeter as sa
+from satmod import satellite_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
 from modelmod import get_model
@@ -19,7 +19,7 @@ from utils import grab_PID
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Validate wave model output against S3a data and dump to monthly nc-file.
+Validate wave model output against s3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
@@ -65,7 +65,7 @@ while tmpdate <= edate:
         basetime=model_dict[model]['basetime']
         # get model collocated values
         from ncmod import get_arcmfc_ts
-        inpath = ('/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+        inpath = ('/lustre/storeB/project/fou/om/ARCMFC/s3a/CollocationFiles/'
                 + fc_date.strftime('%Y/%m/'))
         filename_ts=fc_date.strftime("ARCMFC_coll_ts_lt"
                                             + "{:0>3d}".format(element)
@@ -87,7 +87,7 @@ while tmpdate <= edate:
             valid_dict=validate(results_dict)
             print(valid_dict)
             # dump to nc-file: validation
-            outpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+            outpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/ValidationFiles/'
                     + fc_date.strftime('%Y/%m/'))
             title_stat='validation file'
             filename_stat=fc_date.strftime("ARCMFC_val_ts_lt"

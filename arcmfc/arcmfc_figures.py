@@ -21,7 +21,7 @@ corr_lst = []
 SI_lst = []
 nov_lst = []
 for element in forecasts:
-    inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+    inpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/ValidationFiles/'
             + fc_date.strftime('%Y/%m/'))
     filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
                                 + "{:0>3d}".format(element)
@@ -53,7 +53,7 @@ dtime_lst = []
 sHs_lst = []
 mHs_lst = []
 for element in forecasts:
-    inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/CollocationFiles/'
+    inpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/CollocationFiles/'
             + fc_date.strftime('%Y/%m/'))
     filename_coll = fc_date.strftime("ARCMFC_coll_ts_lt"
                                 + "{:0>3d}".format(element)
@@ -71,7 +71,7 @@ for i in range(len(forecasts)):
     make_val_scatter_fig_arcmfc(mHs_lst[i],sHs_lst[i],filename_fig,forecasts,i)
 
 # clean up
-outpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFigures/'
+outpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/ValidationFigures/'
         + fc_date.strftime('%Y') + '/' + fc_date.strftime('%m') + '/')
 cmd = 'mkdir -p ' + outpath
 os.system(cmd)

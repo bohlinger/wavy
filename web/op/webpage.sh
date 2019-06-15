@@ -6,8 +6,8 @@ MONTH=`date +%m`
 # Create graph plots based on validation results:
 
 # image files
-Imgpath=/lustre/storeB/project/fou/om/waveverification/mwam4/S3a/ValidationFigures/${YEAR}/${MONTH}/
-Webpath=/lustre/storeB/project/fou/om/waveverification/mwam4/S3a/
+Imgpath=/lustre/storeB/project/fou/om/waveverification/mwam4/s3a/ValidationFigures/${YEAR}/${MONTH}/
+Webpath=/lustre/storeB/project/fou/om/waveverification/mwam4/s3a/
 # Create html document:
 Figtempl=mwam4_fig_val_ts
 rmseImg=${Imgpath}${Figtempl}_rmsd_lt000h_${YEAR}${MONTH}.png

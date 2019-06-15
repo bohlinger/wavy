@@ -9,7 +9,7 @@ from argparse import RawTextHelpFormatter
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Download S3a netcdf from Copernicus DU.
+Download s3a netcdf from Copernicus DU.
 
 Usage:
 ./download.py

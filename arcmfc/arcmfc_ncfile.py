@@ -110,7 +110,7 @@ while (tmp_date <= end_date):
         init_date = fc_date - timedelta(hours=element)
         # ---
         # Get stats ts
-        inpath=('/lustre/storeB/project/fou/om/ARCMFC/S3a/ValidationFiles/'
+        inpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/ValidationFiles/'
                 + fc_date.strftime('%Y')
                 + '/'
                 + fc_date.strftime('%m')
