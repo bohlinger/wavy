@@ -97,10 +97,11 @@ class station_class():
                 mode=None,deltat=None,sensorname=None):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
+        print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         print ('# ----- ')
         if mode is None:
-            mode = 'nc' # or if 'd22' in future
+            mode = 'nc' # mode: 'nc', 'd22'
         hs, hs_obs, time, timedt = self.get_station(
                                     statname,
                                     sdate,edate,
@@ -147,7 +148,7 @@ class station_class():
         elif mode == 'd22':
             from station_specs import station_dict
             sdatetmp = sdate - timedelta(days=1)
-            edatetmp = sdate + timedelta(days=1)
+            edatetmp = edate + timedelta(days=1)
             sl = parse_d22(statname,sdatetmp,edatetmp)
             sensor_lst, dates = extract_d22(sl)
             tmpdate = sdate
@@ -158,14 +159,18 @@ class station_class():
             while (tmpdate <= edate):
                 ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
                                         timewin=1)
-                hs_obs_hourly = sensor_lst[station_dict[statname]['sensor']
-                                            [sensorname]]['Hs_1hr'][idxtmp]
-                hs_obs_10min = sensor_lst[station_dict[statname]['sensor']
-                                            [sensorname]]['Hs_10min'][idxtmp]
-                time.append((tmpdate-self.basedate).total_seconds())
-                hs_obs.append(hs_obs_10min)
-                hs.append(hs_obs_hourly)
-                timedt.append(tmpdate)
+                try:
+                    hs_obs_hourly = sensor_lst[station_dict[statname]['sensor']
+                                            [sensorname]]['Hs_1hr'][idxtmp][0]
+                    hs_obs_10min = sensor_lst[station_dict[statname]['sensor']
+                                            [sensorname]]['Hs_10min'][idxtmp][0]
+                    time.append((tmpdate-self.basedate).total_seconds())
+                    hs_obs.append(np.real(hs_obs_10min))
+                    hs.append(np.real(hs_obs_hourly))
+                    timedt.append(tmpdate)
+                except:
+#                    print('no entry --> pass')
+                    pass
                 tmpdate = tmpdate + timedelta(minutes=deltat)
         return hs, hs_obs, time, timedt
 
@@ -257,6 +262,22 @@ def read_Tennholmen_ext(date):
     lats = lats * 180. / np.pi
     return time_s,time_dt,Hm0,Tm02,lons,lats,\
             Hs,TI,TE,T1,TZ,T3,Tc,Tdw,Tp,Qp
+
+def read_buoy(buoyname,date):
+    from buoy_specs import buoy_dict
+    path=date.strftime(buoy_dict[buoyname]['path_template'])
+    filename=date.strftime(buoy_dict[buoyname]['file_template'])
+    basetime=buoy_dict[buoyname]['basetime']
+    nc = nc.netCDF4.Dataset(path+filename,mode='r')
+    time_s = nc.variables[buoy_dict[buoyname]['time']][:]
+    # time conversion
+    time_dt = [basetime + timedelta(seconds=time_s[i]) \
+                for i in range(len(time_s))]
+    Hm0 = nc.variables[buoy_dict[buoyname]['Hm0']][:]
+    Tm02 = nc.variables[buoy_dict[buoyname]['Tm02']][:]
+    lats = nc.variables[buoy_dict[buoyname]['lats']][:]
+    lons = nc.variables[buoy_dict[buoyname]['lons']][:]
+    return time_s, time_dt, Hm0, Tm02, lons, lats
     
 def get_buoy(sdate,edate,buoyname=None,mode=None):
     if (sdate.month == edate.month and sdate.year == edate.year):
@@ -295,14 +316,17 @@ def get_buoy(sdate,edate,buoyname=None,mode=None):
         Tm02_lst = flatten(Tm02_lst)
         lons_lst = flatten(lons_lst)
         lats_lst = flatten(lats_lst)
-        sidx=time_dt_lst.index(sdate)
-        eidx=time_dt_lst.index(edate) + 1
-        time_s_lst = time_s_lst[sidx:eidx]
-        time_dt_lst = time_dt_lst[sidx:eidx]
-        Hm0_lst = Hm0_lst[sidx:eidx]
-        Tm02_lst = Tm02_lst[sidx:eidx]
-        lons_lst = lons_lst[sidx:eidx]
-        lats_lst = lats_lst[sidx:eidx]
+        try:
+            sidx=time_dt_lst.index(sdate)
+            eidx=time_dt_lst.index(edate) + 1
+            time_s_lst = time_s_lst[sidx:eidx]
+            time_dt_lst = time_dt_lst[sidx:eidx]
+            Hm0_lst = Hm0_lst[sidx:eidx]
+            Tm02_lst = Tm02_lst[sidx:eidx]
+            lons_lst = lons_lst[sidx:eidx]
+            lats_lst = lats_lst[sidx:eidx]
+        except ValueError:
+            print('Date not available')
     return time_s_lst, time_dt_lst, Hm0_lst, Tm02_lst, lons_lst, lats_lst
 
 def get_buoy_ext(sdate,edate,buoyname=None,mode=None):

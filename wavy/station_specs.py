@@ -20,6 +20,53 @@ station_dict = {'ekofiskL':
                         'lon':3.21
                         }
                     },
+                'asgardb':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':65.11,
+                        'lon':6.79
+                        }
+                    },
+                'draugen':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0, # python indexing
+                        'MKIIIradar':1
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros',
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':64.35,
+                        'lon':7.78
+                        }
+                    },
+                'gjoa':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':61.33,
+                        'lon':3.9
+                        }
+                    },
                 'grane':
                     {
                     'sensor':
@@ -33,6 +80,36 @@ station_dict = {'ekofiskL':
                     'coords':
                         {'lat':59.17,
                         'lon':2.48
+                        }
+                    },
+                'heimdal':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':59.57,
+                        'lon':2.23
+                        }
+                    },
+                'oseberg':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':60.5,
+                        'lon':2.8
                         }
                     },
                 'gullfaksc':
@@ -54,13 +131,13 @@ station_dict = {'ekofiskL':
                     {
                     'sensor':
                         {
-                        'NA':0, # python indexing
-                        'NA':1 # python indexing
+                        'NA_1':0, # python indexing
+                        'NA_2':1
                         },
                     'manufacturer':
                         {
-                        'NA':'NA',
-                        'NA':'NA'
+                        'NA_1':'NA',
+                        'NA_2':'NA'
                         },
                     'coords':
                         {'lat':65.32,
@@ -102,7 +179,7 @@ station_dict = {'ekofiskL':
                     'sensor':
                         {
                         'MKIIIradar':0, # python indexing
-                        'NA':1 # python indexing
+                        'NA':1
                         },
                     'manufacturer':
                         {
@@ -129,11 +206,41 @@ station_dict = {'ekofiskL':
                         'lon':2.15
                         }
                     },
+                'sleipner':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':58.37,
+                        'lon':1.91
+                        }
+                    },
+                'stafjorda':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0 # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':61.25,
+                        'lon':1.85
+                        }
+                    },
                 'trolla':
                     {
                     'sensor':
                         {
-                        'MKIII_radar':0, # python indexing
+                        'MKIIIradar':0, # python indexing
                         },
                     'manufacturer':
                         {
@@ -142,6 +249,21 @@ station_dict = {'ekofiskL':
                     'coords':
                         {'lat':56.28,
                         'lon':3.39
+                        }
+                    },
+                'trollb':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0, # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':60.77,
+                        'lon':3.5
                         }
                     },
                 'valhall':
@@ -160,5 +282,20 @@ station_dict = {'ekofiskL':
                         {'lat':56.28,
                         'lon':3.39
                         }
-                    }
+                    },
+                'visund':
+                    {
+                    'sensor':
+                        {
+                        'MKIIIradar':0, # python indexing
+                        },
+                    'manufacturer':
+                        {
+                        'MKIIIradar':'Miros'
+                        },
+                    'coords':
+                        {'lat':61.37,
+                        'lon':2.46
+                        }
+                    },
                 }

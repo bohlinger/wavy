@@ -5,7 +5,8 @@ and data can be imported easily
 
 from datetime import datetime, timedelta
 
-buoy_dict={'Tennholmen':
+buoy_dict={
+        'Tennholmen':
             {'Hm0':3,
             'Tm02':4,
             'time':2, # supposingly UTC
@@ -53,5 +54,132 @@ buoy_dict={'Tennholmen':
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'delta_t':'0000-00-00 (01:00:00)'
-            }
+            },
+        'Fauskane':
+            {'Hm0':'Significant_Wave_Height_Hm0',
+            'Tm02':'Wave_Mean_Period_Tm02',
+            'time':'time',
+            'lon':5.725221,
+            'lat':62.56689,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeB/project/met-obs/'
+                            +'kystverket/buoy/%Y/%m/'),
+            'file_template':('%Y%m_Kystverket-Smartbuoy-Fauskane'
+                            +'_AanderaaMotusSensor.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00'
+        },
+        'SulaA':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.426267625,
+            'lon':6.04578018,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_A_Sulafjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaB':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.40252876,
+            'lon':6.079721455,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_B_Sulafjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaB1':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.405,
+            'lon':6.0585,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_B1_Sulafjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaC':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.39201164,
+            'lon':6.050519945,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_C_Sulafjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaC1':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.3969,
+            'lon':6.047,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_C1_Sulafjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaD':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.440265655,
+            'lon':5.93398094,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_D_Breisundet_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaF':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat':62.22093,
+            'lon':5.90045,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_F_Vartalsfjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
+        },
+        'SulaG':
+            {'Hm0':'Hm0',
+            'Tm02':'tm02',
+            'time':'time',
+            'lat': 63.08537674,
+            'lon': 8.15519333,
+            'lats':'longitude',
+            'lons':'latitude',
+            'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
+            'file_template':('%Y%m_E39_G_Vartalsfjorden_wave.nc'),
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'time_comment':'End of the 10 minute sampling period'
         }
+    }

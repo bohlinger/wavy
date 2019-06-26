@@ -21,7 +21,7 @@ from ncmod import get_arcmfc_stats
 parser = argparse.ArgumentParser(
     description="""
 Main program to run the monthly ARCMFC validation
-with Sentinel.\n
+with satellite.\n
 Usage example in unix command line: 
 ./arcmfc_ncfile.py -d 201808\n
 The argument consists of the year and month to be validated

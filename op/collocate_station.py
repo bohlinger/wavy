@@ -13,7 +13,8 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 import os
 #from stationmod import get_buoy, get_loc_idx
 from stationmod import parse_d22, extract_d22, matchtime, get_loc_idx
-from modelmod import get_model, collocate, check_date
+from modelmod import get_model, check_date
+from collocmod import collocate
 #from buoy_specs import buoy_dict
 from station_specs import station_dict
 from datetime import datetime, timedelta
@@ -58,8 +59,9 @@ else:
 
 # retrieve PID
 grab_PID()
-sdate=datetime(2019,1,2)
-edate=datetime(2019,1,4) # only entire days
+sdate=datetime(2019,1,1)
+#edate=datetime(2019,1,2) # only entire days
+edate=datetime.now()
 model='mwam4'
 station='ekofiskL'
 sensorname = 'waverider'
@@ -105,39 +107,49 @@ while tmpdate <= edate:
         mod_lst.append(model_Hs.squeeze()[idx,idy][0])
         mod_lat_lst.append(picked_lat[0])
         mod_lon_lst.append(picked_lon[0])
-        stat_10min_lst.append(hs_obs_hourly[0])
-        stat_hourly_lst.append(hs_obs_10min[0])
+        stat_10min_lst.append(hs_obs_10min[0])
+        stat_hourly_lst.append(hs_obs_hourly[0])
+        stat_lat_lst.append(station_dict['ekofiskL']['coords']['lat'])
+        stat_lon_lst.append(station_dict['ekofiskL']['coords']['lon'])
         time_dt_lst.append(tmpdate)
         time_s = (tmpdate - basetime).total_seconds()
         time_s_lst.append(time_s)
+        # dump tp nc-file
+        coll_dict = {'basetime':basetime,
+             'time':[time_s_lst[-1]],
+             'Hm0_model':[mod_lst[-1]],
+             'lats_model':[mod_lat_lst[-1]],
+             'lons_model':[mod_lon_lst[-1]],
+             'Hs_stat_1h':[stat_hourly_lst[-1]],
+             'Hs_stat_10min':[stat_10min_lst[-1]],
+             'lats_stat':[stat_lat_lst[-1]],
+             'lons_stat':[stat_lon_lst[-1]],
+             'hdist':[dist_lst[-1]],
+             'idx':[idx_lst[-1]],
+             'idy':[idy_lst[-1]],
+            }
+        print(coll_dict)
+        outpath = tmpdate.strftime('/lustre/storeB/project/fou/om/'
+                            + 'waveverification/mwam4/stations/'
+                            + 'CollocationFiles/'
+                            + '%Y/%m/')
+        os.system('mkdir -p ' + outpath)
+        filename_ts=tmpdate.strftime(model 
+                                    + "_" 
+                                    + station 
+                                    + "_" 
+                                    + sensorname 
+                                    + "_coll_ts_lt000h_%Y%m.nc")
+        title_ts=(model + ' vs ' + station)
+        dumptonc_coll_ts_station(outpath,
+                                filename_ts,
+                                title_ts,
+                                basetime,
+                                coll_dict,
+                                model,
+                                station,sensorname)
     except SystemExit:
         print('error: --> leadtime is not available')
     except (ValueError,IOError,KeyError) as e:
         print(e)
     tmpdate = tmpdate + timedelta(hours=6)
-
-
-coll_dict = {'basetime':basetime,
-             'time':time_s_lst,
-             'Hm0_model':mod_lst,
-             'lats_model':mod_lat_lst,
-             'lons_model':mod_lon_lst,
-             'Hs_stat_1h':stat_hourly_lst,
-             'Hs_stat_10min':stat_10min_lst,
-             'lats_stat':stat_lat_lst,
-             'lons_stat':stat_lon_lst,
-             'hdist':dist_lst,
-             'idx':idx_lst,
-             'idy':idy_lst,
-            }
-
-# dump tp nc-file
-outpath = tmpdate.strftime('/lustre/storeB/project/fou/om/'
-                            + 'waveverification/mwam4/stations/'
-                            + 'CollocationFiles/'
-                            + '%Y/%m/')
-os.system('mkdir -p ' + outpath)
-filename_ts=tmpdate.strftime(model + "_" + station + "_" + sensorname + "_coll_ts_lt000h_%Y%m.nc")
-title_ts=(model + ' vs ' + station)
-#dumptonc_coll_ts_Tennholmen(outpath,filename_ts,title_ts,basetime,coll_dict,model)
-dumptonc_coll_ts_station(outpath,filename_ts,title_ts,basetime,coll_dict,model,station,sensorname)

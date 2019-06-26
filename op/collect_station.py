@@ -13,7 +13,6 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 import os
 from stationmod import station_class as sc
 from datetime import datetime, timedelta
-
 from ncmod import dumptonc_ts_station
 from copy import deepcopy
 from utils import grab_PID
@@ -27,7 +26,7 @@ Retrieves data from a station and dumps to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./collocate_station.py -sd 2018110112 -ed 2018110118
+./collect_station.py -sd 2019010100 -ed 2019020200 -station ekofiskL -sensor waverider
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -45,12 +44,12 @@ args = parser.parse_args()
 now = datetime.now()
 
 if args.sd is None:
-    sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
+    sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
 else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    edate = datetime(now.year,now.month,now.day)
+    edate = datetime(now.year,now.month,now.day,now.hour)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
@@ -64,7 +63,7 @@ deltat = 10
 
 tmpdate = deepcopy(sdate)
 while tmpdate < edate:
-    tmpedate = deepcopy(tmpdate + timedelta(days=1))
+    tmpedate = deepcopy(tmpdate + timedelta(minutes=deltat))
     print('#################')
     print(tmpdate)
     print('#################')
@@ -88,4 +87,4 @@ while tmpdate < edate:
     except ValueError as e:
         print(e)
         pass
-    tmpdate = tmpdate + timedelta(days=1)
+    tmpdate = tmpdate + timedelta(minutes=deltat)

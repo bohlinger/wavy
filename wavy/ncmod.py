@@ -861,8 +861,6 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
         endidx = len(nc['time'])+len(time)
         nc.variables['time'][startidx:endidx] = time[:]
         nc.variables['Hm0_model'][startidx:endidx] = Hm0_model[:]
-        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
-        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
         nc.variables['Hs_station_1h'][startidx:endidx] = Hs_stat_1h[:]
         nc.variables['Hs_station_10min'][startidx:endidx] = Hs_stat_10min[:]
     else:

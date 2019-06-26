@@ -14,6 +14,8 @@ from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 
+from station_specs import station_dict
+
 # parser
 parser = argparse.ArgumentParser(
     description="""
@@ -61,26 +63,16 @@ str(cmdstr)
 cmd = os.system(cmdstr)
 
 # stations
-stationlst = ['ekofiskL','ekofiskL','ekofiskL',
-            'grane',
-            'gullfaksc',
-            'norne',
-            'sleipner'
-            ]
-sensorlst = ['waverider','OptechLaser','SAABWaveRadar',
-            'MKIIIradar',
-            'MKIIIradar',
-            'MKIIIradar',
-            'MKIIIradar'
-            ]
-for station,sensor in zip(stationlst,sensorlst):
-    cmdstr = ("python /home/patrikb/wavy/op/collect_station.py"
+stationlst = station_dict.keys()
+for station in (stationlst):
+    for sensor in (station_dict[station]['sensor'].keys()):
+        cmdstr = ("python /home/patrikb/wavy/op/collect_station.py"
             + " -sd "
             + sdstr
             + " -ed "
             + edstr
             + " -station " + station
             + " -sensor " + sensor)
-    str('Executing command: ')
-    str(cmdstr)
-    cmd = os.system(cmdstr)
+        str('Executing command: ')
+        str(cmdstr)
+        cmd = os.system(cmdstr)

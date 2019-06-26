@@ -40,12 +40,12 @@ args = parser.parse_args()
 now = datetime.now()
 
 if args.sd is None:
-    sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
+    sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
 else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    edate = datetime(now.year,now.month,now.day)
+    edate = datetime(now.year,now.month,now.day,now.hour)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))

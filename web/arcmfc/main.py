@@ -13,6 +13,8 @@ import os
 #cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py -sd 2019030100 -ed 2019033118'
 cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
 t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py'
+t = os.system(cmd)
 #p = subprocess.Popen(cmd,stdout=subprocess.PIPE,shell=True)
 #(output, err) = p.communicate()
 #This lets the program wait until this process is finished
@@ -24,8 +26,12 @@ t = os.system(cmd)
 #cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py -sd 2019030100 -ed 2019033118'
 cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py'
 t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate_NordicSeas.py'
+t = os.system(cmd)
 
 cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures.py'
+t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures_NordicSeas.py'
 t = os.system(cmd)
 
 #cmd = 'sh /home/patrikb/wavy/web/arcmfc/webpage.sh'

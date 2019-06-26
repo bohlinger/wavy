@@ -9,8 +9,8 @@ from graphicsmod import make_val_ts_fig_arcmfc, make_val_scatter_fig_arcmfc
 from ncmod import get_arcmfc_stats, get_arcmfc_ts
 
 # settings
-#fc_date = datetime.now()
-fc_date = datetime(2019,5,1)
+fc_date = datetime.now()
+#fc_date = datetime(2019,6,1)
 forecasts = [12, 36, 60]
 val_names = ['rmsd','bias','corr','SI','nov']
 region = ['NordicSeas']

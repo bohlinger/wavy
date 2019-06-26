@@ -19,4 +19,6 @@ satpath_ftp_014_001 = ('/Core/'
 station_d22_starc = ('/lustre/storeB/immutable/archive/projects/'\
                    + 'metproduction/DNMI_OFFSHORE/')
                    # +rig+'/d22/'+YY+'/'+dy+'.d22'
-station_d22_opdate = ('/vol/gorgon/offshore/')#+rig+'/d22/'+dy+'.d22'
+#station_d22_opdate = ('/vol/gorgon/offshore/')#+rig+'/d22/'+dy+'.d22'
+station_d22_opdate = ('/opdata/offshore/')#+rig+'/d22/'+dy+'.d22'
+# opdata points to gorgon!

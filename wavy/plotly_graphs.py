@@ -9,6 +9,7 @@ import pandas as pd
 from region_specs import poly_dict
 from matplotlib.patches import Polygon
 from copy import deepcopy
+import plotly.graph_objs as go
 
 def plotly_s3a_map(sa_obj=None,\
                     region=None,domain=None,proj=None,\
@@ -388,3 +389,128 @@ def plotly_s3a_map(sa_obj=None,\
                                        +'waveverification/d3-flight-paths')
                                        , auto_open=False)
     print('finished sa3 map')
+
+
+def ts_figs(x,y,varname,instrument_type,instrument_name,sensor):
+    trace = go.Scatter( x=x, y=y)
+    data = [trace]
+    layout = dict(
+        title = varname + ' from ' + instrument_name + ' ' + sensor,
+        xaxis = dict(
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1,
+                         label='1d',
+                         step='day',
+                         stepmode='backward'),
+                    dict(count=1,
+                         label='1m',
+                         step='month',
+                         stepmode='backward'),
+                    dict(count=1,
+                        label='YTD',
+                        step='year',
+                        stepmode='todate'),
+                    dict(count=1,
+                        label='1y',
+                        step='year',
+                        stepmode='backward'),
+                    dict(step='all')
+                ])
+            ),
+            rangeslider=dict(
+                visible = True
+            ),
+            type='date',
+            tickformat = '%Y-%m-%d UTC%H:%M',
+        ),
+        yaxis = dict(
+            hoverformat = '.2f',
+            range=[0, 20]
+        )
+    )
+    fig = dict(data=data, layout=layout)
+    #py.iplot(fig)
+    plotly.offline.plot( fig, filename=('/lustre/storeB/project/fou/om/'
+                                        + 'waveverification/obs/'
+                                        + instrument_type + '/' 
+                                        + varname
+                                        + '_' 
+                                        + instrument_name 
+                                        + '_' + sensor)
+                                       , auto_open=False)
+
+def make_station_map():
+    import pandas as pd
+    import plotly.graph_objs as go
+    import os
+    from stationlist_arcmfc import stationlist_arcmfc
+    from station_specs import station_dict
+    from buoy_specs import buoy_dict
+    station_lats = []
+    station_lons= []
+    station_hovertxt = []
+    for element in stationlist_arcmfc:
+        station_lats.append(station_dict[element]['coords']['lat'])
+        station_lons.append(station_dict[element]['coords']['lon'])
+        station_hovertxt.append(element 
+                        + ', N' 
+                        + '{:3.3f}'.format(station_dict[element]['coords']['lat'])
+                        + ' E' 
+                        + '{:3.3f}'.format(station_dict[element]['coords']['lon']))
+    buoy_lats = []
+    buoy_lons = []
+    buoy_hovertxt = []
+    for element in buoy_dict:
+        buoy_lats.append(buoy_dict[element]['lat'])
+        buoy_lons.append(buoy_dict[element]['lon'])
+        buoy_hovertxt.append(element
+                        + ', N'
+                        + '{:3.3f}'.format(buoy_dict[element]['lat'])
+                        + ' E' 
+                        + '{:3.3f}'.format(buoy_dict[element]['lon']))
+    mapbox_access_token = "pk.eyJ1IjoicHJpeWF0aGFyc2FuIiwiYSI6ImNqbGRyMGQ5YTBhcmkzcXF6YWZldnVvZXoifQ.sN7gyyHTIq1BSfHQRBZdHA"
+    map_list = ["Scatter Plots on Mapbox"]#, "Scatter Plots on Maps"]
+    trace1 = [go.Scattermapbox(
+                    lat=station_lats, 
+                    lon=station_lons, mode='markers', 
+                    hoverinfo='text',
+                    marker={'symbol': "circle", 
+                        'size': 8,
+                        'opacity':.8
+                        }, 
+                    text=station_hovertxt,
+                    name = 'offshore'
+                    )
+                ]
+    trace2 = [go.Scattermapbox(
+                    lat=buoy_lats, 
+                    lon=buoy_lons, mode='markers', 
+                    hoverinfo='text',
+                    marker={'symbol': "circle", 
+                        'size': 8,
+                        'opacity':.8
+                        }, 
+                    text=buoy_hovertxt,
+                    name = 'near-shore'
+                    )
+                ]
+    layout1 = go.Layout(title='Locations of available wave observations', 
+                autosize=True, hovermode='closest', 
+                showlegend=True,
+                mapbox={'accesstoken': 
+                                mapbox_access_token, 
+                                'bearing': 0, 
+                                'center': {'lat': 62, 'lon': 7},
+                                'pitch': 45, 'zoom': 4, 
+                                "style": 'mapbox://styles/mapbox/light-v9'
+                        }, 
+#                width=600,
+#                height=800
+                        )
+    fig = dict(data=trace1+trace2, layout=layout1)
+    #py.iplot(fig)
+    plotly.offline.plot( fig, filename=('/lustre/storeB/project/fou/om/'
+                            + 'waveverification/obs/'
+                            + 'map_of_offshore_and_near_coast_locations')
+                            , auto_open=False)
