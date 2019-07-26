@@ -209,7 +209,8 @@ buoy_dict={
             'lats':'latitude',
             'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
-            'file_template':('%Y%m_E39_F_Vartalsfjorden_wave.nc'),
+            'file_template':('%Y%m_E39_F_Vartdalsfjorden_wave.nc'),
+            # only for 2019/01 Vartalsfjorden
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
             'time_comment':'End of the 10 minute sampling period',
