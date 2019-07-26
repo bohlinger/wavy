@@ -24,6 +24,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from ncmod import dumptonc_coll_ts_Tennholmen
+from ncmod import dumptonc_coll_ts_buoy
 from copy import deepcopy
 from utils import grab_PID
 import argparse
@@ -44,6 +45,8 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
+parser.add_argument("-buoy", metavar='buoyname',
+    help="name of buoy")
 
 args = parser.parse_args()
 
@@ -60,12 +63,16 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+if args.buoy is None:
+    buoy = 'Tennholmen'
+else:
+    buoy=args.buoy
+
+
 # retrieve PID
 grab_PID()
-#sdate=datetime(2019,1,1)
-#edate=datetime(2019,1,28,23)
 model='mwam4'
-basetime = buoy_dict['Tennholmen']['basetime']
+basetime = buoy_dict[buoy]['basetime']
 
 tmpdate = deepcopy(sdate)
 element = 0
@@ -81,7 +88,8 @@ time_s_lst = []
 while tmpdate <= edate:
     try:
         # get wave rider data
-        time_s, time_dt, Hm0, Tm02, lons, lats = get_buoy(tmpdate,tmpdate)
+        time_s, time_dt, Hm0, Tm02, lons, lats = \
+                            get_buoy(tmpdate,tmpdate,buoyname=buoy)
         # get wave model
         check_date(model,fc_date=tmpdate,leadtime=element)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
@@ -104,7 +112,7 @@ while tmpdate <= edate:
         time_s_lst.append(time_s[0])
     except SystemExit:
         print('error: --> leadtime is not available')
-    except (ValueError,IOError,KeyError) as e:
+    except (ValueError,IOError,KeyError,IndexError) as e:
         print(e)
     tmpdate = tmpdate + timedelta(hours=6)
 
@@ -117,14 +125,20 @@ coll_dict = {'basetime':basetime,
              'Hm0_buoy':buoy_lst,
              'lats_buoy':buoy_lat_lst,
              'lons_buoy':buoy_lon_lst,
+             'buoy':buoy
             }
-
+print(coll_dict)
 # dump tp nc-file
 outpath = tmpdate.strftime('/lustre/storeB/project/fou/om/'
                             + 'waveverification/mwam4/buoys/'
                             + 'CollocationFiles/'
                             + '%Y/%m/')
 os.system('mkdir -p ' + outpath)
-filename_ts=tmpdate.strftime(model + "_Tennholmen_coll_ts_lt000h_%Y%m.nc")
-title_ts=(model + ' vs Tennholmen waverider')
-dumptonc_coll_ts_Tennholmen(outpath,filename_ts,title_ts,basetime,coll_dict,model)
+filename_ts=tmpdate.strftime(model + "_" + buoy + "_coll_ts_lt000h_%Y%m.nc")
+title_ts=(model + ' vs ' + buoy)
+if buoy == 'Tennholmen':
+    dumptonc_coll_ts_Tennholmen(outpath,filename_ts,title_ts,
+                            basetime,coll_dict,model)
+else:
+    dumptonc_coll_ts_buoy(outpath,filename_ts,title_ts,
+                            basetime,coll_dict,model)

@@ -60,7 +60,7 @@ cmdstr = ("python /home/patrikb/wavy/op/collect_buoy.py -sd "
             + edstr)
 str('Executing command: ')
 str(cmdstr)
-cmd = os.system(cmdstr)
+#cmd = os.system(cmdstr)
 
 # stations
 stationlst = station_dict.keys()

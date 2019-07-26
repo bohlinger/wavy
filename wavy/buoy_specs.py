@@ -53,7 +53,18 @@ buoy_dict={
             'file_template_tec':'Tennholmen{0x3C1}%Y-%m.csv',
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'delta_t':'0000-00-00 (01:00:00)'
+            'delta_t':'0000-00-00 (01:00:00)',
+            'sensor':'waverider',
+            'manufacturer':'Datawell',
+            'type':'Directional Waverider DWR MkIII',
+            'data_owner':("Norwegian Coastal Administration, "
+                        + "Institute of Marine Research, "
+                        + "and Norwegian Meteorological Institute"),
+            'licence':("Data and products are licensed under Norwegian"
+                    + "license for public data (NLOD) and "
+                    + "Creative Commons Attribution 3.0 Norway. "
+                    + "See https://www.met.no/en/"
+                    + "free-meteorological-data/Licensing-and-crediting")
             },
         'Fauskane':
             {'Hm0':'Significant_Wave_Height_Hm0',
@@ -61,14 +72,19 @@ buoy_dict={
             'time':'time',
             'lon':5.725221,
             'lat':62.56689,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeB/project/met-obs/'
                             +'kystverket/buoy/%Y/%m/'),
             'file_template':('%Y%m_Kystverket-Smartbuoy-Fauskane'
                             +'_AanderaaMotusSensor.nc'),
             'basetime':datetime(1970,1,1),
-            'units_time':'seconds since 1970-01-01 00:00:00'
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'sensor':'MOTUS',
+            'manufacturer':'?',
+            'type':'?',
+            'data_owner':'Kystverket Rederi, Forsyningsenheten, Norvevika, 6008 ALESUND, Norge',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Coastal Administration\", \"Based on data from the Norwegian Coastal Administration \". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See https://data.norge.no/nlod/no/1.0.'
         },
         'SulaA':
             {'Hm0':'Hm0',
@@ -76,13 +92,18 @@ buoy_dict={
             'time':'time',
             'lat':62.426267625,
             'lon':6.04578018,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_A_Sulafjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaB':
             {'Hm0':'Hm0',
@@ -90,13 +111,18 @@ buoy_dict={
             'time':'time',
             'lat':62.40252876,
             'lon':6.079721455,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_B_Sulafjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaB1':
             {'Hm0':'Hm0',
@@ -104,13 +130,18 @@ buoy_dict={
             'time':'time',
             'lat':62.405,
             'lon':6.0585,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_B1_Sulafjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaC':
             {'Hm0':'Hm0',
@@ -118,13 +149,18 @@ buoy_dict={
             'time':'time',
             'lat':62.39201164,
             'lon':6.050519945,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_C_Sulafjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaC1':
             {'Hm0':'Hm0',
@@ -132,13 +168,18 @@ buoy_dict={
             'time':'time',
             'lat':62.3969,
             'lon':6.047,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_C1_Sulafjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaD':
             {'Hm0':'Hm0',
@@ -146,13 +187,18 @@ buoy_dict={
             'time':'time',
             'lat':62.440265655,
             'lon':5.93398094,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_D_Breisundet_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaF':
             {'Hm0':'Hm0',
@@ -160,13 +206,18 @@ buoy_dict={
             'time':'time',
             'lat':62.22093,
             'lon':5.90045,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
             'file_template':('%Y%m_E39_F_Vartalsfjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         },
         'SulaG':
             {'Hm0':'Hm0',
@@ -174,12 +225,17 @@ buoy_dict={
             'time':'time',
             'lat': 63.08537674,
             'lon': 8.15519333,
-            'lats':'longitude',
-            'lons':'latitude',
+            'lats':'latitude',
+            'lons':'longitude',
             'path_template':('/lustre/storeA/project/SVV/E39/buoy/%Y/%m/'),
-            'file_template':('%Y%m_E39_G_Vartalsfjorden_wave.nc'),
+            'file_template':('%Y%m_E39_G_Halsafjorden_wave.nc'),
             'basetime':datetime(1970,1,1),
             'units_time':'seconds since 1970-01-01 00:00:00',
-            'time_comment':'End of the 10 minute sampling period'
+            'time_comment':'End of the 10 minute sampling period',
+            'sensor':'Wavesense',
+            'manufacturer':'Fugro',
+            'type':'Seawatch',
+            'data_owner':'Statens Vegvesen Region Midt, P.O. Box 2525, N-6404 Molde, Norway',
+            'licence':'Freely distributed. Must credit the source of data, e.g. \"Data from the Norwegian Meteorological Institute\", \"Based on data from the Norwegian Meteorological Institute\". Data and products are licensed under Norwegian license for public data (NLOD) and Creative Commons Attribution 3.0 Norway. See http://met.no/English/Data_Policy_and_Data_Services/.'
         }
     }

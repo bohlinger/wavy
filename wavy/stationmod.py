@@ -62,9 +62,6 @@ import time
 from pathfinder import station_d22_starc, station_d22_opdate
 from pathfinder import stationpath_lustre_om, stationpath_lustre_hi
 import pylab as pl
-#from d22_var_dicts import dat,  WM1, WM2, WM3, \
-#                                WL1, WL2, WL3, \
-#                                WIA, WIB, WIC
 from datetime import datetime
 import scipy as sp
 
@@ -158,7 +155,7 @@ class station_class():
             timedt = []
             while (tmpdate <= edate):
                 ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
-                                        timewin=1)
+                                        timewin=2)
                 try:
                     hs_obs_hourly = sensor_lst[station_dict[statname]['sensor']
                                             [sensorname]]['Hs_1hr'][idxtmp][0]
@@ -268,7 +265,7 @@ def read_buoy(buoyname,date):
     path=date.strftime(buoy_dict[buoyname]['path_template'])
     filename=date.strftime(buoy_dict[buoyname]['file_template'])
     basetime=buoy_dict[buoyname]['basetime']
-    nc = nc.netCDF4.Dataset(path+filename,mode='r')
+    nc = netCDF4.Dataset(path+filename,mode='r')
     time_s = nc.variables[buoy_dict[buoyname]['time']][:]
     # time conversion
     time_dt = [basetime + timedelta(seconds=time_s[i]) \
@@ -277,20 +274,66 @@ def read_buoy(buoyname,date):
     Tm02 = nc.variables[buoy_dict[buoyname]['Tm02']][:]
     lats = nc.variables[buoy_dict[buoyname]['lats']][:]
     lons = nc.variables[buoy_dict[buoyname]['lons']][:]
+    nc.close()
+    ctime, cidx = matchtime(date,date,time_s,basetime=basetime)
+    idx = cidx[0]
+    Hm0 = Hm0[idx]
+    Tm02 = Tm02[idx]
+    lats = lats[idx]
+    lons = lons[idx]
+    time_s = time_s[idx]
+    time_dt = time_dt[idx]
     return time_s, time_dt, Hm0, Tm02, lons, lats
     
 def get_buoy(sdate,edate,buoyname=None,mode=None):
-    if (sdate.month == edate.month and sdate.year == edate.year):
-        time_s, time_dt, Hm0, Tm02, lons, lats \
+    if (buoyname == 'Tennholmen' or buoyname is None):
+        if (sdate.month == edate.month and sdate.year == edate.year):
+            time_s, time_dt, Hm0, Tm02, lons, lats \
                              = read_Tennholmen(sdate)
-        sidx=time_dt.index(sdate)
-        eidx=time_dt.index(edate) + 1
-        time_s_lst = time_s[sidx:eidx]
-        time_dt_lst = time_dt[sidx:eidx]
-        Hm0_lst = Hm0[sidx:eidx]
-        Tm02_lst = Tm02[sidx:eidx]
-        lons_lst = lons[sidx:eidx]
-        lats_lst = lats[sidx:eidx]
+            sidx=time_dt.index(sdate)
+            eidx=time_dt.index(edate) + 1
+            time_s_lst = time_s[sidx:eidx]
+            time_dt_lst = time_dt[sidx:eidx]
+            Hm0_lst = Hm0[sidx:eidx]
+            Tm02_lst = Tm02[sidx:eidx]
+            lons_lst = lons[sidx:eidx]
+            lats_lst = lats[sidx:eidx]
+        else:
+            tmpdate = deepcopy(sdate)
+            time_s_lst = []
+            time_dt_lst = []
+            Hm0_lst = []
+            Tm02_lst = []
+            lons_lst = []
+            lats_lst = []
+            while tmpdate <= edate:
+                time_s, time_dt, Hm0, Tm02, lons, lats \
+                            = read_Tennholmen(tmpdate)
+                time_s_lst.append(time_s)
+                time_dt_lst.append(time_dt)
+                Hm0_lst.append(Hm0)
+                Tm02_lst.append(Tm02)
+                lons_lst.append(lons)
+                lats_lst.append(lats)
+                tmpdate = tmpdate + relativedelta(months = +1)
+            del tmpdate
+            time_s_lst = flatten(time_s_lst)
+            time_dt_lst = flatten(time_dt_lst)
+            Hm0_lst = flatten(Hm0_lst)
+            Tm02_lst = flatten(Tm02_lst)
+            lons_lst = flatten(lons_lst)
+            lats_lst = flatten(lats_lst)
+            try:
+                sidx=time_dt_lst.index(sdate)
+                eidx=time_dt_lst.index(edate) + 1
+                time_s_lst = time_s_lst[sidx:eidx]
+                time_dt_lst = time_dt_lst[sidx:eidx]
+                Hm0_lst = Hm0_lst[sidx:eidx]
+                Tm02_lst = Tm02_lst[sidx:eidx]
+                lons_lst = lons_lst[sidx:eidx]
+                lats_lst = lats_lst[sidx:eidx]
+            except ValueError:
+                print('Date not available')
     else:
         tmpdate = deepcopy(sdate)
         time_s_lst = []
@@ -301,32 +344,21 @@ def get_buoy(sdate,edate,buoyname=None,mode=None):
         lats_lst = []
         while tmpdate <= edate:
             time_s, time_dt, Hm0, Tm02, lons, lats \
-                            = read_Tennholmen(tmpdate)
+                        = read_buoy(buoyname,tmpdate)
             time_s_lst.append(time_s)
             time_dt_lst.append(time_dt)
             Hm0_lst.append(Hm0)
             Tm02_lst.append(Tm02)
             lons_lst.append(lons)
             lats_lst.append(lats)
-            tmpdate = tmpdate + relativedelta(months = +1)
+            tmpdate = tmpdate + timedelta(hours = 1)
         del tmpdate
-        time_s_lst = flatten(time_s_lst)
-        time_dt_lst = flatten(time_dt_lst)
-        Hm0_lst = flatten(Hm0_lst)
-        Tm02_lst = flatten(Tm02_lst)
-        lons_lst = flatten(lons_lst)
-        lats_lst = flatten(lats_lst)
-        try:
-            sidx=time_dt_lst.index(sdate)
-            eidx=time_dt_lst.index(edate) + 1
-            time_s_lst = time_s_lst[sidx:eidx]
-            time_dt_lst = time_dt_lst[sidx:eidx]
-            Hm0_lst = Hm0_lst[sidx:eidx]
-            Tm02_lst = Tm02_lst[sidx:eidx]
-            lons_lst = lons_lst[sidx:eidx]
-            lats_lst = lats_lst[sidx:eidx]
-        except ValueError:
-            print('Date not available')
+        time_s_lst = np.array(time_s_lst)
+        time_dt_lst = np.array(time_dt_lst)
+        Hm0_lst = np.array(Hm0_lst)
+        Tm02_lst = np.array(Tm02_lst)
+        lons_lst = np.array(lons_lst)
+        lats_lst = np.array(lats_lst)
     return time_s_lst, time_dt_lst, Hm0_lst, Tm02_lst, lons_lst, lats_lst
 
 def get_buoy_ext(sdate,edate,buoyname=None,mode=None):
@@ -464,7 +496,11 @@ def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
     import d22_var_dicts
     try:
-        reload(d22_var_dicts)
+        if sys.version_info <= (3, 0):
+            reload(d22_var_dicts)
+        else:
+            import importlib
+            importlib.reload(module)
     except:
         pass
     dat=d22_var_dicts.dat

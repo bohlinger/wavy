@@ -833,6 +833,154 @@ def dumptonc_coll_ts_Tennholmen(outpath,filename,title,basetime,obs_dict,model):
         nclats_buoy[:] = lats_buoy
     nc.close()
 
+def dumptonc_coll_ts_buoy(outpath,filename,title,basetime,obs_dict,model):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = obs_dict['time']
+    Hm0_model = obs_dict['Hm0_model']
+    lons_model = obs_dict['lons_model']
+    lats_model = obs_dict['lats_model']
+    Hm0_buoy = obs_dict['Hm0_buoy']
+    lons_buoy = obs_dict['lons_buoy']
+    lats_buoy = obs_dict['lats_buoy']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Hm0_model'][startidx:endidx] = Hm0_model[:]
+        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
+        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
+        nc.variables['Hm0_buoy'][startidx:endidx] = Hm0_buoy[:]
+        nc.variables['longitude_buoy'][startidx:endidx] = lons_buoy[:]
+        nc.variables['latitude_buoy'][startidx:endidx] = lats_buoy[:]
+    else:
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = obs_dict['buoy']
+        nc.buoy_type = buoy_dict[obs_dict['buoy']]['type']
+#        nc.buoy_specs = "http://www.datawell.nl/products/buoys.aspx"
+        nc.buoy_manufacturer = buoy_dict[obs_dict['buoy']]['manufacturer']
+        nc.netcdf_version = "4"
+        nc.data_owner = buoy_dict[obs_dict['buoy']]['data_owner']
+        nc.licence = buoy_dict[obs_dict['buoy']]['licence']
+        nc.processing_level = "No imputation for missing values."
+        nc.static_position =  ("Latitude: "
+                            + str(buoy_dict['Tennholmen']['lat'])
+                            + ", Longitude: "
+                            + str(buoy_dict['Tennholmen']['lon']))
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncHm0_model = nc.createVariable(
+                               'Hm0_model',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=-999.,
+                               )
+        nclons_model = nc.createVariable(
+                               'longitude_model',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        nclats_model = nc.createVariable(
+                               'latitude_model',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        ncHm0_buoy = nc.createVariable(
+                               'Hm0_buoy',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=9999.,
+                               )
+        nclons_buoy = nc.createVariable(
+                               'longitude_buoy',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        nclats_buoy = nc.createVariable(
+                               'latitude_buoy',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = 'seconds since ' + str(basetime)
+        nctime[:] = time
+        # Hm0_model
+        ncHm0_model.standard_name = (
+                          'sea_surface_wave_significant_height '\
+                        + 'from wave model'
+                                    )
+        ncHm0_model.long_name = (
+                          'Significant wave height estimate '\
+                        + 'from spectrum from wave model'
+                                )
+        ncHm0_model.units = 'm'
+        ncHm0_model.valid_range = 0., 25.
+        ncHm0_model[:] = Hm0_model
+        # lons_model
+        nclons_model.standard_name = ('longitude_model')
+        nclons_model.units = 'degree_east'
+        nclons_model.valid_min = -180.
+        nclons_model.valid_max = 180.
+        nclons_model[:] = lons_model
+        # lats_model
+        nclats_model.standard_name = ('latitude_model')
+        nclats_model.units = 'degree_north'
+        nclats_model.valid_min = -90.
+        nclats_model.valid_max = 90.
+        nclats_model[:] = lats_model
+        # Hm0_buoy
+        ncHm0_buoy.standard_name = (
+                          'sea_surface_wave_significant_height '\
+                        + 'from buoy'
+                                    )
+        ncHm0_buoy.long_name = ( 'Significant wave height estimate'\
+                                + 'from spectrum from buoy')
+        ncHm0_buoy.units = 'm'
+        ncHm0_buoy.valid_range = 0., 25.
+        ncHm0_buoy[:] = Hm0_buoy
+        # lons_buoy
+        nclons_buoy.standard_name = ('longitude_buoy')
+        nclons_buoy.units = 'degree_east'
+        nclons_buoy.valid_min = -180.
+        nclons_buoy.valid_max = 180.
+        nclons_buoy[:] = lons_buoy
+        # lats_buoy
+        nclats_buoy.standard_name = ('latitude_buoy')
+        nclats_buoy.units = 'degree_north'
+        nclats_buoy.valid_min = -90.
+        nclats_buoy.valid_max = 90.
+        nclats_buoy[:] = lats_buoy
+    nc.close()
+
 def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
                         obs_dict,model,statname,sensorname):
     """
@@ -872,17 +1020,18 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
         # global attributes
         nc.title = title
         nc.station_name = statname
-        nc.instrument_type = "? " + sensorname + " ?"
-        nc.instrument_specs = "?"
-        nc.instrument_manufacturer = "?"
+        nc.instrument_type = sensorname
+        nc.instrument_specs = "NA"
+        nc.instrument_manufacturer = \
+                        station_dict[statname]['manufacturer'][sensorname]
         nc.netcdf_version = "4"
-        nc.data_owner = ("?")
-        nc.licence = ("?")
+        nc.data_owner = ("NA")
+        nc.licence = ("NA")
         nc.processing_level = "No imputation for missing or erroneous values."
         nc.static_position_station =  ("Latitude: "
-                            + str(station_dict['ekofiskL']['coords']['lat'])
+                            + str(station_dict[statname]['coords']['lat'])
                             + ", Longitude: "
-                            + str(station_dict['ekofiskL']['coords']['lon']))
+                            + str(station_dict[statname]['coords']['lon']))
         nc.static_position_model =  ("Latitude: "
                             + "{:.2f}".format(lats_model[0])
                             + ", Longitude: "
@@ -942,8 +1091,14 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
                           'sea_surface_wave_significant_height_hourly '\
                         + 'from ' + statname
                                     )
-        ncHs_stat_1h.long_name = ( 'Significant wave height hourly estimate'\
-                                + 'from ?spectrum? from ' + statname)
+        ncHs_stat_1h.long_name = ( 'Significant wave height hourly estimate'
+                                + 'from spectrum (not sure) from ' 
+                                + statname 
+                                + '. Estimate is computed using a ' 
+                                + 'convolution with window of 3 ' 
+                                + 'effectively smoothing the 10min ' 
+                                + 'values as retrieved with the '  
+                                + 'plotd22 program')
         ncHs_stat_1h.units = 'm'
         ncHs_stat_1h.valid_range = 0., 25.
         ncHs_stat_1h[:] = Hs_stat_1h
@@ -952,8 +1107,8 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
                           'sea_surface_wave_significant_height_10min '\
                         + 'from ' + statname
                                     )
-        ncHs_stat_10min.long_name = ( 'Significant wave heigh 10 min estimate'\
-                                + 'from ?spectrum? from ' + statname)
+        ncHs_stat_10min.long_name = ( 'Significant wave height 10 min estimate'\
+                                + 'from spectrum (not sure) from ' + statname)
         ncHs_stat_10min.units = 'm'
         ncHs_stat_10min.valid_range = 0., 25.
         ncHs_stat_10min[:] = Hs_stat_10min

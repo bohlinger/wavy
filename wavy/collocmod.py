@@ -161,7 +161,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
             nearest_all_model_lons_matches.append(resultlst[6])
             nearest_all_model_lats_matches.append(resultlst[7])
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+            print ("Unexpected error:", sys.exc_info()[0])
             pass
     results_dict = {
         'valid_date':np.array(model_time_dt_valid),

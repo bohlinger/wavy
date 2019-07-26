@@ -23,16 +23,16 @@ from buoy_specs import buoy_dict
 # get data
 from ncmod import get_nc_ts
 stationvars = {}
-vardict = get_nc_ts('/lustre/storeB/project/fou/om/waveverification/mwam4/buoys/CollocationFiles/2019/06/mwam4_Tennholmen_coll_ts_lt000h_201906.nc',['Hm0_model','Hm0_buoy'])
+vardict = get_nc_ts('/lustre/storeB/project/fou/om/waveverification/mwam4/buoys/CollocationFiles/2019/02/mwam4_Tennholmen_coll_ts_lt000h_201902.nc',['Hm0_model','Hm0_buoy'])
 stationvars['Tennholmen']={}
 stationvars['Tennholmen']['waverider']=vardict
 #stationlst = station_dict.keys()
-stationlst = ['draugen','ekofiskL','heimdal','snorrea','sleipner','norne','trolla','trollb','oseberg','gjoa','heidrun']
+stationlst = ['draugen','ekofiskL','heimdal','snorrea','sleipner','norne','trolla','trollb','oseberg','gjoa','heidrun','grane']
 for station in (stationlst):
     stationvars[station]={}
     for sensor in (station_dict[station]['sensor']):
-
-        vardict = get_nc_ts('/lustre/storeB/project/fou/om/waveverification/obs/stations/2019/01/' + station + '_' + sensor +'_201901.nc',['Hs'])
+        print(station,sensor)
+        vardict = get_nc_ts('/lustre/storeB/project/fou/om/waveverification/obs/stations/2019/02/' + station + '_' + sensor +'_201902.nc',['Hs'])
         stationvars[station][sensor]=vardict
 
 locations = stationlst
@@ -114,16 +114,21 @@ def create_time_series(stationvars,varname,stationstr):
     if (stationstr in station_dict and 
     len(station_dict[stationstr]['sensor'].keys())>1):
         traces=[]
+        ymax=[]
         for sensor in station_dict[stationstr]['sensor']:
             x=stationvars[stationstr][sensor]['dtime']
             y=stationvars[stationstr][sensor][varname]
+            ymax.append(np.nanmax(stationvars[stationstr][sensor][varname]))
             traces.append(go.Scatter( x=x, y=y, name=sensor))
         data = traces
+        sensor='all sensors'
     else:
+        ymax=[]
         for sensor in stationvars[stationstr].keys():
             pass
         x=stationvars[stationstr][sensor]['dtime']
         y=stationvars[stationstr][sensor][varname]
+        ymax.append(np.nanmax(y))
         trace = go.Scatter( x=x, y=y)
         data = [trace]
     layout = dict(
@@ -158,7 +163,7 @@ def create_time_series(stationvars,varname,stationstr):
             ),
             yaxis = dict(
                 hoverformat = '.2f',
-                range=[0, np.nanmax(y)]
+                range=[0, (np.nanmax(ymax)+.5)]
             ),
             height=600
     )

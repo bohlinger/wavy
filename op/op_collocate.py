@@ -3,7 +3,7 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
 from datetime import datetime, timedelta
-from satmod import sentinel_altimeter as sa
+from satmod import satellite_altimeter as sa
 from stationmod import station_class as sc
 from stationmod import matchtime
 from modelmod import get_model
@@ -63,16 +63,17 @@ leadtimes = [0, 6, 12, 18, 24]
 timewin = 30
 distlim = 6
 region = model
+sat = 's3a'
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
            + model
-           + '/s3a/'
+           + '/' + sat + '/'
            + 'CollocationFiles/')
 
 tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
     # get s3a values
     fc_date = deepcopy(tmpdate)
-    sa_obj = sa(fc_date,timewin=timewin,region=region)
+    sa_obj = sa(fc_date,sat=sat,timewin=timewin,region=region)
     if len(sa_obj.dtime)==0:
         print("If possible proceed with another time step...")
     else:
