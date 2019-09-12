@@ -580,9 +580,11 @@ class satellite_altimeter():
                 grid_date = datetime(2007,2,1)
             elif (region == 'swan_karmoy250'):
                 grid_date = datetime(2018,1,1)
+            elif (region == 'ARCMFC3'):
+                grid_date = datetime(2019,7,3)
             else:
                 grid_date = datetime(2019,2,1)
-            if region == 'ARCMFC':
+            if (region == 'ARCMFC' or region=='ARCMFC3'):
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc", model=region, fc_date=grid_date,
                     init_date=grid_date)

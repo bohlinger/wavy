@@ -94,11 +94,12 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
                 2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
     cmap=cm.GMT_haxby
     norm = mpl.colors.BoundaryNorm(clevs, cmap.N)
-    if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'):
+    if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
+        or sa_obj.region == 'ARCMFC3'):
         # Polar Stereographic Projection
         m = Basemap(
             projection='npstere',
-            boundinglat=region_dict[sa_obj.region]["boundinglat"],
+            boundinglat=region_dict[sa_obj.region]["boundinglat"]-5,
             lon_0=0,
             resolution='l',area_thresh=1000
             )

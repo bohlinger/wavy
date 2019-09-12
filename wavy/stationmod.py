@@ -91,7 +91,7 @@ class station_class():
     from stationlist import locations
 
     def __init__(self,statname,sdate,edate,
-                mode=None,deltat=None,sensorname=None):
+                mode=None,deltat=None,sensorname=None,varname=None):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
@@ -99,14 +99,18 @@ class station_class():
         print ('# ----- ')
         if mode is None:
             mode = 'nc' # mode: 'nc', 'd22'
-        hs, hs_obs, time, timedt = self.get_station(
+        if varname is None:
+            varname = 'Hs_10min'
+#        hs, hs_obs, time, timedt = self.get_station(
+        hs, time, timedt = self.get_station(
                                     statname,
                                     sdate,edate,
                                     mode,deltat,
-                                    sensorname
+                                    sensorname,
+                                    varname
                                 )
         self.hs = hs
-        self.hs_obs = hs_obs
+#        self.hs_obs = hs_obs
         self.time = time
         self.timedt = timedt
         self.basedate = self.basedate
@@ -116,31 +120,31 @@ class station_class():
         self.statname = statname
         print (" ### station_class object initialized ###")
 
-    def get_station(self,statname,sdate,edate,mode,deltat,sensorname):
+    def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varname):
         if mode == 'nc':
+            if varname is None:
+                varname = 'Hs_OBS'
             basedate = self.basedate
             tmpdate = sdate
-            hs = []
-            hs_obs = []
+            var = []
+            var_obs = []
             time = []
             timedt = []
             while (tmpdate <= edate):
                 filepath = stationpath_lustre_hi + statname + \
                     tmpdate.strftime('_%Y%m') + '.nc'
                 nc = netCDF4.Dataset(filepath,'r')
-                #ncg = nc.groups['OBS_d22']
-                #var = np.mean(ncg.variables['Hs'][:],axis=0)
-                Hs_OBS = nc.variables['Hs_OBS'][:]
-                var = np.nanmean(Hs_OBS,axis=0)
-                hs.append(var)
-                hs_obs.append(Hs_OBS)
-                var = nc.variables['time'][:]
-                time.append(var)
-                for s in var:
+                Hs_OBS = nc.variables[varname][:]
+                tmp = np.nanmean(Hs_OBS,axis=0)
+                var.append(tmp)
+                var_obs.append(Hs_OBS)
+                tmp = nc.variables['time'][:]
+                time.append(tmp)
+                for s in tmp:
                     timedt.append(basedate + timedelta(seconds=s))
                 nc.close()
                 tmpdate = tmpdate + relativedelta(months = +1)
-            hs = flatten(hs)
+            var = flatten(var)
             time = flatten(time)
         elif mode == 'd22':
             from station_specs import station_dict
@@ -149,27 +153,29 @@ class station_class():
             sl = parse_d22(statname,sdatetmp,edatetmp)
             sensor_lst, dates = extract_d22(sl)
             tmpdate = sdate
-            hs = []
-            hs_obs = []
+            var = []
+            var_obs = []
             time = []
             timedt = []
             while (tmpdate <= edate):
                 ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
                                         timewin=2)
                 try:
-                    hs_obs_hourly = sensor_lst[station_dict[statname]['sensor']
-                                            [sensorname]]['Hs_1hr'][idxtmp][0]
-                    hs_obs_10min = sensor_lst[station_dict[statname]['sensor']
-                                            [sensorname]]['Hs_10min'][idxtmp][0]
+#                    obs_hourly = sensor_lst[station_dict[statname]['sensor']
+#                                            [sensorname]]['Hs_1hr'][idxtmp][0]
+                    tmp = sensor_lst[station_dict[statname]['sensor']
+                                            [sensorname]][varname][idxtmp][0]
                     time.append((tmpdate-self.basedate).total_seconds())
-                    hs_obs.append(np.real(hs_obs_10min))
-                    hs.append(np.real(hs_obs_hourly))
+#                    var_obs.append(np.real(hs_obs_10min))
+#                    var.append(np.real(hs_obs_hourly))
+                    var.append(np.real(tmp))
                     timedt.append(tmpdate)
                 except:
 #                    print('no entry --> pass')
                     pass
                 tmpdate = tmpdate + timedelta(minutes=deltat)
-        return hs, hs_obs, time, timedt
+        return var, time, timedt
+#        return var, var_obs, time, timedt
 
 def read_Tennholmen(date):
     from buoy_specs import buoy_dict

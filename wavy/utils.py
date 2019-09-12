@@ -62,33 +62,36 @@ def identify_outliers_GP(x,y,mag):
                 idx.append(i)
     return idx,x_pred,y_pred,sigma
 
-def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None):
+def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=None):
     """
     time -> time series to check neighbour values
     ts -> time series to be checked for outliers
     ts_ref -> time series to compare to (optional)
     hs_ll -> hs lower limit over which values are checked
     hs_ul -> values over limit are being rejected
+    block -> blocksize used for detection
     """
     if hs_ll is None:
         hs_ll = 1.
     if hs_ul is None:
         hs_ul = 30.
+    if block is None:
+        block = 25
     std_ts = np.nanstd(ts)
     mean_ts = np.nanmean(ts)
     # forward check
     idx_a = []
     for i in range(1,len(ts)):
         # transform to z
-        if len(ts)<25:
+        if len(ts)<block:
             z = (ts[i] - np.nanmean(ts[:]))/np.nanstd(ts[:])
-        elif i<13:
-            z = (ts[i] - np.nanmean(ts[0:25]))/np.nanstd(ts[0:25])
-        elif (i>=13 and i<(len(ts)-12)):
-            z = (ts[i] - np.nanmean(ts[i-12:i+12]))/np.nanstd(ts[i-12:i+12])
-        elif i>len(ts)-12:
-            z = ((ts[i] - np.nanmean(ts[(len(ts-1)-25):-1]))
-                /np.nanstd(ts[(len(ts-1)-25):-1]))
+        elif i<block:
+            z = (ts[i] - np.nanmean(ts[0:block]))/np.nanstd(ts[0:block])
+        elif (i>=int(block/2)+1 and i<(len(ts)-int(block/2))):
+            z = (ts[i] - np.nanmean(ts[i-int(block/2):i+int(block/2)]))/np.nanstd(ts[i-int(block/2):i+int(block/2)])
+        elif i>len(ts)-int(block/2):
+            z = ((ts[i] - np.nanmean(ts[(len(ts-1)-block):-1]))
+                /np.nanstd(ts[(len(ts-1)-block):-1]))
         if dt == True:
             delta_t = (time[i]-time[i-1]).total_seconds()
         else:
@@ -105,15 +108,15 @@ def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None):
     idx_b = []
     for i in range(0,len(ts)-1):
         # transform to z
-        if len(ts)<25:
+        if len(ts)<block:
             z = (ts[i] - np.nanmean(ts[:]))/np.nanstd(ts[:])
-        elif i<13:
-            z = (ts[i] - np.nanmean(ts[0:25]))/np.nanstd(ts[0:25])
-        elif (i>=13 and i<len(ts)-12):
-            z = (ts[i] - np.nanmean(ts[i-12:i+12]))/np.nanstd(ts[i-12:i+12])
-        elif i>len(ts)-12:
-            z = ((ts[i] - np.nanmean(ts[(len(ts-1)-25):-1]))
-                /np.nanstd(ts[(len(ts-1)-25):-1]))
+        elif i<int(block/2)+1:
+            z = (ts[i] - np.nanmean(ts[0:block]))/np.nanstd(ts[0:block])
+        elif (i>=int(block/2)+1 and i<len(ts)-int(block/2)):
+            z = (ts[i] - np.nanmean(ts[i-int(block/2):i+int(block/2)]))/np.nanstd(ts[i-int(block/2):i+int(block/2)])
+        elif i>len(ts)-int(block/2):
+            z = ((ts[i] - np.nanmean(ts[(len(ts-1)-block):-1]))
+                /np.nanstd(ts[(len(ts-1)-block):-1]))
         if dt == True:
             delta_t = (time[i+1]-time[i]).total_seconds()
         else:
@@ -204,7 +207,7 @@ def rmsd(a,b):
 def scatter_index(obs,model):
     from utils import rmsd
     msd,rmsd = rmsd(obs,model)
-    stddiff = np.std(obs-model)
+    stddiff = np.nanstd(obs-model)
     SIrmse = rmsd/np.nanmean(obs)*100.
     SIstd = stddiff/np.nanmean(obs)*100.
     return SIrmse,SIstd

@@ -104,6 +104,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     mwam8   12 hourly (06h, 18h)
     ecwam   12 hourly (00h, 12h)
     ARCMFC  24 hourly (00h)
+    ARCMFC3 12 hourly (00h, 12h); naming convention +6h for bulletin
     Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
     ww3        hourly
     """
@@ -151,6 +152,20 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*24)
                        - timedelta(hours=restsix))
+    elif model == 'ARCMFC3':
+        multsix = int(leadtime/12)
+        restsix = leadtime%12
+        if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
+            (fc_date - timedelta(hours=leadtime)).hour !=12):
+            sys.exit('error: --> leadtime is not available')
+        if leadtime>228:
+            sys.exit('error: --> Leadtime must be less than 228')
+        if leadtime is None:
+            pass
+        else:
+            tmp_date = (fc_date
+                       - timedelta(hours=multsix*12)
+                       - timedelta(hours=restsix))
     elif (model == 'ecwam' or model == 'mwam800c3'):
         multsix = int(leadtime/12)
         restsix = leadtime%12
@@ -197,6 +212,11 @@ def make_filename(simmode=None,model=None,datein=None,
         if model == 'ARCMFC':
             filename = (model_dict[model]['path']
               + fc_date.strftime('%Y%m%d')
+              + init_date.strftime(model_dict[model][filetemplate]))
+        if model == 'ARCMFC3':
+            init_date = init_date + timedelta(hours=6)
+            filename = (fc_date.strftime(model_dict[model]['path'])
+              + fc_date.strftime('%Y%m%d%H')
               + init_date.strftime(model_dict[model][filetemplate]))
         elif (model == 'Erin1W' or model == 'Erin2W'):
             filename = (model_dict[model]['path']

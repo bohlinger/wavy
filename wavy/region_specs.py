@@ -13,6 +13,9 @@ region_dict = {"Global":            {
                 "ARCMFC":           {
                                     "boundinglat":50,
                                     },
+                "ARCMFC3":           {
+                                    "boundinglat":50,
+                                    },
                 "Arctic":           {
                                     "boundinglat":66,
                                     },

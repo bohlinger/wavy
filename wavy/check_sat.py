@@ -19,7 +19,7 @@ from  utils import disp_validation
 parser = argparse.ArgumentParser(
     description="""
 Check availability of satellite SWH data. Example:
-./check_sat.py -sat s3a -r ARCMFC -sd 2018080112 -ed 2018080718 -m -a --show -save outpath/ -dump outpath/
+./check_sat.py -sat s3a -r mwam4 -sd 2019060112 -ed 2019060318 -a --show -save outpath/ -dump outpath/
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -76,6 +76,8 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                     int(args.ed[6:8]),int(args.ed[8:10]))
     timewin = 0
+if args.twin is None:
+    args.lt = 0
 
 # get data
 if args.sat == 'all':

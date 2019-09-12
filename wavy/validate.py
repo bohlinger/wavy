@@ -100,8 +100,8 @@ sa_obj = sa(fc_date,sat=sat,timewin=timewin,polyreg=args.r)
 if len(sa_obj.dtime)==0:
     print("If possible proceed with another time step...")
 else:
-    if (args.m != 'ARCMFC' and args.m != 'MoskNC'\
-        and args.m != 'MoskWC'):
+    if (args.m != 'ARCMFC' and args.m != 'ARCMFC3' \
+        and args.m != 'MoskNC' and args.m != 'MoskWC'):
         # get model collocated values
         check_date(args.m,fc_date=fc_date,leadtime=args.lt)
         #get_model
@@ -115,7 +115,7 @@ else:
         #print(valid_dict)
         disp_validation(valid_dict)
 
-    if (args.m == 'ARCMFC'):
+    if (args.m == 'ARCMFC' or args.m == 'ARCMFC3'):
         # get model collocated values
         check_date(args.m,fc_date=fc_date,leadtime=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \

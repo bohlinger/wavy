@@ -37,6 +37,27 @@ model_dict={'ARCMFC':
             'proj4':("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
                     + "+R=6371000 +no_defs")
             },
+        'ARCMFC3':
+            {'Hs':'VHM0',
+            'Tp':'VTPK',
+            'lons':'lon',
+            'lats':'lat',
+            'rotlons':'rlon',
+            'rotlats':'rlat',
+            'time': 'time',
+            'path':('/lustre/storeA/project/copernicus/'
+                    + 'sea/mywavewam3/arctic/%Y/%m/'),
+            #'file_template':'%Y%m%d%h_MyWaveWam3_b%Y%m%dT%h.nc',
+            # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
+            # - This is actually 2019071500_*_b20190715T00* but due
+            #   to delay the bulletin date/time is adjusted
+            'file_template':'_MyWaveWam3_b%Y%m%dT%H.nc',
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':("+proj=stere +lon_0=-45 +lat_0=90 +k=1 "
+                    + "+R=6371000 +no_defs")
+            },
         'ww3bench':
             {'Hs':'hs',
             'lons':'longitude',
@@ -84,6 +105,32 @@ model_dict={'ARCMFC':
             'delta_t':'0000-00-00 (01:00:00)',
             'proj4':("+proj=ob_tran +o_proj=longlat +lon_0=-40 "
                     + "+o_lat_p=22 +R=6.371e+06 +no_defs")
+            },
+        'mwam3':
+            {'Hs':'VHM0',
+            'lons':'longitude',
+            'lats':'latitude',
+            'rotlons':'rlon',
+            'rotlats':'rlat',
+            'time': 'time',
+            'path_template':('/lustre/storeB/immutable/' +
+                           'archive/projects/metproduction/' +
+                           'DNMI_WAVE/%Y/%m/%d/'),
+            'path':('/lustre/storeB/immutable/archive/' +
+                    'projects/metproduction/DNMI_WAVE/'),
+            #'file_template':'MyWave_wam3_WAVE_%Y%m%dT%HZ.nc',
+            'file_template':'MyWave_wam3_WAVE_%Y%m%dT%HZ.nc',
+            'basetime':datetime(1970,1,1),
+            'units_time':'seconds since 1970-01-01 00:00:00',
+            'delta_t':'0000-00-00 (01:00:00)',
+            'proj4':( "+proj=ob_tran +o_proj=longlat +lon_0=-40"
+                    + " +o_lat_p=25 +R=6.371e+06 +no_defs")
+            },
+        'mwam3_coords':
+            {
+                'lons':'longitude',
+                'lats':'latitude',
+                'pathtofile':'/lustre/storeB/users/anac/A3km/inputfile/TRUEcoordDepthA3km.nc'
             },
         'mwam4':
             {'Hs':'hs',

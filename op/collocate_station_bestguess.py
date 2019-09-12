@@ -114,11 +114,12 @@ while tmpdate <= edate:
                             tmpdate+timedelta(minutes=10),
                             mode='d22',sensorname=sensorname,
                             deltat=10)
-                hs_obs_10min = sc_obj10.hs_obs[0:-1]
+                #hs_obs_10min = sc_obj10.hs_obs[0:-1]
+                hs_obs_10min = sc_obj10.hs[0:-1]
                 sc_obj60 = sc(station,fc_date,
                             tmpdate+timedelta(minutes=60),
                             mode='d22',sensorname=sensorname,
-                            deltat=60)
+                            deltat=60,varname='Hs_1hr')
                 hs_obs_hourly = sc_obj60.hs[0:-1]
                 # get wave model
                 check_date(model,fc_date=fc_date,leadtime=element)
@@ -201,11 +202,12 @@ while tmpdate <= edate:
                             tmpdate+timedelta(minutes=10),
                             mode='d22',sensorname=sensorname,
                             deltat=10)
-                hs_obs_10min = sc_obj10.hs_obs[0:-1]
+#                hs_obs_10min = sc_obj10.hs_obs[0:-1]
+                hs_obs_10min = sc_obj10.hs[0:-1]
                 sc_obj60 = sc(station,fc_date,
                             tmpdate+timedelta(minutes=60),
                             mode='d22',sensorname=sensorname,
-                            deltat=60)
+                            deltat=60,varname='Hs_1hr')
                 hs_obs_hourly = sc_obj60.hs[0:-1]
                 # get wave model
                 check_date(model,fc_date=fc_date,leadtime=element)

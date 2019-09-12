@@ -980,6 +980,121 @@ def dumptonc_coll_ts_buoy(outpath,filename,title,basetime,obs_dict,model):
         nclats_buoy.valid_max = 90.
         nclats_buoy[:] = lats_buoy
     nc.close()
+    del nc
+
+def dumptonc_coll_ts_Tp_station(outpath,filename,title,basetime,\
+                        obs_dict,model,statname,sensorname):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = np.array(obs_dict['time'])
+    Tp_model = np.array(obs_dict['Tp_model'])
+    lons_model = np.array(obs_dict['lons_model'])
+    lats_model = np.array(obs_dict['lats_model'])
+    Tp_stat_10min = np.array(obs_dict['Tp_stat_10min'])
+    idx = np.array(obs_dict['idx'])
+    idy = np.array(obs_dict['idy'])
+    hdist = np.array(obs_dict['hdist'])
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    if os.path.isfile(fullpath):
+        print(fullpath)
+        print('--- file exists, appending to nc-file ---')
+        nc = netCDF4.Dataset(
+                        fullpath,mode='a',
+                        clobber=False,
+                        format='NETCDF4'
+                        )
+        # variables
+        startidx = len(nc['time'])
+        endidx = len(nc['time'])+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['Tp_model'][startidx:endidx] = Tp_model[:]
+        nc.variables['Tp_station_10min'][startidx:endidx] = Tp_stat_10min[:]
+    else:
+        print(fullpath)
+        print('--- file does not exist, creating new nc-file ---')
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        fullpath,mode='w',
+                        format='NETCDF4'
+                        )
+        # global attributes
+        nc.title = title
+        nc.station_name = statname
+        nc.instrument_type = sensorname
+        nc.instrument_specs = "NA"
+        nc.instrument_manufacturer = \
+                        station_dict[statname]['manufacturer'][sensorname]
+        nc.netcdf_version = "4"
+        nc.data_owner = ("NA")
+        nc.licence = ("NA")
+        nc.processing_level = "No imputation for missing or erroneous values."
+        nc.static_position_station =  ("Latitude: "
+                            + str(station_dict[statname]['coords']['lat'])
+                            + ", Longitude: "
+                            + str(station_dict[statname]['coords']['lon']))
+        nc.static_position_model =  ("Latitude: "
+                            + "{:.2f}".format(lats_model[0])
+                            + ", Longitude: "
+                            + "{:.2f}".format(lons_model[0]))
+        nc.collocation_distance = "{:.2f}".format(hdist[0][0]) + " km"
+        nc.static_collocation_idx =  ("idx: "
+                            + str(idx[0])
+                            + ", idy: "
+                            + str(idy[0]))
+        # dimensions
+        #dimsize = None
+        dimsize = len(time)
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncTp_model = nc.createVariable(
+                               'Tp_model',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncTp_stat_10min = nc.createVariable(
+                               'Tp_station_10min',
+                               np.float64,
+                               dimensions=('time'),
+                               )
+        # generate time for netcdf file
+        # time
+        nctime.standard_name = 'time'
+        nctime.long_name = 'Time of measurement'
+        nctime.units = ('seconds since ' + str(basetime))
+        nctime[:] = time
+        # Tp_model
+        ncTp_model.standard_name = (
+                          'Wave_Peak_Period'
+                                    )
+        ncTp_model.long_name = (
+                          'Wave Peak Period '\
+                        + 'from wave model'
+                                )
+        ncTp_model.units = 's'
+        ncTp_model.valid_range = 0., 30.
+        ncTp_model[:] = Tp_model
+        # Tp_stat_10min
+        ncTp_stat_10min.standard_name = (
+                          'Wave_Peak_Period'
+                                    )
+        ncTp_stat_10min.long_name = ( 'Wave Peak Period estimate '\
+                                + 'from ' + statname)
+        ncTp_stat_10min.units = 's'
+        ncTp_stat_10min.valid_range = 0., 30.
+        ncTp_stat_10min[:] = Tp_stat_10min
+    nc.close()
 
 def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
                         obs_dict,model,statname,sensorname):

@@ -247,8 +247,8 @@ station_dict = {'ekofiskL':
                         'MKIIIradar':'Miros'
                         },
                     'coords':
-                        {'lat':56.28,
-                        'lon':3.39
+                        {'lat':60.64,
+                        'lon':3.72
                         }
                     },
                 'trollb':
