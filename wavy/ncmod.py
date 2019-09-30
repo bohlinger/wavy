@@ -27,6 +27,7 @@ import os
 # specs
 from buoy_specs import buoy_dict
 from station_specs import station_dict
+from variable_info import var_dict
 
 # progress bar
 import sys
@@ -219,7 +220,7 @@ def dumptonc_ts(outpath,filename,title,basetime,results_dict):
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         nc.title = title
         dimsize = None
@@ -343,7 +344,7 @@ def dumptonc_ts_Tennholmen(outpath,filename,title,basetime,obs_dict):
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -482,7 +483,7 @@ def dumptonc_ts_Tennholmen_ext(outpath,filename,title,basetime,obs_dict):
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -697,7 +698,7 @@ def dumptonc_coll_ts_Tennholmen(outpath,filename,title,basetime,obs_dict,model):
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -867,7 +868,7 @@ def dumptonc_coll_ts_buoy(outpath,filename,title,basetime,obs_dict,model):
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -1005,7 +1006,7 @@ def dumptonc_coll_ts_Tp_station(outpath,filename,title,basetime,\
         nc = netCDF4.Dataset(
                         fullpath,mode='a',
                         clobber=False,
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # variables
         startidx = len(nc['time'])
@@ -1019,7 +1020,7 @@ def dumptonc_coll_ts_Tp_station(outpath,filename,title,basetime,\
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -1130,7 +1131,7 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -1254,7 +1255,7 @@ def dumptonc_ts_station(outpath,filename,title,basetime,\
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -1350,7 +1351,7 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         nc.title = title
         dimsize = None
@@ -1490,7 +1491,7 @@ def dumptonc_s3a(sa_obj,outpath,mode=None):
     print ('Dump altimeter wave data to file: ' + fullpath)
     nc = netCDF4.Dataset(
                     fullpath,mode='w',
-                    format='NETCDF4'
+#                    format='NETCDF4'
                     )
     nc.title = 's3a altimeter significant wave height'
     timerange=len(sa_obj.ridx)
@@ -1545,20 +1546,21 @@ def dumptonc_s3a(sa_obj,outpath,mode=None):
     nc.close()
 
 def dumptonc_ts_pos(outpath,filename,title,basetime,\
-                    obs_dict,model,statname,sensorname):
+                    coll_dict,model,varname):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file
     """
-    time = obs_dict['time']
-    Hm0_model = obs_dict['Hm0_model']
-    lons_model = obs_dict['lons_model']
-    lats_model = obs_dict['lats_model']
-    lons_stat = obs_dict['lons_stat']
-    lats_stat = obs_dict['lats_stat']
-    idx = obs_dict['idx']
-    idy = obs_dict['idy']
+    time = coll_dict['time']
+    var_model = coll_dict[varname]
+    lons_model = coll_dict['lons_model']
+    lats_model = coll_dict['lats_model']
+    lons_pos = coll_dict['lons_pos']
+    lats_pos = coll_dict['lats_pos']
+    dist = coll_dict['hdist']
+    idx = coll_dict['idx']
+    idy = coll_dict['idy']
     fullpath = outpath + filename
     print ('Dump data to file: ' + fullpath)
     if os.path.isfile(fullpath):
@@ -1570,29 +1572,23 @@ def dumptonc_ts_pos(outpath,filename,title,basetime,\
         startidx = len(nc['time'])
         endidx = len(nc['time'])+len(time)
         nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables['Hm0_model'][startidx:endidx] = Hm0_model[:]
-        nc.variables['longitude_model'][startidx:endidx] = lons_model[:]
-        nc.variables['latitude_model'][startidx:endidx] = lats_model[:]
+#        nc.variables['dist'][startidx:endidx] = dist[:]
+        nc.variables[varname][startidx:endidx] = var_model[:]
     else:
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4_CLASSIC'
                         )
         # global attributes
         nc.title = title
-        nc.station_name = statname
-        nc.instrument_type = "? " + sensorname + " ?"
-        nc.instrument_specs = "?"
-        nc.instrument_manufacturer = "?"
-        nc.netcdf_version = "4"
-        nc.data_owner = ("?")
-        nc.licence = ("?")
-        nc.processing_level = "No imputation for missing or erroneous values."
+#        nc.netcdf_version = "NETCDF4_CLASSIC"
+        nc.netcdf_version = "NETCDF4"
+        nc.processing_level = "No post-processing performed"
         nc.static_position_station =  ("Latitude: "
-                            + "{:.4f}".format(lats_stat[0])
+                            + "{:.4f}".format(lats_pos[0])
                             + ", Longitude: "
-                            + "{:.4f}".format(lons_stat[0]))
+                            + "{:.4f}".format(lons_pos[0]))
         nc.static_position_model =  ("Latitude: "
                             + "{:.4f}".format(lats_model[0])
                             + ", Longitude: "
@@ -1601,6 +1597,7 @@ def dumptonc_ts_pos(outpath,filename,title,basetime,\
                             + str(idx[0])
                             + ", idy: "
                             + str(idy[0]))
+        nc.static_collocation_distance =  ("{:.4f}".format(dist[0]) + " km")
         # dimensions
         dimsize = None
         dimtime = nc.createDimension(
@@ -1613,29 +1610,31 @@ def dumptonc_ts_pos(outpath,filename,title,basetime,\
                                np.float64,
                                dimensions=('time')
                                )
-        ncHm0_model = nc.createVariable(
-                               'Hm0_model',
+#        ncdist = nc.createVariable(
+#                               'dist',
+#                               np.float64,
+#                               dimensions=('time')
+#                               )
+        ncvar_model = nc.createVariable(
+                               varname,
                                np.float64,
                                dimensions=('time')
                                )
         # generate time for netcdf file
         # time
-        nctime.standard_name = 'time'
-        nctime.long_name = 'Time of measurement'
-        nctime.units = 'seconds since ' + str(basetime)
+        nctime.standard_name = var_dict['time']['standard_name']
+        nctime.units = var_dict['time']['units'] + ' ' + str(basetime)
         nctime[:] = time
-        # Hm0_model
-        ncHm0_model.standard_name = (
-                          'sea_surface_wave_significant_height '\
-                        + 'from wave model'
-                                    )
-        ncHm0_model.long_name = (
-                          'Significant wave height estimate '\
-                        + 'from spectrum from wave model'
-                                )
-        ncHm0_model.units = 'm'
-        ncHm0_model.valid_range = 0., 25.
-        ncHm0_model[:] = Hm0_model
+#        # dist
+#        ncdist.standard_name = 'collocation_distance'
+#        ncdist.units = 'km'
+#        ncdist[:] = dist
+        # var_model
+        ncvar_model.standard_name = var_dict[varname]['standard_name']
+        ncvar_model.units = var_dict[varname]['units']
+        ncvar_model.valid_range = var_dict[varname]['valid_range'][0], \
+                                  var_dict[varname]['valid_range'][1]
+        ncvar_model[:] = var_model
     nc.close()
 
 def dumptonc_ts_pos_wind(outpath,filename,title,basetime,\
@@ -1673,7 +1672,7 @@ def dumptonc_ts_pos_wind(outpath,filename,title,basetime,\
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-                        format='NETCDF4'
+#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
@@ -1739,4 +1738,249 @@ def dumptonc_ts_pos_wind(outpath,filename,title,basetime,\
                             + model + ' forcing file' )
         ncv10_model.units = 'm/s'
         ncv10_model[:] = v10_model
+    nc.close()
+
+def dumptonc_LCWVF(outpath,filename,title,basetime,coll_dict):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = coll_dict['time']
+    lt = coll_dict['lt']
+    stationid = coll_dict['stationid']
+    Hs = coll_dict['Hs']
+    Tp = coll_dict['Tp']
+    Tz = coll_dict['Tz']
+    thq = coll_dict['thq']
+    u10 = coll_dict['u10']
+    v10 = coll_dict['v10']
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    os.system('mkdir -p ' + outpath)
+    nc = netCDF4.Dataset(
+                    fullpath,mode='w',
+                    )
+    # global attributes
+    nc.title = title
+    # dimensions
+    dimtime = nc.createDimension(
+                            'time',
+                            size=len(time)
+                            )
+    dimlt = nc.createDimension(
+                            'leadtime',
+                            size=len(lt)
+                            ) 
+    dimstationid = nc.createDimension(
+                            'stationid',
+                            size=len(stationid)
+                            )
+    dimstr = nc.createDimension(
+                            'strdim',
+                            size=1
+                            )
+    # base variables
+    nctime = nc.createVariable(
+                           'time',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    nclt = nc.createVariable(
+                           'leadtime',
+                           np.int,
+                           dimensions=('leadtime')
+                           )
+    ncstationid = nc.createVariable(
+                           'stationid',
+                           np.str,
+                           dimensions=('stationid','strdim')
+                           )
+    # other variables
+    ncHs = nc.createVariable(
+                           'Hs',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncTp = nc.createVariable(
+                           'Tp',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncTz = nc.createVariable(
+                           'Tz',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncthq = nc.createVariable(
+                           'thq',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncu10 = nc.createVariable(
+                           'u10',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncv10 = nc.createVariable(
+                           'v10',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    # time
+    nctime.standard_name = 'time'
+    nctime.units = 'seconds since ' + str(basetime)
+    nctime[:] = time
+    # lt
+    nclt.standard_name = 'leadtime'
+    nclt.units = 'hours'
+    nclt[:] = lt
+    # stationid
+    ncstationid.standard_name = 'stationid'
+    ncstationid.units = 'None'
+    ncstationid[:] = stationid
+    # Hs
+    ncHs.standard_name = 'sea_surface_wave_significant_height'
+    ncHs.units = 'm'
+    ncHs[:] = Hs
+    # Tp
+    ncTp.standard_name = 'sea_surface_wave_peak_period_from_variance_spectral_density'
+    ncTp.units = 's'
+    ncTp[:] = Tp
+    # Tz
+    ncTz.standard_name = 'sea_surface_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment'
+    ncTz.units = 's'
+    ncTz[:] = Tz
+    # thq
+    ncthq.standard_name = 'sea_surface_wave_to_direction'
+    ncthq.units = 'degree'
+    ncthq[:] = thq
+    # u10
+    ncu10.standard_name = 'x_wind'
+    ncu10.units = 'm/s'
+    ncu10[:] = u10
+    # v10
+    ncv10.standard_name = 'y_wind'
+    ncv10.units = 'm/s'
+    ncv10[:] = v10
+    nc.close()
+
+def dumptonc_LCWVF(outpath,filename,title,basetime,coll_dict,varname):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file
+    """
+    time = coll_dict['time']
+    lt = coll_dict['lt']
+    stationid = coll_dict['stationid']
+    var = coll_dict[varname]
+    fullpath = outpath + filename
+    print ('Dump data to file: ' + fullpath)
+    os.system('mkdir -p ' + outpath)
+    nc = netCDF4.Dataset(
+                    fullpath,mode='w',
+                    )
+    # global attributes
+    nc.title = title
+    # dimensions
+    dimtime = nc.createDimension(
+                            'time',
+                            size=len(time)
+                            )
+    dimlt = nc.createDimension(
+                            'leadtime',
+                            size=len(lt)
+                            )
+    dimstationid = nc.createDimension(
+                            'stationid',
+                            size=len(stationid)
+                            )
+    dimstr = nc.createDimension(
+                            'strdim',
+                            size=1
+                            )
+    # base variables
+    nctime = nc.createVariable(
+                           'time',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    nclt = nc.createVariable(
+                           'leadtime',
+                           np.int,
+                           dimensions=('leadtime')
+                           )
+    ncstationid = nc.createVariable(
+                           'stationid',
+                           np.str,
+                           dimensions=('stationid','strdim')
+                           )
+    # other variables
+    ncHs = nc.createVariable(
+                           'Hs',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncTp = nc.createVariable(
+                           'Tp',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncTz = nc.createVariable(
+                           'Tz',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncthq = nc.createVariable(
+                           'thq',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncu10 = nc.createVariable(
+                           'u10',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    ncv10 = nc.createVariable(
+                           'v10',
+                           np.float64,
+                           dimensions=('time','leadtime','stationid')
+                           )
+    # time
+    nctime.standard_name = 'time'
+    nctime.units = 'seconds since ' + str(basetime)
+    nctime[:] = time
+    # lt
+    nclt.standard_name = 'leadtime'
+    nclt.units = 'hours'
+    nclt[:] = lt
+    # stationid
+    ncstationid.standard_name = 'stationid'
+    ncstationid.units = 'None'
+    ncstationid[:] = stationid
+    # Hs
+    ncHs.standard_name = 'sea_surface_wave_significant_height'
+    ncHs.units = 'm'
+    ncHs[:] = Hs
+    # Tp
+    ncTp.standard_name = 'sea_surface_wave_peak_period_from_variance_spectral_density'
+    ncTp.units = 's'
+    ncTp[:] = Tp
+    # Tz
+    ncTz.standard_name = 'sea_surface_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment'
+    ncTz.units = 's'
+    ncTz[:] = Tz
+    # thq
+    ncthq.standard_name = 'sea_surface_wave_to_direction'
+    ncthq.units = 'degree'
+    ncthq[:] = thq
+    # u10
+    ncu10.standard_name = 'x_wind'
+    ncu10.units = 'm/s'
+    ncu10[:] = u10
+    # v10
+    ncv10.standard_name = 'y_wind'
+    ncv10.units = 'm/s'
+    ncv10[:] = v10
     nc.close()

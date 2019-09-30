@@ -34,7 +34,7 @@ Retrieves data from a station and dumps to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./collocate_station.py -sd 2018110112 -ed 2018110118
+./collocate_station_all_bestguess.py -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )

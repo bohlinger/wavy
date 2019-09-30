@@ -136,6 +136,30 @@ while tmpdate <= edate:
                 dist_lst.append(distM[idx,idy][0])
                 time_dt_lst.append(time_dt[0])
                 time_s_lst.append(time_s[0])
+                # collocation dictionary
+                coll_dict = {'basetime':basetime,
+                     'time':time_s_lst,
+                     'Hm0_model':mod_lst,
+                     'lats_model':mod_lat_lst,
+                     'lons_model':mod_lon_lst,
+                     'Hm0_buoy':buoy_lst,
+                     'lats_buoy':buoy_lat_lst,
+                     'lons_buoy':buoy_lon_lst,
+                     'buoy':buoy
+                    }
+                # dump tp nc-file
+                outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
+                            + 'waveverification/mwam4/buoys/'
+                            + 'CollocationFiles/'
+                            + '%Y/%m/')
+                os.system('mkdir -p ' + outpath)
+                filename_ts=fc_date.strftime(model 
+                                            + "_" 
+                                            + buoy 
+                                            + "_coll_ts_%Y%m_bestguess.nc")
+                title_ts=(model + ' vs ' + buoy)
+                dumptonc_coll_ts_buoy(outpath,filename_ts,title_ts,
+                        basetime,coll_dict,model)
             except SystemExit:
                 print('error: --> leadtime is not available')
             except (ValueError,IOError,KeyError,IndexError) as e:
@@ -174,36 +198,32 @@ while tmpdate <= edate:
                 dist_lst.append(distM[idx,idy][0])
                 time_dt_lst.append(time_dt[0])
                 time_s_lst.append(time_s[0])
+                # collocation dictionary
+                coll_dict = {'basetime':basetime,
+                     'time':time_s_lst,
+                     'Hm0_model':mod_lst,
+                     'lats_model':mod_lat_lst,
+                     'lons_model':mod_lon_lst,
+                     'Hm0_buoy':buoy_lst,
+                     'lats_buoy':buoy_lat_lst,
+                     'lons_buoy':buoy_lon_lst,
+                     'buoy':buoy
+                    }
+                # dump tp nc-file
+                outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
+                            + 'waveverification/mwam4/buoys/'
+                            + 'CollocationFiles/'
+                            + '%Y/%m/')
+                os.system('mkdir -p ' + outpath)
+                filename_ts=fc_date.strftime(model 
+                                            + "_" 
+                                            + buoy 
+                                            + "_coll_ts_%Y%m_bestguess.nc")
+                title_ts=(model + ' vs ' + buoy)
+                dumptonc_coll_ts_buoy(outpath,filename_ts,title_ts,
+                        basetime,coll_dict,model)
             except SystemExit:
                 print('error: --> leadtime is not available')
             except (ValueError,IOError,KeyError,IndexError) as e:
                 print(e)
     tmpdate = tmpdate + timedelta(hours=init_step)
-
-# collocation dictionary
-coll_dict = {'basetime':basetime,
-             'time':time_s_lst,
-             'Hm0_model':mod_lst,
-             'lats_model':mod_lat_lst,
-             'lons_model':mod_lon_lst,
-             'Hm0_buoy':buoy_lst,
-             'lats_buoy':buoy_lat_lst,
-             'lons_buoy':buoy_lon_lst,
-             'buoy':buoy
-            }
-# dump tp nc-file
-outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
-                            + 'waveverification/mwam4/buoys/'
-                            + 'CollocationFiles/'
-                            + '%Y/%m/')
-os.system('mkdir -p ' + outpath)
-filename_ts=fc_date.strftime(model + "_" + buoy + "_coll_ts_%Y%m_bestguess.nc")
-title_ts=(model + ' vs ' + buoy)
-#if buoy == 'Tennholmen':
-#    dumptonc_coll_ts_Tennholmen(outpath,filename_ts,title_ts,
-#                            basetime,coll_dict,model)
-#else:
-#    dumptonc_coll_ts_buoy(outpath,filename_ts,title_ts,
-#                            basetime,coll_dict,model)
-dumptonc_coll_ts_buoy(outpath,filename_ts,title_ts,
-                        basetime,coll_dict,model)

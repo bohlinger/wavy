@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(
 Main program to run the monthly ARCMFC validation
 with Sentinel.\n
 Usage example in unix command line: 
-./arcmfc_ncfile.py -d 201808\n
+./arcmfc_ncfile_full_domain.py -d 201808\n
 The argument consists of the year and month to be validated
 If no date is given the last month is validated.
     """,
@@ -62,7 +62,7 @@ filestr=('product_quality_stats_ARCTIC_ANALYSIS_FORECAST_WAV_002_006_'
         + now.strftime('%m') 
         + '01-' 
         + now.strftime('%Y') + now.strftime('%m') 
-        + str(monthrange(now.year, now.month)[1]) + '_test_region.nc')
+        + str(monthrange(now.year, now.month)[1]) + '.nc')
 
 # cp original validation file to new file that can be changed
 filestr_new = pathstr + filestr + ".platform"

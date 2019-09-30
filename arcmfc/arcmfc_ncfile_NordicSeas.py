@@ -65,7 +65,7 @@ filestr=('product_quality_stats_ARCTIC_ANALYSIS_FORECAST_WAV_002_006_'
         + now.strftime('%m') 
         + '01-' 
         + now.strftime('%Y') + now.strftime('%m') 
-        + str(monthrange(now.year, now.month)[1]) + '_test_region.nc')
+        + str(monthrange(now.year, now.month)[1]) + '.nc')
 
 nc = Dataset(pathstr + filestr , 'r')
 #time:units = "days since 2001-01-01 12:00:00 UTC" ;

@@ -40,6 +40,8 @@ model_dict={'ARCMFC':
         'ARCMFC3':
             {'Hs':'VHM0',
             'Tp':'VTPK',
+            'tm02':'VTM02',
+            'mdir':'VMDR',
             'lons':'lon',
             'lats':'lat',
             'rotlons':'rlon',
@@ -139,6 +141,9 @@ model_dict={'ARCMFC':
             'rotlons':'rlon',
             'rotlats':'rlat',
             'time': 'time',
+            'Tp':'tp',
+            'Tz':'tm2',
+            'thq':'thq',
             'path_template':('/lustre/storeB/immutable/' +  
                            'archive/projects/metproduction/' + 
                            'DNMI_WAVE/%Y/%m/%d/'),
