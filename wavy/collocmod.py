@@ -100,6 +100,12 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     """
     get stellite time steps close to model time step. 
     """
+    if len(sa_obj.Hs) < 1:
+        raise Exception ( '\n###\n'
+                        + 'Collocation not possible, '
+                        + 'no values for collocation!'
+                        + '\n###'
+                        )
     if distlim is None:
         distlim = int(6)
     timewin = sa_obj.timewin
