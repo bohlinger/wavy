@@ -97,7 +97,7 @@ while tmpdate <= edate:
             sc_obj10 = sc(station,tmpdate,tmpdate+timedelta(minutes=10),
                             mode='d22',sensorname=sensorname,deltat=10,
                             varname='Hs_10min')
-            hs_obs_10min = sc_obj10.hs_obs[0:-1]
+            hs_obs_10min = sc_obj10.hs[0:-1]
             sc_obj60 = sc(station,tmpdate,tmpdate+timedelta(minutes=60),
                             mode='d22',sensorname=sensorname,deltat=60,
                             varname='Hs_1hr')
@@ -175,9 +175,9 @@ while tmpdate <= edate:
             sc_obj10 = sc(station,tmpdate,tmpdate+timedelta(minutes=10),
                             mode='d22',sensorname=sensorname,deltat=10,
                             varname='Hs_10min')
-            hs_obs_10min = sc_obj10.hs_obs[0:-1]
+            hs_obs_10min = sc_obj10.hs[0:-1]
             sc_obj60 = sc(station,tmpdate,tmpdate+timedelta(minutes=60),
-                            mode='d22',sensorname=sensorname,deltat=60
+                            mode='d22',sensorname=sensorname,deltat=60,
                             varname='Hs_1hr')
             hs_obs_hourly = sc_obj60.hs[0:-1]
             # get wave model
