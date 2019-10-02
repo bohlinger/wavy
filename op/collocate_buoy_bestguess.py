@@ -104,6 +104,15 @@ while tmpdate <= edate:
     print(tmpdate)
     if np.isnan(idx):
         for i in range(len(leadtimes)):
+            buoy_lst = []
+            mod_lst = []
+            dist_lst = []
+            mod_lon_lst = []
+            mod_lat_lst = []
+            buoy_lat_lst = []
+            buoy_lon_lst = []
+            time_dt_lst = []
+            time_s_lst = []
             try:
                 element = leadtimes[i]
                 print('leadtimes: ', element)
@@ -166,6 +175,15 @@ while tmpdate <= edate:
                 print(e)
     else:
         for i in range(len(leadtimes)):
+            buoy_lst = []
+            mod_lst = []
+            dist_lst = []
+            mod_lon_lst = []
+            mod_lat_lst = []
+            buoy_lat_lst = []
+            buoy_lon_lst = []
+            time_dt_lst = []
+            time_s_lst = []
             try:
                 element = leadtimes[i]
                 print('leadtimes: ', element)
@@ -183,11 +201,6 @@ while tmpdate <= edate:
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc",model=model,fc_date=fc_date,
                     init_date=init_date,leadtime=element)
-                # collocate with wave model
-                idx, idy, distM, picked_lat, picked_lon = get_loc_idx(\
-                                        model_lats,model_lons,\
-                                        lats,lons,\
-                                        mask=None)
                 # append values
                 mod_lst.append(model_Hs.squeeze()[idx,idy][0])
                 mod_lat_lst.append(picked_lat[0])
