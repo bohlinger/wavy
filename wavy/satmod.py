@@ -119,7 +119,7 @@ def get_credentials():
             print("Credentials could not be obtained")
 
 def tmploop_get_remotefiles(i,matching,user,pw,
-                            server,path,sdate,
+                            server,path,
                             satpath_lustre):
     #for element in matching:
     print("File: ",matching[i])
@@ -181,21 +181,21 @@ def get_remotefiles(satpath,destination,sdate,edate,timewin,
         content=FTP.nlst(ftp)
         #choose files according to verification date
         tmplst=[]
-        tmpdate=sdate-timedelta(minutes=timewin)
+        tmpdate_new=tmpdate-timedelta(minutes=timewin)
         tmpend=edate+timedelta(minutes=timewin)
-        while (tmpdate.strftime("%Y%m%dT%H")
+        while (tmpdate_new.strftime("%Y%m%dT%H")
             <= tmpend.strftime("%Y%m%dT%H")):
             matchingtmp = [s for s in content
                             if ('_'
-                            + str(tmpdate.year)
-                            + str(tmpdate)[5:7]
-                            + str(tmpdate)[8:10]
+                            + str(tmpdate_new.year)
+                            + str(tmpdate_new)[5:7]
+                            + str(tmpdate_new)[8:10]
                             + 'T'
-                            + str(tmpdate)[11:13])
+                            + str(tmpdate_new)[11:13])
                             in s
                             ]
             tmplst = tmplst + matchingtmp
-            tmpdate = tmpdate + timedelta(minutes=timewin)
+            tmpdate_new = tmpdate_new + timedelta(minutes=timewin)
         matching = tmplst
         print ("Download initiated")
         # Download and gunzip matching files
@@ -204,11 +204,11 @@ def get_remotefiles(satpath,destination,sdate,edate,timewin,
         Parallel(n_jobs=corenum)(
                         delayed(tmploop_get_remotefiles)(
                         i,matching,user,pw,server,
-                        path,sdate,destination
+                        path,destination
                         ) for i in range(len(matching))
                         )
         # update time
-        tmpdate = tmpdate + relativedelta(months=+1)
+        tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,(tmpdate + relativedelta(months=+1)).month,1)
     print ('Organizing downloaded files')
     os.system('cd '
                + destination
