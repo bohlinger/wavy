@@ -20,11 +20,14 @@ def get_localfiles():
 
 def sort_files(dirpath,filelst):
     for e in filelst:
-        tmp = e[22:30]
-        year, month = tmp[0:4],tmp[4:6]
-        folder = ('./' + year + '/' + month)
-        os.system('mkdir -p ' + folder)
-        os.system('mv ' + e + ' ' + folder)
+        if os.path.isfile(dirpath + '/' + e):
+            tmp = 'global_vavh_l3_rt_' + os.path.basename(dirpath) + '_'
+            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
+            folder = (dirpath + '/' + year + '/' + month)
+            cmd = 'mkdir -p ' + folder
+            os.system(cmd)
+            cmd = 'mv ' + e + ' ' + folder
+            os.system(cmd)
 
 if __name__ == "__main__":
     dirpath, filelst = get_localfiles()
