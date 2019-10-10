@@ -1047,8 +1047,8 @@ def dumptonc_coll_ts_Tp_station(outpath,filename,title,basetime,\
                             + ", idy: "
                             + str(idy[0]))
         # dimensions
-        #dimsize = None
-        dimsize = len(time)
+        dimsize = None
+        #dimsize = len(time)
         dimtime = nc.createDimension(
                                 'time',
                                 size=dimsize

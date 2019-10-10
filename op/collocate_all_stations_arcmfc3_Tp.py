@@ -66,7 +66,7 @@ basetime = datetime(1970,1,1)
 stationlst = station_dict.keys()
 for station in (stationlst):
     for sensor in (station_dict[station]['sensor'].keys()):
-        cmd = ("python collocate_station_arcmfc3_Tp_onego.py"
+        cmd = ("python collocate_station_arcmfc3_Tp.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr
             + " -station " + station

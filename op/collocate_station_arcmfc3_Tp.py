@@ -73,8 +73,8 @@ title_ts = (model + ' vs ' + station + ' (' + sensorname + ')')
 basetime = datetime(1970,1,1)
 
 tmpdate = deepcopy(sdate)
-element = 0
-lt = '000'
+element = 36
+lt = '036'
 stat_hourly_lst = []
 stat_10min_lst = []
 mod_lst = []
