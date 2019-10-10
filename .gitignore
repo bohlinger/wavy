@@ -6,3 +6,7 @@
 *.out
 *.html
 outpath
+logs
+LC-WVF
+examples
+tmp
