@@ -19,21 +19,23 @@ from  utils import disp_validation
 parser = argparse.ArgumentParser(
     description="""
 Check availability of satellite SWH data. Example:
-./check_sat.py -sat s3a -r mwam4 -sd 2019060112 -ed 2019060318 -a --show -save outpath/ -dump outpath/
+./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2019060112 -lt 0 -twin 30 --col --show
+./check_sat.py -sat s3a -reg mwam4 -sd 2019060112 -ed 2019060318 --show
+./check_sat.py -sat s3a -reg mwam4 -sd 2019060112 -ed 2019060318 -dump outpath/
     """,
     formatter_class = RawTextHelpFormatter
     )
-parser.add_argument("-r", metavar='region',
+parser.add_argument("-reg", metavar='region',
     help="region to check")
 parser.add_argument("-sat", metavar='satellite',
     help="source satellite mission")
-parser.add_argument('-l', '--list', metavar='list of satellites', 
+parser.add_argument('-l', metavar='list of satellites', 
     help='delimited list input for sats', type=str)
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period to check")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period to check")
-parser.add_argument("-m", metavar='model',
+parser.add_argument("-mod", metavar='model',
     help="chosen wave model")
 parser.add_argument("-lt", metavar='lead time', type=int,
     help="lead time from initialization")
@@ -41,14 +43,10 @@ parser.add_argument("-twin", metavar='time window', type=int,
     help="time window for collocation")
 parser.add_argument("-dist", metavar='distance limit', type=int,
     help="distance limit for collocation")
-parser.add_argument("-col",metavar="collocation",
+parser.add_argument("--col",metavar="collocation",
     help="collocation",action='store_const',const=True)
-parser.add_argument("-a",
-    help="compute availability",action='store_const',const=True)
 parser.add_argument("--show",
     help="show figure",action='store_const',const=True)
-parser.add_argument("-save",metavar='outpath',
-    help="save figure(s)")
 parser.add_argument("-dump", metavar="outpath",
     help="dump data to .nc-file")
 
@@ -66,7 +64,7 @@ if args.twin is None:
 else:
     timewin = args.twin
 if args.dist is None:
-    dist = 30
+    dist = 10
 else:
     dist = args.dist
 
@@ -89,7 +87,7 @@ if args.sat == 'all':
     dtime = []
     for sat in satlist:
         sa_obj = sa(sdate,sat=sat,edate=edate,
-                    timewin=timewin,polyreg=args.r)
+                    timewin=timewin,polyreg=args.reg)
         loc0.append(sa_obj.loc[0])
         loc1.append(sa_obj.loc[1])
         Hs.append(sa_obj.Hs)
@@ -105,7 +103,7 @@ if args.sat == 'all':
     sa_obj.Hs = np.array(Hs)
     sa_obj.time = time
     sa_obj.dtime = dtime
-    sa_obj.region = args.r
+    sa_obj.region = args.reg
     sa_obj.sat = str(satlist)
 elif args.sat == 'multi':
     #satlist = [int(item) for item in args.list.split(',')]
@@ -117,7 +115,7 @@ elif args.sat == 'multi':
     dtime = []
     for sat in satlist:
         sa_obj = sa(sdate,sat=sat,edate=edate,
-                    timewin=timewin,polyreg=args.r)
+                    timewin=timewin,polyreg=args.reg)
         loc0.append(sa_obj.loc[0])
         loc1.append(sa_obj.loc[1])
         Hs.append(sa_obj.Hs)
@@ -131,36 +129,36 @@ elif args.sat == 'multi':
     loc = [loc0,loc1]
     sa_obj.loc = loc
     sa_obj.Hs = Hs
-    sa_obj.region = args.r
+    sa_obj.region = args.reg
     sa_obj.sat = str(satlist)
 else:
-    sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,polyreg=args.r)
+    sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,polyreg=args.reg)
 
 # plot
 if bool(args.show)==True:
-    if args.m is None:
+    if args.mod is None:
         plot_sat(sa_obj)
-    elif (args.m is not None and args.col is True):
+    elif (args.mod is not None and args.col is True):
         # get model collocated values
-        check_date(args.m,fc_date=edate,leadtime=args.lt)
+        check_date(args.mod,fc_date=edate,leadtime=args.lt)
         #get_model
         init_date = edate - timedelta(hours=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-            get_model(simmode="fc",model=args.m,fc_date=edate,
+            get_model(simmode="fc",model=args.mod,fc_date=edate,
             leadtime=args.lt,init_date=init_date)
         #collocation
-        results_dict = collocate(args.m,model_Hs,model_lats,
+        results_dict = collocate(args.mod,model_Hs,model_lats,
             model_lons,model_time_dt,sa_obj,edate,distlim=dist)
         valid_dict=validate(results_dict)
         disp_validation(valid_dict)
-        comp_fig(args.m,sa_obj,model_Hs,model_lons,model_lats,results_dict)
+        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
     else:
         # get model collocated values
-        check_date(args.m,fc_date=edate,leadtime=args.lt)
+        check_date(args.mod,fc_date=edate,leadtime=args.lt)
         #get_model
         init_date = edate - timedelta(hours=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-            get_model(simmode="fc",model=args.m,fc_date=edate,
+            get_model(simmode="fc",model=args.mod,fc_date=edate,
             leadtime=args.lt,init_date=init_date)
         results_dict = {'valid_date':[edate],
                         'date_matches':[edate-timedelta(minutes=timewin),
@@ -168,16 +166,7 @@ if bool(args.show)==True:
                         'model_lons_matches':sa_obj.loc[1],
                         'model_lats_matches':sa_obj.loc[0],
                         'sat_Hs_matches':sa_obj.Hs}
-        comp_fig(args.m,sa_obj,model_Hs,model_lons,model_lats,results_dict)
-
-# check availability
-if bool(args.a)==True:
-    freqlst,datelst=sa_obj.bintime()
-    sa_obj.plotavail(datelst,freqlst,show=bool(args.show),save=bool(args.save))
-
-if args.save is not None:
-    os.system('mkdir -p ' + args.save)
-    os.system('mv altimeter*.pdf ' + args.save)
+        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
 
 # dump to .ncfile
 if args.dump is not None:
