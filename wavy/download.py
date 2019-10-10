@@ -59,7 +59,7 @@ else:
     nproc = args.nproc
 
 satpath = satpath_ftp_014_001 + sat + '/'
-destination = targetpath + sat + '/'
+destination = targetpath
 print('source: ' + satpath)
 print('destination: ' + destination)
 start_time = time.time()
