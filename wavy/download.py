@@ -3,9 +3,17 @@ import os
 import time
 from datetime import datetime, timedelta
 from satmod import get_remotefiles
-from pathfinder import satpath_lustre, satpath_ftp_014_001
+#from pathfinder import satpath_lustre, satpath_ftp_014_001
+import yaml
 import argparse
 from argparse import RawTextHelpFormatter
+
+# read yaml config files:
+with open("pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+
+satpath_lustre = pathfinder['satpath_lustre']
+satpath_ftp_014_001 = pathfinder['satpath_ftp_014_001']
 
 # parser
 parser = argparse.ArgumentParser(
