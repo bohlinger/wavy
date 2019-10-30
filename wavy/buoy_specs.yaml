@@ -70,8 +70,8 @@ Fauskane:
     time: time
     lon: 5.725221
     lat: 62.56689
-    lats: "latitude"
-    lons: "longitude"
+    lats: latitude
+    lons: longitude
     path_template: |-
             /lustre/storeB/project/met-obs/
             kystverket/buoy/%Y/%m/
@@ -80,7 +80,7 @@ Fauskane:
             _AanderaaMotusSensor.nc
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
-    sensor: "MOTUS"
+    sensor: MOTUS
     manufacturer: "?"
     type: "?"
     data_owner: |-
@@ -104,13 +104,13 @@ SulaA:
     lats: latitude
     lons: longitude
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
-    file_template: "%Y%m_E39_A_Sulafjorden_wave.nc'"
+    file_template: "%Y%m_E39_A_Sulafjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |- 
             Statens Vegvesen Region Midt, 
             P.O. Box 2525, N-6404 Molde, Norway
@@ -135,11 +135,11 @@ SulaB:
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
     file_template: "%Y%m_E39_B_Sulafjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt, 
             P.O. Box 2525, N-6404 Molde, Norway
@@ -164,11 +164,11 @@ SulaB1:
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
     file_template: "%Y%m_E39_B1_Sulafjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt, 
             P.O. Box 2525, N-6404 Molde, Norway
@@ -193,11 +193,11 @@ SulaC:
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
     file_template: "%Y%m_E39_C_Sulafjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt, 
             P.O. Box 2525, N-6404 Molde, Norway
@@ -222,11 +222,11 @@ SulaC1:
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
     file_template: "%Y%m_E39_C1_Sulafjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt,
             P.O. Box 2525, N-6404 Molde, Norway
@@ -251,11 +251,11 @@ SulaD:
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
     file_template: "%Y%m_E39_D_Breisundet_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt,
             P.O. Box 2525, N-6404 Molde, Norway
@@ -281,11 +281,11 @@ SulaF:
     # only for 2019/01 Vartalsfjorden
     file_template: "%Y%m_E39_F_Vartdalsfjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt,
             P.O. Box 2525, N-6404 Molde, Norway
@@ -310,11 +310,11 @@ SulaG:
     path_template: "/lustre/storeA/project/SVV/E39/buoy/%Y/%m/"
     file_template: "%Y%m_E39_G_Halsafjorden_wave.nc"
     basetime: 1970-01-01 00:00:00
-    units_time: "seconds since 1970-01-01 00:00:00"
-    time_comment: "End of the 10 minute sampling period"
-    sensor: "Wavesense"
-    manufacturer: "Fugro"
-    type: "Seawatch"
+    units_time: seconds since 1970-01-01 00:00:00
+    time_comment: End of the 10 minute sampling period
+    sensor: Wavesense
+    manufacturer: Fugro
+    type: Seawatch
     data_owner: |-
             Statens Vegvesen Region Midt,
             P.O. Box 2525, N-6404 Molde, Norway
