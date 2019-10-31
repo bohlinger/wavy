@@ -201,7 +201,6 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
 
 def make_filename(simmode=None,model=None,datein=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
-    from model_specs import explst
     filetemplate = 'file_template'
     if simmode == 'fc':
         if model == 'ARCMFC':
@@ -238,6 +237,11 @@ def make_filename(simmode=None,model=None,datein=None,
             filename = (model_dict[model]['path'] 
                     + fc_date.strftime(model_dict[model][filetemplate]))
     elif simmode == 'cont':
+        """
+        explst was in model_specs.py for continuous simulations 
+        is now removed, this part of the code will be removed as well
+        """
+        explst = []
         if expname in explst:
             days = [1,10,20]
             tmp = np.abs(np.array(days)-datein.day)
