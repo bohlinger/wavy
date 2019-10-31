@@ -1,11 +1,11 @@
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
+import yaml
 import numpy as np
 from datetime import datetime, timedelta
 from modelmod import get_model
 import plotly
 import plotly.plotly as py
-from region_specs import poly_dict
 from matplotlib.patches import Polygon
 from copy import deepcopy
 import os

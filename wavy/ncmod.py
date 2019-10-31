@@ -23,6 +23,7 @@ import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
 import os
+import yaml
 
 # specs
 from buoy_specs import buoy_dict
