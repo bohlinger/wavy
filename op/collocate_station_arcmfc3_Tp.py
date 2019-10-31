@@ -8,7 +8,7 @@
 
 '''
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
 
 import os
 from stationmod import station_class as sc

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
 
 import time
 from datetime import datetime, timedelta

@@ -1,11 +1,19 @@
 #!/usr/bin/env python
+"""
+download satellite data from Copernicus
+"""
+# --- imports -------------------------------------------------------- #
+# standard linrary imports
 import os
 import time
 from datetime import datetime, timedelta
-from satmod import get_remotefiles
 import yaml
 import argparse
 from argparse import RawTextHelpFormatter
+
+# own import
+from satmod import get_remotefiles
+# -------------------------------------------------------------------- #
 
 # read yaml config files:
 with open("pathfinder.yaml", 'r') as stream:

@@ -2,7 +2,7 @@ import sys
 import unittest
 from datetime import datetime, timedelta
 import numpy as np
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
 from stationmod import station_class as sc
 from stationmod import matchtime
 from stationmod import get_loc_idx

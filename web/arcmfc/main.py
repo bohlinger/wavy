@@ -7,7 +7,7 @@
         - webpage.sh (creates html webpage)
 '''
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../../wavy')
 import subprocess
 import os
 #cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py -sd 2019100100 -ed 2019102918'
