@@ -17,11 +17,15 @@ import pandas as pd
 import plotly.graph_objs as go
 
 from stationlist_arcmfc import stationlist_arcmfc
-from station_specs import station_dict
-from buoy_specs import buoy_dict
 
 from datetime import *; from dateutil.relativedelta import *
 import calendar
+
+# read yaml config files:
+with open("station_specs.yaml", 'r') as stream:
+    station_dict=yaml.safe_load(stream)
+with open("buoy_specs.yaml", 'r') as stream:
+    buoy_dict=yaml.safe_load(stream)
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 

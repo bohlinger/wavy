@@ -13,8 +13,6 @@ import os
 from stationmod import parse_d22, extract_d22, matchtime, get_loc_idx
 from modelmod import get_model, check_date
 from collocmod import collocate
-#from buoy_specs import buoy_dict
-from station_specs import station_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import numpy as np
