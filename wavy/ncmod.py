@@ -35,15 +35,15 @@ from copy import deepcopy
 import time
 
 # read yaml config files:
-with open("model_specs.yaml", 'r') as stream:
+with open("../wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("buoy_specs.yaml", 'r') as stream:
+with open("../wavy/buoy_specs.yaml", 'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("station_specs.yaml", 'r') as stream:
+with open("../wavy/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
-with open("variable_info.yaml", 'r') as stream:
+with open("../wavy/variable_info.yaml", 'r') as stream:
     var_dict=yaml.safe_load(stream)
-with open("pathfinder.yaml", 'r') as stream:
+with open("../wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
 # --- global functions ------------------------------------------------#
