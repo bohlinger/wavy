@@ -2,7 +2,6 @@
 
 # import libraries
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
 import numpy as np
 from datetime import datetime, timedelta
 from satmod import satellite_altimeter as sa

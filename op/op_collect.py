@@ -4,7 +4,7 @@
     - dump to netcdf
 '''
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
 sys.path.append(r'/home/patrikb/wavy/op')
 
 import os

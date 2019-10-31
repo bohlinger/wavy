@@ -8,9 +8,6 @@
 
 '''
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
-sys.path.append(r'/home/patrikb/wavy/wavy/op')
-
 import os
 #from stationmod import get_buoy, get_loc_idx
 from stationmod import parse_d22, extract_d22, matchtime, get_loc_idx

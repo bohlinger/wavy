@@ -1,7 +1,7 @@
 import sys
 import unittest
 from datetime import datetime
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
 import satmod
 
 class TestModelmod(unittest.TestCase):
