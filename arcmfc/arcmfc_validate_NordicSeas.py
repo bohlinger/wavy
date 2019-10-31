@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
 
 from datetime import datetime, timedelta
 from satmod import satellite_altimeter as sa
