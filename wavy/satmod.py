@@ -22,6 +22,7 @@ import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
 import os
+import yaml
 
 # get_altim
 if sys.version_info <= (3, 0):
@@ -51,12 +52,15 @@ from copy import deepcopy
 
 import time
 
-# get necessary paths for module
-import pathfinder
-
-# region spec
-from region_specs import poly_dict, region_dict
 # --- global functions ------------------------------------------------#
+
+# read yaml config files:
+with open("region_specs.yaml", 'r') as stream:
+    region_dict=yaml.safe_load(stream)
+with open("model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
+with open("pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
 
 def progress(count, total, status=''):
     "from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3"
@@ -254,8 +258,7 @@ class satellite_altimeter():
      - get the location (lon, lat) for this time stamp
      - get Hs value for this time
     '''
-    satpath_copernicus = pathfinder.satpath_copernicus
-    from region_specs import region_dict
+    satpath_copernicus = pathfinder['satpath_copernicus']
 
     def __init__(self,sdate,sat=None,edate=None,timewin=None,download=None,
         region=None,corenum=None,mode=None,polyreg=None):
@@ -275,8 +278,8 @@ class satellite_altimeter():
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
         # make satpaths
-        satpath_lustre = pathfinder.satpath_lustre + sat + '/'
-        satpath_ftp_014_001 = (pathfinder.satpath_ftp_014_001 
+        satpath_lustre = pathfinder['satpath_lustre'] + sat + '/'
+        satpath_ftp_014_001 = (pathfinder['satpath_ftp_014_001'] 
                             + 'dataset-wav-alti-l3-swh-rt-global-' 
                             +  sat + '/'
                             )
@@ -487,11 +490,11 @@ class satellite_altimeter():
                     + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n"
                     + " --> Bounds: " + str(region))
             else:
-                if region not in region_dict.keys():
+                if region not in region_dict['rect']:
                     sys.exit("Region is not defined")
                 else:
                     print ("Specified region: " + region + "\n"
-                      + " --> Bounds: " + str(self.region_dict[region]))
+                      + " --> Bounds: " + str(self.region_dict['rect'][region]))
             latlst,lonlst,rlatlst,rlonlst,ridx = \
                 self.matchregion_prim(LATS,LONS,region=region)
         else:
@@ -511,12 +514,12 @@ class satellite_altimeter():
         else:
             if isinstance(region,str)==True:
                 if (region=='ARCMFC' or region=='Arctic'):
-                    boundinglat = self.region_dict[region]["boundinglat"]
+                    boundinglat = self.region_dict['rect'][region]["boundinglat"]
                 else:
-                    llcrnrlat = self.region_dict[region]["llcrnrlat"]
-                    urcrnrlat = self.region_dict[region]["urcrnrlat"]
-                    llcrnrlon = self.region_dict[region]["llcrnrlon"]
-                    urcrnrlon = self.region_dict[region]["urcrnrlon"]
+                    llcrnrlat = self.region_dict['rect'][region]["llcrnrlat"]
+                    urcrnrlat = self.region_dict['rect'][region]["urcrnrlat"]
+                    llcrnrlon = self.region_dict['rect'][region]["llcrnrlon"]
+                    urcrnrlon = self.region_dict['rect'][region]["urcrnrlon"]
             else:
                 llcrnrlat = region[0]
                 urcrnrlat = region[1]
@@ -558,16 +561,15 @@ class satellite_altimeter():
         from matplotlib.patches import Polygon
         from matplotlib.path import Path
         import numpy as np
-        from model_specs import model_dict
-        if (region not in poly_dict.keys() \
-            and region not in model_dict.keys()):
+        if (region not in region_dict['poly'] \
+            and region not in model_dict):
             sys.exit("Region is not defined")
         elif isinstance(region,dict)==True:
             print ("Manuall specified region: \n"
                 + " --> Bounds: " + str(region))
             poly = Polygon(list(zip(region['lons'],
                 region['lats'])), closed=True)
-        elif (isinstance(region,str)==True and region in model_dict.keys()):
+        elif (isinstance(region,str)==True and region in model_dict):
             from modelmod import get_model
             import pyproj
             if region == 'mwam8':
@@ -608,10 +610,10 @@ class satellite_altimeter():
         elif isinstance(region,str)==True:
             print ("Specified region: " + region + "\n"
               + " --> Bounded by polygon: \n"
-              + "lons: " + str(poly_dict[region]['lons']) + "\n"
-              + "lats: " + str(poly_dict[region]['lats']))
-            poly = Polygon(list(zip(poly_dict[region]['lons'],
-                poly_dict[region]['lats'])), closed=True)
+              + "lons: " + str(region_dict['poly'][region]['lons']) + "\n"
+              + "lats: " + str(region_dict['poly'][region]['lats']))
+            poly = Polygon(list(zip(region_dict['poly'][region]['lons'],
+                region_dict['poly'][region]['lats'])), closed=True)
             # check if coords in region
             LATS = list(LATS)
             LONS = list(LONS)
