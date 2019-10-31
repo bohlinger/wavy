@@ -3,13 +3,18 @@
 - Needs input from modules that retrieve from observational platforms
   and models
 """
+# standard library import
 import sys
 import numpy as np
 from utils import progress
-from region_specs import region_dict
-from model_specs import model_dict
-from stationmod import matchtime
+import yaml
+# own imports
 from utils import haversine
+from stationmod import matchtime
+
+# read yaml config files:
+with open("model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
 
 def collocation_loop(
     j,sat_time_dt,model_time_dt_valid,distlim,model,
