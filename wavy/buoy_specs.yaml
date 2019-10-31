@@ -53,16 +53,14 @@ Tennholmen:
     sensor: "waverider"
     manufacturer: "Datawell"
     type: "Directional Waverider DWR MkIII"
-    data_owner: |- 
-                Norwegian Coastal Administration
+    data_owner: "Norwegian Coastal Administration
                 Institute of Marine Research
-                and Norwegian Meteorological Institute
-    licence: |- 
-                Data and products are licensed under Norwegian
+                and Norwegian Meteorological Institute"
+    licence:    "Data and products are licensed under Norwegian
                 license for public data (NLOD) and
                 Creative Commons Attribution 3.0 Norway.
                 See https://www.met.no/en/
-                free-meteorological-data/Licensing-and-crediting
+                free-meteorological-data/Licensing-and-crediting"
 
 Fauskane:             
     Hm0: Significant_Wave_Height_Hm0
@@ -72,28 +70,24 @@ Fauskane:
     lat: 62.56689
     lats: latitude
     lons: longitude
-    path_template: |-
-            /lustre/storeB/project/met-obs/
-            kystverket/buoy/%Y/%m/
-    file_template: |-
-            %Y%m_Kystverket-Smartbuoy-Fauskane
-            _AanderaaMotusSensor.nc
+    path_template: "/lustre/storeB/project/met-obs/\
+            kystverket/buoy/%Y/%m/"
+    file_template: "%Y%m_Kystverket-Smartbuoy-Fauskane\
+            _AanderaaMotusSensor.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     sensor: MOTUS
     manufacturer: "?"
     type: "?"
-    data_owner: |-
-            Kystverket Rederi, Forsyningsenheten, 
-            Norvevika, 6008 ALESUND, Norge
-    licence: |-
-            Freely distributed. Must credit the source of data, 
+    data_owner: "Kystverket Rederi, Forsyningsenheten,
+            Norvevika, 6008 ALESUND, Norge"
+    licence: "Freely distributed. Must credit the source of data, 
             e.g. \"Data from the Norwegian Coastal Administration\", 
             \"Based on data from the Norwegian Coastal Administration 
             \". Data and products are licensed under Norwegian 
             license for public data (NLOD) and Creative Commons 
             Attribution 3.0 Norway. 
-            See https://data.norge.no/nlod/no/1.0.
+            See https://data.norge.no/nlod/no/1.0."
 
 SulaA: 
     Hm0: Hm0
@@ -111,17 +105,15 @@ SulaA:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |- 
-            Statens Vegvesen Region Midt, 
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g. 
+    data_owner: "Statens Vegvesen Region Midt,
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g. 
             \"Data from the Norwegian Meteorological Institute\", 
             \"Based on data from the Norwegian Meteorological Institute\". 
             Data and products are licensed under Norwegian license 
             for public data (NLOD) and Creative Commons Attribution 
             3.0 Norway. 
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaB: 
@@ -140,17 +132,15 @@ SulaB:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt, 
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g. 
+    data_owner: "Statens Vegvesen Region Midt,
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g. 
             \"Data from the Norwegian Meteorological Institute\", 
             \"Based on data from the Norwegian Meteorological Institute\". 
             Data and products are licensed under Norwegian license 
             for public data (NLOD) and Creative Commons Attribution 
             3.0 Norway. 
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaB1:
@@ -169,17 +159,15 @@ SulaB1:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt, 
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g. 
+    data_owner: "Statens Vegvesen Region Midt, 
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g. 
             \"Data from the Norwegian Meteorological Institute\", 
             \"Based on data from the Norwegian Meteorological Institute\". 
             Data and products are licensed under Norwegian license 
             for public data (NLOD) and Creative Commons Attribution 
-            3.0 Norway.
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            3.0 Norway. 
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaC:
@@ -198,17 +186,15 @@ SulaC:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt, 
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g. 
+    data_owner: "Statens Vegvesen Region Midt, 
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g. 
             \"Data from the Norwegian Meteorological Institute\", 
             \"Based on data from the Norwegian Meteorological Institute\". 
             Data and products are licensed under Norwegian license 
             for public data (NLOD) and Creative Commons Attribution 
-            3.0 Norway.
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            3.0 Norway. 
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaC1:
@@ -227,17 +213,15 @@ SulaC1:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt,
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g.
+    data_owner: "Statens Vegvesen Region Midt,
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g.
             \"Data from the Norwegian Meteorological Institute\",
             \"Based on data from the Norwegian Meteorological Institute\".
             Data and products are licensed under Norwegian license
             for public data (NLOD) and Creative Commons Attribution
             3.0 Norway.
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaD:
@@ -256,17 +240,15 @@ SulaD:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt,
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g.
+    data_owner: "Statens Vegvesen Region Midt,
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g.
             \"Data from the Norwegian Meteorological Institute\",
             \"Based on data from the Norwegian Meteorological Institute\".
             Data and products are licensed under Norwegian license
             for public data (NLOD) and Creative Commons Attribution
             3.0 Norway.
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaF:
@@ -286,17 +268,15 @@ SulaF:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt,
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g.
+    data_owner: "Statens Vegvesen Region Midt,
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g.
             \"Data from the Norwegian Meteorological Institute\",
             \"Based on data from the Norwegian Meteorological Institute\".
             Data and products are licensed under Norwegian license
             for public data (NLOD) and Creative Commons Attribution
-            3.0 Norway.
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            3.0 Norway. 
+            See http://met.no/English/Data_Policy_and_Data_Services/."
 
 
 SulaG:
@@ -315,14 +295,12 @@ SulaG:
     sensor: Wavesense
     manufacturer: Fugro
     type: Seawatch
-    data_owner: |-
-            Statens Vegvesen Region Midt,
-            P.O. Box 2525, N-6404 Molde, Norway
-    licence: |-
-            Freely distributed. Must credit the source of data, e.g.
+    data_owner: "Statens Vegvesen Region Midt,
+            P.O. Box 2525, N-6404 Molde, Norway"
+    licence: "Freely distributed. Must credit the source of data, e.g.
             \"Data from the Norwegian Meteorological Institute\",
             \"Based on data from the Norwegian Meteorological Institute\".
             Data and products are licensed under Norwegian license
             for public data (NLOD) and Creative Commons Attribution
             3.0 Norway.
-            See http://met.no/English/Data_Policy_and_Data_Services/.
+            See http://met.no/English/Data_Policy_and_Data_Services/."

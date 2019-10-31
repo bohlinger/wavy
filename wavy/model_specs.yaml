@@ -60,10 +60,10 @@ mwam3:
     rotlons: rlon
     rotlats: rlat
     time: time
-    path_template: "/lustre/storeB/immutable/
-            archive/projects/metproduction/
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/
+    path: "/lustre/storeB/immutable/archive/\
             projects/metproduction/DNMI_WAVE/"
     file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01
@@ -76,9 +76,8 @@ mwam3:
 mwam3_coords:
     lons: longitude
     lats: latitude
-    pathtofile: |-
-            /lustre/storeB/users/anac/A3km/inputfile/
-            TRUEcoordDepthA3km.nc
+    pathtofile: "/lustre/storeB/users/anac/A3km/inputfile/\
+            TRUEcoordDepthA3km.nc"
 
 
 mwam4:
@@ -91,10 +90,10 @@ mwam4:
     Tp: tp
     Tz: tm2
     thq: thq
-    path_template: "/lustre/storeB/immutable/
-            archive/projects/metproduction/
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/
+    path: "/lustre/storeB/immutable/archive/\
             projects/metproduction/DNMI_WAVE/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
@@ -110,10 +109,10 @@ mwam4force:
     lons: lon
     lats: lat
     time: time
-    path_template: "/lustre/storeB/immutable/
-            archive/projects/metproduction/
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/
+    path: "/lustre/storeB/immutable/archive/\
             projects/metproduction/DNMI_WAVE/"
     file_template: "W4km_force_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01
@@ -130,10 +129,10 @@ mwam8:
     rotlons: rlon
     rotlats: rlat
     time: time
-    path_template: "/lustre/storeB/immutable/
-            archive/projects/metproduction/
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/
+    path: "/lustre/storeB/immutable/archive/\
             projects/metproduction/DNMI_WAVE/"
     file_template: "MyWave_wam8_WAVE_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
@@ -149,10 +148,10 @@ mwam8force:
     lons: lon
     lats: lat
     time: time
-    path_template: "/lustre/storeB/immutable/
-            archive/projects/metproduction/
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/
+    path: "/lustre/storeB/immutable/archive/\
             projects/metproduction/DNMI_WAVE/"
     file_template: "W8km_force_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00

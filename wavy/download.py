@@ -3,7 +3,6 @@ import os
 import time
 from datetime import datetime, timedelta
 from satmod import get_remotefiles
-#from pathfinder import satpath_lustre, satpath_ftp_014_001
 import yaml
 import argparse
 from argparse import RawTextHelpFormatter
