@@ -511,8 +511,8 @@ def extract_d22(searchlines):
 #        else:
 #            import importlib
 #            importlib.reload(module)
-    except:
-        pass
+#    except:
+#        pass
     dat=d22_var_dicts['dat']
     WM1=d22_var_dicts['WM1']
     WM2=d22_var_dicts['WM2']
