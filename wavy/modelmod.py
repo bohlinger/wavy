@@ -13,6 +13,7 @@ List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
 import sys
+import yaml
 
 # read files
 import netCDF4
