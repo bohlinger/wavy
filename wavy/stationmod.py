@@ -65,11 +65,11 @@ from datetime import datetime
 import scipy as sp
 
 # read yaml config files:
-with open("buoy_specs.yaml", 'r') as stream:
+with open("../wavy/buoy_specs.yaml", 'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("pathfinder.yaml", 'r') as stream:
+with open("../wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
-with open("stationlist.yaml", 'r') as stream:
+with open("../wavy/stationlist.yaml", 'r') as stream:
     locations=yaml.safe_load(stream)
 
 station_d22_starc = pathfinder['station_d22_starc']
