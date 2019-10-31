@@ -10,6 +10,7 @@
 import sys
 sys.path.append(r'../wavy')
 
+import yaml
 import os
 from stationmod import station_class as sc
 from stationmod import parse_d22, extract_d22, matchtime, get_loc_idx

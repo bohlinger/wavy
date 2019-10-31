@@ -15,6 +15,7 @@
 import sys
 sys.path.append(r'../wavy')
 
+import yaml
 import os
 from stationmod import get_buoy, get_loc_idx
 from modelmod import get_model, check_date
