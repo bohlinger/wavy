@@ -59,11 +59,22 @@ from copy import deepcopy
 import time
 
 # get d22 files
-from pathfinder import station_d22_starc, station_d22_opdate
-from pathfinder import stationpath_lustre_om, stationpath_lustre_hi
 import pylab as pl
 from datetime import datetime
 import scipy as sp
+
+# read yaml config files:
+with open("buoy_specs.yaml", 'r') as stream:
+    buoy_dict=yaml.safe_load(stream)
+with open("pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+with open("stationlist.yaml", 'r') as stream:
+    locations=yaml.safe_load(stream)
+
+station_d22_starc = pathfinder['station_d22_starc']
+station_d22_opdate = pathfinder['station_d22_opdate']
+stationpath_lustre_om = pathfinder['stationpath_lustre_om']
+stationpath_lustre_hi = pathfinder['stationpath_lustre_hi']
 
 # --- global functions ------------------------------------------------#
 
@@ -88,7 +99,6 @@ class station_class():
      - get Hs value for this time
     '''
     basedate = datetime(1970,1,1)
-    from stationlist import locations
 
     def __init__(self,statname,sdate,edate,
                 mode=None,deltat=None,sensorname=None,varname=None):
@@ -101,7 +111,6 @@ class station_class():
             mode = 'nc' # mode: 'nc', 'd22'
         if varname is None:
             varname = 'Hs_10min'
-#        hs, hs_obs, time, timedt = self.get_station(
         hs, time, timedt = self.get_station(
                                     statname,
                                     sdate,edate,
@@ -110,7 +119,6 @@ class station_class():
                                     varname
                                 )
         self.hs = hs
-#        self.hs_obs = hs_obs
         self.time = time
         self.timedt = timedt
         self.basedate = self.basedate
@@ -161,13 +169,9 @@ class station_class():
                 ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
                                         timewin=2)
                 try:
-#                    obs_hourly = sensor_lst[station_dict[statname]['sensor']
-#                                            [sensorname]]['Hs_1hr'][idxtmp][0]
                     tmp = sensor_lst[station_dict[statname]['sensor']
                                             [sensorname]][varname][idxtmp][0]
                     time.append((tmpdate-self.basedate).total_seconds())
-#                    var_obs.append(np.real(hs_obs_10min))
-#                    var.append(np.real(hs_obs_hourly))
                     var.append(np.real(tmp))
                     timedt.append(tmpdate)
                 except:
@@ -175,10 +179,8 @@ class station_class():
                     pass
                 tmpdate = tmpdate + timedelta(minutes=deltat)
         return var, time, timedt
-#        return var, var_obs, time, timedt
 
 def read_Tennholmen(date):
-    from buoy_specs import buoy_dict
     url=date.strftime(buoy_dict['Tennholmen']['url_template'])
     filename=date.strftime(buoy_dict['Tennholmen']['file_template'])
     filename_heave_spec=date.strftime(buoy_dict['Tennholmen']
@@ -214,7 +216,6 @@ def read_Tennholmen(date):
 
 def read_Tennholmen_ext(date):
     # extended version of read_Tennholmen
-    from buoy_specs import buoy_dict
     url=date.strftime(buoy_dict['Tennholmen']['url_template'])
     filename=date.strftime(buoy_dict['Tennholmen']['file_template'])
     filename_spec_ext=date.strftime(buoy_dict['Tennholmen']
@@ -267,7 +268,6 @@ def read_Tennholmen_ext(date):
             Hs,TI,TE,T1,TZ,T3,Tc,Tdw,Tp,Qp
 
 def read_buoy(buoyname,date):
-    from buoy_specs import buoy_dict
     path=date.strftime(buoy_dict[buoyname]['path_template'])
     filename=date.strftime(buoy_dict[buoyname]['file_template'])
     basetime=buoy_dict[buoyname]['basetime']
@@ -500,25 +500,27 @@ def floater(s):
 
 def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
-    import d22_var_dicts
-    try:
-        if sys.version_info <= (3, 0):
-            reload(d22_var_dicts)
-        else:
-            import importlib
-            importlib.reload(module)
+#    import d22_var_dicts
+    with open("d22_var_dicts.yaml", 'r') as stream:
+        d22_var_dicts=yaml.safe_load(stream)
+#    try:
+#        if sys.version_info <= (3, 0):
+#            reload(d22_var_dicts)
+#        else:
+#            import importlib
+#            importlib.reload(module)
     except:
         pass
-    dat=d22_var_dicts.dat
-    WM1=d22_var_dicts.WM1
-    WM2=d22_var_dicts.WM2
-    WM3=d22_var_dicts.WM3
-    WL1=d22_var_dicts.WL1
-    WL2=d22_var_dicts.WL2
-    WL3=d22_var_dicts.WL3
-    WIA=d22_var_dicts.WIA
-    WIB=d22_var_dicts.WIB
-    WIC=d22_var_dicts.WIC
+    dat=d22_var_dicts['dat']
+    WM1=d22_var_dicts['WM1']
+    WM2=d22_var_dicts['WM2']
+    WM3=d22_var_dicts['WM3']
+    WL1=d22_var_dicts['WL1']
+    WL2=d22_var_dicts['WL2']
+    WL3=d22_var_dicts['WL3']
+    WIA=d22_var_dicts['WIA']
+    WIB=d22_var_dicts['WIB']
+    WIC=d22_var_dicts['WIC']
     tseries=[]
     for i, line in enumerate(searchlines):
         if "!!!!" in line: 
