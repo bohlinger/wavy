@@ -55,11 +55,11 @@ import time
 # --- global functions ------------------------------------------------#
 
 # read yaml config files:
-with open("region_specs.yaml", 'r') as stream:
+with open("../wavy/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
-with open("model_specs.yaml", 'r') as stream:
+with open("../wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("pathfinder.yaml", 'r') as stream:
+with open("../wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
 def progress(count, total, status=''):
@@ -636,7 +636,7 @@ class satellite_altimeter():
 def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
     from utils import haversine
     # read yaml config files:
-    with open("stationlist.yaml", 'r') as stream:
+    with open("../wavy/stationlist.yaml", 'r') as stream:
         locations=yaml.safe_load(stream)
     if ((lat is None or lon is None) and (station is None)):
         print ("location is missing")

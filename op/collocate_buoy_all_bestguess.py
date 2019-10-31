@@ -19,7 +19,6 @@ import os
 from stationmod import get_buoy, get_loc_idx
 from modelmod import get_model, check_date
 from collocmod import collocate
-from buoy_specs import buoy_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -31,6 +30,10 @@ import argparse
 from argparse import RawTextHelpFormatter
 
 import numpy as np
+
+# read yaml config files:
+with open("../wavy/buoy_specs.yaml", 'r') as stream:
+    buoy_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(

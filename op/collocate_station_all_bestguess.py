@@ -15,7 +15,6 @@ from stationmod import station_class as sc
 from stationmod import parse_d22, extract_d22, matchtime, get_loc_idx
 from modelmod import get_model, check_date
 from collocmod import collocate
-from station_specs import station_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import numpy as np
@@ -26,6 +25,10 @@ from copy import deepcopy
 from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
+
+# read yaml config files:
+with open("station_specs.yaml", 'r') as stream:
+    station_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(

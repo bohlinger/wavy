@@ -156,7 +156,7 @@ class station_class():
             time = flatten(time)
         elif mode == 'd22':
 #            from station_specs import station_dict
-            with open("station_specs.yaml", 'r') as stream:
+            with open("../wavy/station_specs.yaml", 'r') as stream:
                 station_dict=yaml.safe_load(stream)
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
@@ -503,7 +503,7 @@ def floater(s):
 def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
 #    import d22_var_dicts
-    with open("d22_var_dicts.yaml", 'r') as stream:
+    with open("../wavy/d22_var_dicts.yaml", 'r') as stream:
         d22_var_dicts=yaml.safe_load(stream)
 #    try:
 #        if sys.version_info <= (3, 0):
