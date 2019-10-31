@@ -155,7 +155,9 @@ class station_class():
             var = flatten(var)
             time = flatten(time)
         elif mode == 'd22':
-            from station_specs import station_dict
+#            from station_specs import station_dict
+            with open("station_specs.yaml", 'r') as stream:
+                station_dict=yaml.safe_load(stream)
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
             sl = parse_d22(statname,sdatetmp,edatetmp)

@@ -635,7 +635,9 @@ class satellite_altimeter():
 
 def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
     from utils import haversine
-    from stationlist import locations
+    # read yaml config files:
+    with open("stationlist.yaml", 'r') as stream:
+        locations=yaml.safe_load(stream)
     if ((lat is None or lon is None) and (station is None)):
         print ("location is missing")
     if (lat is None or lon is None):
