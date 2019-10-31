@@ -13,7 +13,7 @@ from utils import haversine
 from stationmod import matchtime
 
 # read yaml config files:
-with open("model_specs.yaml", 'r') as stream:
+with open("../wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 def collocation_loop(
