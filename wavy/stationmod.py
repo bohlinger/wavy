@@ -100,7 +100,6 @@ class station_class():
      - get Hs value for this time
     '''
     basedate = datetime(1970,1,1)
-
     def __init__(self,statname,sdate,edate,
                 mode=None,deltat=None,sensorname=None,varname=None):
         print ('# ----- ')
@@ -123,8 +122,8 @@ class station_class():
         self.time = time
         self.timedt = timedt
         self.basedate = self.basedate
-        self.lat = self.locations[statname][0]
-        self.lon = self.locations[statname][1]
+        self.lat = locations[statname][0]
+        self.lon = locations[statname][1]
         self.sensorname = sensorname
         self.statname = statname
         print (" ### station_class object initialized ###")
