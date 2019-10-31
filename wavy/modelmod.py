@@ -13,6 +13,7 @@ List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
 import sys
+import yaml
 
 # read files
 import netCDF4
@@ -36,17 +37,8 @@ from copy import deepcopy
 
 import time
 
-# get necessary paths for module
-import pathfinder
-
-# import outsorced specs
-from model_specs import model_dict
-
 # matchtime fct
 from stationmod import matchtime
-
-# module to dump satellite_class object into nc-file
-# should also treat other similar type data
 
 # 1: get_model for given time period
 # 2: dumptonc based on model (e.g. MWAM4, ARCMFC, ARCMFCnew)
@@ -61,6 +53,11 @@ definition of some global functions
 # currently None
 # ---------------------------------------------------------------------#
 
+# read yaml config files:
+with open("model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
+with open("pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
 
 class model_class():
     '''
@@ -69,12 +66,10 @@ class model_class():
     This class should communicate with the satellite, model, and 
     station classes.
     '''
-    satpath_lustre = pathfinder.satpath_lustre
-    satpath_copernicus = pathfinder.satpath_copernicus
-    satpath_ftp_014_001 = pathfinder.satpath_ftp_014_001
+    satpath_lustre = pathfinder['satpath_lustre']
+    satpath_copernicus = pathfinder['satpath_copernicus']
+    satpath_ftp_014_001 = pathfinder['satpath_ftp_014_001']
     
-    from region_specs import region_dict
-    from model_specs import model_dict
 
     def __init__(self,sdate,edate=None,model=None,timewin=None,region=None):
         print ('# ----- ')
@@ -257,7 +252,7 @@ def make_filename(simmode=None,model=None,datein=None,
 
 def get_model_filepathlst(simmode=None,model=None,sdate=None,edate=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
-    if (model in model_dict.keys() and model is not 'ARCNFCnew'):
+    if (model in model_dict and model is not 'ARCNFCnew'):
         filestr = make_filename(simmode=simmode,model=model,
                         fc_date=fc_date,init_date=init_date,
                         leadtime=leadtime)
