@@ -1,15 +1,18 @@
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'../wavy')
+import yaml
 import numpy as np
 from datetime import datetime, timedelta
 from modelmod import get_model
 import plotly
 import plotly.plotly as py
 import pandas as pd
-from region_specs import poly_dict
 from matplotlib.patches import Polygon
 from copy import deepcopy
 import plotly.graph_objs as go
+# read yaml config files:
+with open("region_specs.yaml", 'r') as stream:
+    region_dict=yaml.safe_load(stream)
 
 def plotly_s3a_map(sa_obj=None,\
                     region=None,domain=None,proj=None,\
@@ -105,8 +108,8 @@ def plotly_s3a_map(sa_obj=None,\
         pdnames = pd.Series(names)
     elif (region != model and model is not None):
         # get region for model
-        poly = Polygon(list(zip(poly_dict[region]['lons'],\
-                                poly_dict[region]['lats'])),\
+        poly = Polygon(list(zip(region_dict['poly'][region]['lons'],\
+                                region_dict['poly'][region]['lats'])),\
                                 closed=True)
         pdlons = pd.Series(poly.xy[:,0])
         pdlats = pd.Series(poly.xy[:,1])
@@ -129,8 +132,8 @@ def plotly_s3a_map(sa_obj=None,\
         pdmnames = pd.Series(mnames)
     elif (region != model and model is None):
         # get region
-        poly = Polygon(list(zip(poly_dict[region]['lons'],\
-                                poly_dict[region]['lats'])),\
+        poly = Polygon(list(zip(region_dict['poly'][region]['lons'],\
+                                region_dict['poly'][region]['lats'])),\
                                 closed=True)
         pdlons = pd.Series(poly.xy[:,0])
         pdlats = pd.Series(poly.xy[:,1])

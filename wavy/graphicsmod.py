@@ -43,9 +43,6 @@ if sys.version_info <= (3, 0):
 else:
     from urllib.request import urlretrieve, urlcleanup # python3
 
-# get necessary paths for module
-import pathfinder
-
 # --- global functions ------------------------------------------------#
 
 def progress(count, total, status=''):
@@ -297,8 +294,6 @@ class graphics_class():
     '''
     class to handle graphical applications
     '''
-    from region_specs import region_dict
-
     def __init__(self,sdate,edate=None,timewin=None,download=None,region=None,
                 corenum=None,mode=None):
         print ('# ----- ')

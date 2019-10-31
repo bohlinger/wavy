@@ -11,6 +11,11 @@
         2. Function to produce chosen validation figure
         3. 
 """
+import yaml
+# read yaml config files:
+with open("region_specs.yaml", 'r') as stream:
+    region_dict=yaml.safe_load(stream)
+
 class validation_class():
 
 
@@ -84,7 +89,6 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     import numpy as np
-    from region_specs import region_dict
     mHs = MHs.squeeze()
     mHs[np.where(mHs<0)[0],np.where(mHs<0)[1]]=np.nan
     if (sa_obj.region == 'MoskWC' or sa_obj.region == 'MoskNC'):
@@ -99,7 +103,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
         # Polar Stereographic Projection
         m = Basemap(
             projection='npstere',
-            boundinglat=region_dict[sa_obj.region]["boundinglat"]-5,
+            boundinglat=region_dict['rect'][sa_obj.region]["boundinglat"]-5,
             lon_0=0,
             resolution='l',area_thresh=1000
             )
@@ -142,7 +146,6 @@ def plot_sat(sa_obj):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     import numpy as np
-    from region_specs import region_dict
     if (sa_obj.region == 'MoskWC' or sa_obj.region == 'MoskNC'):
         clevs = np.arange(0,5,0.1)
     elif (sa_obj.region == 'swan_karmoy'):
@@ -156,7 +159,7 @@ def plot_sat(sa_obj):
         # Polar Stereographic Projection
         m = Basemap(
             projection='npstere',
-            boundinglat=region_dict[sa_obj.region]["boundinglat"],
+            boundinglat=region_dict['rect'][sa_obj.region]["boundinglat"],
             lon_0=0,
             resolution='l',area_thresh=1000
             )
