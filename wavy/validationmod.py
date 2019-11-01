@@ -13,7 +13,7 @@
 """
 import yaml
 # read yaml config files:
-with open("region_specs.yaml", 'r') as stream:
+with open("../wavy/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
 
 class validation_class():
