@@ -494,7 +494,7 @@ class satellite_altimeter():
                     sys.exit("Region is not defined")
                 else:
                     print ("Specified region: " + region + "\n"
-                      + " --> Bounds: " + str(self.region_dict['rect'][region]))
+                      + " --> Bounds: " + str(region_dict['rect'][region]))
             latlst,lonlst,rlatlst,rlonlst,ridx = \
                 self.matchregion_prim(LATS,LONS,region=region)
         else:
@@ -514,12 +514,12 @@ class satellite_altimeter():
         else:
             if isinstance(region,str)==True:
                 if (region=='ARCMFC' or region=='Arctic'):
-                    boundinglat = self.region_dict['rect'][region]["boundinglat"]
+                    boundinglat = region_dict['rect'][region]["boundinglat"]
                 else:
-                    llcrnrlat = self.region_dict['rect'][region]["llcrnrlat"]
-                    urcrnrlat = self.region_dict['rect'][region]["urcrnrlat"]
-                    llcrnrlon = self.region_dict['rect'][region]["llcrnrlon"]
-                    urcrnrlon = self.region_dict['rect'][region]["urcrnrlon"]
+                    llcrnrlat = region_dict['rect'][region]["llcrnrlat"]
+                    urcrnrlat = region_dict['rect'][region]["urcrnrlat"]
+                    llcrnrlon = region_dict['rect'][region]["llcrnrlon"]
+                    urcrnrlon = region_dict['rect'][region]["urcrnrlon"]
             else:
                 llcrnrlat = region[0]
                 urcrnrlat = region[1]
