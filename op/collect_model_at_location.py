@@ -31,7 +31,7 @@ Retrieves data from a station and dumps to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./collect_model_at_location.py -sd 2019010100 -ed 2019020200 -station ekofiskL -model mwam4 -var Hs
+./collect_model_at_location.py -sd 2019010100 -ed 2019020200 -station ekofiskL -mod mwam4 -var Hs
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -41,7 +41,7 @@ parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
 parser.add_argument("-station", metavar='statname',
     help="stationname")
-parser.add_argument("-model", metavar='modelname',
+parser.add_argument("-mod", metavar='modelname',
     help="modelname")
 parser.add_argument("-var", metavar='varname',
     help="varname")
@@ -61,15 +61,15 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
-if args.model is None:
-    args.model = 'mwam4'
+if args.mod is None:
+    args.mod = 'mwam4'
 
 # retrieve PID
 grab_PID()
 
 # settings
 station = args.station
-model = args.model
+model = args.mod
 varname = args.var
 mode = 'd22'
 deltat = 10

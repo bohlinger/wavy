@@ -38,6 +38,8 @@ Usage:
     """,
     formatter_class = RawTextHelpFormatter
     )
+parser.add_argument("-mod", metavar='model',
+    help="model to be used for collocation")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -58,9 +60,13 @@ if args.ed is None:
 else:
     edatestr = args.ed
 
+if args.mod is None:
+    model = 'mwam4'
+else:
+    model = args.mod
+
 # retrieve PID
 grab_PID()
-model = 'mwam4'
 var = 'Hs'
 basetime = datetime(1970,1,1)
 
