@@ -23,9 +23,9 @@ htmlFile=${Webpath}index.html
 bName='Bulletin date: '`date +%Y-%m-%d`
 echo $bName
 
-cat /home/patrikb/wavy/web/op/head1.html               >  ${htmlFile}
+cat /home/patri/home/patrikb/wavy/wavy/web/op/head1.html               >  ${htmlFile}
 echo '<title>'${bName}'</title>'       >> ${htmlFile}
-cat /home/patrikb/wavy/web/op/head2.html               >> ${htmlFile}
+cat /home/patri/home/patrikb/wavy/wavy/web/op/head2.html               >> ${htmlFile}
 
 echo '<h2>Results for '${bName}'</h2>' >> ${htmlFile}
 
@@ -46,6 +46,6 @@ echo '<p><small>'                      >> ${htmlFile}
 echo 'Generated on '`date`             >> ${htmlFile}
 echo '</small></p>'                    >> ${htmlFile}
 
-cat /home/patrikb/wavy/web/op/tail.html                >> ${htmlFile}
+cat /home/patri/home/patrikb/wavy/wavy/web/op/tail.html                >> ${htmlFile}
 
 exit

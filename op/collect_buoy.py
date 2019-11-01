@@ -4,7 +4,7 @@
     - dump to netcdf
 '''
 import sys
-sys.path.append(r'../wavy')
+sys.path.append(r'/home/patri/home/patrikb/wavy/wavy/wavy')
 
 import os
 from stationmod import get_buoy

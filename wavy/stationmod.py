@@ -65,11 +65,11 @@ from datetime import datetime
 import scipy as sp
 
 # read yaml config files:
-with open("../wavy/buoy_specs.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/buoy_specs.yaml", 'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("../wavy/pathfinder.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
-with open("../wavy/stationlist.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/stationlist.yaml", 'r') as stream:
     locations=yaml.safe_load(stream)
 
 station_d22_starc = pathfinder['station_d22_starc']
@@ -156,7 +156,7 @@ class station_class():
             time = flatten(time)
         elif mode == 'd22':
 #            from station_specs import station_dict
-            with open("../wavy/station_specs.yaml", 'r') as stream:
+            with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
                 station_dict=yaml.safe_load(stream)
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
@@ -503,7 +503,7 @@ def floater(s):
 def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
 #    import d22_var_dicts
-    with open("../wavy/d22_var_dicts.yaml", 'r') as stream:
+    with open("/home/patrikb/wavy/wavy/d22_var_dicts.yaml", 'r') as stream:
         d22_var_dicts=yaml.safe_load(stream)
 #    try:
 #        if sys.version_info <= (3, 0):
