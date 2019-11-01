@@ -23,12 +23,16 @@ Validate wave model output against s3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./op_validate.py -m mwam4 -sd 2018110112 -ed 2018110118
+./op_validate.py -mod mwam4 -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )
-parser.add_argument("-m", metavar='model',
+parser.add_argument("-mod", metavar='model',
     help="model to be evaluated")
+parser.add_argument("-sat", metavar='satellite',
+    help="satellite mission to be used for collocation")
+parser.add_argument("-reg", metavar='region',
+    help="region of interest")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -38,10 +42,20 @@ args = parser.parse_args()
 
 now = datetime.now()
 
-if args.m is None:
+if args.mod is None:
     model = 'mwam4'
 else:
-    model = args.m
+    model = args.mod
+
+if args.sat is None:
+    sat = 's3a'
+else:
+    sat = args.sat
+
+if args.reg is None:
+    region = model
+else:
+    region = args.reg
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
@@ -58,21 +72,14 @@ else:
 grab_PID()
 
 # Settings
-region = args.m
-#inpath = ('/lustre/storeB/project/fou/om/waveverification/s3a/' 
-#        + model
-#        + '/CollocationFiles/')
-#outpath = ('/lustre/storeB/project/fou/om/waveverification/s3a/'
-#        + model 
-#        + '/ValidationFiles/')
-
 inpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model
-           + '/s3a/'
+           + model + '/satellites/altimetry'
+           + '/' + sat + '/'
            + 'CollocationFiles/')
+
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model
-           + '/s3a/'
+           + model + '/satellites/altimetry'
+           + '/' + sat + '/'
            + 'ValidationFiles/')
 
 tmpdate = deepcopy(sdate)
@@ -87,9 +94,12 @@ while tmpdate <= edate:
         basetime=model_dict[model]['basetime']
         # get model collocated values
         from ncmod import get_arcmfc_ts
-        filename_ts=fc_date.strftime(model + "_coll_ts_lt"
-                                            + "{:0>3d}".format(element)
-                                            + "h_%Y%m.nc")
+        filename_ts=fc_date.strftime(model
+                                    + "_vs_" + sat
+                                    + "_" + region
+                                    + "_coll_ts_lt"
+                                    + "{:0>3d}".format(element)
+                                    + "h_%Y%m.nc")
         dtime, sHs, mHs = get_arcmfc_ts(inpath 
                                         + fc_date.strftime('%Y/%m/') 
                                         + filename_ts)
@@ -110,7 +120,10 @@ while tmpdate <= edate:
             print(valid_dict)
             # dump to nc-file: validation
             title_stat='validation file'
-            filename_stat=fc_date.strftime(model + "_val_ts_lt"
+            filename_stat=fc_date.strftime(model 
+                                        + "_vs_" + sat
+                                        + "_" + region
+                                        + "_val_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
             time_dt = fc_date

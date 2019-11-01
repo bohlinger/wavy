@@ -23,7 +23,7 @@ Collocate wave model output and s3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./op_collocate.py -m mwam4 -sd 2018110112 -ed 2018110118
+./op_collocate.py -mod mwam4 -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -77,7 +77,7 @@ leadtimes = [0, 6, 12, 18, 24]
 timewin = 30
 distlim = 6
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model
+           + model + '/satellites/altimetry'
            + '/' + sat + '/'
            + 'CollocationFiles/')
 
