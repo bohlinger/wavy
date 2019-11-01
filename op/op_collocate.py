@@ -27,8 +27,12 @@ Usage:
     """,
     formatter_class = RawTextHelpFormatter
     )
-parser.add_argument("-m", metavar='model',
+parser.add_argument("-mod", metavar='model',
     help="model to be used for collocation")
+parser.add_argument("-sat", metavar='satellite',
+    help="satellite mission to be used for collocation")
+parser.add_argument("-reg", metavar='region',
+    help="region of interest")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -38,10 +42,20 @@ args = parser.parse_args()
 
 now = datetime.now()
 
-if args.m is None:
+if args.mod is None:
     model = 'mwam4'
 else:
-    model = args.m
+    model = args.mod
+
+if args.sat is None:
+    sat = 's3a'
+else:
+    sat = args.sat
+
+if args.reg is None:
+    region = model
+else:
+    region = args.reg
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
@@ -62,8 +76,6 @@ leadtimes = [0, 6, 12, 18, 24]
 # settings
 timewin = 30
 distlim = 6
-region = model
-sat = 's3a'
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
            + model
            + '/' + sat + '/'
@@ -73,7 +85,8 @@ tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
     # get s3a values
     fc_date = deepcopy(tmpdate)
-    sa_obj = sa(fc_date,sat=sat,timewin=timewin,region=region)
+    #sa_obj = sa(fc_date,sat=sat,timewin=timewin,region=region)
+    sa_obj = sa(fc_date,sat=sat,timewin=timewin,polyreg=region)
     if len(sa_obj.dtime)==0:
         print("If possible proceed with another time step...")
     else:
@@ -82,11 +95,16 @@ while tmpdate <= edate:
             print("leadtime: ", element, "h")
             print("fc_date: ", fc_date)
             basetime=model_dict[model]['basetime']
-            filename_ts=fc_date.strftime(model + "_coll_ts_lt"
+            filename_ts=fc_date.strftime(model 
+                                        + "_vs_" + sat
+                                        + "_" + region
+                                        + "_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
-            title_ts=('collocated time series for model '
-                    + model
+            title_ts=('collocated time series for '
+                    + ' model ' + model
+                    + ' vs ' + sat
+                    + ' over region of ' + region
                     + ' with leadtime '
                     + "{:0>3d}".format(element)
                     + ' h')
@@ -101,9 +119,11 @@ while tmpdate <= edate:
                     model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
                 dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                             filename_ts,title_ts,basetime,results_dict)
-            except IOError:
-                print('Model output not available')
-            except ValueError:
-                print('Model wave field not available.')
-                print('Continuing with next time step.')
+            except IOError as e:
+                print(e)
+            #    print('Model output not available')
+            except ValueError as e:
+                print(e)
+            #    print('Model wave field not available.')
+            #    print('Continuing with next time step.')
     tmpdate = tmpdate + timedelta(hours=6)

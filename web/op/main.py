@@ -13,10 +13,10 @@ sys.path.append(r'/home/patrikb/wavy/wavy/op')
 import subprocess
 import os
 
-#cmd = 'python /home/patrikb/wavy/op/op_collocate.py -m mwam4 -sd 2019020100 -ed 2019022123'
+#cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -sd 2019020100 -ed 2019022123'
 cmd = 'python /home/patrikb/wavy/op/op_collocate.py'
 t = os.system(cmd)
-#cmd = 'python /home/patrikb/wavy/op/op_validate.py -m mwam4 -sd 2019020100 -ed 2019022123'
+#cmd = 'python /home/patrikb/wavy/op/op_validate.py -mod mwam4 -sd 2019020100 -ed 2019022123'
 cmd = 'python /home/patrikb/wavy/op/op_validate.py'
 t = os.system(cmd)
 
