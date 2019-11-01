@@ -11,9 +11,9 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 import subprocess
 import os
 #cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py -sd 2019100100 -ed 2019102918'
-cmd = 'python home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
 t = os.system(cmd)
-cmd = 'python home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py'
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py'
 #cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py -sd 2019100100 -ed 2019102918'
 t = os.system(cmd)
 #p = subprocess.Popen(cmd,stdout=subprocess.PIPE,shell=True)
