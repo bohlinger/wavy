@@ -7,23 +7,23 @@
         - webpage.sh (creates html webpage)
 '''
 import sys
-sys.path.append(r'..//home/patrikb/wavy/wavy')
-sys.path.append(r'..//home/patrikb/wavy/wavy/op')
+sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy/op')
 
 import subprocess
 import os
 
-#cmd = 'python ..//home/patrikb/wavy/wavy/op/op_collocate.py -m mwam4 -sd 2019020100 -ed 2019022123'
-cmd = 'python /home/patri/home/patrikb/wavy/wavy/op/op_collocate.py'
+#cmd = 'python /home/patrikb/wavy/op/op_collocate.py -m mwam4 -sd 2019020100 -ed 2019022123'
+cmd = 'python /home/patrikb/wavy/op/op_collocate.py'
 t = os.system(cmd)
-#cmd = 'python ..//home/patrikb/wavy/wavy/op/op_validate.py -m mwam4 -sd 2019020100 -ed 2019022123'
-cmd = 'python /home/patri/home/patrikb/wavy/wavy/op/op_validate.py'
-t = os.system(cmd)
-
-cmd = 'python /home/patri/home/patrikb/wavy/wavy/op/op_figures.py'
+#cmd = 'python /home/patrikb/wavy/op/op_validate.py -m mwam4 -sd 2019020100 -ed 2019022123'
+cmd = 'python /home/patrikb/wavy/op/op_validate.py'
 t = os.system(cmd)
 
-cmd = 'sh /home/patri/home/patrikb/wavy/wavy/web/op/webpage.sh'
+cmd = 'python /home/patrikb/wavy/op/op_figures.py'
+t = os.system(cmd)
+
+cmd = 'sh /home/patrikb/wavy/web/op/webpage.sh'
 t = os.system(cmd)
 
 #cmd = 'cp index.html /lustre/storeB/project/fou/om/waveverification/s3a/'
