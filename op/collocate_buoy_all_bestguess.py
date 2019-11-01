@@ -13,7 +13,7 @@
 
 '''
 import sys
-sys.path.append(r'../wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy')
 
 import yaml
 import os
@@ -33,7 +33,7 @@ from argparse import RawTextHelpFormatter
 import numpy as np
 
 # read yaml config files:
-with open("../wavy/buoy_specs.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/buoy_specs.yaml", 'r') as stream:
     buoy_dict=yaml.safe_load(stream)
 
 # parser

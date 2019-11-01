@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r'../wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy')
 import yaml
 import numpy as np
 from datetime import datetime, timedelta
@@ -11,11 +11,11 @@ from matplotlib.patches import Polygon
 from copy import deepcopy
 import plotly.graph_objs as go
 # read yaml config files:
-with open("region_specs.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
-with open("buoy_specs.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/buoy_specs.yaml", 'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("station_specs.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
 def plotly_s3a_map(sa_obj=None,\

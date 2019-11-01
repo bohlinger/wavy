@@ -7,14 +7,14 @@
         - webpage.sh (creates html webpage)
 '''
 import sys
-sys.path.append(r'../../wavy')
+sys.path.append(r'..//home/patrikb/wavy/wavy')
 import subprocess
 import os
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py -sd 2019100100 -ed 2019102918'
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
+#cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate.py -sd 2019100100 -ed 2019102918'
+cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate.py'
 t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py'
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py -sd 2019100100 -ed 2019102918'
+cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate_NordicSeas.py'
+#cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_collocate_NordicSeas.py -sd 2019100100 -ed 2019102918'
 t = os.system(cmd)
 #p = subprocess.Popen(cmd,stdout=subprocess.PIPE,shell=True)
 #(output, err) = p.communicate()
@@ -24,18 +24,18 @@ t = os.system(cmd)
 #This will give you the output of the command being executed
 #print("Command output: " + output)
 
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py -sd 2019100100 -ed 2019102918'
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py'
+#cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_validate.py -sd 2019100100 -ed 2019102918'
+cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_validate.py'
 t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate_NordicSeas.py'
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate_NordicSeas.py -sd 2019100100 -ed 2019102918'
-t = os.system(cmd)
-
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures.py'
-t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures_NordicSeas.py'
+cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_validate_NordicSeas.py'
+#cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_validate_NordicSeas.py -sd 2019100100 -ed 2019102918'
 t = os.system(cmd)
 
-#cmd = 'sh /home/patrikb/wavy/web/arcmfc/webpage.sh'
+cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_figures.py'
+t = os.system(cmd)
+cmd = 'python /home/patri/home/patrikb/wavy/wavy/arcmfc/arcmfc_figures_NordicSeas.py'
+t = os.system(cmd)
+
+#cmd = 'sh /home/patri/home/patrikb/wavy/wavy/web/arcmfc/webpage.sh'
 cmd = 'sh /lustre/storeB/project/fou/om/ARCMFC/s3a/WebPage/webpage.sh'
 t = os.system(cmd)

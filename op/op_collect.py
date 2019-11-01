@@ -4,8 +4,8 @@
     - dump to netcdf
 '''
 import sys
-sys.path.append(r'../wavy')
-sys.path.append(r'/home/patrikb/wavy/op')
+sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(r'/home/patri/home/patrikb/wavy/wavy/op')
 
 import os
 from datetime import datetime, timedelta
@@ -52,7 +52,7 @@ else:
 grab_PID()
 
 # buoys
-cmdstr = ("python /home/patrikb/wavy/op/collect_buoy.py -sd " 
+cmdstr = ("python /home/patri/home/patrikb/wavy/wavy/op/collect_buoy.py -sd " 
             + sdstr 
             + " -ed " 
             + edstr)
@@ -74,7 +74,7 @@ sensorlst = ['waverider','OptechLaser','SAABWaveRadar',
             'MKIIIradar'
             ]
 for station,sensor in zip(stationlst,sensorlst):
-    cmdstr = ("python /home/patrikb/wavy/op/collect_station.py"
+    cmdstr = ("python /home/patri/home/patrikb/wavy/wavy/op/collect_station.py"
             + " -sd "
             + sdstr
             + " -ed "

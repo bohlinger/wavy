@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r'../wavy')
+sys.path.append(r'/home/patrikb/wavy/wavy')
 # buoys
 from datetime import datetime
 from stationmod import get_buoy
