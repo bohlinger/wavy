@@ -84,3 +84,18 @@ WIC:
     DD_10min: []
     FF_2min: []
     DD_2min: []
+
+standard_name: 
+    Hs_10min: 'sea_surface_wave_significant_height_10min'                       
+
+long_name: 
+    Hs_10min: 'Significant wave height retrieved '#\
+#              'at imposed 10 min interval, '\
+#              'estimation method currently unknown '\
+#              '(spectrum or zero crossings)'
+
+units:
+    Hs_10min: 'm'
+
+valid_range:
+    Hs_10min: [0., 25.]

@@ -111,14 +111,15 @@ class station_class():
             mode = 'nc' # mode: 'nc', 'd22'
         if varname is None:
             varname = 'Hs_10min'
-        hs, time, timedt = self.get_station(
+        var, time, timedt = self.get_station(
                                     statname,
                                     sdate,edate,
                                     mode,deltat,
                                     sensorname,
                                     varname
                                 )
-        self.hs = hs
+        self.var = var
+        self.varname = varname
         self.time = time
         self.timedt = timedt
         self.basedate = self.basedate

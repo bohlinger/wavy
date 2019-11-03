@@ -26,7 +26,7 @@ Retrieves data from a station and dumps to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./collect_station.py -sd 2019010100 -ed 2019020200 -station ekofiskL -sensor waverider
+./collect_station.py -sd 2019010100 -ed 2019020200 -station ekofiskL -sensor waverider -var Hs_10min
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -34,10 +34,12 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
+parser.add_argument("-var", metavar='varname',
+    help="variable name")
 parser.add_argument("-station", metavar='statname',
-    help="stationname")
+    help="station name")
 parser.add_argument("-sensor", metavar='sensorname',
-    help="sensorname")
+    help="sensor name")
 
 args = parser.parse_args()
 
@@ -58,6 +60,7 @@ else:
 grab_PID()
 statname = args.station
 sensorname = args.sensor
+varname = args.var
 mode = 'd22'
 deltat = 10
 
@@ -68,22 +71,18 @@ while tmpdate < edate:
     print(tmpdate)
     print('#################')
     try:
-        sc_obj = sc(statname,tmpdate,tmpedate,mode=mode,sensorname=sensorname,deltat=deltat)
-        stat_dict = {'basetime':sc_obj.basedate,
-             'time':sc_obj.time[0:-1],
-             'Hs_stat_10min':sc_obj.hs_obs[0:-1],
-             'lats_stat':sc_obj.lat,
-             'lons_stat':sc_obj.lon,
-            }
+        sc_obj = sc(statname,tmpdate,tmpedate,mode=mode,deltat=deltat,
+                    sensorname=sensorname,varname=varname)
 
         # dump tp nc-file
         outpath = tmpdate.strftime('/lustre/storeB/project/fou/om/'
                             + 'waveverification/obs/stations/'
                             + '%Y/%m/')
         os.system('mkdir -p ' + outpath)
-        filename_ts=tmpdate.strftime(statname + "_" + sensorname + "_%Y%m.nc")
-        title_ts=('Observations from ' + statname)
-        dumptonc_ts_station(outpath,filename_ts,title_ts,sc_obj.basedate,stat_dict,statname,sensorname)
+        filename_ts=tmpdate.strftime(varname + "_" + statname + "_" + sensorname + "_%Y%m.nc")
+        title_ts=(varname + ' observations from ' + statname + ' ' + sensorname)
+        dumptonc_ts_station(outpath,filename_ts,title_ts,\
+                            sc_obj,statname,sensorname)
     except ValueError as e:
         print(e)
         pass

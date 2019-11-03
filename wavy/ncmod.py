@@ -43,6 +43,8 @@ with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 with open("/home/patrikb/wavy/wavy/variable_info.yaml", 'r') as stream:
     var_dict=yaml.safe_load(stream)
+with open("/home/patrikb/wavy/wavy/d22_var_dicts.yaml", 'r') as stream:
+    d22_dict=yaml.safe_load(stream)
 with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
@@ -1232,15 +1234,15 @@ def dumptonc_coll_ts_station(outpath,filename,title,basetime,\
         ncHs_stat_10min[:] = Hs_stat_10min
     nc.close()
 
-def dumptonc_ts_station(outpath,filename,title,basetime,\
-                        obs_dict,statname,sensorname):
+def dumptonc_ts_station(outpath,filename,title,\
+                        sc_obj,statname,sensorname):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file
     """
-    time = obs_dict['time']
-    Hs_stat_10min = obs_dict['Hs_stat_10min']
+    time = sc_obj.time[0:-1]
+    var = sc_obj.var[0:-1]
     fullpath = outpath + filename
     print ('Dump data to file: ' + fullpath)
     if os.path.isfile(fullpath):
@@ -1252,28 +1254,29 @@ def dumptonc_ts_station(outpath,filename,title,basetime,\
         startidx = len(nc['time'])
         endidx = len(nc['time'])+len(time)
         nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables['Hs'][startidx:endidx] = Hs_stat_10min[:]
+        nc.variables[sc_obj.varname][startidx:endidx] = var[:]
     else:
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-#                        format='NETCDF4'
                         )
         # global attributes
         nc.title = title
-        nc.station_name = statname
-        nc.instrument_type = sensorname
+        nc.station_name = sc_obj.statname
+        nc.instrument_type = sc_obj.sensorname
         nc.instrument_specs = "?"
-        nc.instrument_manufacturer = station_dict[statname]\
-                                    ['manufacturer'][sensorname]
+        nc.instrument_manufacturer = station_dict[sc_obj.statname]\
+                                    ['manufacturer'][sc_obj.sensorname]
         nc.netcdf_version = "4"
         nc.data_owner = "?"
         nc.licence = "?"
         nc.processing_level = "No imputation for missing or erroneous values."
         nc.static_position_station =  ("Latitude: "
-                            + str(station_dict[statname]['coords']['lat'])
+                            + str(station_dict[sc_obj.statname]
+                                            ['coords']['lat'])
                             + ", Longitude: "
-                            + str(station_dict[statname]['coords']['lon']))
+                            + str(station_dict[sc_obj.statname]
+                                            ['coords']['lon']))
         # dimensions
         dimsize = None
         dimtime = nc.createDimension(
@@ -1286,8 +1289,8 @@ def dumptonc_ts_station(outpath,filename,title,basetime,\
                                np.float64,
                                dimensions=('time')
                                )
-        ncHs_stat_10min = nc.createVariable(
-                               'Hs',
+        ncvar = nc.createVariable(
+                               sc_obj.varname,
                                np.float64,
                                dimensions=('time'),
                                )
@@ -1295,19 +1298,16 @@ def dumptonc_ts_station(outpath,filename,title,basetime,\
         # time
         nctime.standard_name = 'time'
         nctime.long_name = 'Time of measurement'
-        nctime.units = 'seconds since ' + str(basetime)
+        nctime.units = 'seconds since ' + str(sc_obj.basedate)
         nctime.delta_t = '10 min'
         nctime[:] = time
         # Hs_stat_10min
-        ncHs_stat_10min.standard_name = (
-                          'sea_surface_wave_significant_height_10min'                                       )
-        ncHs_stat_10min.long_name = ( 'Significant wave height retrieved '
-                                    + 'at imposed 10 min interval, '
-                                    + 'estimation method currently unknown '
-                                    + '(spectrum or zero crossings?)')
-        ncHs_stat_10min.units = 'm'
-        ncHs_stat_10min.valid_range = 0., 25.
-        ncHs_stat_10min[:] = Hs_stat_10min
+        ncvar.standard_name = d22_dict['standard_name'][sc_obj.varname]
+        ncvar.long_name = d22_dict['long_name'][sc_obj.varname]
+        ncvar.units = d22_dict['units'][sc_obj.varname]
+        ncvar.valid_range = d22_dict['valid_range'][sc_obj.varname][0], \
+                            d22_dict['valid_range'][sc_obj.varname][1]
+        ncvar[:] = sc_obj.varname
     nc.close()
 
 def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
