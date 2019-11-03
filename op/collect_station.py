@@ -79,7 +79,9 @@ while tmpdate < edate:
                             + 'waveverification/obs/stations/'
                             + '%Y/%m/')
         os.system('mkdir -p ' + outpath)
-        filename_ts=tmpdate.strftime(varname + "_" + statname + "_" + sensorname + "_%Y%m.nc")
+        filename_ts=tmpdate.strftime(varname + "_" 
+                                    + statname + "_" 
+                                    + sensorname + "_%Y%m.nc")
         title_ts=(varname + ' observations from ' + statname + ' ' + sensorname)
         dumptonc_ts_station(outpath,filename_ts,title_ts,\
                             sc_obj,statname,sensorname)

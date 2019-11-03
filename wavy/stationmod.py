@@ -71,6 +71,9 @@ with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
 with open("/home/patrikb/wavy/wavy/stationlist.yaml", 'r') as stream:
     locations=yaml.safe_load(stream)
+with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+    station_dict=yaml.safe_load(stream)
+
 
 station_d22_starc = pathfinder['station_d22_starc']
 station_d22_opdate = pathfinder['station_d22_opdate']
@@ -156,9 +159,6 @@ class station_class():
             var = flatten(var)
             time = flatten(time)
         elif mode == 'd22':
-#            from station_specs import station_dict
-            with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
-                station_dict=yaml.safe_load(stream)
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
             sl = parse_d22(statname,sdatetmp,edatetmp)
@@ -503,17 +503,8 @@ def floater(s):
 
 def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
-#    import d22_var_dicts
     with open("/home/patrikb/wavy/wavy/d22_var_dicts.yaml", 'r') as stream:
         d22_var_dicts=yaml.safe_load(stream)
-#    try:
-#        if sys.version_info <= (3, 0):
-#            reload(d22_var_dicts)
-#        else:
-#            import importlib
-#            importlib.reload(module)
-#    except:
-#        pass
     dat=d22_var_dicts['dat']
     WM1=d22_var_dicts['WM1']
     WM2=d22_var_dicts['WM2']

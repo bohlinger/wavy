@@ -1265,6 +1265,7 @@ def dumptonc_ts_station(outpath,filename,title,\
         nc.station_name = sc_obj.statname
         nc.instrument_type = sc_obj.sensorname
         nc.instrument_specs = "?"
+        print(sc_obj.statname,sc_obj.sensorname)
         nc.instrument_manufacturer = station_dict[sc_obj.statname]\
                                     ['manufacturer'][sc_obj.sensorname]
         nc.netcdf_version = "4"
