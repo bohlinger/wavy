@@ -5,7 +5,7 @@
 '''
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
-sys.path.append(r'/home/patri/home/patrikb/wavy/wavy/op')
+sys.path.append(r'/home/patri/home/patrikb/wavy/op')
 
 import os
 from datetime import datetime, timedelta
@@ -54,7 +54,7 @@ else:
 grab_PID()
 
 # buoys
-cmdstr = ("python /home/patri/home/patrikb/wavy/wavy/op/collect_buoy.py -sd " 
+cmdstr = ("python /home/patrikb/wavy/op/collect_buoy.py -sd " 
             + sdstr 
             + " -ed " 
             + edstr)
@@ -66,7 +66,7 @@ str(cmdstr)
 stationlst = station_dict.keys()
 for station in (stationlst):
     for sensor in (station_dict[station]['sensor'].keys()):
-        cmdstr = ("python /home/patri/home/patrikb/wavy/wavy/op/collect_station.py"
+        cmdstr = ("python /home/patrikb/wavy/op/collect_station.py"
             + " -sd "
             + sdstr
             + " -ed "

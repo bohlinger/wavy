@@ -52,7 +52,7 @@ else:
 grab_PID()
 
 # buoys
-cmdstr = ("python /home/patri/home/patrikb/wavy/op/collect_buoy.py -sd " 
+cmdstr = ("python /home/patrikb/wavy/op/collect_buoy.py -sd " 
             + sdstr 
             + " -ed " 
             + edstr)
@@ -74,7 +74,7 @@ sensorlst = ['waverider','OptechLaser','SAABWaveRadar',
             'MKIIIradar'
             ]
 for station,sensor in zip(stationlst,sensorlst):
-    cmdstr = ("python /home/patri/home/patrikb/wavy/op/collect_station.py"
+    cmdstr = ("python /patrikb/wavy/op/collect_station.py"
             + " -sd "
             + sdstr
             + " -ed "
