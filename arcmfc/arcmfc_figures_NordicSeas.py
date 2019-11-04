@@ -10,7 +10,7 @@ from ncmod import get_arcmfc_stats, get_arcmfc_ts
 
 # settings
 fc_date = datetime.now()
-#fc_date = datetime(2019,6,1)
+#fc_date = datetime(2019,10,1)
 forecasts = [12, 36, 60]
 val_names = ['rmsd','bias','corr','SI','nov']
 region = ['NordicSeas']

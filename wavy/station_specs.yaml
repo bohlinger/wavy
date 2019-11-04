@@ -168,8 +168,8 @@ valhall:
         SAABWaveRadar_1: 0 # python indexing
         SAABWaveRadar_2: 1
     manufacturer:
-        SAABWaveRadar: Rosemount
-        SAABWaveRadar: Rosemount
+        SAABWaveRadar_1: Rosemount
+        SAABWaveRadar_2: Rosemount
     coords:
         lat: 56.28
         lon: 3.39

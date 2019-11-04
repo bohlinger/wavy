@@ -5,7 +5,7 @@
 '''
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
-sys.path.append(r'/home/patri/home/patrikb/wavy/op')
+sys.path.append(r'/home/patrikb/wavy/op')
 
 import os
 from datetime import datetime, timedelta
