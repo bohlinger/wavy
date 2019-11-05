@@ -108,6 +108,9 @@ time_s_lst = []
 idx_lst = []
 idy_lst = []
 
+print(sdate)
+print(edate)
+
 while tmpdate <= edate:
     print(tmpdate)
     if np.isnan(idx):

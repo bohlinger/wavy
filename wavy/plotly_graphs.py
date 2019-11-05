@@ -447,6 +447,51 @@ def ts_figs(x,y,varname,instrument_type,instrument_name,sensor):
                                         + '_' + sensor)
                                        , auto_open=False)
 
+def ts_comp_figs(xmod,ymod,xobs,yobs,varname,station,sensor):
+    trace1 = go.Scatter( x=xmod, y=ymod)
+    trace2 = go.Scatter( x=xobs, y=yobs)
+    data = [trace1,trace2]
+    layout = dict(
+        title = varname + ' from ' + station + ' ' + sensor,
+        xaxis = dict(
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1,
+                         label='1d',
+                         step='day',
+                         stepmode='backward'),
+                    dict(count=1,
+                         label='MTD',
+                         step='month',
+                         stepmode='todate'),
+                    dict(count=1,
+                         label='1m',
+                         step='month',
+                         stepmode='backward'),
+                    dict(step='all')
+                ])
+            ),
+            rangeslider=dict(
+                visible = False
+            ),
+            type='date',
+            tickformat = '%Y-%m-%d UTC%H:%M',
+        ),
+        yaxis = dict(
+            hoverformat = '.2f',
+            range=[0, np.max([np.nanmax(ymod),np.nanmax(yobs)])]
+        )
+    )
+    fig = dict(data=data, layout=layout)
+    #py.iplot(fig)
+    plotly.offline.plot( fig, filename=('/lustre/storeB/project/fou/om/'
+                                        + 'waveverification/obs/stations/'
+                                        + varname
+                                        + '_'
+                                        + station
+                                        + '_' + sensor)
+                                       , auto_open=False)
+
 def make_station_map():
     import pandas as pd
     import plotly.graph_objs as go
