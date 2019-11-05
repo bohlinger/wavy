@@ -50,13 +50,21 @@ args = parser.parse_args()
 
 now = datetime.now()
 
+init_times = np.array([0,6,12,18]).astype('float')
+init_diffs = now.hour - init_times
+init_diffs[init_diffs<0] = np.nan
+h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
+h = int(init_times[h_idx[0][0]])
+
 if args.sd is None:
-    sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
+    #sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
+    sdate = datetime(now.year,now.month,now.day,h)
 else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    edate = datetime(now.year,now.month,now.day,now.hour)
+    #edate = datetime(now.year,now.month,now.day,now.hour)
+    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=5)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
@@ -73,7 +81,7 @@ model = args.mod
 varname = args.var
 mode = 'd22'
 deltat = 10
-title_ts = (model + ' ' + varname + ' at location for ' + station )
+title_ts = (model + ' ' + varname + ' at location: ' + station )
 basetime = datetime(1970,1,1)
 
 if model == 'mwam4':

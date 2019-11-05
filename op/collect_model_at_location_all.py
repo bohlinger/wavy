@@ -40,6 +40,8 @@ Usage:
     )
 parser.add_argument("-mod", metavar='model',
     help="model to be used for collocation")
+parser.add_argument("-var", metavar='varname',
+    help="varname")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -49,13 +51,21 @@ args = parser.parse_args()
 
 now = datetime.now()
 
+init_times = np.array([0,6,12,18]).astype('float')
+init_diffs = now.hour - init_times
+init_diffs[init_diffs<0] = np.nan
+h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
+h = int(init_times[h_idx[0][0]])
+
 if args.sd is None:
-    sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
+    #sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
+    sdate = datetime(now.year,now.month,now.day,h)
     sdatestr = sdate.strftime("%Y%m%d%H")
 else:
     sdatestr = args.sd
 if args.ed is None:
-    edate = datetime(now.year,now.month,now.day,now.hour)
+    #edate = datetime(now.year,now.month,now.day,now.hour)
+    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=5)
     edatestr = edate.strftime("%Y%m%d%H")
 else:
     edatestr = args.ed
@@ -64,10 +74,13 @@ if args.mod is None:
     model = 'mwam4'
 else:
     model = args.mod
+if args.var is None:
+    var = 'Hs'
+else:
+    var = args.var
 
 # retrieve PID
 grab_PID()
-var = 'Hs'
 basetime = datetime(1970,1,1)
 
 stationlst = station_dict.keys()
@@ -76,7 +89,7 @@ for station in (stationlst):
             + " -sd " + sdatestr
             + " -ed " + edatestr 
             + " -station " + station 
-            + " -model " + model
+            + " -mod " + model
             + " -var " + var)
     tmp=os.system(cmd)
     del tmp

@@ -1568,17 +1568,14 @@ def dumptonc_ts_pos(outpath,filename,title,basetime,\
         startidx = len(nc['time'])
         endidx = len(nc['time'])+len(time)
         nc.variables['time'][startidx:endidx] = time[:]
-#        nc.variables['dist'][startidx:endidx] = dist[:]
         nc.variables[varname][startidx:endidx] = var_model[:]
     else:
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
-#                        format='NETCDF4_CLASSIC'
                         )
         # global attributes
         nc.title = title
-#        nc.netcdf_version = "NETCDF4_CLASSIC"
         nc.netcdf_version = "NETCDF4"
         nc.processing_level = "No post-processing performed"
         nc.static_position_station =  ("Latitude: "
@@ -1606,11 +1603,6 @@ def dumptonc_ts_pos(outpath,filename,title,basetime,\
                                np.float64,
                                dimensions=('time')
                                )
-#        ncdist = nc.createVariable(
-#                               'dist',
-#                               np.float64,
-#                               dimensions=('time')
-#                               )
         ncvar_model = nc.createVariable(
                                varname,
                                np.float64,
@@ -1621,10 +1613,6 @@ def dumptonc_ts_pos(outpath,filename,title,basetime,\
         nctime.standard_name = var_dict['time']['standard_name']
         nctime.units = var_dict['time']['units'] + ' ' + str(basetime)
         nctime[:] = time
-#        # dist
-#        ncdist.standard_name = 'collocation_distance'
-#        ncdist.units = 'km'
-#        ncdist[:] = dist
         # var_model
         ncvar_model.standard_name = var_dict[varname]['standard_name']
         ncvar_model.units = var_dict[varname]['units']
