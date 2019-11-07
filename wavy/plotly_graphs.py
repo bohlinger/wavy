@@ -1,5 +1,6 @@
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
+import os
 import yaml
 import numpy as np
 from datetime import datetime, timedelta
@@ -447,7 +448,7 @@ def ts_figs(x,y,varname,instrument_type,instrument_name,sensor):
                                         + '_' + sensor)
                                        , auto_open=False)
 
-def ts_comp_figs(xmod,ymod,xobs,yobs,varname,station,sensor):
+def ts_comp_fig(xmod,ymod,xobs,yobs,varname,station,sensor):
     trace1 = go.Scatter( x=xmod, y=ymod)
     trace2 = go.Scatter( x=xobs, y=yobs)
     data = [trace1,trace2]
@@ -486,11 +487,63 @@ def ts_comp_figs(xmod,ymod,xobs,yobs,varname,station,sensor):
     #py.iplot(fig)
     plotly.offline.plot( fig, filename=('/lustre/storeB/project/fou/om/'
                                         + 'waveverification/obs/stations/'
+                                        + station + '/'
                                         + varname
                                         + '_'
                                         + station
                                         + '_' + sensor)
                                        , auto_open=False)
+
+def ts_comp_figs(xmod,ymod,xobs_lst,yobs_lst,varname,station,sensor_lst,model):
+    # Create traces
+    fig = go.Figure(layout=go.Layout(yaxis=dict(range=[0,18])))
+    fig.add_trace(go.Scatter(x=xmod, y=ymod,
+                    mode='lines',
+                    name=model))
+    for i in range(len(xobs_lst)):
+        fig.add_trace(go.Scatter(x=xobs_lst[i], y=yobs_lst[i],
+                    mode='markers',
+                    name=sensor_lst[i]))
+    destination = ('/lustre/storeB/project/fou/om/waveverification/' 
+                    + 'figures/' + model + '/'
+                    + xmod[0].strftime('%Y') + '/'
+                    + xmod[0].strftime('%m') + '/')
+    os.system('mkdir -p ' + destination)
+    plotly.offline.plot( fig, filename=(  destination
+                                        + varname
+                                        + '_'
+                                        + station
+                                        + '_vs_' 
+                                        + model)
+                                       , auto_open=False)
+
+def ts_valid_figs(xlst,ylst,varname,sat,model,titles):
+    figure = tls.make_subplots(rows=4,cols=1,
+                                subplot_titles=titles,
+                                horizontal_spacing=0.15,
+                                vertical_spacing=0.1,                       
+                                print_grid=True)
+    pl_width=775
+    pl_height=950
+    title = ('Quality statistic for ' + model)
+    figure['layout'].update(title=title,                                 
+                        font= Font(family="Open Sans, sans-serif"),
+                        showlegend=False,     
+                        hovermode='x',  
+                        autosize=False,       
+                        width=pl_width,       
+                        height=pl_height,
+                        plot_bgcolor='#EFECEA', 
+                        bargap=0.05,
+                        margin=Margin(
+                                      l=65,
+                                      r=65,
+                                      b=85,
+                                      t=150
+                                     )
+                       )
+    for k in range(len(xlst)):
+         #make all figures
 
 def make_station_map():
     import pandas as pd

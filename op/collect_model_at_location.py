@@ -64,7 +64,7 @@ else:
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
     #edate = datetime(now.year,now.month,now.day,now.hour)
-    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=5)
+    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=6)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
@@ -108,8 +108,10 @@ time_s_lst = []
 idx_lst = []
 idy_lst = []
 
+print('---')
 print(sdate)
 print(edate)
+print('---')
 
 while tmpdate <= edate:
     print(tmpdate)

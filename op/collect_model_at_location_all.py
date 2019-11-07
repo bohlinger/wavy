@@ -65,7 +65,7 @@ else:
     sdatestr = args.sd
 if args.ed is None:
     #edate = datetime(now.year,now.month,now.day,now.hour)
-    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=5)
+    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=6)
     edatestr = edate.strftime("%Y%m%d%H")
 else:
     edatestr = args.ed
