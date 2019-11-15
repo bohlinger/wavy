@@ -199,6 +199,18 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         tmp_date = fc_date
     return tmp_date
 
+def get_latest_output_init_date(model):
+    '''
+    get init_date for latest model output file
+    '''
+    now = datetime.now()
+    init_times = np.array(model_dict[model]['init_times']).astype('float')
+    init_diffs = now.hour - init_times
+    init_diffs[init_diffs<0] = np.nan
+    h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
+    h = int(init_times[h_idx[0][0]])
+    return datetime(now.year,now.month,now.day,h)
+
 def make_filename(simmode=None,model=None,datein=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
     filetemplate = 'file_template'

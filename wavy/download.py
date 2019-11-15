@@ -52,7 +52,7 @@ if args.sat is None:
 else:
     sat = args.sat
 if args.sd is None:
-    sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(days=1)
+    sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=12)
 else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))

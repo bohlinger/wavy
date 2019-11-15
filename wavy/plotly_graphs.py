@@ -542,7 +542,7 @@ def ts_valid_figs(xlst,ylst,varname,sat,model,titles):
                                       t=150
                                      )
                        )
-    for k in range(len(xlst)):
+#    for k in range(len(xlst)):
          #make all figures
 
 def make_station_map():

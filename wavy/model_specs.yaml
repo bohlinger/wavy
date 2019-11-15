@@ -99,6 +99,7 @@ mwam4:
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
+    init_times: [0,6,12,18]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
 
