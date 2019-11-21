@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
@@ -18,6 +18,16 @@ __status__ = "operational ARCMFC branch"
 List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
+# read_altim
+import os
+import sys
+#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
+#import python
+#python.module('load', 'compiler/intelPE2018')
+#python.module('load', 'hdf5/1.10.5-intel2018')
+#python.module('load', 'netcdf/4.7.0-intel2018')
+import netCDF4
+
 # ignore irrelevant warnings from matplotlib for stdout
 import warnings
 warnings.filterwarnings("ignore")
@@ -28,7 +38,6 @@ from datetime import datetime, timedelta
 import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
-import os
 import yaml
 
 # get_altim
@@ -36,9 +45,6 @@ import urllib
 import gzip
 import ftplib
 from ftplib import FTP
-
-# read_altim
-import netCDF4 as netCDF4
 
 # create_file
 import calendar

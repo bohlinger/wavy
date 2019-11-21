@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
     - retrieve data from station
     - collocate with wave model
@@ -8,20 +8,20 @@
 
 '''
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
-
 import os
-from stationmod import station_class as sc
-from stationmod import parse_d22, extract_d22, matchtime, get_loc_idx
-from modelmod import get_model, check_date
-from collocmod import collocate
+sys.path.append(r'/home/patrikb/wavy/wavy')
+#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
+#import python
+#python.module('load', 'compiler/intelPE2018')
+#python.module('load', 'hdf5/1.10.5-intel2018')
+#python.module('load', 'netcdf/4.7.0-intel2018')
+
 from station_specs import station_dict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import numpy as np
 import time
 
-from ncmod import dumptonc_coll_ts_station
 from copy import deepcopy
 from utils import grab_PID
 import argparse
@@ -49,7 +49,8 @@ parser.add_argument("-ed", metavar='enddate',
 
 args = parser.parse_args()
 
-now = datetime.now()
+now = datetime(2019,11,20,11)
+#now = datetime.now()
 
 init_times = np.array([0,6,12,18]).astype('float')
 init_diffs = now.hour - init_times
@@ -58,13 +59,11 @@ h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
 h = int(init_times[h_idx[0][0]])
 
 if args.sd is None:
-    #sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
     sdate = datetime(now.year,now.month,now.day,h)
     sdatestr = sdate.strftime("%Y%m%d%H")
 else:
     sdatestr = args.sd
 if args.ed is None:
-    #edate = datetime(now.year,now.month,now.day,now.hour)
     edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=6)
     edatestr = edate.strftime("%Y%m%d%H")
 else:
@@ -85,7 +84,7 @@ basetime = datetime(1970,1,1)
 
 stationlst = station_dict.keys()
 for station in (stationlst):
-    cmd = ("python collect_model_at_location.py"
+    cmd = ("python /home/patrikb/wavy/op/collect_model_at_location.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr 
             + " -station " + station 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
     - retrieve data from station
     - collocate with wave model
@@ -7,16 +7,20 @@
 !!!
 
 '''
+import os
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
+#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
+#import python
+#python.module('load', 'compiler/intelPE2018')
+#python.module('load', 'hdf5/1.10.5-intel2018')
+#python.module('load', 'netcdf/4.7.0-intel2018')
 
-import os
 from stationmod import station_class as sc
 from modelmod import get_model, check_date
 from datetime import datetime, timedelta
 from station_specs import station_dict
 from ncmod import dumptonc_ts_pos
-#from collocmod import collocate
 import numpy as np
 from stationmod import matchtime, get_loc_idx
 from copy import deepcopy
@@ -57,13 +61,11 @@ h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
 h = int(init_times[h_idx[0][0]])
 
 if args.sd is None:
-    #sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=1)
     sdate = datetime(now.year,now.month,now.day,h)
 else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    #edate = datetime(now.year,now.month,now.day,now.hour)
     edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=6)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
