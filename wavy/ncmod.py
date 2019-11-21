@@ -181,6 +181,14 @@ def get_nc_ts(pathtofile,varlst):
         nc.close()
     return vardict
 
+def dumptonc_ts_cf(outpath,filename,title,basetime,data_dict):
+    """
+    fct to write collocated data to netcdf file follwoing cf-convention
+    1. if file:     append
+    2. if not file: create
+    """
+    return
+
 def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     """
     1. check if nc file already exists
