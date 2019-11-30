@@ -183,10 +183,40 @@ def get_nc_ts(pathtofile,varlst):
 
 def dumptonc_ts_cf(outpath,filename,title,basetime,data_dict):
     """
-    fct to write collocated data to netcdf file follwoing cf-convention
+    fct to write collocated data to netcdf file following cf-convention
     1. if file:     append
     2. if not file: create
     """
+    fullpath = outpath + filename
+    os.system('mkdir -p ' + outpath)
+    nc = netCDF4.Dataset(fullpath,mode='w')
+    # create dimension time
+    time = nc.variables['time'][:]
+    dimtime = nc.createDimension('time',size=None)
+    # coordinate system info
+    nc_crs = nc.createVariable('UTM_projection',np.int32)
+    nc_crs.latitude_of_projection_origin = 0.0
+    nc_crs.proj4_string = "+proj=utm +zone=37 +datum=WGS84 +units=m +no_defs "
+    nc_crs.scale_factor_at_central_meridian = 0.9996
+    nc_crs.longitude_of_central_meridian = 39.0
+    nc_crs.grid_mapping_name = 'transverse_mercator'
+    nc_crs.false_easting = 500000.0
+    nc_crs.false_northing = 0.0
+    nc_crs.epsg_code = 32637
+    # append all other variables
+    for varstr in data_dict:
+        ncvar = nc.createVariable(varstr,np.float64,dimensions=('time'))
+        # add variable attributes
+    #add global attributes
+    nowstr = datetime.datetime.utcnow().isoformat()
+    globalAttribs = {}
+    globalAttribs['title'] = title
+    globalAttribs['Conventions'] = "CF-1.6"
+    globalAttribs['institution'] = "Norwegian Meteorological Institute"
+    globalAttribs['history'] = nowstr + ". Created."
+    nc.setncatts(globalAttribs)
+    nc.sync()
+    nc.close()
     return
 
 def dumptonc_ts(outpath,filename,title,basetime,results_dict):
