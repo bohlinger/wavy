@@ -186,7 +186,6 @@ def dumptonc_ts_cf(outpath,filename,title,basetime,dID,data_dict):
     fct to write collocated data to netcdf file following cf-convention
     1. if file:     append
     2. if not file: create
-
     input:  path and file, title, basetime for attributes, 
             dID to identify source of attributes, dict with vars
     output: None, creating ncfile
@@ -195,7 +194,7 @@ def dumptonc_ts_cf(outpath,filename,title,basetime,dID,data_dict):
     os.system('mkdir -p ' + outpath)
     nc = netCDF4.Dataset(fullpath,mode='w')
     # create dimension time
-    time = nc.variables['time'][:]
+    time = data_dict['time']
     dimtime = nc.createDimension('time',size=None)
     # add time
     nctime = nc.createVariable('time',np.float64,dimensions=('time'))
@@ -207,13 +206,24 @@ def dumptonc_ts_cf(outpath,filename,title,basetime,dID,data_dict):
     nc_crs = nc.createVariable('latlon',np.int32)
     nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
     nc_crs.grid_mapping_name = 'latitude_longitude'
+    # close file
+    nc.close()
     # append all other variables
     for varstr in data_dict:
-        if varstr not 'time':
+        if varstr != 'time':
+            nc = netCDF4.Dataset(fullpath,mode='r+')
             ncvar = nc.createVariable(varstr,np.float64,dimensions=('time'))
             # add variable attributes
+            varAttribs = {}
+            varAttribs['standard_name'] = "sea_surface_wave_significant_height"
+            varAttribs['long_name'] = "significant wave height derived from: NA"
+            varAttribs['units'] = "m"
+            ncvar.setncatts(varAttribs)
+            ncvar[:] = data_dict[varstr][:]
+            nc.close()
     #add global attributes
-    nowstr = datetime.datetime.utcnow().isoformat()
+    nc = netCDF4.Dataset(fullpath,mode='r+')
+    nowstr = datetime.utcnow().isoformat()
     globalAttribs = {}
     globalAttribs['title'] = title
     globalAttribs['Conventions'] = "CF-1.6"
