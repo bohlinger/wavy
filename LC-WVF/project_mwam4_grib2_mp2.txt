@@ -1,0 +1,15 @@
+fimex --input.file=/lustre/storeB/immutable/archive/projects/metproduction/DNMI_WAVE/2019/06/01/MyWave_wam4_WAVE_20190601T00Z.nc \
+      --input.type=nc \
+      --interpolate.method=bilinear \
+      --interpolate.projString="+proj=latlong +ellps=sphere +a=6371000 +e=0" \
+      --interpolate.xAxisValues=-32.0,-31.95,...,95.00 \
+      --interpolate.yAxisValues=40.0,40.03,...,85.00 \
+      --interpolate.xAxisUnit=degree \
+      --interpolate.yAxisUnit=degree \
+      --process.rotateVector.all \
+      --extract.selectVariables=tm2 \
+      --extract.selectVariables=forecast_reference_time \
+      --extract.reduceTime.start=2019-06-01T12:00:00 \
+      --extract.reduceTime.end=2019-06-01T12:00:00 \
+      --output.config=cdmGribWriterConfig.xml \
+      --output.file=wave_emni_2019060112_test_fc_mp2.grib2 --output.type=grib2;

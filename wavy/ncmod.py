@@ -181,11 +181,15 @@ def get_nc_ts(pathtofile,varlst):
         nc.close()
     return vardict
 
-def dumptonc_ts_cf(outpath,filename,title,basetime,data_dict):
+def dumptonc_ts_cf(outpath,filename,title,basetime,dID,data_dict):
     """
     fct to write collocated data to netcdf file following cf-convention
     1. if file:     append
     2. if not file: create
+
+    input:  path and file, title, basetime for attributes, 
+            dID to identify source of attributes, dict with vars
+    output: None, creating ncfile
     """
     fullpath = outpath + filename
     os.system('mkdir -p ' + outpath)
@@ -193,20 +197,21 @@ def dumptonc_ts_cf(outpath,filename,title,basetime,data_dict):
     # create dimension time
     time = nc.variables['time'][:]
     dimtime = nc.createDimension('time',size=None)
+    # add time
+    nctime = nc.createVariable('time',np.float64,dimensions=('time'))
+    nctime.standard_name = 'time'
+    nctime.long_name = 'collocated time steps'
+    nctime.units = 'seconds since ' + str(basetime)
+    nctime[:] = time
     # coordinate system info
-    nc_crs = nc.createVariable('UTM_projection',np.int32)
-    nc_crs.latitude_of_projection_origin = 0.0
-    nc_crs.proj4_string = "+proj=utm +zone=37 +datum=WGS84 +units=m +no_defs "
-    nc_crs.scale_factor_at_central_meridian = 0.9996
-    nc_crs.longitude_of_central_meridian = 39.0
-    nc_crs.grid_mapping_name = 'transverse_mercator'
-    nc_crs.false_easting = 500000.0
-    nc_crs.false_northing = 0.0
-    nc_crs.epsg_code = 32637
+    nc_crs = nc.createVariable('latlon',np.int32)
+    nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
+    nc_crs.grid_mapping_name = 'latitude_longitude'
     # append all other variables
     for varstr in data_dict:
-        ncvar = nc.createVariable(varstr,np.float64,dimensions=('time'))
-        # add variable attributes
+        if varstr not 'time':
+            ncvar = nc.createVariable(varstr,np.float64,dimensions=('time'))
+            # add variable attributes
     #add global attributes
     nowstr = datetime.datetime.utcnow().isoformat()
     globalAttribs = {}

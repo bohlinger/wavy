@@ -71,13 +71,14 @@ def progress(count, total, status=''):
     sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
     sys.stdout.flush()
 
-def credentials_from_netrc():
+def credentials_from_netrc(remoteHostName=None):
     import netrc
     import os.path
+    if remoteHostName is None:
+        remoteHostName = "nrt.cmems-du.eu"
     # get user home path
     usrhome = os.getenv("HOME")
     netrc = netrc.netrc()
-    remoteHostName = "nrt.cmems-du.eu"
     user = netrc.authenticators(remoteHostName)[0]
     pw = netrc.authenticators(remoteHostName)[2]
     return user, pw

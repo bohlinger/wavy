@@ -1,0 +1,17 @@
+#!/bin/bash -fxe
+#$ -N LC-WVF_GRIB2_12
+#$ -l h_rt=0:08:00
+#$ -S /bin/bash
+#$ -pe mpi 1
+#$ -l h_vmem=2G
+#$ -q ded-parallelx.q
+#$ -M patrikb@met.no
+#$ -m abe
+#$ -o /home/patrikb/wavy/LC-WVF/
+#$ -cwd 
+#$ -j y
+# ---------------------------
+module load fimex
+module list
+cd /home/patrikb/wavy/LC-WVF
+./create_grib2_lt12.py >& create_grib2_lt12.out
