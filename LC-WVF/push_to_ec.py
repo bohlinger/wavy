@@ -2,6 +2,9 @@
 """
 needs: pysftp==0.2.8
 bug in version 0.2.9
+login for test if files are being pushed:
+    lftp enmi_lcwfv@acquisition.ecmwf.int
+    cd lcwfv_enmi
 """
 
 import pysftp

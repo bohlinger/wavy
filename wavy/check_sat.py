@@ -78,7 +78,7 @@ if args.twin is None:
 
 # get data
 if args.sat == 'all':
-    satlist = ['s3a','s3b','j3','c2','al']
+    satlist = ['s3a','s3b','j3','c2','al','cfo']
     loc0 = []
     loc1 = []
     Hs = []
@@ -106,7 +106,7 @@ if args.sat == 'all':
     sa_obj.sat = str(satlist)
 elif args.sat == 'multi':
     #satlist = [int(item) for item in args.list.split(',')]
-    satlist = args.list.split(',')
+    satlist = args.l.split(',')
     loc0 = []
     loc1 = []
     Hs = []
