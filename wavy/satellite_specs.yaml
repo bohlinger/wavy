@@ -1,0 +1,11 @@
+--- # specifications for satellite missions
+
+altimeter:
+    s3a:
+    s3b:
+    c2:
+    al:
+
+other:
+    cfo:
+        SWIM:

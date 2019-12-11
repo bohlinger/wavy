@@ -17,7 +17,7 @@ ekofiskL:
             Hs:
                 standard_name: "sea_surface_wave_significant_height"
                 long_name: "significant wave height derived from: NA"
-                units: m
+                units: "m"
 
 asgardb:
     sensor:
