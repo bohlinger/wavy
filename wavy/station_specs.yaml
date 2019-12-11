@@ -15,8 +15,8 @@ ekofiskL:
     cf:
         varAttribs:
             Hs:
-                standard_name: sea_surface_wave_significant_height
-                long_name: significant wave height derived from: NA
+                standard_name: "sea_surface_wave_significant_height"
+                long_name: "significant wave height derived from: NA"
                 units: m
 
 asgardb:
