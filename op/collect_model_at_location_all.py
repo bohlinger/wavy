@@ -15,10 +15,10 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 #python.module('load', 'compiler/intelPE2018')
 #python.module('load', 'hdf5/1.10.5-intel2018')
 #python.module('load', 'netcdf/4.7.0-intel2018')
+#python.module('load', 'Python/3.7.2')
 
 from station_specs import station_dict
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 import numpy as np
 import time
 

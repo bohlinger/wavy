@@ -21,12 +21,14 @@ destination = 'lcwfv_enmi'
 
 # obtain filename
 path = '/lustre/storeA/project/fou/om/LC-WVF/'
-filelst = np.sort(os.listdir(path))
-filename = filelst[-1]
-fullname = path + filename
+filenamelst = [
+                'wave_enmi_2019121606_prod_fc.grib2',
+                'wave_enmi_2019121718_prod_fc.grib2',
+                ]
 
-print('transfer: ' + fullname)
-
-with pysftp.Connection(host=host, username=user, password=pw) as sftp:
-    sftp.cwd(destination)
-    sftp.put(fullname)
+for filename in filenamelst:
+    with pysftp.Connection(host=host, username=user, password=pw) as sftp:
+        fullname = path + filename
+        print('transfer: ' + fullname)
+        sftp.cwd(destination)
+        sftp.put(fullname)
