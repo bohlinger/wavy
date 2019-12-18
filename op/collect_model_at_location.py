@@ -16,7 +16,6 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 #python.module('load', 'hdf5/1.10.5-intel2018')
 #python.module('load', 'netcdf/4.7.0-intel2018')
 
-from stationmod import station_class as sc
 from modelmod import get_model, check_date
 from datetime import datetime, timedelta
 from station_specs import station_dict

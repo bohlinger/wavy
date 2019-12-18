@@ -14,10 +14,10 @@ effortless orientation. May be combined at some point.
 '''
 import sys
 import yaml
+import os
 
 # read files
 import netCDF4
-from netCDF4 import Dataset
 
 # all class
 import numpy as np
@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
-import os
+#import os
 import math
 
 # progress bar
