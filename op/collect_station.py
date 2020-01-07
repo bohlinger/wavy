@@ -85,7 +85,8 @@ while tmpdate < edate:
         title_ts=(varname + ' observations from ' + statname + ' ' + sensorname)
         dumptonc_ts_station(outpath,filename_ts,title_ts,\
                             sc_obj,statname,sensorname)
-    except ValueError as e:
+#    except ValueError as e:
+    except Exception as e: # accept all errors
         print(e)
         pass
     tmpdate = tmpdate + timedelta(minutes=deltat)

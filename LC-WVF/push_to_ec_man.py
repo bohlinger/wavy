@@ -22,8 +22,7 @@ destination = 'lcwfv_enmi'
 # obtain filename
 path = '/lustre/storeA/project/fou/om/LC-WVF/'
 filenamelst = [
-                'wave_enmi_2019121606_prod_fc.grib2',
-                'wave_enmi_2019121718_prod_fc.grib2',
+                'wave_enmi_2019122206_prod_fc.grib2'
                 ]
 
 for filename in filenamelst:
