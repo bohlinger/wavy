@@ -24,6 +24,11 @@ rect:
         llcrnrlat: 42.
         urcrnrlon: 94.
         urcrnrlat: 84.
+    Moskenes:
+        llcrnrlon: 11.5
+        llcrnrlat: 67.
+        urcrnrlon: 14.
+        urcrnrlat: 68.5
 
 
 # polynomial

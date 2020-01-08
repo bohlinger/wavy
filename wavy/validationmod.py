@@ -110,7 +110,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     else:
         m = Basemap(width=4300000,
                 height=4600000,
-                resolution='l',
+#                resolution='l',
+                resolution='f',
                 projection='laea',
                 lat_ts=65,lat_0=65,lon_0=2.)
     if (model == 'swan_karmoy250'):
@@ -172,7 +173,7 @@ def plot_sat(sa_obj):
     else:
         m = Basemap(width=4300000,
                 height=4600000,
-                resolution='l',
+                resolution='f',
                 projection='laea',
                 lat_ts=65,lat_0=65,lon_0=2.)
     if (sa_obj.region == 'swan_karmoy'):

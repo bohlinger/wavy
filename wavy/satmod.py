@@ -564,7 +564,7 @@ class satellite_altimeter():
         import numpy as np
         if (region not in region_dict['poly'] \
             and region not in model_dict):
-            sys.exit("Region is not defined")
+            sys.exit("Region polygone is not defined")
         elif isinstance(region,dict)==True:
             print ("Manuall specified region: \n"
                 + " --> Bounds: " + str(region))
