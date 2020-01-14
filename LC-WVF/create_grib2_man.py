@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 
-now = datetime(2019,12,22,6)
+now = datetime(2020,1,14,0)
 init_fname = now.strftime("%Y%m%dT%H")
 outpath = "/lustre/storeA/project/fou/om/LC-WVF/"
 
