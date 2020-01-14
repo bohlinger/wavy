@@ -17,7 +17,6 @@ effortless orientation. May be combined at some point.
 import matplotlib
 matplotlib.use('Agg')
 
-# progress bar and other stuff
 import sys
 
 # ignore irrelevant warnings from matplotlib for stdout
@@ -44,15 +43,6 @@ else:
     from urllib.request import urlretrieve, urlcleanup # python3
 
 # --- global functions ------------------------------------------------#
-
-def progress(count, total, status=''):
-    "from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3"
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
 
 # flatten all lists before returning them
 # define flatten function for lists

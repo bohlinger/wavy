@@ -12,8 +12,10 @@ effecient programming are most welcome!
 List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
-# progress bar and other stuff
 import sys
+
+# progress bar
+from utils import progress
 
 # all class
 import numpy as np
@@ -61,15 +63,6 @@ with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
-
-def progress(count, total, status=''):
-    "from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3"
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
 
 def credentials_from_netrc(remoteHostName=None):
     import netrc

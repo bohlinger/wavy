@@ -25,7 +25,6 @@ from argparse import RawTextHelpFormatter
 import os
 import yaml
 
-# progress bar
 import sys
 
 # get_remote

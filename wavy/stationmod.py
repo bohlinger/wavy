@@ -56,7 +56,6 @@ import multiprocessing as mp
 # bintime
 import math
 
-# progress bar
 import sys
 
 # get_remote
