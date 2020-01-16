@@ -69,7 +69,7 @@ mwam3:
     basetime: 1970-01-01
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
 
@@ -77,7 +77,7 @@ mwam3_coords:
     lons: longitude
     lats: latitude
     pathtofile: "/lustre/storeB/users/anac/A3km/inputfile/\
-            TRUEcoordDepthA3km.nc"
+                TRUEcoordDepthA3km.nc"
 
 
 mwam4:
@@ -162,6 +162,26 @@ mwam8force:
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
 
+mwam800c3:
+    Hs: hs,
+    lons: longitude,
+    lats: latitude',
+    rotlons: rlon,
+    rotlats: rlat,
+    time: time,
+    path_template: "/lustre/storeB/immutable/archive/\
+                    projects/metproduction/MyWavewam_800m/\
+                    %Y/%m/%d/"
+    path: "/lustre/storeB/immutable/archive/\
+            projects/metproduction/MyWavewam_800m/"
+    file_template: MyWave_wam800_c3WAVE%H.nc
+    basetime: 1970-01-01 00:00:00
+    units_time: seconds since 1970-01-01 00:00:00
+    delta_t: 0000-00-00 (01:00:00)
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-8
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+
 ecwam: 
     Hs: significant_wave_height
     lons: longitude
@@ -173,3 +193,54 @@ ecwam:
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
+
+
+# examples for Erin's simulations
+
+Erin1W: # one way coupled experiment
+    Hs: hs
+    lons: longitude
+    lats: latitude
+    time: time
+    path: "/lustre/storeB/users/erinet/coup_exp_output/\
+            ST3_experiments/1waycoup_direct_ST3/"
+    path_template: "/lustre/storeB/users/erinet\
+                    /coup_exp_output/ST3_experiments/\
+                    1waycoup_direct_ST3/"
+    file_template: ww3.%Y%m%dT%H_hs.nc
+    basetime: 1990-01-01 00:00:00
+    units_time: days since 1990-01-01 00:00:00
+    time_conventions: "relative julian days with decimal part
+                        as parts of the day"
+    delta_t: 3h
+    _FillValue: 9.96921e+36
+
+Erin2W: # two way coupled experiment
+    Hs: hs
+    lons: longitude
+    lats: latitude
+    time: time
+    path: "/lustre/storeB/users/erinet/coup_exp_output/\
+            ST3_experiments/Exp2_direct_ST3/"
+    path_template: "/lustre/storeB/users/erinet/\
+                    coup_exp_output/ST3_experiments/\
+                    Exp2_direct_ST3/"
+    file_template: ww3.%Y%m%dT%H_hs.nc
+    basetime: 1990-01-01 00:00:00
+    units_time: days since 1990-01-01 00:00:00
+    time_conventions: "relative julian days with decimal part
+                        as parts of the day"
+    delta_t: 3h
+    _FillValue: 9.96921e+36
+
+# list of continuous simulations, will be deprecated in future
+
+explst:
+    - OPEWAVE
+    - NoCBM1.2WAVE
+    - withCurrBM1.2WAVE
+    - BETAM106OPEWAVE
+    - NoCWAVE
+    - WithCWAVE
+    - Erin1W
+    - Erin2W

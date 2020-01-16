@@ -29,7 +29,16 @@ rect:
         llcrnrlat: 67.
         urcrnrlon: 14.
         urcrnrlat: 68.5
-
+    Sulafj:
+        llcrnrlon: 5.
+        llcrnrlat: 62.
+        urcrnrlon: 8.14
+        urcrnrlat: 63.15
+    Erin1W:
+        llcrnrlon: -20.
+        llcrnrlat: 60.
+        urcrnrlon: 80.
+        urcrnrlat: 89.
 
 # polynomial
 poly:
