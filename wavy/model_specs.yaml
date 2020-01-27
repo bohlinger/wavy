@@ -194,6 +194,21 @@ ecwam:
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
 
+WW3_4km: # WW3_4km
+    Hs: hs
+    lons: longitude
+    lats: latitude
+    time: time
+    path: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/"
+    path_template: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/"
+    # ww3_20191225T12Z.nc
+    file_template: ww3.%Y%m%dT%HZ.nc
+    basetime: 1990-01-01 00:00:00
+    units_time: days since 1990-01-01 00:00:00
+    time_conventions: "relative julian days with decimal part
+                        as parts of the day"
+    delta_t: 1h
+    _FillValue: 9.96921e+36
 
 # examples for Erin's simulations
 
