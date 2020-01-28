@@ -569,7 +569,7 @@ class satellite_altimeter():
             if region == 'mwam8':
                 grid_date = datetime(2019,2,1,6)
             elif region == 'ww3':
-                grid_date = datetime(2018,12,27,12)
+                grid_date = datetime(2020,1,1,0)
             elif (region == 'MoskNC' or region == 'MoskWC'):
                 grid_date = datetime(2018,3,1)
             elif (region == 'swanKC'):
