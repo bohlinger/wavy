@@ -103,7 +103,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
     ww3        hourly
     """
-    if (model == 'mwam4' or model == 'mwam4force'):
+    if (model == 'mwam4' or model == 'mwam4force' or model == 'ww3'):
         multsix = int(leadtime/6)
         restsix = leadtime%6
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and 

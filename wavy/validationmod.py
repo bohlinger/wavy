@@ -100,6 +100,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
                     results_dict["model_lats_matches"]
     mhs = MHs.squeeze() 
     mhs[mhs<0] = np.nan
+    mhs[mhs>30] = np.nan
     
     # check region and determine projection
 
@@ -144,16 +145,18 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
+    fs = 12
 
     # - model contours
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
                     transform = ccrs.PlateCarree(), 
                     cmap = cmocean.cm.amp, norm = norm)
+    #im = ax.contourf(Mlons, Mlats, mhs, transform = ccrs.PlateCarree())
 
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[12::1],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linestyle = ':', linewidths = 0.3)
-    ax.clabel(imc, fmt='%2d', colors='w', fontsize=12)
+    ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
     # - lons
     cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
@@ -174,7 +177,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     # - regular lat, lon projection
     for lon, lat in zip (lon, lat):
         plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat), 
-                    transform = ccrs.PlateCarree(), fontsize=12)
+                    transform = ccrs.PlateCarree(), fontsize=fs)
     # - text for lons
     lon = np.arange (30,50,10)
     lat = np.repeat (75,len(lon))
@@ -182,7 +185,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     # - regular lat, lon projection
     for lon, lat in zip (lon, lat):
         plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon), 
-                    transform = ccrs.PlateCarree(), fontsize=12)
+                    transform = ccrs.PlateCarree(), fontsize=fs)
 
     # - add coastline
     ax.add_geometries(land.intersecting_geometries(
@@ -195,8 +198,9 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
     # - add satellite
-    #ax.plot(loc1,loc0,marker='o',ms=1, mfc=Hs, transform=ccrs.PlateCarree())
-    ax.scatter(slons,slats,s=10,c=results_dict['sat_Hs_matches'],
+    if len(clats)>0:
+        sc = ax.scatter(clons,clats,s=10,
+                c=results_dict['sat_Hs_matches'],
                 marker='o',verts=levels, edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm, 
                 transform=ccrs.PlateCarree())
@@ -204,7 +208,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
                         fraction=0.046, pad=0.04)
-    cbar.ax.set_ylabel('Hs [m]')
+    cbar.ax.set_ylabel('Hs [m]',size=fs)
+    cbar.ax.tick_params(labelsize=fs)
 
     # - title
     plt.title(model + ' model time step: '
@@ -215,6 +220,11 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=12)
+    plt.savefig(model + '_test_' 
+                + results_dict['valid_date'][0].strftime("%Y%m%d")
+                + 'T' 
+                + results_dict['valid_date'][0].strftime("%H") 
+                + 'Z.png', format = 'png', dpi=200)
     plt.show()
 
 def plot_sat(sa_obj):
