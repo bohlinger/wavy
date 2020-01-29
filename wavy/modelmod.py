@@ -227,16 +227,10 @@ def make_filename(simmode=None,model=None,datein=None,
         elif (model == 'Erin1W' or model == 'Erin2W'):
             filename = (model_dict[model]['path']
               + fc_date.strftime(model_dict[model][filetemplate]))
-        elif (model == 'ww3'):
-            filename = (fc_date.strftime(
-                            model_dict[model]['path_template'])
-                            + fc_date.strftime(
-                            model_dict[model][filetemplate])
-                        )
-
         elif (model == 'mwam4' or model=='mwam8' or model=='ecwam' or\
             model=='mwam800c3' or model == 'mwam4force' or \
-            model=='mwam8force' or model=='ecwamforce'):
+            model=='mwam8force' or model=='ecwamforce' or \
+            model == 'ww3'):
             if (fc_date == init_date or leadtime == 0):
                 filename = (fc_date.strftime(
                             model_dict[model]['path_template'])
