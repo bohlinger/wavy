@@ -220,11 +220,11 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=12)
-    #plt.savefig(model + '_test_' 
-    #            + results_dict['valid_date'][0].strftime("%Y%m%d")
-    #            + 'T' 
-    #            + results_dict['valid_date'][0].strftime("%H") 
-    #            + 'Z.png', format = 'png', dpi=200)
+    plt.savefig(model + '_test_' 
+                + results_dict['valid_date'][0].strftime("%Y%m%d")
+                + 'T' 
+                + results_dict['valid_date'][0].strftime("%H") 
+                + 'Z.png', format = 'png', dpi=200)
     plt.show()
 
 def comp_wind(model,var,Mlons,Mlats,date,region):
