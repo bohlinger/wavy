@@ -569,7 +569,7 @@ class satellite_altimeter():
             if region == 'mwam8':
                 grid_date = datetime(2019,2,1,6)
             elif region == 'ww3':
-                grid_date = datetime(2020,1,1,0)
+                grid_date = datetime(2019,12,10,0)
             elif (region == 'MoskNC' or region == 'MoskWC'):
                 grid_date = datetime(2018,3,1)
             elif (region == 'swanKC'):
@@ -637,17 +637,24 @@ def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
     if (lat is None or lon is None):
         lat=locations[station][0]
         lon=locations[station][1]
+    print('Get footprints near lat:', lat, ' lon:', lon)
     lats = sa_obj.loc[0]
     lons = sa_obj.loc[1]
     Hs = sa_obj.Hs
     time = sa_obj.time
     sample = []
-    dists = []
+    distsp = []
+    lonsp = []
+    latsp = []
+    timep = []
+    idx = []
     for i in range(len(lats)):
-        if ((lats[i] < lat+1) and (lats[i] > lat-1)):
-            if ((lons[i] < lon+1) and (lons[i] > lon-1)):
-                dist=haversine(lons[i],lats[i],lon,lat)
-                if (dist<=distlim):
-                    sample.append(Hs[i])
-                    dists.append(dist)
-    return sample, dists
+        dist=haversine(lons[i],lats[i],lon,lat)
+        if (dist<=distlim):
+            sample.append(Hs[i])
+            distsp.append(dist)
+            lonsp.append(lons[i])
+            latsp.append(lats[i])
+            timep.append(time[i])
+            idx.append(i)
+    return sample, distsp, lonsp, latsp, timep, idx

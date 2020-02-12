@@ -14,7 +14,10 @@ from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 from ncmod import get_nc_time, dumptonc_ts
-from model_specs import model_dict
+import yaml
+
+with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -28,6 +31,12 @@ Usage:
     """,
     formatter_class = RawTextHelpFormatter
     )
+parser.add_argument("-mod", metavar='model',
+    help="model to be used for collocation")
+parser.add_argument("-sat", metavar='satellite',
+    help="satellite mission to be used for collocation")
+parser.add_argument("-reg", metavar='region',
+    help="region of interest")
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
@@ -51,17 +60,18 @@ else:
 # retrieve PID
 grab_PID()
 
+forecasts = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
 #forecasts = [0, 12, 36, 60, 84, 108, 132]
-forecasts = [0, 12, 36]
+#forecasts = [0, 12, 36]
 
 # settings
 timewin = 30
-region = 'ARCMFC3'
-model = 'ARCMFC3'
+region = args.reg
+model = args.mod
 distlim = 4
 
-satlist = ['s3a','s3b','j3','c2','al']
-#satlist = ['s3a']
+#satlist = ['s3a','s3b','j3','c2','al']
+satlist = [args.sat]
 
 tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
@@ -78,17 +88,23 @@ while tmpdate <= edate:
                 print("leadtime: ", element, "h")
                 print("fc_date: ", fc_date)
                 basetime=model_dict[model]['basetime']
-                outpath=('/lustre/storeB/project/fou/om/' + model
-                    + '/'
+                outpath=('/lustre/storeB/project/fou/om/' 
+                    + 'waveverification/'
+                    + model
+                    + '/satellites/altimetry/'
                     + sat
                     + '/CollocationFiles/'
                     + fc_date.strftime("%Y/%m/"))
                 filename_ts=fc_date.strftime(model + "_vs_"
-                                        + sat + "_coll_ts_lt"
+                                        + sat 
+                                        + '_for_'
+                                        + region
+                                        + "_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
                 title_ts=('collocated time series for ' 
                     + model + ' vs ' + sat
+                    + ' for region ' + region
                     + ' with leadtime '
                     + "{:0>3d}".format(element)
                     + ' h')
@@ -105,11 +121,6 @@ while tmpdate <= edate:
                         model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
                     dumptonc_ts(outpath,filename_ts,title_ts,\
                                 basetime,results_dict)
-                except SystemExit: 
-                    print('error: --> leadtime is not available')
-                except IOError:
-                    print('error: --> Model output not available')
-                except ValueError:
-                    print('error: --> Model wave field not available.')
-                    print('Continuing with next time step.')
-    tmpdate = tmpdate + timedelta(hours=12)
+                except Exception as e:
+                    print(e)
+    tmpdate = tmpdate + timedelta(hours=6)

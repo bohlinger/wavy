@@ -1582,15 +1582,100 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
         'Significant wave height estimate from altimeter wave form'
     ncHs.valid_range = 0., 25.
     nclongitude.units = 'degree_east'
-    nclongitude[:] = sa_obj.rloc[1]
+    nclongitude[:] = sa_obj.loc[1]
     nclongitude.standard_name = 'longitude'
     nclongitude.valid_min = -180.
     nclongitude.valid_max = 180.
-    nclatitude[:] = sa_obj.rloc[0]
+    nclatitude[:] = sa_obj.loc[0]
     nclatitude.standard_name = 'latitude'
     nclatitude.units = 'degree_north'
     nclatitude.valid_min = -90.
     nclatitude.valid_max = 90.
+    nc.close()
+
+def dumptonc_pointsat(sa_obj,outpath,mode=None):
+    """
+    dump satellite altimetry data to netcdf-file
+    """
+    sdate=sa_obj.sdate
+    edate=sa_obj.edate
+    filename = (sa_obj.sat
+                + "_"
+                + sa_obj.region
+                + "_"
+                + sdate.strftime("%Y%m%d%H%M%S")
+                + "_"
+                + edate.strftime("%Y%m%d%H%M%S")
+                + ".nc")
+    fullpath = outpath + filename
+    os.system('mkdir -p ' + outpath)
+    print ('Dump altimeter wave data from '
+            + sa_obj.sat
+            + ' to file: ' + fullpath)
+    nc = netCDF4.Dataset(
+                    fullpath,mode='w',
+                    )
+    nc.title = (sa_obj.sat + 
+                ' altimeter significant wave height close to ' 
+                + sa_obj.region)
+    timerange=len(sa_obj.Hs)
+    dimsize = None
+    # dimensions
+    dimtime = nc.createDimension(
+                            'time',
+                            size=dimsize
+                            )
+    # variables
+    nctime = nc.createVariable(
+                           'time',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    nclatitude = nc.createVariable(
+                           'latitude',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    nclongitude = nc.createVariable(
+                           'longitude',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    ncHs = nc.createVariable(
+                           'Hs',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    ncdist = nc.createVariable(
+                           'dist',
+                           np.float64,
+                           dimensions=('time')
+                           )
+    # generate time for netcdf file
+    basetime=sa_obj.basetime
+    nctime.units = 'seconds since 2000-01-01 00:00:00'
+    nctime[:] = sa_obj.time
+    ncHs[:] = sa_obj.Hs
+    ncHs.units = 'm'
+    ncHs.standard_name = 'sea_surface_wave_significant_height'
+    ncHs.long_name = \
+        'Significant wave height estimate from altimeter wave form'
+    ncHs.valid_range = 0., 25.
+    nclongitude.units = 'degree_east'
+    nclongitude[:] = sa_obj.loc[1]
+    nclongitude.standard_name = 'longitude'
+    nclongitude.valid_min = -180.
+    nclongitude.valid_max = 180.
+    nclatitude[:] = sa_obj.loc[0]
+    nclatitude.standard_name = 'latitude'
+    nclatitude.units = 'degree_north'
+    nclatitude.valid_min = -90.
+    nclatitude.valid_max = 90.
+    ncdist.units = 'km'
+    ncdist[:] = sa_obj.dist
+    ncdist.long_name = ('distance from footprint ' 
+                    + 'to location according '
+                    + 'to haversine')
     nc.close()
 
 def dumptonc_ts_pos(outpath,filename,title,basetime,\
