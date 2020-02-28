@@ -110,9 +110,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             (fc_date - timedelta(hours=leadtime)).hour != 6 and 
             (fc_date - timedelta(hours=leadtime)).hour !=12 and 
             (fc_date - timedelta(hours=leadtime)).hour !=18):
-            sys.exit('error: --> leadtime is not available') 
+            print('error: --> leadtime is not available') 
         if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> Leadtime must be less than 60')
         if leadtime is None:
             pass
         else:
@@ -125,9 +125,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         dummy_date = fc_date + timedelta(hours=6)
         if ((dummy_date - timedelta(hours=leadtime)).hour != 0 and 
             (dummy_date - timedelta(hours=leadtime)).hour !=12):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> Leadtime must be less than 60')
         if leadtime is None:
             pass
         else:
@@ -138,9 +138,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         multsix = int(leadtime/24)
         restsix = leadtime%24
         if ((fc_date - timedelta(hours=leadtime)).hour != 0):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>228:
-            sys.exit('error: --> Leadtime must be less than 228')
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -152,9 +152,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
             (fc_date - timedelta(hours=leadtime)).hour !=12):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>228:
-            sys.exit('error: --> Leadtime must be less than 228')
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -166,9 +166,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
             (fc_date - timedelta(hours=leadtime)).hour !=12):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> Leadtime must be less than 60')
         if leadtime is None:
             pass
         else:
@@ -186,9 +186,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             (fc_date - timedelta(hours=leadtime)).hour !=15 and
             (fc_date - timedelta(hours=leadtime)).hour !=18 and
             (fc_date - timedelta(hours=leadtime)).hour !=21):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> Leadtime must be less than 60')
         if leadtime is None:
             pass
         else:

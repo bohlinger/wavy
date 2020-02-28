@@ -103,16 +103,32 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
     mhs[mhs>30] = np.nan
     
     # check region and determine projection
+    polarproj=None
 
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
         or sa_obj.region == 'ARCMFC3'):
         # Polar Stereographic Projection
-        pass
+        polarproj = ccrs.NorthPolarStereo(
+                            central_longitude=0.0,
+                            true_scale_latitude=66,
+                            globe=None)
+        projection = polarproj
+        land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                        facecolor=cfeature.COLORS['land'])
     else:
-        latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
-        latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
-        lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
-        lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+        # other projection for regional visualization
+        if sa_obj.region in region_dict['rect']:
+            latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
+            latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
+            lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
+            lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+        elif sa_obj.region in region_dict['poly']:
+            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
+            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
+            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
+            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+        else: print("Error: Region not defined!")
+
         land = cfeature.GSHHSFeature(scale='i', levels=[1], 
                         facecolor=cfeature.COLORS['land'])
         projection = ccrs.LambertAzimuthalEqualArea(
@@ -124,28 +140,36 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
                         subplot_kw=dict(projection=projection),
                         figsize=(9, 9))
     # plot domain extent
-    ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
-    #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-    #ax.set_extent([-26, 32,latmin, latmax],crs = ccrs.PlateCarree())
-    ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
-            color = 'gray', linewidth =2)
-    ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
-            color = 'gray', linewidth =2)
-    ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(), 
-            color = 'gray', linewidth =2)
-    ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
-            color = 'gray', linewidth =2)
+    if projection != polarproj:
+        #ax.set_extent([lonmin, 52,latmin, 81],crs = ccrs.PlateCarree())
+        ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
+        #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
+        #ax.set_extent([-26, 32,latmin, latmax],crs = ccrs.PlateCarree())
+        ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+    else:
+        latmin = 40
+        latmax = 90
+        lonmin = -180
+        lonmax = 180
+        ax.set_extent([lonmin, lonmax, latmin, latmax],crs = ccrs.PlateCarree())
 
     # colors
     if mode == 'dir':
         cmap = cmocean.cm.phase
-        levels = range(0,360,9)
+        levels = range(0,360,10)
         norm = mpl.colors.BoundaryNorm(levels, cmap.N)
     else:
         #cmap = mplcm.GMT_haxby
         cmap = cmocean.cm.amp
-        levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,
-                    3,3.5,4,4.5,6,7,8,9,10,12,15,20]
+        levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
         norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
     # draw figure features
@@ -158,42 +182,56 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
                     cmap = cmocean.cm.amp, norm = norm)
     #im = ax.contourf(Mlons, Mlats, mhs, transform = ccrs.PlateCarree())
 
-    imc = ax.contour(Mlons, Mlats, mhs, levels = levels[12::1],
+    imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linestyle = ':', linewidths = 0.3)
+    #ax.clabel(imc, fmt='%.1f', colors='w', fontsize=fs)
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
-    # - lons
-    cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+    if projection != polarproj:
+        # - lons
+        cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
                     colors='k', linewidths = .6, alpha = 0.6, 
                     levels=range(-40,70,10))
-    cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+        cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
                     colors='k', linewidths = 2, alpha = 0.6, 
                     levels=range(0,1))
-    # - lats
-    cs = ax.contour(Mlons, Mlats, Mlats, transform = ccrs.PlateCarree(),
+        # - lats
+        cs = ax.contour(Mlons, Mlats, Mlats, transform = ccrs.PlateCarree(),
                     colors='k', linewidths = .6, alpha = 0.6, 
                     levels=range(45,85,5))
 
-    # - text for lats
-    lat = np.arange (70, 90, 10)
-    lon = np.repeat (40, len(lat))
+        # - text for lats
+        lat = np.arange (70, 90, 10)
+        lon = np.repeat (40, len(lat))
 
-    # - regular lat, lon projection
-    for lon, lat in zip (lon, lat):
-        plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat), 
+        # - regular lat, lon projection
+        for lon, lat in zip (lon, lat):
+            plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat), 
                     transform = ccrs.PlateCarree(), fontsize=fs)
-    # - text for lons
-    lon = np.arange (30,50,10)
-    lat = np.repeat (75,len(lon))
+        # - text for lons
+        lon = np.arange (30,50,10)
+        lat = np.repeat (75,len(lon))
 
-    # - regular lat, lon projection
-    for lon, lat in zip (lon, lat):
-        plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon), 
+        # - regular lat, lon projection
+        for lon, lat in zip (lon, lat):
+            plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon), 
                     transform = ccrs.PlateCarree(), fontsize=fs)
 
     # - add coastline
-    ax.add_geometries(land.intersecting_geometries(
+    #ax.add_geometries(land.intersecting_geometries(
+    #                [lonmin, lonmax, latmin, latmax]),
+    #                ccrs.PlateCarree(),
+    #                facecolor=cfeature.COLORS['land'],
+    #                edgecolor='black',linewidth=1)
+    if projection != polarproj:
+        ax.add_geometries(land.intersecting_geometries(
+                    [lonmin, lonmax, latmin, latmax]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+    else:
+        ax.add_geometries(land.intersecting_geometries(
                     [lonmin, lonmax, latmin, latmax]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
@@ -516,39 +554,59 @@ def plot_sat(sa_obj):
 
     # check region and determine projection
 
+    polarproj=None
+
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
         or sa_obj.region == 'ARCMFC3'):
         # Polar Stereographic Projection
-        pass
-    else:
-        latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
-        latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
-        lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
-        lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+        polarproj = ccrs.NorthPolarStereo(
+                            central_longitude=0.0, 
+                            true_scale_latitude=66, 
+                            globe=None)
+        projection = polarproj
         land = cfeature.GSHHSFeature(scale='i', levels=[1],
                         facecolor=cfeature.COLORS['land'])
-        #projection = ccrs.LambertAzimuthalEqualArea(
-        #                central_longitude=0.0,
-        #                central_latitude=60.0)
-        projection = ccrs.Mercator()
+        #pass
+    else:
+        if sa_obj.region in region_dict['rect']:
+            latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
+            latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
+            lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
+            lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+        elif sa_obj.region in region_dict['poly']:
+            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
+            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
+            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
+            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+        else: print("Error: Region not defined!")
+        azimproj = ccrs.LambertAzimuthalEqualArea(
+                        central_longitude=0.0,
+                        central_latitude=60.0)
+        projection = azimproj
+        land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                        facecolor=cfeature.COLORS['land'])
+        #projection = ccrs.Mercator()
 
     # make figure
     fig, ax = plt.subplots(nrows=1, ncols=1,
                         subplot_kw=dict(projection=projection),
                         figsize=(9, 9))
-
     # plot domain extent
-    ax.set_extent([lonmin, 52,latmin, 81],crs = ccrs.PlateCarree())
-    #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-    
+    if projection != polarproj:
+        ax.set_extent([lonmin+6, 45,latmin+6, 84],crs = ccrs.PlateCarree())
+    else:
+        ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
+
+
     # plot lats/lons
     #ax.plot(5, 60, transform = ccrs.PlateCarree())
     #ax.gridlines(draw_labels = True)
     #ax.gridlines(linewidth = 1.5,color = 'gray', alpha = 0.4, linestyle = '--')
-    gl = ax.gridlines(draw_labels=True)
-    gl.xlabels_top = gl.ylabels_right = False
-    gl.xformatter = LONGITUDE_FORMATTER
-    gl.yformatter = LATITUDE_FORMATTER
+    if (projection != polarproj and projection!=azimproj):
+        gl = ax.gridlines(draw_labels=True)
+        gl.xlabels_top = gl.ylabels_right = False
+        gl.xformatter = LONGITUDE_FORMATTER
+        gl.yformatter = LATITUDE_FORMATTER
     
     # colors
     #cmap = mplcm.GMT_haxby
@@ -558,8 +616,16 @@ def plot_sat(sa_obj):
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
     # - add coastline
-    ax.add_geometries(land.intersecting_geometries(
-                    [lonmin, lonmax, latmin, latmax]),
+    if projection != polarproj:
+        ax.add_geometries(land.intersecting_geometries(
+                    #[lonmin, lonmax, latmin, latmax]),
+                    [lonmin-20, lonmax+10, latmin-10, 90]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+    else:
+        ax.add_geometries(land.intersecting_geometries(
+                    [-180, 180, 0, 90]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
                     edgecolor='black',linewidth=1)

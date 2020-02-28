@@ -61,8 +61,6 @@ else:
 grab_PID()
 
 forecasts = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-#forecasts = [0, 12, 36, 60, 84, 108, 132]
-#forecasts = [0, 12, 36]
 
 # settings
 timewin = 30
@@ -123,4 +121,5 @@ while tmpdate <= edate:
                                 basetime,results_dict)
                 except Exception as e:
                     print(e)
+                    pass
     tmpdate = tmpdate + timedelta(hours=6)

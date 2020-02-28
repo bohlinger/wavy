@@ -304,7 +304,7 @@ class satellite_altimeter():
         # find values for given region
         latlst,lonlst,rlatlst,rlonlst,ridx,region = \
             self.matchregion(cloc[0],cloc[1],region=region,\
-            polyreg=polyreg)
+            polyreg=polyreg,grid_date=sdate)
         rloc = [cloc[0][ridx],cloc[1][ridx]]
         rHs = list(np.array(cHs)[ridx])
         rHs_smooth = list(np.array(cHs_smooth)[ridx])
@@ -474,7 +474,7 @@ class satellite_altimeter():
                 idx=idx+1
         return ctime, cidx, timelst
 
-    def matchregion(self,LATS,LONS,region,polyreg):
+    def matchregion(self,LATS,LONS,region,polyreg,grid_date):
         # find values for given region
         if polyreg is None:
             if region is None:
@@ -494,7 +494,8 @@ class satellite_altimeter():
         else:
             region = polyreg
             latlst,lonlst,rlatlst,rlonlst,ridx = \
-                self.matchregion_poly(LATS,LONS,region=region)
+                self.matchregion_poly(LATS,LONS,region=region,
+                                    grid_date=grid_date)
         return latlst, lonlst, rlatlst, rlonlst, ridx, region
 
     def matchregion_prim(self,LATS,LONS,region):
@@ -551,7 +552,7 @@ class satellite_altimeter():
             print ("Values found for chosen region and time frame.")
         return latlst, lonlst, rlatlst, rlonlst, ridx
 
-    def matchregion_poly(self,LATS,LONS,region):
+    def matchregion_poly(self,LATS,LONS,region,grid_date):
         from matplotlib.patches import Polygon
         from matplotlib.path import Path
         import numpy as np
@@ -566,28 +567,32 @@ class satellite_altimeter():
         elif (isinstance(region,str)==True and region in model_dict):
             from modelmod import get_model
             import pyproj
-            if region == 'mwam8':
-                grid_date = datetime(2019,2,1,6)
-            elif region == 'ww3':
-                grid_date = datetime(2019,12,10,0)
-            elif (region == 'MoskNC' or region == 'MoskWC'):
-                grid_date = datetime(2018,3,1)
-            elif (region == 'swanKC'):
-                grid_date = datetime(2007,2,1)
-            elif (region == 'swan_karmoy250'):
-                grid_date = datetime(2018,1,1)
-            elif (region == 'ARCMFC3'):
-                grid_date = datetime(2019,7,3)
-            else:
-                grid_date = datetime(2019,2,1)
-            if (region == 'ARCMFC' or region=='ARCMFC3'):
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc", model=region, fc_date=grid_date,
-                    init_date=grid_date)
-            else:
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc", model=region, fc_date=grid_date,
-                    leadtime=0)
+            try:
+                grid_date = grid_date
+                print('Use date for retrieving grid: ', grid_date)
+                if (region == 'ARCMFC' or region=='ARCMFC3'):
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        init_date=grid_date)
+                else:
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        leadtime=0)
+            except (KeyError,IOError) as e:
+                print(e)
+                if region == 'mwam8':
+                    grid_date = datetime(2019,2,1,6)
+                else:
+                    grid_date = datetime(2019,2,1)
+                print('Trying default date ', grid_date)
+                if (region == 'ARCMFC' or region=='ARCMFC3'):
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        init_date=grid_date)
+                else:
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        leadtime=0)
             if (region == 'swanKC' or region == 'swan_karmoy250'):
                 model_lats, model_lons = np.meshgrid(model_lats, model_lons)
             proj4 = model_dict[region]['proj4']
