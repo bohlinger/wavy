@@ -1358,6 +1358,7 @@ def dumptonc_ts_station(outpath,filename,title,\
         ncvar.standard_name = d22_dict['standard_name'][sc_obj.varname]
         ncvar.long_name = d22_dict['long_name'][sc_obj.varname]
         ncvar.units = d22_dict['units'][sc_obj.varname]
+        ncvar.convention = d22_dict['convention'][sc_obj.varname]
         ncvar.valid_range = d22_dict['valid_range'][sc_obj.varname][0], \
                             d22_dict['valid_range'][sc_obj.varname][1]
         ncvar[:] = sc_obj.varname

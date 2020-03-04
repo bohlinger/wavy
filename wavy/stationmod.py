@@ -527,7 +527,7 @@ def extract_d22(searchlines):
             tseries.append(' '.join(tseriesl))
             date_object = datetime.strptime(' '.join(tseriesl),'%d-%m-%Y %H:%M')
             dat['10min'].append(date_object)
-            #legger inn nan for alle variable
+            # nan for all variables
             for WM in [WM1,WM2,WM3,WIA,WIB,WIC,WL1,WL2,WL3]:
                 for var in WM.keys():
                     if var != 'name':
@@ -536,16 +536,20 @@ def extract_d22(searchlines):
             if str(WM['name']) in line:
                 for l in searchlines[i+2:i+3]:
                     WM['Hs_10min'][-1]=floater(l.strip())
-                for l in searchlines[i+4:i+5]:
-                    WM['Hmax_10min'][-1]=floater(l.strip())
                 for l in searchlines[i+5:i+6]:
                     WM['Tp_10min'][-1]=floater(l.strip())  
                 for l in searchlines[i+11:i+12]:
                     WM['Tm_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+17:i+18]:
+                    WM['Mdir_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+16:i+17]:
+                    WM['Pdir_10min'][-1]=floater(l.strip())
         for WI in [WIA,WIB,WIC]:
             if str(WI['name']) in line:
                 for l in searchlines[i+10:i+11]:
                     WI['FF_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+16:i+17]:
+                    WI['FF_10min_sensor'][-1]=floater(l.strip())
                 for l in searchlines[i+13:i+14]:
                     WI['DD_10min'][-1]=floater(l.strip()) 
         for WL in [WL1,WL2,WL3]:

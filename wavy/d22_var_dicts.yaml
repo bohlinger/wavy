@@ -20,6 +20,8 @@ WM1:
     Tm_1hr: []
     Mdir_10min: []
     Mdir_1hr: []
+    Pdir_10min: []
+    Pdir_1hr: []
 WM2: 
     name: WM2
     Hs_10min: []
@@ -35,6 +37,8 @@ WM2:
     Tm_1hr: []
     Mdir_10min: []
     Mdir_1hr: []
+    Pdir_10min: []
+    Pdir_1hr: []
 
 WM3: 
     name: WM3
@@ -51,6 +55,8 @@ WM3:
     Tm_1hr: []
     Mdir_10min: []
     Mdir_1hr: []
+    Pdir_10min: []
+    Pdir_1hr: []
 
 WL1: 
     name: WL1
@@ -67,6 +73,7 @@ WL3:
 WIA: 
     name: WIA
     FF_10min: []
+    FF_10min_sensor: []
     DD_10min: []
     FF_2min: []
     DD_2min: []
@@ -74,6 +81,7 @@ WIA:
 WIB: 
     name: WIB
     FF_10min: []
+    FF_10min_sensor: []
     DD_10min: []
     FF_2min: []
     DD_2min: []
@@ -81,21 +89,61 @@ WIB:
 WIC: 
     name: WIC 
     FF_10min: []
+    FF_10min_sensor: []
     DD_10min: []
     FF_2min: []
     DD_2min: []
 
 standard_name: 
-    Hs_10min: 'sea_surface_wave_significant_height_10min'                       
+    Hs_10min: 'sea_surface_wave_significant_height'                       
+    Mdir_10min: 'sea_surface_wave_from_direction'
+    Pdir_10min: 'sea_surface_wave_from_direction'
+    Tm_10min: 'sea_surface_wave_mean_period'
+    Tp_10min: 'sea_surface_wave_peak_period'
+    FF_10min: 'wind_speed'
+    FF_10min_sensor: 'wind_speed'
+    DD_10min: 'wind_from_direction'
 
 long_name: 
-    Hs_10min: 'Significant wave height retrieved '#\
-#              'at imposed 10 min interval, '\
-#              'estimation method currently unknown '\
-#              '(spectrum or zero crossings)'
+    Hs_10min: "Significant wave height retrieved \
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    Mdir_10min: "Mean wave direction \
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    Pdir_10min: "Mean wave direction \
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    Pdir_10min: "Peak wave period \
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    FF_10min: "10 min wind speed at 10 min articially reduced"
+    FF_10min_sensor: "10 min wind speed at sensor height"
+    DD_10min: "10 min wind direction at sensor height"
 
 units:
     Hs_10min: 'm'
+    Mdir_10min: 'degree'
+    Pdir_10min: 'degree'
+    Tm_10min: 's'
+    Tp_10min: 's'
+    FF_10min: 'm s-1'
+    DD_10min: 'degree'
+
+convention:
+    Hs_10min: 'NA'
+    Mdir_10min: 'meteorologic'
+    Pdir_10min: 'meteorologic'
+    Tm_10min: 'NA'
+    Tp_10min: 'NA'
+    FF_10min: 'NA'
+    DD_10min: 'meteorologic'
 
 valid_range:
     Hs_10min: [0., 25.]
+    Mdir_10min: [0., 360.]
+    Pdir_10min: [0., 360.]
+    Tm_10min: [0., 30.]
+    Tp_10min: [0., 30.]
+    FF_10min: [0.,150.]
+    DD_10min: [0., 360.]
