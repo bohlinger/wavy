@@ -323,28 +323,18 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
     from utils import haversine
     import glob
     print ("Get model data according to selected date ....")
-    if (model == 'MoskNC' or model == 'MoskWC'):
-        f = netCDF4.Dataset(model_dict[model]['file_coords'],'r')
-        model_lons = f.variables['longitude'][:]
-        model_lats = f.variables['latitude'][:]
-        f.close()
-        filestr = glob.glob(filestr)[0]
-        print (filestr)
-        f = netCDF4.Dataset(filestr,'r')
-    else:
-        print(filestr)
-        f = netCDF4.Dataset(filestr,'r')
-        model_lons = f.variables[model_dict[model]['lons']][:]
-        model_lats = f.variables[model_dict[model]['lats']][:]
+    print(filestr)
+    f = netCDF4.Dataset(filestr,'r')
+    model_lons = f.variables[model_dict[model]['lons']][:]
+    model_lats = f.variables[model_dict[model]['lats']][:]
     model_time = f.variables[model_dict[model]['time']][:]
     # Hs [time,lat,lon]
     if (varname == 'Hs' or varname is None):
-        model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
+        model_var_link = f.variables[model_dict[model]['Hs']]
     else: 
-        model_Hs = f.variables[model_dict[model][varname]][:].squeeze()
-    f.close()
+        model_var_link = f.variables[model_dict[model][varname]]
     model_basetime = model_dict[model]['basetime']
-    if (model == 'Erin1W' or model == 'Erin2W' or model == 'ww3'):
+    if (model == 'ww3'):
         model_time_dt=[]
         for element in model_time:
             # hour_rounder used because ww3 deviates slightly from hours
@@ -363,12 +353,14 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
                     + timedelta(seconds=element))
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
-    print(model_Hs.shape)
-    if len(model_Hs.shape)>2:
-        model_Hs_valid = model_Hs[model_time_dt.index(fc_date),:,:].squeeze()
+    print(model_var_link.shape)
+    if len(model_var_link.shape)>2:
+        model_var_valid = \
+            model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
     else:
-        model_Hs_valid = model_Hs[:,:].squeeze()
-    return model_Hs_valid, model_lats, model_lons, model_time_valid,\
+        model_var_valid = model_var_link[:,:].squeeze()
+    f.close()
+    return model_var_valid, model_lats, model_lons, model_time_valid,\
          model_time_dt_valid
 
 def get_model(simmode=None,model=None,sdate=None,edate=None,
