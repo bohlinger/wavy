@@ -641,7 +641,8 @@ def plot_sat(sa_obj):
     
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.046, pad=0.04)
+                        fraction=0.03, pad=0.03)
+                        #fraction=0.046, pad=0.04)
     cbar.ax.set_ylabel('Hs [m]')
     plt.title(sa_obj.sat
             + ' with '
@@ -652,6 +653,17 @@ def plot_sat(sa_obj):
             + ' to '
             + sa_obj.edate.strftime("%Y-%m-%d %H:%M:%S UTC" )
             ,fontsize=12)
+    #plt.savefig(sa_obj.sat + '_coverage_from_'
+    #        + sa_obj.sdate.strftime("%Y%m%d")
+    #        + 'T'
+    #        + sa_obj.sdate.strftime("%H")
+    #        + 'Z'
+    #        + '_to_'
+    #        + sa_obj.edate.strftime("%Y%m%d")
+    #        + 'T' 
+    #        + sa_obj.edate.strftime("%H")
+    #        + 'Z'
+    #        + '.png', format = 'png', dpi=300)
     plt.show()
 
 def ts_fig(results_dict):

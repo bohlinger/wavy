@@ -114,7 +114,10 @@ long_name:
     Pdir_10min: "Mean wave direction \
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
-    Pdir_10min: "Peak wave period \
+    Tp_10min: "Peak wave period \
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    Tm_10min: "Mean wave period \
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     FF_10min: "10 min wind speed at 10 min articially reduced"

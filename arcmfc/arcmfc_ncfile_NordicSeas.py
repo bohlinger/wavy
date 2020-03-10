@@ -109,26 +109,27 @@ while (tmp_date <= end_date):
         init_date = fc_date - timedelta(hours=element)
         # ---
         # Get stats ts
-        inpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/ValidationFiles/'
+        inpath=('/lustre/storeB/project/fou/om/waveverification/ARCMFC3/satellites/altimetry/s3a/ValidationFiles/'
                 + fc_date.strftime('%Y')
                 + '/'
                 + fc_date.strftime('%m')
                 + '/')
-        filename_stats = fc_date.strftime("ARCMFC_" 
+        filename_stats = fc_date.strftime("ARCMFC3_vs_s3a_for_" 
                                 + region[0]
                                 + "_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
         print(inpath + filename_stats)
-        valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
-        try:
-            idx = list(dtime).index(fc_date)
-            dictlst.append(valid_dict)
-            dictnames=['mop','mor','msd','nov']
-            for i in range(len(dictnames)):
-                M[count1,count2,0,i,0]=valid_dict[dictnames[i]][idx]
-        except ValueError:
-            pass
+        if os.path.exists(inpath+filename_stats):
+            valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
+            try:
+                idx = list(dtime).index(fc_date)
+                dictlst.append(valid_dict)
+                dictnames=['mop','mor','msd','nov']
+                for i in range(len(dictnames)):
+                    M[count1,count2,0,i,0]=valid_dict[dictnames[i]][idx]
+            except ValueError:
+                pass
         count2=count2+1
     count1=count1+1
     dictlst_all.append(dictlst)

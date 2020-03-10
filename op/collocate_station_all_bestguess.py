@@ -46,6 +46,8 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
+parser.add_argument("-mod", metavar='model',
+    help="model to be used for collocation")
 
 args = parser.parse_args()
 
@@ -64,17 +66,10 @@ else:
 
 # retrieve PID
 grab_PID()
-model='mwam4'
-basetime = datetime(1970,1,1)
-
-if model == 'mwam4':
-    init_step = 6
-    init_start = np.min([0,6,12,18])
-if model == 'mwam8':
-    init_step = 12
-    init_start = 12
-tdeltas = range(1,init_step+1)[::-1]
-leadtimes = range(init_step)
+if args.mod is None:
+    model = 'mwam4'
+else:
+    model=args.mod
 
 stationlst = station_dict.keys()
 for station in (stationlst):
@@ -82,7 +77,8 @@ for station in (stationlst):
         cmd = ("python collocate_station_bestguess.py -sd " 
             + sdatestr
             + " -ed " + edatestr 
-            + " -station " + station 
-            + " -sensor " + sensor)
+            + " -stat " + station 
+            + " -sens " + sensor
+            + " -mod " + model)
         tmp=os.system(cmd)
         del tmp

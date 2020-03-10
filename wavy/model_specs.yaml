@@ -15,22 +15,6 @@ ARCMFC:
     delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
 
-
-ARCMFCnew: 
-    Hs: VHM0
-    lons: longitude
-    lats: latitude
-    rotlons: rlon
-    rotlats: rlat
-    time: time
-    path: "/lustre/storeB/users/anac/HINDCAST2017/BETAMAX1.20/"
-    file_template: "%Y%m%d00.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
-    proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
-
-
 ARCMFC3: 
     Hs: VHM0
     Tp: VTPK
@@ -52,7 +36,6 @@ ARCMFC3:
     delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
 
-
 mwam3:
     Hs: VHM0
     lons: longitude
@@ -72,13 +55,11 @@ mwam3:
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
-
 mwam3_coords:
     lons: longitude
     lats: latitude
     pathtofile: "/lustre/storeB/users/anac/A3km/inputfile/\
                 TRUEcoordDepthA3km.nc"
-
 
 mwam4:
     Hs: hs
@@ -88,8 +69,11 @@ mwam4:
     rotlats: rlat
     time: time
     Tp: tp
-    Tz: tm2
-    thq: thq
+    Tm: tmp
+    Tm01: tm1
+    Tm02: tm2
+    Mdir: thq
+    Pdir: Pdir
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -102,7 +86,6 @@ mwam4:
     init_times: [0,6,12,18]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
-
 
 mwam4force: 
     u10: Uwind
@@ -142,7 +125,6 @@ mwam8:
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
-
 mwam8force:
     u10: Uwind
     v10: Vwind
@@ -160,7 +142,6 @@ mwam8force:
     delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=25 +R=6.371e+06 +no_defs"
-
 
 mwam800c3:
     Hs: hs,
@@ -180,7 +161,6 @@ mwam800c3:
     delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-8
             +o_lat_p=22 +R=6.371e+06 +no_defs"
-
 
 ecwam: 
     Hs: significant_wave_height
@@ -212,6 +192,24 @@ ww3: # WW3_4km
     _FillValue: 9.96921e+36
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ErinFix:
+    Hs: hs
+    lons: longitude
+    lats: latitude
+    time: time
+    path: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
+    path_template: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
+    file_template: FIXED_Sep2018_091400_092700_WW3.nc
+    basetime: 1990-01-01 00:00:00
+    units_time: days since 1990-01-01 00:00:00
+    time_conventions: "relative julian days with decimal part
+                        as parts of the day"
+    delta_t: 1h
+    _FillValue: 9.96921e+36
+    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25 
+            +lat_1=77.5 +lat_2=77.5 
+            +no_defs +R=6.371e+06"
 
 # examples for Erin's simulations
 

@@ -110,12 +110,13 @@ while (tmp_date <= end_date):
         init_date = fc_date - timedelta(hours=element)
         # ---
         # Get stats ts
-        inpath=('/lustre/storeB/project/fou/om/ARCMFC/s3a/ValidationFiles/'
+        inpath=('/lustre/storeB/project/fou/om/waveverification/ARCMFC3/satellites/altimetry/s3a/ValidationFiles/'
                 + fc_date.strftime('%Y')
                 + '/'
                 + fc_date.strftime('%m')
                 + '/')
-        filename_stats = fc_date.strftime("ARCMFC_val_ts_lt"
+        filename_stats = fc_date.strftime(
+                                "ARCMFC3_vs_s3a_for_ARCMFC3_val_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
         print(inpath + filename_stats)

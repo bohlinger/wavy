@@ -17,7 +17,6 @@ sys.path.append(r'/home/patrikb/wavy/wavy')
 #python.module('load', 'netcdf/4.7.0-intel2018')
 #python.module('load', 'Python/3.7.2')
 
-from station_specs import station_dict
 from datetime import datetime, timedelta
 import numpy as np
 import time
@@ -26,15 +25,17 @@ from copy import deepcopy
 from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
+import yaml
 
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Retrieves data from a station and dumps to monthly nc-file.
-If file exists, data is appended.
+Retrieves data from wave model at given location 
+and dumps to monthly nc-file. If file exists, 
+data is appended.
 
 Usage:
-./collect_model_at_location_all.py -sd 2019020100 -ed 2019020200
+./collect_model_at_location_all_bestguess.py -sd 2019020100 -ed 2019020200
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -49,8 +50,8 @@ parser.add_argument("-ed", metavar='enddate',
 
 args = parser.parse_args()
 
-now = datetime(2019,11,20,11)
-#now = datetime.now()
+#now = datetime(2019,11,20,11)
+now = datetime.now()
 
 init_times = np.array([0,6,12,18]).astype('float')
 init_diffs = now.hour - init_times
@@ -60,11 +61,13 @@ h = int(init_times[h_idx[0][0]])
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day,h)
+    #sdate = datetime(now.year,now.month,now.day,now.hour) - timedelta(hour=1)
     sdatestr = sdate.strftime("%Y%m%d%H")
 else:
     sdatestr = args.sd
 if args.ed is None:
     edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=6)
+    #edate = datetime(now.year,now.month,now.day,now.hour)
     edatestr = edate.strftime("%Y%m%d%H")
 else:
     edatestr = args.ed
@@ -82,9 +85,11 @@ else:
 grab_PID()
 basetime = datetime(1970,1,1)
 
-stationlst = station_dict.keys()
-for station in (stationlst):
-    cmd = ("python /home/patrikb/wavy/op/collect_model_at_location.py"
+with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+    station_dict=yaml.safe_load(stream)
+
+for station in (station_dict):
+    cmd = ("python /home/patrikb/wavy/op/collect_model_at_location_bestguess.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr 
             + " -station " + station 

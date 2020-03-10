@@ -85,7 +85,6 @@ tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
     # get s3a values
     fc_date = deepcopy(tmpdate)
-    #sa_obj = sa(fc_date,sat=sat,timewin=timewin,region=region)
     sa_obj = sa(fc_date,sat=sat,timewin=timewin,polyreg=region)
     if len(sa_obj.dtime)==0:
         print("If possible proceed with another time step...")

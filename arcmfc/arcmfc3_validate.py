@@ -2,6 +2,7 @@
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
+import os
 from datetime import datetime, timedelta
 from satmod import satellite_altimeter as sa
 from stationmod import station_class as sc
@@ -77,7 +78,7 @@ while tmpdate <= edate:
         from ncmod import get_arcmfc_ts
 
         inpath = ('/lustre/storeB/project/fou/om/waveverification/'
-                + region + '/satellites/altimetry/'
+                + model + '/satellites/altimetry/'
                 + sat + '/CollocationFiles/'
                 + fc_date.strftime('%Y/%m/'))
 
@@ -86,45 +87,47 @@ while tmpdate <= edate:
                                         + "_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
-
-        dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_ts)
-        del filename_ts
-        # find collocations for given model time step and validate
-        from stationmod import matchtime
-        time_lst = []
-        for dt in dtime:
-            time_lst.append((dt-basetime).total_seconds())
-        ctime,idx = matchtime(tmpdate, tmpdate, time_lst, basetime, timewin=30)
-        if len(idx)==0:
-            pass
+        if not os.path.exists(inpath + filename_ts):
+            print(filename_ts + ' not found!')
         else:
-            results_dict = {'date_matches':dtime[idx],
-                            'model_Hs_matches':mHs[idx],
-                            'sat_Hs_matches':sHs[idx]}
-            valid_dict=validate(results_dict)
-            print(valid_dict)
-            # dump to nc-file: validation
+            dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_ts)
+            del filename_ts
+            # find collocations for given model time step and validate
+            from stationmod import matchtime
+            time_lst = []
+            for dt in dtime:
+                time_lst.append((dt-basetime).total_seconds())
+            ctime,idx = matchtime(tmpdate, tmpdate, time_lst, basetime, timewin=30)
+            if len(idx)==0:
+                pass
+            else:
+                results_dict = {'date_matches':dtime[idx],
+                                'model_Hs_matches':mHs[idx],
+                                'sat_Hs_matches':sHs[idx]}
+                valid_dict=validate(results_dict)
+                print(valid_dict)
+                # dump to nc-file: validation
+    
+                outpath=('/lustre/storeB/project/fou/om/waveverification/'
+                        + model + '/satellites/altimetry/'
+                        + sat + '/ValidationFiles/'
+                        + fc_date.strftime('%Y/%m/'))
 
-            outpath=('/lustre/storeB/project/fou/om/waveverification/'
-                    + model + '/satellites/altimetry/'
-                    + sat + '/ValidationFiles/'
-                    + fc_date.strftime('%Y/%m/'))
+                title_stat=('validation ts for '
+                        + model + ' vs ' + sat
+                        + ' for region ' + region
+                        + ' with leadtime '
+                        + "{:0>3d}".format(element)
+                        + ' h')
 
-            title_stat=('validation ts for '
-                    + model + ' vs ' + sat
-                    + ' for region ' + region
-                    + ' with leadtime '
-                    + "{:0>3d}".format(element)
-                    + ' h')
-
-            filename_stat=fc_date.strftime(model + "_vs_"
+                filename_stat=fc_date.strftime(model + "_vs_"
                                         + sat
                                         + '_for_'
                                         + region
                                         + "_val_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
-            time_dt = fc_date
-            dumptonc_stats(outpath,filename_stat,title_stat,basetime,
+                time_dt = fc_date
+                dumptonc_stats(outpath,filename_stat,title_stat,basetime,
                           time_dt,valid_dict)
     tmpdate = tmpdate + timedelta(hours=6)
