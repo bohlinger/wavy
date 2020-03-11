@@ -578,7 +578,7 @@ class satellite_altimeter():
                     model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                         get_model(simmode="fc", model=region, fc_date=grid_date,
                         leadtime=0)
-            except (KeyError,IOError) as e:
+            except (KeyError,IOError,ValueError) as e:
                 print(e)
                 if region == 'mwam8':
                     grid_date = datetime(2019,2,1,6)
