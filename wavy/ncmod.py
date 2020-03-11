@@ -1762,6 +1762,7 @@ def dumptonc_ts_pos(outpath,filename,title,coll_dict):
                 varAttribs['units'] = var_dict[varname]['units']
                 varAttribs['valid_range'] = var_dict[varname]['valid_range'][0], \
                                             var_dict[varname]['valid_range'][1]
+                varAttribs['convention'] = var_dict[varname]['convention']
                 ncvar.setncatts(varAttribs)
                 ncvar[:] = coll_dict[varstr][:]
                 nc.close()

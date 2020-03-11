@@ -69,7 +69,7 @@ mwam4:
     rotlats: rlat
     time: time
     Tp: tp
-    Tm: tmp
+    Tm10: tmp
     Tm01: tm1
     Tm02: tm2
     Mdir: thq
