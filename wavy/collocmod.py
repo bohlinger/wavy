@@ -20,8 +20,7 @@ def collocation_loop(
     j,sat_time_dt,model_time_dt_valid,distlim,model,
     sat_rlats,sat_rlons,sat_rHs,
     model_rlats,model_rlons,model_rHs,
-    moving_win
-    ):
+    moving_win):
     from utils import haversine
     lat_win = 0.1
     if model in model_dict:
@@ -96,12 +95,13 @@ def collocation_loop(
             return nearest_all_date_matches,nearest_all_dist_matches,\
                 nearest_all_model_Hs_matches,nearest_all_sat_Hs_matches,\
                 nearest_all_sat_lons_matches, nearest_all_sat_lats_matches,\
-                nearest_all_model_lons_matches, nearest_all_model_lats_matches
+                nearest_all_model_lons_matches, \
+                nearest_all_model_lats_matches, idx_valid
         else:
            return
 
 def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
-    sa_obj,datein,distlim=None):
+    sa_obj,datein,distlim=None,idx_valid=None):
     """
     get stellite time steps close to model time step. 
     """
@@ -131,6 +131,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     nearest_all_sat_lats_matches=[]
     nearest_all_model_lons_matches=[]
     nearest_all_model_lats_matches=[]
+    idx_valid_lst=[]
     # create local variables before loop
     sat_rlats=sa_obj.loc[0][cidx]
     sat_rlons=sa_obj.loc[1][cidx]
@@ -155,34 +156,39 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
         moving_win = .6
     print ("Searching for matches with moving window of degree:",\
             moving_win)
-    for j in range(len(sat_time_dt)):
-        progress(j,str(int(len(sat_time_dt))),'')
-#        for k in range(1):
-        try:
-            resultlst = collocation_loop(\
-                j,sat_time_dt,model_time_dt_valid,distlim,model,\
-                sat_rlats,sat_rlons,sat_rHs,\
-                model_rlats,model_rlons,model_rHs,moving_win)
-            nearest_all_date_matches.append(resultlst[0])
-            nearest_all_dist_matches.append(resultlst[1])
-            nearest_all_model_Hs_matches.append(resultlst[2])
-            nearest_all_sat_Hs_matches.append(resultlst[3])
-            nearest_all_sat_lons_matches.append(resultlst[4])
-            nearest_all_sat_lats_matches.append(resultlst[5])
-            nearest_all_model_lons_matches.append(resultlst[6])
-            nearest_all_model_lats_matches.append(resultlst[7])
-        except:
-            print ("Unexpected error:", sys.exc_info()[0])
-            pass
-    results_dict = {
-        'valid_date':np.array(model_time_dt_valid),
-        'date_matches':np.array(nearest_all_date_matches),
-        'dist_matches':np.array(nearest_all_dist_matches),
-        'model_Hs_matches':np.array(nearest_all_model_Hs_matches),
-        'sat_Hs_matches':np.array(nearest_all_sat_Hs_matches),
-        'sat_lons_matches':np.array(nearest_all_sat_lons_matches),
-        'sat_lats_matches':np.array(nearest_all_sat_lats_matches),
-        'model_lons_matches':np.array(nearest_all_model_lons_matches),
-        'model_lats_matches':np.array(nearest_all_model_lats_matches)
-        }
+    if idx_valid is None:
+        for j in range(len(sat_time_dt)):
+            progress(j,str(int(len(sat_time_dt))),'')
+            try:
+                resultlst = collocation_loop(\
+                    j,sat_time_dt,model_time_dt_valid,distlim,model,\
+                    sat_rlats,sat_rlons,sat_rHs,\
+                    model_rlats,model_rlons,model_rHs,\
+                    moving_win)
+                nearest_all_date_matches.append(resultlst[0])
+                nearest_all_dist_matches.append(resultlst[1])
+                nearest_all_model_Hs_matches.append(resultlst[2])
+                nearest_all_sat_Hs_matches.append(resultlst[3])
+                nearest_all_sat_lons_matches.append(resultlst[4])
+                nearest_all_sat_lats_matches.append(resultlst[5])
+                nearest_all_model_lons_matches.append(resultlst[6])
+                nearest_all_model_lats_matches.append(resultlst[7])
+                idx_valid_lst.append(resultlst[8])
+            except:
+                print ("Unexpected error:", sys.exc_info()[0])
+                pass
+            results_dict = {
+                'valid_date':np.array(model_time_dt_valid),
+                'date_matches':np.array(nearest_all_date_matches),
+                'dist_matches':np.array(nearest_all_dist_matches),
+                'model_Hs_matches':np.array(nearest_all_model_Hs_matches),
+                'sat_Hs_matches':np.array(nearest_all_sat_Hs_matches),
+                'sat_lons_matches':np.array(nearest_all_sat_lons_matches),
+                'sat_lats_matches':np.array(nearest_all_sat_lats_matches),
+                'model_lons_matches':np.array(nearest_all_model_lons_matches),
+                'model_lats_matches':np.array(nearest_all_model_lats_matches),
+                'idx_valid':np.array(idx_valid_lst)
+                }
+    else:
+        results_dict = {'model_Hs_matches':model_rHs[idx_valid]}
     return results_dict

@@ -14,7 +14,9 @@ from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 from ncmod import get_nc_time, dumptonc_ts
-from model_specs import model_dict
+import yaml
+with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -84,6 +86,8 @@ outpath = ('/lustre/storeB/project/fou/om/waveverification/'
 tmpdate = deepcopy(sdate)
 while tmpdate <= edate:
     # get s3a values
+    if 'results_dict' in globals():
+        del results_dict
     fc_date = deepcopy(tmpdate)
     sa_obj = sa(fc_date,sat=sat,timewin=timewin,polyreg=region)
     if len(sa_obj.dtime)==0:
@@ -114,8 +118,17 @@ while tmpdate <= edate:
                     get_model(simmode="fc",model=model,fc_date=fc_date,
                     init_date=init_date,leadtime=element)
                 #collocation
-                results_dict = collocate(model,model_Hs,model_lats,
-                    model_lons,model_time_dt,sa_obj,fc_date,distlim=distlim)
+                if 'results_dict' in globals():
+                    update_dict = collocate(model,model_Hs,model_lats,
+                                        model_lons,model_time_dt,
+                                        sa_obj,fc_date,distlim=distlim,
+                                        idx_valid=results_dict['idx_valid'])
+                    results_dict['mode_Hs_matches']=\
+                                        update_dict['model_Hs_matches']
+                else:
+                    results_dict = collocate(model,model_Hs,model_lats,
+                                        model_lons,model_time_dt,
+                                        sa_obj,fc_date,distlim=distlim)
                 dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                             filename_ts,title_ts,basetime,results_dict)
             except IOError as e:
