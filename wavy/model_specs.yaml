@@ -164,6 +164,9 @@ mwam800c3:
 
 ecwam: 
     Hs: significant_wave_height
+    Mdir: wave_direction
+    Tp: peak_wave_period
+    Tm02: mean_wave_period
     lons: longitude
     lats: latitude
     time: time
@@ -173,6 +176,7 @@ ecwam:
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
 ww3: # WW3_4km
     Hs: hs

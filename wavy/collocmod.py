@@ -137,7 +137,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     sat_rlons=sa_obj.loc[1][cidx]
     sat_rHs=np.array(sa_obj.Hs)[cidx]
     # flatten numpy arrays
-    model_rHs = model_Hs.flatten()
+    model_rHs = model_Hs.squeeze().flatten()
     model_rlons = model_lons.flatten()
     model_rlats = model_lats.flatten()
     # moving window compensating for increasing latitudes

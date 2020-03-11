@@ -593,19 +593,22 @@ class satellite_altimeter():
                     model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                         get_model(simmode="fc", model=region, fc_date=grid_date,
                         leadtime=0)
-            if (region == 'swanKC' or region == 'swan_karmoy250'):
+            if (len(model_lats.shape)==1):
                 model_lats, model_lons = np.meshgrid(model_lats, model_lons)
-            proj4 = model_dict[region]['proj4']
-            proj_model = pyproj.Proj(proj4)
-            Mx, My = proj_model(model_lons,model_lats,inverse=False)
-            Vx, Vy = proj_model(LONS,LATS,inverse=False)
-            xmax, xmin = np.max(Mx), np.min(Mx)
-            ymax, ymin = np.max(My), np.min(My)
-            ridx = list(np.where((Vx>xmin) & (Vx<xmax) & 
+            if (region=='global' or region=='ecwam'):
+                rlatlst, rlonlst = LATS, LONS
+            else:
+                proj4 = model_dict[region]['proj4']
+                proj_model = pyproj.Proj(proj4)
+                Mx, My = proj_model(model_lons,model_lats,inverse=False)
+                Vx, Vy = proj_model(LONS,LATS,inverse=False)
+                xmax, xmin = np.max(Mx), np.min(Mx)
+                ymax, ymin = np.max(My), np.min(My)
+                ridx = list(np.where((Vx>xmin) & (Vx<xmax) & 
                                 (Vy>ymin) & (Vy<ymax))[0]
-                        )
-            latlst, lonlst = LATS, LONS
-            rlatlst, rlonlst = LATS[ridx], LONS[ridx]
+                            )
+                latlst, lonlst = LATS, LONS
+                rlatlst, rlonlst = LATS[ridx], LONS[ridx]
         elif isinstance(region,str)==True:
             print ("Specified region: " + region + "\n"
               + " --> Bounded by polygon: \n"
