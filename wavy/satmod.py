@@ -594,7 +594,7 @@ class satellite_altimeter():
                         get_model(simmode="fc", model=region, fc_date=grid_date,
                         leadtime=0)
             if (len(model_lats.shape)==1):
-                model_lats, model_lons = np.meshgrid(model_lats, model_lons)
+                model_lons, model_lats = np.meshgrid(model_lons, model_lats)
             if (region=='global' or region=='ecwam'):
                 rlatlst, rlonlst = LATS, LONS
             else:

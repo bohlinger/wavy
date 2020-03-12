@@ -101,12 +101,15 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
     mhs = MHs.squeeze() 
     mhs[mhs<0] = np.nan
     mhs[mhs>30] = np.nan
-    
+
+    # inflate coords if regular lat/lon grid
+    if (len(Mlons.shape)==1):
+        Mlons, Mlats = np.meshgrid(Mlons, Mlats)    
     # check region and determine projection
     polarproj=None
 
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
-        or sa_obj.region == 'ARCMFC3'):
+        or sa_obj.region == 'ARCMFC3'):# or model == 'ecwam'):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
                             central_longitude=0.0,
