@@ -126,8 +126,8 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         if ((dummy_date - timedelta(hours=leadtime)).hour != 0 and 
             (dummy_date - timedelta(hours=leadtime)).hour !=12):
             print('error: --> leadtime is not available')
-        if leadtime>60:
-            print('error: --> Leadtime must be less than 60')
+        if leadtime>228:
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -167,8 +167,8 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
             (fc_date - timedelta(hours=leadtime)).hour !=12):
             print('error: --> leadtime is not available')
-        if leadtime>60:
-            print('error: --> Leadtime must be less than 60')
+        if leadtime>228:
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -227,6 +227,9 @@ def make_filename(simmode=None,model=None,datein=None,
         elif (model == 'Erin1W' or model == 'Erin2W'):
             filename = (model_dict[model]['path']
               + fc_date.strftime(model_dict[model][filetemplate]))
+        elif (model == 'ErinFix'):
+            filename = (model_dict[model]['path'] 
+                        + model_dict[model][filetemplate])
         elif (model == 'mwam4' or model=='mwam8' or model=='ecwam' or\
             model=='mwam800c3' or model == 'mwam4force' or \
             model=='mwam8force' or model=='ecwamforce' or \
@@ -294,11 +297,11 @@ def get_model_cont_mode(model,sdate,edate,filestr,expname,
     print (filestr)
     # read the file
     f = netCDF4.Dataset(filestr,'r')
-    model_lons = f.variables[model_dict[model]['lons']][:]
-    model_lats = f.variables[model_dict[model]['lats']][:]
-    model_time = f.variables[model_dict[model]['time']][:]
+    model_lons = f.variables[model_dict[model]['vars']['lons']][:]
+    model_lats = f.variables[model_dict[model]['vars']['lats']][:]
+    model_time = f.variables[model_dict[model]['vars']['time']][:]
     # Hs [time,lat,lon]
-    model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
+    model_Hs = f.variables[model_dict[model]['vars']['Hs']][:].squeeze()
     f.close()
     # create datetime objects
     model_basetime = model_dict[model]['basetime']
@@ -325,16 +328,16 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
     print ("Get model data according to selected date ....")
     print(filestr)
     f = netCDF4.Dataset(filestr,'r')
-    model_lons = f.variables[model_dict[model]['lons']][:]
-    model_lats = f.variables[model_dict[model]['lats']][:]
-    model_time = f.variables[model_dict[model]['time']][:]
+    model_lons = f.variables[model_dict[model]['vars']['lons']][:]
+    model_lats = f.variables[model_dict[model]['vars']['lats']][:]
+    model_time = f.variables[model_dict[model]['vars']['time']][:]
     # Hs [time,lat,lon]
     if (varname == 'Hs' or varname is None):
-        model_var_link = f.variables[model_dict[model]['Hs']]
+        model_var_link = f.variables[model_dict[model]['vars']['Hs']]
     else: 
-        model_var_link = f.variables[model_dict[model][varname]]
+        model_var_link = f.variables[model_dict[model]['vars'][varname]]
     model_basetime = model_dict[model]['basetime']
-    if (model == 'ww3'):
+    if (model == 'ww3' or model == 'ErinFix'):
         model_time_dt=[]
         for element in model_time:
             # hour_rounder used because ww3 deviates slightly from hours

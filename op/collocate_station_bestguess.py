@@ -92,10 +92,8 @@ idy_lst = []
 
 if model == 'mwam4':
     init_step = 6
-    init_start = np.min([0,6,12,18])
-if (model == 'mwam8' or model == 'mwam3'):
+if (model == 'mwam8' or model == 'mwam3' or model == 'ecwam'):
     init_step = 12
-    init_start = 12
 tdeltas = range(1,init_step+1)[::-1]
 leadtimes = range(init_step)
 

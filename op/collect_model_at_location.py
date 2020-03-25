@@ -58,26 +58,15 @@ args = parser.parse_args()
 if args.mod is None:
     args.mod = 'mwam4'
 
-if args.mod == 'mwam4':
-    init_times = np.array([0,6,12,18]).astype('float')
-    hd = 6
-elif args.mod == 'ecwam':
-    init_times = np.array([0,12]).astype('float')
-    hd = 12
-
 now = datetime.now()
-init_diffs = now.hour - init_times
-init_diffs[init_diffs<0] = np.nan
-h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
-h = int(init_times[h_idx[0][0]])
 
 if args.sd is None:
-    sdate = datetime(now.year,now.month,now.day,h)
+    sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
 else:
     sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    edate = datetime(now.year,now.month,now.day,h) + timedelta(hours=hd)
+    edate = datetime(now.year,now.month,now.day)-timedelta(hours=1)
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
@@ -89,18 +78,16 @@ grab_PID()
 station = args.station
 model = args.mod
 varname = args.var
-title_ts = (model + ' ' + varname + ' at location: ' + station )
 basetime = datetime(1970,1,1)
 
 if model == 'mwam4':
     init_step = 6
+    leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
 if (model == 'mwam8' or model == 'ecwam' or model == 'mwam3'):
     init_step = 12
+    leadtimes = [0, 12, 24, 36, 48, 60, 72, 96, 120, 144]
 
-tdeltas = range(1,init_step+1)[::-1]
-leadtimes = range(init_step)
-
-tmpdate = deepcopy(sdate) + timedelta(hours=init_step)
+tmpdate = deepcopy(sdate)
 idx, idy = np.nan, np.nan
 
 mod_lst = []
@@ -125,11 +112,9 @@ while tmpdate <= edate:
         for i in range(len(leadtimes)):
             element = leadtimes[i]
             print('leadtime: ', element)
-            fc_date = ( tmpdate
-                        - timedelta(hours=tdeltas[i])
-                        )
+            fc_date = tmpdate
             print('fc_date: ', fc_date)
-            init_date = tmpdate-timedelta(hours=init_step)
+            init_date = tmpdate - timedelta(hours=element)
             print('init_date: ', init_date)
             outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
                             + 'waveverification/' + model + '/stations/'
@@ -141,8 +126,9 @@ while tmpdate <= edate:
                                     + varname
                                     + "_at_"
                                     + station
-                                    + "_ts_lt_best_"
-                                    + "%Y%m.nc")
+                                    + "_ts_lt" 
+                                    + "{:0>3d}".format(element)
+                                    + "h_%Y%m.nc")
             try:
                 # check if values for this date already exist
                 vidx = check_vals_in_nc(outpath+filename_ts,varname,fc_date)
@@ -192,6 +178,11 @@ while tmpdate <= edate:
                          'varname':varname
                         }
                     print(coll_dict)
+                    title_ts=(
+                        model + ' ' + varname + ' at location ' + station 
+                        + ' with leadtime '
+                        + "{:0>3d}".format(element)
+                        + ' h')
                     dumptonc_ts_pos(outpath,
                                 filename_ts,
                                 title_ts,
@@ -202,11 +193,9 @@ while tmpdate <= edate:
         for i in range(len(leadtimes)):
             element = leadtimes[i]
             print('leadtime: ', element)
-            fc_date = ( tmpdate
-                        - timedelta(hours=tdeltas[i])
-                        )
+            fc_date = tmpdate
             print('fc_date: ', fc_date)
-            init_date = tmpdate-timedelta(hours=init_step)
+            init_date = tmpdate - timedelta(hours=element)
             print('init_date: ', init_date)
             outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
                             + 'waveverification/' + model + '/stations/'
@@ -218,8 +207,9 @@ while tmpdate <= edate:
                                     + varname
                                     + "_at_"
                                     + station
-                                    + "_ts_lt_best_"
-                                    + "%Y%m.nc")
+                                    + "_ts_lt"
+                                    + "{:0>3d}".format(element)
+                                    + "h_%Y%m.nc")
             try:
                 # check if values for this date already exist
                 vidx = check_vals_in_nc(outpath+filename_ts,varname,fc_date)
@@ -259,6 +249,11 @@ while tmpdate <= edate:
                          'varname':varname
                         }
                     print(coll_dict)
+                    title_ts=(
+                        model + ' ' + varname + ' at location ' + station
+                        + ' with leadtime '
+                        + "{:0>3d}".format(element)
+                        + ' h')
                     dumptonc_ts_pos(outpath,
                                 filename_ts,
                                 title_ts,

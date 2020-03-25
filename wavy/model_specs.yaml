@@ -1,12 +1,13 @@
 --- # wave model specifications
 
-ARCMFC: 
-    Hs: VHM0
-    lons: lon
-    lats: lat
-    rotlons: rlon
-    rotlats: rlat
-    time: time
+ARCMFC:
+    vars:
+        Hs: VHM0
+        lons: lon
+        lats: lat
+        rotlons: rlon
+        rotlats: rlat
+        time: time
     path: "/lustre/storeA/project/copernicus/sea/mywavewam8r625/arctic/"
     #'file_template':'%Y%m%d_MyWaveWam8r625_b%Y%m%d.nc',
     file_template: "_MyWaveWam8r625_b%Y%m%d.nc"
@@ -16,15 +17,16 @@ ARCMFC:
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
 
 ARCMFC3: 
-    Hs: VHM0
-    Tp: VTPK
-    tm02: VTM02
-    mdir: VMDR
-    lons: lon
-    lats: lat
-    rotlons: rlon
-    rotlats: rlat
-    time: time
+    vars:
+        Hs: VHM0
+        Tp: VTPK
+        tm02: VTM02
+        mdir: VMDR
+        lons: lon
+        lats: lat
+        rotlons: rlon
+        rotlats: rlat
+        time: time
     path: /lustre/storeA/project/copernicus/sea/mywavewam3/arctic/%Y/%m/
     # file_template: "%Y%m%d%h_MyWaveWam3_b%Y%m%dT%h.nc"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
@@ -37,12 +39,13 @@ ARCMFC3:
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
 
 mwam3:
-    Hs: VHM0
-    lons: longitude
-    lats: latitude
-    rotlons: rlon
-    rotlats: rlat
-    time: time
+    vars:
+        Hs: VHM0
+        lons: longitude
+        lats: latitude
+        rotlons: rlon
+        rotlats: rlat
+        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -56,24 +59,26 @@ mwam3:
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
 mwam3_coords:
-    lons: longitude
-    lats: latitude
+    vars:
+        lons: longitude
+        lats: latitude
     pathtofile: "/lustre/storeB/users/anac/A3km/inputfile/\
                 TRUEcoordDepthA3km.nc"
 
 mwam4:
-    Hs: hs
-    lons: longitude
-    lats: latitude
-    rotlons: rlon
-    rotlats: rlat
-    time: time
-    Tp: tp
-    Tm10: tmp
-    Tm01: tm1
-    Tm02: tm2
-    Mdir: thq
-    Pdir: Pdir
+    vars:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+        rotlons: rlon
+        rotlats: rlat
+        time: time
+        Tp: tp
+        Tm10: tmp
+        Tm01: tm1
+        Tm02: tm2
+        Mdir: thq
+        Pdir: Pdir
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -88,11 +93,12 @@ mwam4:
             +o_lat_p=22 +R=6.371e+06 +no_defs"
 
 mwam4force: 
-    u10: Uwind
-    v10: Vwind
-    lons: lon
-    lats: lat
-    time: time
+    vars:
+        u10: Uwind
+        v10: Vwind
+        lons: lon
+        lats: lat
+        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -107,12 +113,13 @@ mwam4force:
 
 
 mwam8:
-    Hs: VHM0
-    lons: longitude
-    lats: latitude
-    rotlons: rlon
-    rotlats: rlat
-    time: time
+    vars:
+        Hs: VHM0
+        lons: longitude
+        lats: latitude
+        rotlons: rlon
+        rotlats: rlat
+        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -126,11 +133,12 @@ mwam8:
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
 mwam8force:
-    u10: Uwind
-    v10: Vwind
-    lons: lon
-    lats: lat
-    time: time
+    vars:
+        u10: Uwind
+        v10: Vwind
+        lons: lon
+        lats: lat
+        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -144,12 +152,13 @@ mwam8force:
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
 mwam800c3:
-    Hs: hs,
-    lons: longitude,
-    lats: latitude',
-    rotlons: rlon,
-    rotlats: rlat,
-    time: time,
+    vars:
+        Hs: hs,
+        lons: longitude,
+        lats: latitude',
+        rotlons: rlon,
+        rotlats: rlat,
+        time: time,
     path_template: "/lustre/storeB/immutable/archive/\
                     projects/metproduction/MyWavewam_800m/\
                     %Y/%m/%d/"
@@ -163,13 +172,14 @@ mwam800c3:
             +o_lat_p=22 +R=6.371e+06 +no_defs"
 
 ecwam: 
-    Hs: significant_wave_height
-    Mdir: wave_direction
-    Tp: peak_wave_period
-    Tm02: mean_wave_period
-    lons: longitude
-    lats: latitude
-    time: time
+    vars:
+        Hs: significant_wave_height
+        Mdir: wave_direction
+        Tp: peak_wave_period
+        Tm02: mean_wave_period
+        lons: longitude
+        lats: latitude
+        time: time
     path_template: "/vol/data/ec/"
     path: "/vol/data/ec/"
     file_template: "ecwam_%Y%m%dT%HZ.nc"
@@ -179,10 +189,11 @@ ecwam:
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
 ww3: # WW3_4km
-    Hs: hs
-    lons: longitude
-    lats: latitude
-    time: time
+    vars:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+        time: time
     path: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/"
     path_template: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/\
                     %Y/%m/%d/"
@@ -197,11 +208,12 @@ ww3: # WW3_4km
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
 
-ErinFix:
-    Hs: hs
-    lons: longitude
-    lats: latitude
-    time: time
+ErinFix: # 14.-27. Sep 2018, validation from 18. Sep
+    vars:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+        time: time
     path: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
     path_template: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
     file_template: FIXED_Sep2018_091400_092700_WW3.nc
@@ -218,10 +230,11 @@ ErinFix:
 # examples for Erin's simulations
 
 Erin1W: # one way coupled experiment
-    Hs: hs
-    lons: longitude
-    lats: latitude
-    time: time
+    vars:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+        time: time
     path: "/lustre/storeB/users/erinet/coup_exp_output/\
             ST3_experiments/1waycoup_direct_ST3/"
     path_template: "/lustre/storeB/users/erinet\
@@ -236,10 +249,11 @@ Erin1W: # one way coupled experiment
     _FillValue: 9.96921e+36
 
 Erin2W: # two way coupled experiment
-    Hs: hs
-    lons: longitude
-    lats: latitude
-    time: time
+    vars:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+        time: time
     path: "/lustre/storeB/users/erinet/coup_exp_output/\
             ST3_experiments/Exp2_direct_ST3/"
     path_template: "/lustre/storeB/users/erinet/\

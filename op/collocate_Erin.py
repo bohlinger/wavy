@@ -39,10 +39,6 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
-parser.add_argument("-twin", metavar='time window', type=int,
-    help="time window for collocation")
-parser.add_argument("-dist", metavar='distance limit', type=int,
-    help="distance limit for collocation")
 
 args = parser.parse_args()
 
@@ -77,13 +73,11 @@ else:
 # retrieve PID
 grab_PID()
 
-leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
+leadtimes = [0]
 
 # settings
-if args.twin is None:
-    args.twin = 30
-if args.dist is None:
-    args.dist = 6
+timewin = 30
+distlim = 3
 outpath = ('/lustre/storeB/project/fou/om/waveverification/'
            + model + '/satellites/altimetry'
            + '/' + sat + '/'
@@ -95,7 +89,7 @@ while tmpdate <= edate:
     if 'results_dict' in globals():
         del results_dict
     fc_date = deepcopy(tmpdate)
-    sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=region)
+    sa_obj = sa(fc_date,sat=sat,timewin=timewin,polyreg=region)
     if len(sa_obj.dtime)==0:
         print("If possible proceed with another time step...")
     else:
@@ -127,14 +121,14 @@ while tmpdate <= edate:
                 if 'results_dict' in globals():
                     update_dict = collocate(model,model_Hs,model_lats,
                                         model_lons,model_time_dt,
-                                        sa_obj,fc_date,distlim=args.dist,
+                                        sa_obj,fc_date,distlim=distlim,
                                         idx_valid=results_dict['idx_valid'])
                     results_dict['mode_Hs_matches']=\
                                         update_dict['model_Hs_matches']
                 else:
                     results_dict = collocate(model,model_Hs,model_lats,
                                         model_lons,model_time_dt,
-                                        sa_obj,fc_date,distlim=args.dist)
+                                        sa_obj,fc_date,distlim=distlim)
                 dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                             filename_ts,title_ts,basetime,results_dict)
             except IOError as e:
@@ -144,4 +138,4 @@ while tmpdate <= edate:
                 print(e)
             #    print('Model wave field not available.')
             #    print('Continuing with next time step.')
-    tmpdate = tmpdate + timedelta(hours=6)
+    tmpdate = tmpdate + timedelta(hours=1)

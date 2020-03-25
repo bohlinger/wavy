@@ -16,6 +16,14 @@ import os
 #cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -sd 2019110100 -ed 2019110323'
 cmd = 'python /home/patrikb/wavy/op/op_collocate.py'
 t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -reg BalticSea -sat j3'
+t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -reg BalticSea -sat al'
+t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -reg BalticSea -sat c2'
+t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -reg BalticSea -sat cfo'
+t = os.system(cmd)
 #cmd = 'python /home/patrikb/wavy/op/op_validate.py -mod mwam4 -sd 2019110100 -ed 2019110323'
 cmd = 'python /home/patrikb/wavy/op/op_validate.py'
 t = os.system(cmd)

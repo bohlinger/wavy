@@ -13,6 +13,7 @@ from modelmod import get_model, check_date
 from validationmod import comp_fig, validate
 from collocmod import collocate
 from  utils import disp_validation
+from ncmod import dumptonc_sat
 
 # parser
 parser = argparse.ArgumentParser(
@@ -78,7 +79,7 @@ if args.twin is None:
 
 # get data
 if args.sat == 'all':
-    satlist = ['s3a','s3b','j3','c2','al']
+    satlist = ['s3a','s3b','j3','c2','al','cfo']
     loc0 = []
     loc1 = []
     Hs = []
@@ -169,4 +170,4 @@ if bool(args.show)==True:
 
 # dump to .ncfile
 if args.dump is not None:
-    sa_obj.dumptonc(args.dump)
+    dumptonc_sat(sa_obj,args.dump)
