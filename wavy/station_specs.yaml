@@ -169,6 +169,15 @@ trollb:
         lat: 60.77
         lon: 3.5
 
+#ula:
+#   sensor:
+#       NA_1: 0 # python indexing
+#   manufactor:
+#       NA_1: NA
+#   coord:
+#       lat: 57.10
+#       lon:  2.85
+
 valhall:
     sensor:
         SAABWaveRadar_1: 0 # python indexing

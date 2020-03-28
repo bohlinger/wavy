@@ -49,18 +49,14 @@ parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
 
 args = parser.parse_args()
-
-#now = datetime(2019,11,20,11)
+print(args)
+#now = datetime(2020,3,25,17)
 now = datetime.now()
 
 if args.mod is None:
-    model = 'mwam4'
-else:
-    model = args.mod
+    args.mod = 'mwam4'
 if args.var is None:
-    var = 'Hs'
-else:
-    var = args.var
+    args.var = 'Hs'
 
 if args.mod == 'mwam4':
     init_times = np.array([0,6,12,18]).astype('float')
@@ -98,8 +94,8 @@ for station in (station_dict):
     cmd = ("python /home/patrikb/wavy/op/collect_model_at_location_bestguess.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr 
-            + " -station " + station 
-            + " -mod " + model
-            + " -var " + var)
+            + " -stat " + station
+            + " -mod " + args.mod
+            + " -var " + args.var)
     tmp=os.system(cmd)
     del tmp

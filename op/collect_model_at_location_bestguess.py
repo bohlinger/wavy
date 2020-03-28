@@ -46,7 +46,7 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
-parser.add_argument("-station", metavar='statname',
+parser.add_argument("-stat", metavar='statname',
     help="stationname")
 parser.add_argument("-mod", metavar='modelname',
     help="modelname")
@@ -66,6 +66,8 @@ elif args.mod == 'ecwam':
     hd = 12
 
 now = datetime.now()
+#now = datetime(2020,3,25,11)
+
 init_diffs = now.hour - init_times
 init_diffs[init_diffs<0] = np.nan
 h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
@@ -86,7 +88,7 @@ else:
 grab_PID()
 
 # settings
-station = args.station
+station = args.stat
 model = args.mod
 varname = args.var
 title_ts = (model + ' ' + varname + ' at location: ' + station )
@@ -145,6 +147,7 @@ while tmpdate <= edate:
                                     + "%Y%m.nc")
             try:
                 # check if values for this date already exist
+                print(outpath+filename_ts)
                 vidx = check_vals_in_nc(outpath+filename_ts,varname,fc_date)
                 if vidx is None:
                     print('time does not yet exist, filling slot...')
