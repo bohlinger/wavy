@@ -1,6 +1,6 @@
 --- # d22 formatting specifications
 
-# Based on OJ's plotd22v5.py
+# Based on OJ's plotd22v5.py and v8 see email
 
 dat: 
     10min: []
@@ -16,8 +16,12 @@ WM1:
     HEC_1hr: []
     Tp_10min: []
     Tp_1hr: []
-    Tm_10min: []
-    Tm_1hr: []
+    Tm02_10min: []
+    Tm02_1hr: []
+    Tm10_10min: []
+    Tm10_1hr: []
+    Tm01_10min: []
+    Tm01_1hr: []
     Mdir_10min: []
     Mdir_1hr: []
     Pdir_10min: []
@@ -33,8 +37,12 @@ WM2:
     HEC_1hr: []
     Tp_10min: []
     Tp_1hr: []
-    Tm_10min: []
-    Tm_1hr: []
+    Tm02_10min: []
+    Tm02_1hr: []
+    Tm10_10min: []
+    Tm10_1hr: []
+    Tm01_10min: []
+    Tm01_1hr: []
     Mdir_10min: []
     Mdir_1hr: []
     Pdir_10min: []
@@ -51,8 +59,12 @@ WM3:
     HEC_1hr: []
     Tp_10min: []
     Tp_1hr: []
-    Tm_10min: []
-    Tm_1hr: []
+    Tm02_10min: []
+    Tm02_1hr: []
+    Tm10_10min: []
+    Tm10_1hr: []
+    Tm01_10min: []
+    Tm01_1hr: []
     Mdir_10min: []
     Mdir_1hr: []
     Pdir_10min: []
@@ -72,37 +84,39 @@ WL3:
 
 WIA: 
     name: WIA
-    FF_10min: []
+    FF_10min_10m: []
     FF_10min_sensor: []
-    DD_10min: []
+    DD_10min_sensor: []
     FF_2min: []
     DD_2min: []
 
 WIB: 
     name: WIB
-    FF_10min: []
+    FF_10min_10m: []
     FF_10min_sensor: []
-    DD_10min: []
+    DD_10min_sensor: []
     FF_2min: []
     DD_2min: []
 
 WIC: 
     name: WIC 
-    FF_10min: []
+    FF_10min_10m: []
     FF_10min_sensor: []
-    DD_10min: []
+    DD_10min_sensor: []
     FF_2min: []
     DD_2min: []
 
 standard_name: 
     Hs_10min: 'sea_surface_wave_significant_height'                       
     Mdir_10min: 'sea_surface_wave_from_direction'
-    Pdir_10min: 'sea_surface_wave_from_direction'
-    Tm_10min: 'sea_surface_wave_mean_period'
-    Tp_10min: 'sea_surface_wave_peak_period'
-    FF_10min: 'wind_speed'
+    Pdir_10min: 'sea_surface_wave_from_direction_at_variance_spectral_density_maximum'
+    Tm02_10min: 'sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment'
+    Tm01_10min: 'sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment'
+    Tm10_10min: 'sea_surface_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment'
+    Tp_10min: 'sea_surface_wave_period_at_variance_spectral_density_maximum'
+    FF_10min_10m: 'wind_speed'
     FF_10min_sensor: 'wind_speed'
-    DD_10min: 'wind_from_direction'
+    DD_10min_sensor: 'wind_from_direction'
 
 long_name: 
     Hs_10min: "Significant wave height retrieved \
@@ -115,38 +129,56 @@ long_name:
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     Tp_10min: "Peak wave period \
+              from variance spectral density inverse frequency moment\
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
-    Tm_10min: "Mean wave period \
+    Tm02_10min: "Mean wave period \
+              from variance spectral density first frequency moment\
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
-    FF_10min: "10 min wind speed at 10 min articially reduced"
+    Tm01_10min: "Mean wave period \ 
+              from variance spectral density first frequency moment\
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    Tm10_10min: "Mean wave period \
+              at an imposed sampling interval of 10 min, \
+              estimation method depends on instrument"
+    FF_10min_10m: "10 min wind speed at 10m artificially reduced"
     FF_10min_sensor: "10 min wind speed at sensor height"
-    DD_10min: "10 min wind direction at sensor height"
+    DD_10min_sensor: "10 min wind direction at sensor height"
 
 units:
     Hs_10min: 'm'
     Mdir_10min: 'degree'
     Pdir_10min: 'degree'
-    Tm_10min: 's'
+    Tm02_10min: 's'
+    Tm01_10min: 's'
+    Tm10_10min: 's'
     Tp_10min: 's'
-    FF_10min: 'm s-1'
-    DD_10min: 'degree'
+    FF_10min_10m: 'm s-1'
+    FF_10min_sensor: 'm s-1'
+    DD_10min_sensor: 'degree'
 
 convention:
     Hs_10min: 'NA'
     Mdir_10min: 'meteorologic'
     Pdir_10min: 'meteorologic'
-    Tm_10min: 'NA'
+    Tm02_10min: 'NA'
+    Tm01_10min: 'NA'
+    Tm10_10min: 'NA'
     Tp_10min: 'NA'
-    FF_10min: 'NA'
-    DD_10min: 'meteorologic'
+    FF_10min_10m: 'NA'
+    FF_10min_sensor: 'NA'
+    DD_10min_sensor: 'meteorologic'
 
 valid_range:
     Hs_10min: [0., 25.]
     Mdir_10min: [0., 360.]
     Pdir_10min: [0., 360.]
-    Tm_10min: [0., 30.]
+    Tm02_10min: [0., 30.]
+    Tm01_10min: [0., 30.]
+    Tm10_10min: [0., 30.]
     Tp_10min: [0., 30.]
-    FF_10min: [0.,150.]
-    DD_10min: [0., 360.]
+    FF_10min_10m: [0.,150.]
+    FF_10min_sensor: [0.,150.]
+    DD_10min_sensor: [0., 360.]

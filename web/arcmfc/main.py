@@ -13,19 +13,19 @@ import os
 """
  Collocate
 """
-#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg ARCMFC3 &> arcmfc3_coll_test.out'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg ARCMFC3'
 cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sat s3a -mod ARCMFC3 -reg ARCMFC3'
 t = os.system(cmd)
-#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg NordicSeas &> arcmfc3_coll_NordicSeas_test.out'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg NordicSeas'
 cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sat s3a -mod ARCMFC3 -reg NordicSeas'
 t = os.system(cmd)
 """
  Validate
 """
-#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg ARCMFC3 &> arcmfc3_val_test.out &'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg ARCMFC3'
 cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sat s3a -mod ARCMFC3 -reg ARCMFC3'
 t = os.system(cmd)
-#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg NordicSeas &> arcmfc3_val_NordicSeas.out &'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg NordicSeas'
 cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sat s3a -mod ARCMFC3 -reg NordicSeas'
 t = os.system(cmd)
 """
