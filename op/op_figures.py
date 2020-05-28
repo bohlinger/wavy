@@ -33,19 +33,13 @@ args = parser.parse_args()
 now = datetime.now()
 
 if args.mod is None:
-    model = 'mwam4'
-else:
-    model = args.mod
+    args.mod = 'mwam4'
 
 if args.sat is None:
-    sat = 's3a'
-else:
-    sat = args.sat
+    args.sat = 's3a'
 
 if args.reg is None:
-    region = model
-else:
-    region = args.reg
+    args.reg = model
 
 fc_date = datetime.now()
 forecasts = [0]
@@ -53,13 +47,13 @@ forecasts = [0]
 for element in forecasts:
     # Get stats ts
     inpath = ('/lustre/storeB/project/fou/om/waveverification/'
-                + model + '/satellites/altimetry'
-                + '/' + sat + '/'
+                + args.mod + '/satellites/altimetry'
+                + '/' + args.sat + '/'
                 + 'ValidationFiles/'
                 + fc_date.strftime('%Y/%m/'))
-    filename_stat = fc_date.strftime(model
-                                    + "_vs_" + sat
-                                    + "_" + region
+    filename_stat = fc_date.strftime(args.mod
+                                    + "_vs_" + args.sat
+                                    + "_for_" + args.reg
                                     + "_val_ts_lt"
                                     + "{:0>3d}".format(element)
                                     + "h_%Y%m.nc")
@@ -67,9 +61,9 @@ for element in forecasts:
 
     # Make ts-plots
     for val_name in valid_dict:
-        filename_fig = fc_date.strftime(model 
-                                + "_vs_" + sat
-                                + "_" + region
+        filename_fig = fc_date.strftime(args.mod 
+                                + "_vs_" + args.sat
+                                + "_for_" + args.reg
                                 + "_fig_val" 
                                 + "_ts_" + val_name
                                 + "_lt{:0>3d}".format(element)
@@ -79,29 +73,29 @@ for element in forecasts:
 
     # Get collocation ts
     inpath = ('/lustre/storeB/project/fou/om/waveverification/'
-            + model + '/satellites/altimetry'
-            + '/s3a/'
+            + args.mod + '/satellites/altimetry'
+            + '/' + args.sat + '/'
             + 'CollocationFiles/'
             + fc_date.strftime('%Y/%m/'))
-    filename_coll = fc_date.strftime(model 
-                                + "_vs_" + sat
-                                + "_" + region
+    filename_coll = fc_date.strftime(args.mod
+                                + "_vs_" + args.sat
+                                + "_for_" + args.reg
                                 + "_coll_ts_lt"
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
     dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_coll)
 
     # Make scatter-plots
-    filename_fig = fc_date.strftime(model 
-                                + "_vs_" + sat
-                                + "_" + region
+    filename_fig = fc_date.strftime(args.mod
+                                + "_vs_" + args.sat
+                                + "_for_" + args.reg
                                 + "_fig_val_scatter"
                                 + "_lt{:0>3d}".format(element)
                                 + "h_%Y%m.png")
     make_val_scatter_fig_op(mHs,sHs,filename_fig)
     outpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model + '/satellites/altimetry'
-           + '/' + sat + '/'
+           + args.mod + '/satellites/altimetry'
+           + '/' + args.sat + '/'
            + 'ValidationFigures/'
            + fc_date.strftime('%Y/%m/'))
     cmd = 'mkdir -p ' + outpath

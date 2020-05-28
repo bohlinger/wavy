@@ -14,13 +14,13 @@ import subprocess
 import os
 
 # --- satellites --- #
+sdstr = '2020040100'
+edstr = '2020041400'
+sat = 's3b'
 ### mwam4 ###
-#cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -sd 2019110100 -ed 2019110323'
-cmd = 'python /home/patrikb/wavy/op/op_collocate.py -sat all'
+cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod mwam4 -reg mwam4 -sat ' + sat + ' -sd ' + sdstr + ' -ed ' + edstr
 t = os.system(cmd)
-
-#cmd = 'python /home/patrikb/wavy/op/op_validate.py -mod mwam4 -sd 2019110100 -ed 2019110323'
-cmd = 'python /home/patrikb/wavy/op/op_validate.py -sat all'
+cmd = 'python /home/patrikb/wavy/op/op_validate.py -mod mwam4 -sat ' + sat + ' -sd ' + sdstr + ' -ed ' + edstr
 t = os.system(cmd)
 #cmd = 'python /home/patrikb/wavy/op/op_figures.py'
 #t = os.system(cmd)
@@ -29,7 +29,3 @@ t = os.system(cmd)
 #cmd = 'cp index.html /lustre/storeB/project/fou/om/waveverification/s3a/'
 #cmd = 'cp index.html /lustre/storeB/project/fou/om/waveverification/mwam4/s3a/'
 #t = os.system(cmd)
-
-### ecwam ###
-cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod ecwam -sat all -reg mwam4'
-t = os.system(cmd)

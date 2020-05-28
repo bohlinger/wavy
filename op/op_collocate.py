@@ -13,7 +13,7 @@ from copy import deepcopy
 from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
-from ncmod import get_nc_time, dumptonc_ts
+from ncmod import get_nc_time, dumptonc_ts, check_vals_in_nc
 import yaml
 with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
@@ -49,19 +49,16 @@ args = parser.parse_args()
 now = datetime.now()
 
 if args.mod is None:
-    model = 'mwam4'
-else:
-    model = args.mod
+    args.mod = 'mwam4'
 
 if args.sat is None:
-    sat = 's3a'
-else:
-    sat = args.sat
+    args.sat = ['s3a']
+elif args.sat == "all":
+    args.sat = ['s3a','s3b','c2','j3','al','cfo']
+else: args.sat = [args.sat]
 
 if args.reg is None:
-    region = model
-else:
-    region = args.reg
+    args.reg = args.mod
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
@@ -77,71 +74,76 @@ else:
 # retrieve PID
 grab_PID()
 
-leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
+if args.mod == 'ARCMFC3':
+    leadtimes = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
+else:
+    leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
 
 # settings
 if args.twin is None:
     args.twin = 30
 if args.dist is None:
     args.dist = 6
-outpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model + '/satellites/altimetry'
+
+for sat in args.sat:
+    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + args.mod + '/satellites/altimetry'
            + '/' + sat + '/'
            + 'CollocationFiles/')
-
-tmpdate = deepcopy(sdate)
-while tmpdate <= edate:
-    # get s3a values
-    if 'results_dict' in globals():
-        del results_dict
-    fc_date = deepcopy(tmpdate)
-    sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=region)
-    if len(sa_obj.dtime)==0:
-        print("If possible proceed with another time step...")
-    else:
-        # loop over all forecast lead times
-        for element in leadtimes:
-            print("leadtime: ", element, "h")
-            print("fc_date: ", fc_date)
-            basetime=model_dict[model]['basetime']
-            filename_ts=fc_date.strftime(model 
-                                        + "_vs_" + sat
-                                        + "_" + region
-                                        + "_coll_ts_lt"
-                                        + "{:0>3d}".format(element)
-                                        + "h_%Y%m.nc")
-            title_ts=('collocated time series for '
-                    + ' model ' + model
-                    + ' vs ' + sat
-                    + ' over region of ' + region
-                    + ' with leadtime '
-                    + "{:0>3d}".format(element)
-                    + ' h')
-            init_date = fc_date - timedelta(hours=element)
-            #get_model
-            try:
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc",model=model,fc_date=fc_date,
-                    init_date=init_date,leadtime=element)
-                #collocation
-                if 'results_dict' in globals():
-                    update_dict = collocate(model,model_Hs,model_lats,
-                                        model_lons,model_time_dt,
-                                        sa_obj,fc_date,distlim=args.dist,
-                                        idx_valid=results_dict['idx_valid'])
-                    results_dict['mode_Hs_matches']=\
-                                        update_dict['model_Hs_matches']
-                else:
-                    results_dict = collocate(model,model_Hs,model_lats,
-                                        model_lons,model_time_dt,
-                                        sa_obj,fc_date,distlim=args.dist)
-                dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
-                            filename_ts,title_ts,basetime,results_dict)
-            except IOError as e:
-                print(e)
-            #    print('Model output not available')
-            except ValueError as e:
-                print(e)
-            #    print('Model wave field not available.')
-            #    print('Continuing with next time step.')
-    tmpdate = tmpdate + timedelta(hours=6)
+    tmpdate = deepcopy(sdate)
+    while tmpdate <= edate:
+        # get s3a values
+        if 'results_dict' in globals():
+            del results_dict
+        fc_date = deepcopy(tmpdate)
+        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
+        if len(sa_obj.dtime)==0:
+            print("If possible proceed with another time step...")
+        else:
+            # loop over all forecast lead times
+            for element in leadtimes:
+                print("leadtime: ", element, "h")
+                print("fc_date: ", fc_date)
+                basetime=model_dict[args.mod]['basetime']
+                filename_ts=fc_date.strftime(args.mod
+                                            + "_vs_" + sat
+                                            + "_for_" + args.reg
+                                            + "_coll_ts_lt"
+                                            + "{:0>3d}".format(element)
+                                            + "h_%Y%m.nc")
+                title_ts=('collocated time series for '
+                        + ' model ' + args.mod
+                        + ' vs ' + sat
+                        + ' over region of ' + args.reg
+                        + ' with leadtime '
+                        + "{:0>3d}".format(element)
+                        + ' h')
+                init_date = fc_date - timedelta(hours=element)
+                # get_model
+                try:
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc",model=args.mod,fc_date=fc_date,
+                        init_date=init_date,leadtime=element)
+                    #collocation
+                    if ('results_dict' in globals() 
+                        and len(results_dict['idx_valid'])>0):
+                        update_dict = collocate(args.mod,model_Hs,model_lats,
+                                            model_lons,model_time_dt,
+                                            sa_obj,fc_date,distlim=args.dist,
+                                            idx_valid=results_dict['idx_valid'])
+                        results_dict['mode_Hs_matches']=\
+                                            update_dict['model_Hs_matches']
+                    else:
+                        results_dict = collocate(args.mod,model_Hs,model_lats,
+                                            model_lons,model_time_dt,
+                                            sa_obj,fc_date,distlim=args.dist)
+                    dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
+                                filename_ts,title_ts,basetime,results_dict)
+                except IOError as e:
+                    print(e)
+                #    print('Model output not available')
+                except ValueError as e:
+                    print(e)
+                #    print('Model wave field not available.')
+                #    print('Continuing with next time step.')
+        tmpdate = tmpdate + timedelta(hours=6)
