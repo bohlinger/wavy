@@ -92,7 +92,7 @@ for sat in args.sat:
            + 'CollocationFiles/')
     tmpdate = deepcopy(sdate)
     while tmpdate <= edate:
-        # get s3a values
+        # get sat values
         if 'results_dict' in globals():
             del results_dict
         fc_date = deepcopy(tmpdate)
@@ -124,14 +124,14 @@ for sat in args.sat:
                     model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                         get_model(simmode="fc",model=args.mod,fc_date=fc_date,
                         init_date=init_date,leadtime=element)
-                    #collocation
+                    # collocation
                     if ('results_dict' in globals() 
                         and len(results_dict['idx_valid'])>0):
                         update_dict = collocate(args.mod,model_Hs,model_lats,
                                             model_lons,model_time_dt,
                                             sa_obj,fc_date,distlim=args.dist,
                                             idx_valid=results_dict['idx_valid'])
-                        results_dict['mode_Hs_matches']=\
+                        results_dict['model_Hs_matches']=\
                                             update_dict['model_Hs_matches']
                     else:
                         results_dict = collocate(args.mod,model_Hs,model_lats,

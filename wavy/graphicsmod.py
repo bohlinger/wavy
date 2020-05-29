@@ -220,7 +220,7 @@ def polyonmap(poly,proj,mtype=None,\
             'World_Terrain_Base',       # 10
             'World_Topo_Map'            # 11
             ]
-        print "drawing image from arcGIS server...",
+        print ("drawing image from arcGIS server..."),
         m.arcgisimage(service=maps[mtype], xpixels=1000, verbose=False)
     elif (proj=='merc' or proj =='lcc'):
         if proj=='merc':

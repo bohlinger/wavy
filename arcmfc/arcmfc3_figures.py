@@ -87,7 +87,11 @@ valid_dict_lst = {'rmsd':rmsd_lst,
 
 # Make ts-plots
 for val_name in val_names:
-    filename_fig = fc_date.strftime("ARCMFC3_fig_val" 
+    filename_fig = fc_date.strftime(
+#                            "ARCMFC3_for_" 
+#                            + region
+                            "ARCMFC3"
+                            + "_fig_val" 
                             + "_ts_" + val_name
                             + "_%Y%m.png")
     ts = valid_dict_lst[val_name]
@@ -122,7 +126,10 @@ for element in forecasts:
 
 # Make scatter-plots
 for i in range(len(forecasts)):
-    filename_fig = fc_date.strftime("ARCMFC3_fig_val_scatter_lt"
+    filename_fig = fc_date.strftime(
+#                            "ARCMFC3_for_" + region
+                            "ARCMFC3"
+                            + "_fig_val_scatter_lt"
                             + "{:0>3d}".format(forecasts[i])
                             + "h_%Y%m.png")
     make_val_scatter_fig_arcmfc(mHs_lst[i],sHs_lst[i],filename_fig,forecasts,i)

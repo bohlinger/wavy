@@ -33,3 +33,5 @@ t = os.system(cmd)
 ### ecwam ###
 cmd = 'python /home/patrikb/wavy/op/op_collocate.py -mod ecwam -sat all -reg mwam4'
 t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/op/op_validate.py -mod ecwam -sat all -reg mwam4'
+t = os.system(cmd)
