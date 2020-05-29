@@ -103,16 +103,16 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
     ww3        hourly
     """
-    if (model == 'mwam4' or model == 'mwam4force'):
+    if (model == 'mwam4' or model == 'mwam4force' or model == 'ww3'):
         multsix = int(leadtime/6)
         restsix = leadtime%6
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and 
             (fc_date - timedelta(hours=leadtime)).hour != 6 and 
             (fc_date - timedelta(hours=leadtime)).hour !=12 and 
             (fc_date - timedelta(hours=leadtime)).hour !=18):
-            sys.exit('error: --> leadtime is not available') 
+            print('error: --> leadtime is not available') 
         if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> Leadtime must be less than 60')
         if leadtime is None:
             pass
         else:
@@ -125,9 +125,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         dummy_date = fc_date + timedelta(hours=6)
         if ((dummy_date - timedelta(hours=leadtime)).hour != 0 and 
             (dummy_date - timedelta(hours=leadtime)).hour !=12):
-            sys.exit('error: --> leadtime is not available')
-        if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> leadtime is not available')
+        if leadtime>228:
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -138,9 +138,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         multsix = int(leadtime/24)
         restsix = leadtime%24
         if ((fc_date - timedelta(hours=leadtime)).hour != 0):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>228:
-            sys.exit('error: --> Leadtime must be less than 228')
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -152,9 +152,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
             (fc_date - timedelta(hours=leadtime)).hour !=12):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>228:
-            sys.exit('error: --> Leadtime must be less than 228')
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -166,9 +166,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
             (fc_date - timedelta(hours=leadtime)).hour !=12):
-            sys.exit('error: --> leadtime is not available')
-        if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> leadtime is not available')
+        if leadtime>228:
+            print('error: --> Leadtime must be less than 228')
         if leadtime is None:
             pass
         else:
@@ -186,9 +186,9 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             (fc_date - timedelta(hours=leadtime)).hour !=15 and
             (fc_date - timedelta(hours=leadtime)).hour !=18 and
             (fc_date - timedelta(hours=leadtime)).hour !=21):
-            sys.exit('error: --> leadtime is not available')
+            print('error: --> leadtime is not available')
         if leadtime>60:
-            sys.exit('error: --> Leadtime must be less than 60')
+            print('error: --> Leadtime must be less than 60')
         if leadtime is None:
             pass
         else:
@@ -227,9 +227,13 @@ def make_filename(simmode=None,model=None,datein=None,
         elif (model == 'Erin1W' or model == 'Erin2W'):
             filename = (model_dict[model]['path']
               + fc_date.strftime(model_dict[model][filetemplate]))
+        elif (model == 'ErinFix'):
+            filename = (model_dict[model]['path'] 
+                        + model_dict[model][filetemplate])
         elif (model == 'mwam4' or model=='mwam8' or model=='ecwam' or\
             model=='mwam800c3' or model == 'mwam4force' or \
-            model=='mwam8force' or model=='ecwamforce'):
+            model=='mwam8force' or model=='ecwamforce' or \
+            model == 'ww3'):
             if (fc_date == init_date or leadtime == 0):
                 filename = (fc_date.strftime(
                             model_dict[model]['path_template'])
@@ -293,11 +297,11 @@ def get_model_cont_mode(model,sdate,edate,filestr,expname,
     print (filestr)
     # read the file
     f = netCDF4.Dataset(filestr,'r')
-    model_lons = f.variables[model_dict[model]['lons']][:]
-    model_lats = f.variables[model_dict[model]['lats']][:]
-    model_time = f.variables[model_dict[model]['time']][:]
+    model_lons = f.variables[model_dict[model]['vars']['lons']][:]
+    model_lats = f.variables[model_dict[model]['vars']['lats']][:]
+    model_time = f.variables[model_dict[model]['vars']['time']][:]
     # Hs [time,lat,lon]
-    model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
+    model_Hs = f.variables[model_dict[model]['vars']['Hs']][:].squeeze()
     f.close()
     # create datetime objects
     model_basetime = model_dict[model]['basetime']
@@ -322,28 +326,18 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
     from utils import haversine
     import glob
     print ("Get model data according to selected date ....")
-    if (model == 'MoskNC' or model == 'MoskWC'):
-        f = netCDF4.Dataset(model_dict[model]['file_coords'],'r')
-        model_lons = f.variables['longitude'][:]
-        model_lats = f.variables['latitude'][:]
-        f.close()
-        filestr = glob.glob(filestr)[0]
-        print (filestr)
-        f = netCDF4.Dataset(filestr,'r')
-    else:
-        print(filestr)
-        f = netCDF4.Dataset(filestr,'r')
-        model_lons = f.variables[model_dict[model]['lons']][:]
-        model_lats = f.variables[model_dict[model]['lats']][:]
-    model_time = f.variables[model_dict[model]['time']][:]
+    print(filestr)
+    f = netCDF4.Dataset(filestr,'r')
+    model_lons = f.variables[model_dict[model]['vars']['lons']][:]
+    model_lats = f.variables[model_dict[model]['vars']['lats']][:]
+    model_time = f.variables[model_dict[model]['vars']['time']][:]
     # Hs [time,lat,lon]
     if (varname == 'Hs' or varname is None):
-        model_Hs = f.variables[model_dict[model]['Hs']][:].squeeze()
+        model_var_link = f.variables[model_dict[model]['vars']['Hs']]
     else: 
-        model_Hs = f.variables[model_dict[model][varname]][:].squeeze()
-    f.close()
+        model_var_link = f.variables[model_dict[model]['vars'][varname]]
     model_basetime = model_dict[model]['basetime']
-    if (model == 'Erin1W' or model == 'Erin2W' or model == 'ww3'):
+    if (model == 'ww3' or model == 'ErinFix'):
         model_time_dt=[]
         for element in model_time:
             # hour_rounder used because ww3 deviates slightly from hours
@@ -362,12 +356,14 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
                     + timedelta(seconds=element))
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
-    print(model_Hs.shape)
-    if len(model_Hs.shape)>2:
-        model_Hs_valid = model_Hs[model_time_dt.index(fc_date),:,:].squeeze()
+    print(model_var_link.shape)
+    if len(model_var_link.shape)>2:
+        model_var_valid = \
+            model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
     else:
-        model_Hs_valid = model_Hs[:,:].squeeze()
-    return model_Hs_valid, model_lats, model_lons, model_time_valid,\
+        model_var_valid = model_var_link[:,:].squeeze()
+    f.close()
+    return model_var_valid, model_lats, model_lons, model_time_valid,\
          model_time_dt_valid
 
 def get_model(simmode=None,model=None,sdate=None,edate=None,

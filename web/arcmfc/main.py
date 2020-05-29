@@ -10,32 +10,39 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 import subprocess
 import os
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py -sd 2019110100 -ed 2019110318'
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate.py'
+"""
+ Collocate
+"""
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg ARCMFC3'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sat s3a -mod ARCMFC3 -reg ARCMFC3'
+cmd = 'python3 /home/patrikb/wavy/op/op_collocate.py -mod ARCMFC3 -reg ARCMFC3 -sat s3a'
 t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py'
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_collocate_NordicSeas.py -sd 2019110100 -ed 2019110318'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg NordicSeas'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_collocate.py -sat s3a -mod ARCMFC3 -reg NordicSeas'
+cmd = 'python3 /home/patrikb/wavy/op/op_collocate.py -mod ARCMFC3 -reg NordicSeas -sat s3a'
 t = os.system(cmd)
-#p = subprocess.Popen(cmd,stdout=subprocess.PIPE,shell=True)
-#(output, err) = p.communicate()
-#This lets the program wait until this process is finished
-# before it proceeds with the next command
-#p_status = p.wait()
-#This will give you the output of the command being executed
-#print("Command output: " + output)
-
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py -sd 2019110100 -ed 2019110318'
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate.py'
+"""
+ Validate
+"""
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg ARCMFC3'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sat s3a -mod ARCMFC3 -reg ARCMFC3'
+cmd = 'python3 /home/patrikb/wavy/op/op_validate.py -mod ARCMFC3 -reg ARCMFC3 -sat s3a'
 t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate_NordicSeas.py'
-#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_validate_NordicSeas.py -sd 2019110100 -ed 2019110318'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sd 2020020100 -ed 2020020818 -sat s3a -mod ARCMFC3 -reg NordicSeas'
+#cmd = 'python3 /home/patrikb/wavy/arcmfc/arcmfc3_validate.py -sat s3a -mod ARCMFC3 -reg NordicSeas'
+cmd = 'python3 /home/patrikb/wavy/op/op_validate.py -mod ARCMFC3 -reg NordicSeas -sat s3a'
 t = os.system(cmd)
-
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures.py'
+"""
+ Make figures
+"""
+#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3 -reg ARCMFC3 -d 202001'
+cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3 -reg ARCMFC3'
 t = os.system(cmd)
-cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc_figures_NordicSeas.py'
-t = os.system(cmd)
-
-#cmd = 'sh /home/patrikb/wavy/web/arcmfc/webpage.sh'
-cmd = 'sh /lustre/storeB/project/fou/om/ARCMFC/s3a/WebPage/webpage.sh'
+#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3 -reg NordicSeas -d 202001'
+#cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3 -reg NordicSeas'
+#t = os.system(cmd)
+"""
+ Make homepage
+"""
+cmd = 'sh /lustre/storeB/project/fou/om/waveverification/ARCMFC3/satellites/altimetry/s3a/WebPage/webpage.sh'
 t = os.system(cmd)

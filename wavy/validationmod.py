@@ -36,7 +36,6 @@ def validate(results_dict,boot=None):
     number of data values --> nov
     scatter index --> SI
     """
-    flatten = lambda l: [item for sublist in l for item in sublist]
     date_matches = np.array(results_dict['date_matches'])
     model_Hs_matches = np.array(results_dict['model_Hs_matches'])
     sat_Hs_matches = np.array(results_dict['sat_Hs_matches'])
@@ -83,52 +82,182 @@ def validate(results_dict,boot=None):
         arcmfc_validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return arcmfc_validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
-    from mpl_toolkits.basemap import Basemap, cm
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
+
+    # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     import numpy as np
-    mHs = MHs.squeeze()
-    mHs[np.where(mHs<0)[0],np.where(mHs<0)[1]]=np.nan
-    if (sa_obj.region == 'MoskWC' or sa_obj.region == 'MoskNC'):
-        clevs = np.arange(0,5,0.1)
-    else:
-        clevs = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,
-                2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
-    cmap=cm.GMT_haxby
-    norm = mpl.colors.BoundaryNorm(clevs, cmap.N)
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import cmocean
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+    # sort out data/coordinates for plotting
+    slons, slats = sa_obj.loc[1],sa_obj.loc[0]
+    clons, clats = results_dict["model_lons_matches"],\
+                    results_dict["model_lats_matches"]
+    mhs = MHs.squeeze() 
+    mhs[mhs<0] = np.nan
+    mhs[mhs>30] = np.nan
+
+    # inflate coords if regular lat/lon grid
+    if (len(Mlons.shape)==1):
+        Mlons, Mlats = np.meshgrid(Mlons, Mlats)    
+    # check region and determine projection
+    polarproj=None
+
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
         or sa_obj.region == 'ARCMFC3'):
         # Polar Stereographic Projection
-        m = Basemap(
-            projection='npstere',
-            boundinglat=region_dict['rect'][sa_obj.region]["boundinglat"]-5,
-            lon_0=0,
-            resolution='l',area_thresh=1000
-            )
+        polarproj = ccrs.NorthPolarStereo(
+                            central_longitude=0.0,
+                            true_scale_latitude=66,
+                            globe=None)
+        projection = polarproj
+        land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                        facecolor=cfeature.COLORS['land'])
     else:
-        m = Basemap(width=4300000,
-                height=4600000,
-#                resolution='l',
-                resolution='f',
-                projection='laea',
-                lat_ts=65,lat_0=65,lon_0=2.)
-    if (model == 'swan_karmoy250'):
-        m.drawmeridians(np.arange(0,360,0.5))
-        m.drawparallels(np.arange(-90,90,0.5))
+        # other projection for regional visualization
+        if sa_obj.region in region_dict['rect']:
+            latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
+            latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
+            lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
+            lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+        elif sa_obj.region in region_dict['poly']:
+            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
+            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
+            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
+            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+        else: print("Error: Region not defined!")
+
+        land = cfeature.GSHHSFeature(scale='i', levels=[1], 
+                        facecolor=cfeature.COLORS['land'])
+        projection = ccrs.LambertAzimuthalEqualArea(
+                        central_longitude=0.0, 
+                        central_latitude=60.0)
+
+    # make figure
+    fig, ax = plt.subplots(nrows=1, ncols=1, 
+                        subplot_kw=dict(projection=projection),
+                        figsize=(9, 9))
+    # plot domain extent
+    if projection != polarproj:
+        #ax.set_extent([lonmin, 52,latmin, 81],crs = ccrs.PlateCarree())
+        ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
+        #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
+        #ax.set_extent([-26, 32,latmin, latmax],crs = ccrs.PlateCarree())
+        ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
     else:
-        m.drawcoastlines()
-        m.drawcountries()
-        m.drawmeridians(np.arange(0,360,5))
-        m.drawparallels(np.arange(-90,90,5))
-    x, y = m(sa_obj.loc[1],sa_obj.loc[0])
-    x2, y2 = m(results_dict["model_lons_matches"],results_dict["model_lats_matches"])
-    if (model == 'swan_karmoy250'):
-        Mlons, Mlats = np.meshgrid(Mlons,Mlats)
-    lons, lats = m(Mlons,Mlats)
-    cs = m.contourf(lons,lats,mHs,clevs,cmap=cmap,norm=norm)
-    sc = m.scatter(x2,y2,s=30,c=results_dict['sat_Hs_matches'],marker='o',cmap=cmap,norm=norm,edgecolor='k',linewidths=0.05,verts=clevs)
+        latmin = 40
+        latmax = 90
+        lonmin = -180
+        lonmax = 180
+        ax.set_extent([lonmin, lonmax, latmin, latmax],crs = ccrs.PlateCarree())
+
+    # colors
+    if mode == 'dir':
+        cmap = cmocean.cm.phase
+        levels = range(0,360,10)
+        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+    else:
+        #cmap = mplcm.GMT_haxby
+        cmap = cmocean.cm.amp
+        levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+
+    # draw figure features
+    mpl.rcParams['contour.negative_linestyle'] = 'solid'
+    fs = 12
+
+    # - model contours
+    im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
+                    transform = ccrs.PlateCarree(), 
+                    cmap = cmocean.cm.amp, norm = norm)
+    #im = ax.contourf(Mlons, Mlats, mhs, transform = ccrs.PlateCarree())
+
+    imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
+                    transform = ccrs.PlateCarree(), 
+                    colors='w', linestyle = ':', linewidths = 0.3)
+    #ax.clabel(imc, fmt='%.1f', colors='w', fontsize=fs)
+    ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
+
+    if projection != polarproj:
+        # - lons
+        cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = .6, alpha = 0.6, 
+                    levels=range(-40,70,10))
+        cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = 2, alpha = 0.6, 
+                    levels=range(0,1))
+        # - lats
+        cs = ax.contour(Mlons, Mlats, Mlats, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = .6, alpha = 0.6, 
+                    levels=range(45,85,5))
+
+        # - text for lats
+        lat = np.arange (70, 90, 10)
+        lon = np.repeat (40, len(lat))
+
+        # - regular lat, lon projection
+        for lon, lat in zip (lon, lat):
+            plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat), 
+                    transform = ccrs.PlateCarree(), fontsize=fs)
+        # - text for lons
+        lon = np.arange (30,50,10)
+        lat = np.repeat (75,len(lon))
+
+        # - regular lat, lon projection
+        for lon, lat in zip (lon, lat):
+            plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon), 
+                    transform = ccrs.PlateCarree(), fontsize=fs)
+
+    # - add coastline
+    #ax.add_geometries(land.intersecting_geometries(
+    #                [lonmin, lonmax, latmin, latmax]),
+    #                ccrs.PlateCarree(),
+    #                facecolor=cfeature.COLORS['land'],
+    #                edgecolor='black',linewidth=1)
+    if projection != polarproj:
+        ax.add_geometries(land.intersecting_geometries(
+                    [lonmin, lonmax, latmin, latmax]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+    else:
+        ax.add_geometries(land.intersecting_geometries(
+                    [lonmin, lonmax, latmin, latmax]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+
+    # - add land color
+    ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
+
+    # - add satellite
+    if len(clats)>0:
+        sc = ax.scatter(clons,clats,s=10,
+                c=results_dict['sat_Hs_matches'],
+                marker='o',verts=levels, edgecolor = 'face',
+                cmap=cmocean.cm.amp, norm = norm, 
+                transform=ccrs.PlateCarree())
+
+    # - colorbar
+    cbar = fig.colorbar(im, ax=ax, orientation='vertical',
+                        fraction=0.046, pad=0.04)
+    cbar.ax.set_ylabel('Hs [m]',size=fs)
+    cbar.ax.tick_params(labelsize=fs)
+
+    # - title
     plt.title(model + ' model time step: '
             + results_dict['valid_date'][0].strftime("%Y-%m-%d %H:%M:%S UTC") 
             + '\n'
@@ -136,67 +265,408 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict):
             + ' coverage \n from ' 
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
-            ,fontsize=8)
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel('Hs [m]')
+            ,fontsize=12)
+    plt.savefig(model + '_test_' 
+                + results_dict['valid_date'][0].strftime("%Y%m%d")
+                + 'T' 
+                + results_dict['valid_date'][0].strftime("%H") 
+                + 'Z.png', format = 'png', dpi=200)
     plt.show()
 
-def plot_sat(sa_obj):
-    from mpl_toolkits.basemap import Basemap, cm
+def comp_wind(model,var,Mlons,Mlats,date,region,mode=None):
+
+    # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     import numpy as np
-    if (sa_obj.region == 'MoskWC' or sa_obj.region == 'MoskNC'):
-        clevs = np.arange(0,5,0.1)
-    elif (sa_obj.region == 'swan_karmoy'):
-        clevs = np.arange(0,4.1,0.1)
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import cmocean
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+    # sort out data/coordinates for plotting
+    var = var.squeeze()
+    if model == 'ww3':
+        var = (var - 180) % 360
+
+    # check region and determine projection
+
+    latmin = region_dict['rect'][region]['llcrnrlat']
+    latmax = region_dict['rect'][region]['urcrnrlat']
+    lonmin = region_dict['rect'][region]['llcrnrlon']
+    lonmax = region_dict['rect'][region]['urcrnrlon']
+    land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                    facecolor=cfeature.COLORS['land'])
+    projection = ccrs.LambertAzimuthalEqualArea(
+                    central_longitude=0.0,
+                    central_latitude=60.0)
+
+    # make figure
+    fig, ax = plt.subplots(nrows=1, ncols=1,
+                        subplot_kw=dict(projection=projection),
+                        figsize=(9, 9))
+    # plot domain extent
+    ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
+    #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
+    #ax.set_extent([-26, 32,latmin, latmax],crs = ccrs.PlateCarree())
+    ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+    ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+    ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+    ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+
+    # colors
+    if mode == 'dir':
+        cmap = cmocean.cm.phase
+        levels = range(0,360,5)
+        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
     else:
-        clevs = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,
-                2.5,3,3.5,4,4.5,6,7,8,9,10,12,15,20]
-    cmap=cm.GMT_haxby
-    norm = mpl.colors.BoundaryNorm(clevs, cmap.N)
-    if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'):
+        #cmap = mplcm.GMT_haxby
+        cmap = cmocean.cm.amp
+        levels = [0,1,2,3,4,6,8,10,11,12,13,14,
+             15,16,18,20,22,24,26,28,30,32,
+             35,38,42]
+        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+
+    # draw figure features
+    mpl.rcParams['contour.negative_linestyle'] = 'solid'
+    fs = 12
+
+    # - model contours
+    im = ax.contourf(Mlons, Mlats, var, levels = levels,
+                    transform = ccrs.PlateCarree(),
+                    cmap = cmap, norm = norm)
+    #im = ax.contourf(Mlons, Mlats, mhs, transform = ccrs.PlateCarree())
+    if mode == 'dir':
+        imc = ax.contour(Mlons, Mlats, var, levels = levels[::5],
+                    transform = ccrs.PlateCarree(),
+                    colors='w', linestyle = ':', linewidths = 0.3)
+    else:
+        imc = ax.contour(Mlons, Mlats, var, levels = levels[15::1],
+                    transform = ccrs.PlateCarree(),
+                    colors='w', linestyle = ':', linewidths = 0.3)
+
+    ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
+
+    # - lons
+    cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = .6, alpha = 0.6,
+                    levels=range(-40,70,10))
+    cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = 2, alpha = 0.6,
+                    levels=range(0,1))
+    # - lats
+    cs = ax.contour(Mlons, Mlats, Mlats, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = .6, alpha = 0.6,
+                    levels=range(45,85,5))
+
+    # - text for lats
+    lat = np.arange (70, 90, 10)
+    lon = np.repeat (40, len(lat))
+
+    # - regular lat, lon projection
+    for lon, lat in zip (lon, lat):
+        plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat),
+                    transform = ccrs.PlateCarree(), fontsize=fs)
+    # - text for lons
+    lon = np.arange (30,50,10)
+    lat = np.repeat (75,len(lon))
+
+    # - regular lat, lon projection
+    for lon, lat in zip (lon, lat):
+        plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon),
+                    transform = ccrs.PlateCarree(), fontsize=fs)
+
+    # - add coastline
+    ax.add_geometries(land.intersecting_geometries(
+                    [lonmin, lonmax, latmin, latmax]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+
+    # - add land color
+    ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
+
+    # - colorbar
+    cbar = fig.colorbar(im, ax=ax, orientation='vertical',
+                        fraction=0.046, pad=0.04)
+    if mode == 'dir':
+        cbar.ax.set_ylabel('degree',size=fs)
+    else:
+        cbar.ax.set_ylabel('Wind speed [m/s]',size=fs)
+    cbar.ax.tick_params(labelsize=fs)
+
+    # - title
+    plt.title(model + ' model time step: '
+            + date.strftime("%Y-%m-%d %H:%M:%S UTC")
+            ,fontsize=12)
+
+    #plt.savefig(model + '_wind_test_' 
+    plt.savefig(model + '_dir_test_' 
+                + date.strftime("%Y%m%d")
+                + 'T' 
+                + date.strftime("%H") 
+                + 'Z.png', format = 'png', dpi=200)
+    plt.show()
+
+def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
+
+    # imports
+    import matplotlib.cm as mplcm
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import cmocean
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+    # sort out data/coordinates for plotting
+    u = u.squeeze()
+    v = v.squeeze()
+    var = np.sqrt(u**2+v**2)
+
+    # check region and determine projection
+
+    latmin = region_dict['rect'][region]['llcrnrlat']
+    latmax = region_dict['rect'][region]['urcrnrlat']
+    lonmin = region_dict['rect'][region]['llcrnrlon']
+    lonmax = region_dict['rect'][region]['urcrnrlon']
+    land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                    facecolor=cfeature.COLORS['land'])
+    projection = ccrs.LambertAzimuthalEqualArea(
+                    central_longitude=0.0,
+                    central_latitude=60.0)
+
+    # make figure
+    fig, ax = plt.subplots(nrows=1, ncols=1,
+                        subplot_kw=dict(projection=projection),
+                        figsize=(9, 9))
+    # plot domain extent
+    ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
+    #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
+    #ax.set_extent([-26, 32,latmin, latmax],crs = ccrs.PlateCarree())
+    ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+    ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+    ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+    ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(),
+            color = 'gray', linewidth =2)
+
+    # colors
+    #cmap = mplcm.GMT_haxby
+    cmap = cmocean.cm.amp
+    levels = [0,1,2,3,4,6,8,10,11,12,13,14,
+             15,16,18,20,22,24,26,28,30,32,
+             35,38,42]
+    norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+
+    # draw figure features
+    mpl.rcParams['contour.negative_linestyle'] = 'solid'
+    fs = 12
+
+    # - model contours
+    im = ax.contourf(Mlons, Mlats, var, levels = levels,
+                    transform = ccrs.PlateCarree(),
+                    cmap = cmocean.cm.amp, norm = norm)
+    #im = ax.contourf(Mlons, Mlats, mhs, transform = ccrs.PlateCarree())
+
+    imc = ax.contour(Mlons, Mlats, var, levels = levels[15::1],
+                    transform = ccrs.PlateCarree(),
+                    colors='w', linestyle = ':', linewidths = 0.3)
+    ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
+    # add quivers for wind
+    qv = ax.quiver(Mlons, Mlats, u, v, color='k', transform=ccrs.PlateCarree(),scale=500)
+
+    # - lons
+    cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = .6, alpha = 0.6,
+                    levels=range(-40,70,10))
+    cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = 2, alpha = 0.6,
+                    levels=range(0,1))
+    # - lats
+    cs = ax.contour(Mlons, Mlats, Mlats, transform = ccrs.PlateCarree(),
+                    colors='k', linewidths = .6, alpha = 0.6,
+                    levels=range(45,85,5))
+
+    # - text for lats
+    lat = np.arange (70, 90, 10)
+    lon = np.repeat (40, len(lat))
+
+    # - regular lat, lon projection
+    for lon, lat in zip (lon, lat):
+        plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat),
+                    transform = ccrs.PlateCarree(), fontsize=fs)
+    # - text for lons
+    lon = np.arange (30,50,10)
+    lat = np.repeat (75,len(lon))
+
+    # - regular lat, lon projection
+    for lon, lat in zip (lon, lat):
+        plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon),
+                    transform = ccrs.PlateCarree(), fontsize=fs)
+
+    # - add coastline
+    ax.add_geometries(land.intersecting_geometries(
+                    [lonmin, lonmax, latmin, latmax]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+
+    # - add land color
+    ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
+
+    # - colorbar
+    cbar = fig.colorbar(im, ax=ax, orientation='vertical',
+                        fraction=0.046, pad=0.04)
+    cbar.ax.set_ylabel('Wind speed [m/s]',size=fs)
+    cbar.ax.tick_params(labelsize=fs)
+
+    # - title
+    plt.title(model + ' model time step: '
+            + date.strftime("%Y-%m-%d %H:%M:%S UTC")
+            ,fontsize=12)
+
+    plt.savefig(model + '_wind_test_'
+                + date.strftime("%Y%m%d")
+                + 'T'
+                + date.strftime("%H")
+                + 'Z.png', format = 'png', dpi=200)
+    plt.show()
+
+
+def plot_sat(sa_obj):
+    import matplotlib.cm as mplcm
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import cmocean
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+
+    # sort out data/coordinates for plotting
+    slons, slats = sa_obj.loc[1],sa_obj.loc[0]
+
+    # check region and determine projection
+
+    polarproj=None
+
+    if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
+        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ErinFix'):
         # Polar Stereographic Projection
-        m = Basemap(
-            projection='npstere',
-            boundinglat=region_dict['rect'][sa_obj.region]["boundinglat"],
-            lon_0=0,
-            resolution='l',area_thresh=1000
-            )
-    elif (sa_obj.region == 'swan_karmoy'):
-        m = Basemap(width=140000,
-                height=140000,
-                resolution='h',
-                projection='laea',
-                lat_ts=59.2,lat_0=59.2,lon_0=5.)
+        polarproj = ccrs.NorthPolarStereo(
+                            central_longitude=0.0, 
+                            true_scale_latitude=66, 
+                            globe=None)
+        projection = polarproj
+        land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                        facecolor=cfeature.COLORS['land'])
+        #pass
     else:
-        m = Basemap(width=4300000,
-                height=4600000,
-                resolution='f',
-                projection='laea',
-                lat_ts=65,lat_0=65,lon_0=2.)
-    if (sa_obj.region == 'swan_karmoy'):
-        m.drawmeridians(np.arange(0,360,0.5))
-        m.drawparallels(np.arange(-90,90,0.5))
+        if sa_obj.region in region_dict['rect']:
+            latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
+            latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
+            lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
+            lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+        elif sa_obj.region in region_dict['poly']:
+            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
+            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
+            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
+            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+        else: print("Error: Region not defined!")
+        azimproj = ccrs.LambertAzimuthalEqualArea(
+                        central_longitude=0.0,
+                        central_latitude=60.0)
+        projection = azimproj
+        land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                        facecolor=cfeature.COLORS['land'])
+        #projection = ccrs.Mercator()
+
+    # make figure
+    fig, ax = plt.subplots(nrows=1, ncols=1,
+                        subplot_kw=dict(projection=projection),
+                        figsize=(9, 9))
+    # plot domain extent
+    if projection != polarproj:
+        ax.set_extent([lonmin+6, 45,latmin+6, 84],crs = ccrs.PlateCarree())
     else:
-        m.drawmeridians(np.arange(0,360,5))
-        m.drawparallels(np.arange(-90,90,5))
-    m.drawcoastlines()
-    m.drawcountries()
-    x, y = m(sa_obj.loc[1],sa_obj.loc[0])
-    sc = m.scatter(x,y,s=30,c=sa_obj.Hs,marker='o',cmap=cmap,norm=norm,edgecolor='k',linewidths=0.05,verts=clevs)
-    plt.title(sa_obj.sat 
-            + ' with ' 
-            + str(len(sa_obj.Hs)) 
+        ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
+
+
+    # plot lats/lons
+    #ax.plot(5, 60, transform = ccrs.PlateCarree())
+    #ax.gridlines(draw_labels = True)
+    #ax.gridlines(linewidth = 1.5,color = 'gray', alpha = 0.4, linestyle = '--')
+    if (projection != polarproj and projection!=azimproj):
+        gl = ax.gridlines(draw_labels=True)
+        gl.xlabels_top = gl.ylabels_right = False
+        gl.xformatter = LONGITUDE_FORMATTER
+        gl.yformatter = LATITUDE_FORMATTER
+    
+    # colors
+    #cmap = mplcm.GMT_haxby
+    cmap = cmocean.cm.amp
+    levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,
+                    3,3.5,4,4.5,6,7,8,9,10,12,15,20]
+    norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+
+    # - add coastline
+    if projection != polarproj:
+        ax.add_geometries(land.intersecting_geometries(
+                    #[lonmin, lonmax, latmin, latmax]),
+                    [lonmin-20, lonmax+10, latmin-10, 90]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+    else:
+        ax.add_geometries(land.intersecting_geometries(
+                    [-180, 180, 0, 90]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+
+    # - add land color
+    ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
+
+    # - add satellite
+    sc = ax.scatter(slons,slats,s=10,c=sa_obj.Hs,
+                marker='o',verts=levels, edgecolor = 'face',
+                cmap=cmocean.cm.amp, norm = norm,
+                transform=ccrs.PlateCarree())
+    
+    # - colorbar
+    cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
+                        fraction=0.03, pad=0.03)
+                        #fraction=0.046, pad=0.04)
+    cbar.ax.set_ylabel('Hs [m]')
+    plt.title(sa_obj.sat
+            + ' with '
+            + str(len(sa_obj.Hs))
             + ' footprints: '
             + '\n'
             + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )
             + ' to '
             + sa_obj.edate.strftime("%Y-%m-%d %H:%M:%S UTC" )
-            ,fontsize=10)
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel('Hs [m]')
+            ,fontsize=12)
+    #plt.savefig(sa_obj.sat + '_coverage_from_'
+    #        + sa_obj.sdate.strftime("%Y%m%d")
+    #        + 'T'
+    #        + sa_obj.sdate.strftime("%H")
+    #        + 'Z'
+    #        + '_to_'
+    #        + sa_obj.edate.strftime("%Y%m%d")
+    #        + 'T' 
+    #        + sa_obj.edate.strftime("%H")
+    #        + 'Z'
+    #        + '.png', format = 'png', dpi=300)
     plt.show()
 
 def ts_fig(results_dict):

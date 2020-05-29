@@ -12,12 +12,6 @@ ekofiskL:
     coords:
         lat: 56.54
         lon: 3.21
-    cf:
-        varAttribs:
-            Hs:
-                standard_name: "sea_surface_wave_significant_height"
-                long_name: "significant wave height derived from: NA"
-                units: "m"
 
 asgardb:
     sensor:
@@ -168,6 +162,15 @@ trollb:
     coords:
         lat: 60.77
         lon: 3.5
+
+#ula:
+#   sensor:
+#       NA_1: 0 # python indexing
+#   manufactor:
+#       NA_1: NA
+#   coord:
+#       lat: 57.10
+#       lon:  2.85
 
 valhall:
     sensor:

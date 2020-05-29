@@ -41,10 +41,12 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
-parser.add_argument("-station", metavar='statname',
+parser.add_argument("-stat", metavar='stationname',
     help="stationname")
-parser.add_argument("-sensor", metavar='sensorname',
+parser.add_argument("-sens", metavar='sensorname',
     help="sensorname")
+parser.add_argument("-mod", metavar='model',
+    help="model to be used for collocation")
 
 args = parser.parse_args()
 
@@ -63,9 +65,13 @@ else:
 
 # retrieve PID
 grab_PID()
-model='mwam4'
-station = args.station
-sensorname = args.sensor
+if args.mod is None:
+    mdoel = 'mwam4'
+else:
+    model = args.mod
+
+station = args.stat
+sensorname = args.sens
 title_ts = (model + ' vs ' + station + ' (' + sensorname + ')')
 basetime = datetime(1970,1,1)
 
@@ -86,10 +92,8 @@ idy_lst = []
 
 if model == 'mwam4':
     init_step = 6
-    init_start = np.min([0,6,12,18])
-if model == 'mwam8':
+if (model == 'mwam8' or model == 'mwam3' or model == 'ecwam'):
     init_step = 12
-    init_start = 12
 tdeltas = range(1,init_step+1)[::-1]
 leadtimes = range(init_step)
 
@@ -100,6 +104,18 @@ while tmpdate <= edate:
     print(tmpdate)
     if np.isnan(idx):
         for i in range(len(leadtimes)):
+            outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
+                            + 'waveverification/mwam4/stations/'
+                            + 'CollocationFiles/'
+                            + '%Y/%m/')
+            os.system('mkdir -p ' + outpath)
+            filename_ts=fc_date.strftime(model
+                                    + "_vs_"
+                                    + station
+                                    + "_"
+                                    + sensorname
+                                    + "_coll_ts_lt_"
+                                    + "best_%Y%m.nc")
             try:
                 element = leadtimes[i]
                 print('leadtimes: ', element)
@@ -114,7 +130,6 @@ while tmpdate <= edate:
                             tmpdate+timedelta(minutes=10),
                             mode='d22',sensorname=sensorname,
                             deltat=10)
-                #hs_obs_10min = sc_obj10.hs_obs[0:-1]
                 hs_obs_10min = sc_obj10.hs[0:-1]
                 sc_obj60 = sc(station,fc_date,
                             tmpdate+timedelta(minutes=60),
@@ -159,26 +174,17 @@ while tmpdate <= edate:
                      'hdist':[dist_lst[-1]],
                      'idx':[idx_lst[-1]],
                      'idy':[idy_lst[-1]],
+                     'model':model,
+                     'station':station,
+                     'sensor':sensor
                     }
                 print(coll_dict)
-                outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
-                            + 'waveverification/mwam4/stations/'
-                            + 'CollocationFiles/'
-                            + '%Y/%m/')
-                os.system('mkdir -p ' + outpath)
-                filename_ts=fc_date.strftime(model 
-                                    + "_" 
-                                    + station 
-                                    + "_" 
-                                    + sensorname 
-                                    + "_coll_ts_%Y%m_bestguess.nc")
                 dumptonc_coll_ts_station(outpath,
                                 filename_ts,
                                 title_ts,
                                 basetime,
-                                coll_dict,
-                                model,
-                                station,sensorname)
+                                coll_dict
+                                )
             except SystemExit:
                 print('error: --> leadtime is not available')
             except (ValueError,IOError,KeyError) as e:
@@ -241,26 +247,17 @@ while tmpdate <= edate:
                      'hdist':[dist_lst[-1]],
                      'idx':[idx_lst[-1]],
                      'idy':[idy_lst[-1]],
+                     'model':model,
+                     'station':station,
+                     'sensor':sensor
                     }
                 print(coll_dict)
-                outpath = fc_date.strftime('/lustre/storeB/project/fou/om/'
-                            + 'waveverification/mwam4/stations/'
-                            + 'CollocationFiles/'
-                            + '%Y/%m/')
-                os.system('mkdir -p ' + outpath)
-                filename_ts=fc_date.strftime(model
-                                    + "_"
-                                    + station
-                                    + "_"
-                                    + sensorname
-                                    + "_coll_ts_%Y%m_bestguess.nc")
                 dumptonc_coll_ts_station(outpath,
                                 filename_ts,
                                 title_ts,
                                 basetime,
-                                coll_dict,
-                                model,
-                                station,sensorname)
+                                coll_dict
+                                )
             except SystemExit:
                 print('error: --> leadtime is not available')
             except (ValueError,IOError,KeyError) as e:

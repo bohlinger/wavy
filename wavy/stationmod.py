@@ -56,7 +56,6 @@ import multiprocessing as mp
 # bintime
 import math
 
-# progress bar
 import sys
 
 # get_remote
@@ -528,7 +527,7 @@ def extract_d22(searchlines):
             tseries.append(' '.join(tseriesl))
             date_object = datetime.strptime(' '.join(tseriesl),'%d-%m-%Y %H:%M')
             dat['10min'].append(date_object)
-            #legger inn nan for alle variable
+            # nan for all variables
             for WM in [WM1,WM2,WM3,WIA,WIB,WIC,WL1,WL2,WL3]:
                 for var in WM.keys():
                     if var != 'name':
@@ -537,18 +536,26 @@ def extract_d22(searchlines):
             if str(WM['name']) in line:
                 for l in searchlines[i+2:i+3]:
                     WM['Hs_10min'][-1]=floater(l.strip())
-                for l in searchlines[i+4:i+5]:
-                    WM['Hmax_10min'][-1]=floater(l.strip())
                 for l in searchlines[i+5:i+6]:
                     WM['Tp_10min'][-1]=floater(l.strip())  
                 for l in searchlines[i+11:i+12]:
-                    WM['Tm_10min'][-1]=floater(l.strip())
+                    WM['Tm02_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+12:i+13]:
+                    WM['Tm01_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+9:i+10]:
+                    WM['Tm10_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+17:i+18]:
+                    WM['Mdir_10min'][-1]=floater(l.strip())
+                for l in searchlines[i+16:i+17]:
+                    WM['Pdir_10min'][-1]=floater(l.strip())
         for WI in [WIA,WIB,WIC]:
             if str(WI['name']) in line:
                 for l in searchlines[i+10:i+11]:
-                    WI['FF_10min'][-1]=floater(l.strip())
+                    WI['FF_10min_10m'][-1]=floater(l.strip())
+                for l in searchlines[i+16:i+17]:
+                    WI['FF_10min_sensor'][-1]=floater(l.strip())
                 for l in searchlines[i+13:i+14]:
-                    WI['DD_10min'][-1]=floater(l.strip()) 
+                    WI['DD_10min_sensor'][-1]=floater(l.strip()) 
         for WL in [WL1,WL2,WL3]:
             if str(WL['name']) in line:
                 for l in searchlines[i+2:i+3]:
@@ -573,14 +580,30 @@ def extract_d22(searchlines):
                     wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
                     wmt[[0,1,-2,-1]]= sp.nan
                     WM['Hs_1hr'] = sp.sqrt(wmt)
-                if var == 'Tm_10min':
+                if var == 'Tm02_10min':
                     WINDOW = 3
                     wmt = sp.power(WM[var],2)
                     weights = sp.ones((WINDOW))/WINDOW
                     wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
                     wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
                     wmt[[0,1,-2,-1]]= sp.nan
-                    WM['Tm_1hr'] = sp.sqrt(wmt)
+                    WM['Tm02_1hr'] = sp.sqrt(wmt)
+                if var == 'Tm01_10min':
+                    WINDOW = 3
+                    wmt = sp.power(WM[var],2)
+                    weights = sp.ones((WINDOW))/WINDOW
+                    wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
+                    wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
+                    wmt[[0,1,-2,-1]]= sp.nan
+                    WM['Tm01_1hr'] = sp.sqrt(wmt)
+                if var == 'Tm10_10min':
+                    WINDOW = 3
+                    wmt = sp.power(WM[var],2)
+                    weights = sp.ones((WINDOW))/WINDOW
+                    wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
+                    wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
+                    wmt[[0,1,-2,-1]]= sp.nan
+                    WM['Tm10_1hr'] = sp.sqrt(wmt)
     # CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
     sensor_lst = [WM1,WM2,WM3]
     dates = deepcopy(dat)

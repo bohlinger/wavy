@@ -10,11 +10,14 @@ from modelmod import get_model
 from collocmod import collocate
 from validationmod import validate
 from copy import deepcopy
-from model_specs import model_dict
 from ncmod import dumptonc_stats
 import argparse
 from argparse import RawTextHelpFormatter
 from utils import grab_PID
+import os
+import yaml
+with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -43,19 +46,16 @@ args = parser.parse_args()
 now = datetime.now()
 
 if args.mod is None:
-    model = 'mwam4'
-else:
-    model = args.mod
+    args.mod = 'mwam4'
 
 if args.sat is None:
-    sat = 's3a'
-else:
-    sat = args.sat
+    args.sat = ['s3a']
+elif args.sat == "all":
+    args.sat = ['s3a','s3b','c2','j3','al','cfo']
+else: args.sat = [args.sat]
 
 if args.reg is None:
-    region = model
-else:
-    region = args.reg
+    args.reg = args.mod
 
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day)-timedelta(days=1)
@@ -71,62 +71,67 @@ else:
 # retrieve PID
 grab_PID()
 
-# Settings
-inpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model + '/satellites/altimetry'
-           + '/' + sat + '/'
-           + 'CollocationFiles/')
+if args.mod == "ARCMFC3":
+    leadtimes = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
+else:
+    leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
 
-outpath = ('/lustre/storeB/project/fou/om/waveverification/'
-           + model + '/satellites/altimetry'
-           + '/' + sat + '/'
-           + 'ValidationFiles/')
+for sat in args.sat:
+    inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + args.mod + '/satellites/altimetry/'
+           + sat + '/' + 'CollocationFiles/')
+    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+           + args.mod + '/satellites/altimetry/' 
+           + sat + '/' + 'ValidationFiles/')
+    tmpdate = deepcopy(sdate)
 
-tmpdate = deepcopy(sdate)
-
-leadtimes = [0, 6, 12, 18, 24]
-
-while tmpdate <= edate:
-    print(tmpdate)
-    for element in leadtimes:
-        # settings
-        fc_date = deepcopy(tmpdate)
-        basetime=model_dict[model]['basetime']
-        # get model collocated values
-        from ncmod import get_arcmfc_ts
-        filename_ts=fc_date.strftime(model
-                                    + "_vs_" + sat
-                                    + "_" + region
-                                    + "_coll_ts_lt"
-                                    + "{:0>3d}".format(element)
-                                    + "h_%Y%m.nc")
-        dtime, sHs, mHs = get_arcmfc_ts(inpath 
-                                        + fc_date.strftime('%Y/%m/') 
-                                        + filename_ts)
-        del filename_ts
-        # find collocations for given model time step and validate
-        from stationmod import matchtime
-        time_lst = []
-        for dt in dtime:
-            time_lst.append((dt-basetime).total_seconds())
-        ctime,idx = matchtime(tmpdate, tmpdate, time_lst, basetime, timewin=30)
-        if len(idx)==0:
-            pass
-        else:
-            results_dict = {'date_matches':dtime[idx],
-                        'model_Hs_matches':mHs[idx],
-                        'sat_Hs_matches':sHs[idx]}
-            valid_dict=validate(results_dict)
-            print(valid_dict)
-            # dump to nc-file: validation
-            title_stat='validation file'
-            filename_stat=fc_date.strftime(model 
+    while tmpdate <= edate:
+        print(tmpdate)
+        for element in leadtimes:
+            # settings
+            fc_date = deepcopy(tmpdate)
+            basetime = model_dict[args.mod]['basetime']
+            # get model collocated values
+            from ncmod import get_arcmfc_ts
+            filename_ts=fc_date.strftime(args.mod
                                         + "_vs_" + sat
-                                        + "_" + region
-                                        + "_val_ts_lt"
+                                        + "_for_" + args.reg
+                                        + "_coll_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
-            time_dt = fc_date
-            dumptonc_stats(outpath + fc_date.strftime('%Y/%m/'), \
-                    filename_stat,title_stat,basetime,time_dt,valid_dict)
-    tmpdate = tmpdate + timedelta(hours=6)
+            if not os.path.exists(inpath 
+                                + fc_date.strftime('%Y/%m/') 
+                                + filename_ts):
+                print(filename_ts + ' not found!')
+            else:
+                dtime, sHs, mHs = get_arcmfc_ts(inpath 
+                                            + fc_date.strftime('%Y/%m/') 
+                                            + filename_ts)
+                del filename_ts
+                # find collocations for given model time step and validate
+                from stationmod import matchtime
+                time_lst = []
+                for dt in dtime:
+                    time_lst.append((dt-basetime).total_seconds())
+                ctime,idx = matchtime(tmpdate, tmpdate, time_lst, 
+                                            basetime, timewin=30)
+                if len(idx)==0:
+                    pass
+                else:
+                    results_dict = {'date_matches':dtime[idx],
+                            'model_Hs_matches':mHs[idx],
+                            'sat_Hs_matches':sHs[idx]}
+                    valid_dict=validate(results_dict)
+                    print(valid_dict)
+                    # dump to nc-file: validation
+                    title_stat='validation file'
+                    filename_stat=fc_date.strftime(args.mod
+                                            + "_vs_" + sat
+                                            + "_for_" + args.reg
+                                            + "_val_ts_lt"
+                                            + "{:0>3d}".format(element)
+                                            + "h_%Y%m.nc")
+                    time_dt = fc_date
+                    dumptonc_stats(outpath + fc_date.strftime('%Y/%m/'), \
+                        filename_stat,title_stat,basetime,time_dt,valid_dict)
+        tmpdate = tmpdate + timedelta(hours=6)

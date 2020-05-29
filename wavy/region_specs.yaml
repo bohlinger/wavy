@@ -29,7 +29,16 @@ rect:
         llcrnrlat: 67.
         urcrnrlon: 14.
         urcrnrlat: 68.5
-
+    Sulafj:
+        llcrnrlon: 5.
+        llcrnrlat: 62.
+        urcrnrlon: 8.14
+        urcrnrlat: 63.15
+    Erin1W:
+        llcrnrlon: -20.
+        llcrnrlat: 60.
+        urcrnrlon: 80.
+        urcrnrlat: 89.
 
 # polynomial
 poly:
@@ -52,3 +61,8 @@ poly:
     swan_karmoy:
         lats: [58.6,59.7,59.7,58.6,58.6]
         lons: [4.5,4.5,5.95,5.95,4.5]
+    BalticSea:
+        lats: [56.1,53.5,53.5,54.5,57.0,59.2,62.1,66.3,67.0,
+                66.0,63.4,59.9,56.1]
+        lons: [13.4,13.4,19.0,23.8,26.4,31.4,30.4,29.1,24.0,
+                19.5,16.6,15.3,13.4]

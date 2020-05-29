@@ -12,8 +12,10 @@ effecient programming are most welcome!
 List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
-# progress bar and other stuff
 import sys
+
+# progress bar
+from utils import progress
 
 # all class
 import numpy as np
@@ -61,15 +63,6 @@ with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
-
-def progress(count, total, status=''):
-    "from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3"
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
 
 def credentials_from_netrc(remoteHostName=None):
     import netrc
@@ -311,7 +304,7 @@ class satellite_altimeter():
         # find values for given region
         latlst,lonlst,rlatlst,rlonlst,ridx,region = \
             self.matchregion(cloc[0],cloc[1],region=region,\
-            polyreg=polyreg)
+            polyreg=polyreg,grid_date=sdate)
         rloc = [cloc[0][ridx],cloc[1][ridx]]
         rHs = list(np.array(cHs)[ridx])
         rHs_smooth = list(np.array(cHs_smooth)[ridx])
@@ -481,7 +474,7 @@ class satellite_altimeter():
                 idx=idx+1
         return ctime, cidx, timelst
 
-    def matchregion(self,LATS,LONS,region,polyreg):
+    def matchregion(self,LATS,LONS,region,polyreg,grid_date):
         # find values for given region
         if polyreg is None:
             if region is None:
@@ -501,7 +494,8 @@ class satellite_altimeter():
         else:
             region = polyreg
             latlst,lonlst,rlatlst,rlonlst,ridx = \
-                self.matchregion_poly(LATS,LONS,region=region)
+                self.matchregion_poly(LATS,LONS,region=region,
+                                    grid_date=grid_date)
         return latlst, lonlst, rlatlst, rlonlst, ridx, region
 
     def matchregion_prim(self,LATS,LONS,region):
@@ -558,7 +552,7 @@ class satellite_altimeter():
             print ("Values found for chosen region and time frame.")
         return latlst, lonlst, rlatlst, rlonlst, ridx
 
-    def matchregion_poly(self,LATS,LONS,region):
+    def matchregion_poly(self,LATS,LONS,region,grid_date):
         from matplotlib.patches import Polygon
         from matplotlib.path import Path
         import numpy as np
@@ -573,41 +567,48 @@ class satellite_altimeter():
         elif (isinstance(region,str)==True and region in model_dict):
             from modelmod import get_model
             import pyproj
-            if region == 'mwam8':
-                grid_date = datetime(2019,2,1,6)
-            elif region == 'ww3':
-                grid_date = datetime(2018,12,27,12)
-            elif (region == 'MoskNC' or region == 'MoskWC'):
-                grid_date = datetime(2018,3,1)
-            elif (region == 'swanKC'):
-                grid_date = datetime(2007,2,1)
-            elif (region == 'swan_karmoy250'):
-                grid_date = datetime(2018,1,1)
-            elif (region == 'ARCMFC3'):
-                grid_date = datetime(2019,7,3)
+            try:
+                grid_date = grid_date
+                print('Use date for retrieving grid: ', grid_date)
+                if (region == 'ARCMFC' or region=='ARCMFC3'):
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        init_date=grid_date)
+                else:
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        leadtime=0)
+            except (KeyError,IOError,ValueError) as e:
+                print(e)
+                if region == 'mwam8':
+                    grid_date = datetime(2019,2,1,6)
+                else:
+                    grid_date = datetime(2019,2,1)
+                print('Trying default date ', grid_date)
+                if (region == 'ARCMFC' or region=='ARCMFC3'):
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        init_date=grid_date)
+                else:
+                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                        get_model(simmode="fc", model=region, fc_date=grid_date,
+                        leadtime=0)
+            if (len(model_lats.shape)==1):
+                model_lons, model_lats = np.meshgrid(model_lons, model_lats)
+            if (region=='global' or region=='ecwam'):
+                rlatlst, rlonlst = LATS, LONS
             else:
-                grid_date = datetime(2019,2,1)
-            if (region == 'ARCMFC' or region=='ARCMFC3'):
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc", model=region, fc_date=grid_date,
-                    init_date=grid_date)
-            else:
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc", model=region, fc_date=grid_date,
-                    leadtime=0)
-            if (region == 'swanKC' or region == 'swan_karmoy250'):
-                model_lats, model_lons = np.meshgrid(model_lats, model_lons)
-            proj4 = model_dict[region]['proj4']
-            proj_model = pyproj.Proj(proj4)
-            Mx, My = proj_model(model_lons,model_lats,inverse=False)
-            Vx, Vy = proj_model(LONS,LATS,inverse=False)
-            xmax, xmin = np.max(Mx), np.min(Mx)
-            ymax, ymin = np.max(My), np.min(My)
-            ridx = list(np.where((Vx>xmin) & (Vx<xmax) & 
+                proj4 = model_dict[region]['proj4']
+                proj_model = pyproj.Proj(proj4)
+                Mx, My = proj_model(model_lons,model_lats,inverse=False)
+                Vx, Vy = proj_model(LONS,LATS,inverse=False)
+                xmax, xmin = np.max(Mx), np.min(Mx)
+                ymax, ymin = np.max(My), np.min(My)
+                ridx = list(np.where((Vx>xmin) & (Vx<xmax) & 
                                 (Vy>ymin) & (Vy<ymax))[0]
-                        )
-            latlst, lonlst = LATS, LONS
-            rlatlst, rlonlst = LATS[ridx], LONS[ridx]
+                            )
+                latlst, lonlst = LATS, LONS
+                rlatlst, rlonlst = LATS[ridx], LONS[ridx]
         elif isinstance(region,str)==True:
             print ("Specified region: " + region + "\n"
               + " --> Bounded by polygon: \n"
@@ -644,17 +645,24 @@ def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
     if (lat is None or lon is None):
         lat=locations[station][0]
         lon=locations[station][1]
+    print('Get footprints near lat:', lat, ' lon:', lon)
     lats = sa_obj.loc[0]
     lons = sa_obj.loc[1]
     Hs = sa_obj.Hs
     time = sa_obj.time
     sample = []
-    dists = []
+    distsp = []
+    lonsp = []
+    latsp = []
+    timep = []
+    idx = []
     for i in range(len(lats)):
-        if ((lats[i] < lat+1) and (lats[i] > lat-1)):
-            if ((lons[i] < lon+1) and (lons[i] > lon-1)):
-                dist=haversine(lons[i],lats[i],lon,lat)
-                if (dist<=distlim):
-                    sample.append(Hs[i])
-                    dists.append(dist)
-    return sample, dists
+        dist=haversine(lons[i],lats[i],lon,lat)
+        if (dist<=distlim):
+            sample.append(Hs[i])
+            distsp.append(dist)
+            lonsp.append(lons[i])
+            latsp.append(lats[i])
+            timep.append(time[i])
+            idx.append(i)
+    return sample, distsp, lonsp, latsp, timep, idx
