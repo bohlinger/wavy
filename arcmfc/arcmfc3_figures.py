@@ -70,7 +70,6 @@ for element in forecasts:
                                         + "_val_ts_lt"
                                         + "{:0>3d}".format(element)
                                         + "h_%Y%m.nc")
-
     valid_dict, dtime = get_arcmfc_stats(inpath + filename_stats)
     rmsd_lst.append(valid_dict['rmsd'])
     bias_lst.append(valid_dict['bias'])
@@ -88,9 +87,9 @@ valid_dict_lst = {'rmsd':rmsd_lst,
 # Make ts-plots
 for val_name in val_names:
     filename_fig = fc_date.strftime(
-#                            "ARCMFC3_for_" 
-#                            + region
-                            "ARCMFC3"
+                            "ARCMFC3_for_" 
+                            + region
+#                            "ARCMFC3"
                             + "_fig_val" 
                             + "_ts_" + val_name
                             + "_%Y%m.png")
@@ -127,8 +126,8 @@ for element in forecasts:
 # Make scatter-plots
 for i in range(len(forecasts)):
     filename_fig = fc_date.strftime(
-#                            "ARCMFC3_for_" + region
-                            "ARCMFC3"
+                            "ARCMFC3_for_" + region
+#                            "ARCMFC3"
                             + "_fig_val_scatter_lt"
                             + "{:0>3d}".format(forecasts[i])
                             + "h_%Y%m.png")
@@ -140,5 +139,7 @@ outpath=('/lustre/storeB/project/fou/om/waveverification/'
         + fc_date.strftime('%Y') + '/' + fc_date.strftime('%m') + '/')
 cmd = 'mkdir -p ' + outpath
 os.system(cmd)
-cmd = 'mv ARCMFC3_fig_val*.png ' + outpath
+#cmd = 'mv ARCMFC3_fig_val*.png ' + outpath
+cmd = 'mv ARCMFC3*_fig_val*.png ' + outpath
 os.system(cmd)
+print(cmd)
