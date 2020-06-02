@@ -41,7 +41,7 @@ cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3
 t = os.system(cmd)
 #cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3 -reg NordicSeas -d 202001'
 cmd = 'python /home/patrikb/wavy/arcmfc/arcmfc3_figures.py -sat s3a -mod ARCMFC3 -reg NordicSeas'
-#t = os.system(cmd)
+t = os.system(cmd)
 """
  Make homepage
 """
