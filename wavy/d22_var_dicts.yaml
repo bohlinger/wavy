@@ -129,11 +129,11 @@ long_name:
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     Tp_10min: "Peak wave period \
-              from variance spectral density inverse frequency moment\
+              at variance spectral density maximum \
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     Tm02_10min: "Mean wave period \
-              from variance spectral density first frequency moment\
+              from variance spectral density second frequency moment\
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     Tm01_10min: "Mean wave period \ 
@@ -141,6 +141,7 @@ long_name:
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     Tm10_10min: "Mean wave period \
+              from variance spectral density inverse frequency moment \
               at an imposed sampling interval of 10 min, \
               estimation method depends on instrument"
     FF_10min_10m: "10 min wind speed at 10m artificially reduced"
