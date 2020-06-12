@@ -82,7 +82,7 @@ def validate(results_dict,boot=None):
         arcmfc_validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return arcmfc_validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
 
     # imports
     import matplotlib.cm as mplcm
@@ -266,7 +266,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None):
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=12)
-    plt.savefig(model + '_test_' 
+    if path != None:
+        plt.savefig(path + model + '_test_' 
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
                 + 'T' 
                 + results_dict['valid_date'][0].strftime("%H") 
@@ -406,12 +407,12 @@ def comp_wind(model,var,Mlons,Mlats,date,region,mode=None):
             ,fontsize=12)
 
     #plt.savefig(model + '_wind_test_' 
-    plt.savefig(model + '_dir_test_' 
-                + date.strftime("%Y%m%d")
-                + 'T' 
-                + date.strftime("%H") 
-                + 'Z.png', format = 'png', dpi=200)
-    plt.show()
+    #plt.savefig(model + '_dir_test_' 
+    #            + date.strftime("%Y%m%d")
+    #            + 'T' 
+    #            + date.strftime("%H") 
+    #            + 'Z.png', format = 'png', dpi=200)
+    #plt.show()
 
 def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
 
@@ -534,12 +535,12 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
             + date.strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=12)
 
-    plt.savefig(model + '_wind_test_'
-                + date.strftime("%Y%m%d")
-                + 'T'
-                + date.strftime("%H")
-                + 'Z.png', format = 'png', dpi=200)
-    plt.show()
+    #plt.savefig(model + '_wind_test_'
+    #            + date.strftime("%Y%m%d")
+    #            + 'T'
+    #            + date.strftime("%H")
+    #            + 'Z.png', format = 'png', dpi=200)
+    #plt.show()
 
 
 def plot_sat(sa_obj):

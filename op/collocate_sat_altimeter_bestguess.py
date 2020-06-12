@@ -84,7 +84,7 @@ print(sdate)
 print(edate)
 print('---')
 
-if args.mod == 'mwam4':
+if (args.mod == 'mwam4' or args.mod == 'ww3'):
     init_step = 6
     init_start = np.min([0,6,12,18])
 if (args.mod == 'mwam8' or args.mod == 'ecwam' or args.mod == 'mwam3'):
@@ -127,7 +127,7 @@ while tmpdate <= edate:
             title_ts=('Best guess collocated time series for '
                     + ' model ' + args.mod
                     + ' vs ' + args.sat
-                    + ' over region of ' + args.reg)
+                    + ' over region ' + args.reg)
             try:
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(simmode="fc",model=args.mod,fc_date=fc_date,

@@ -108,6 +108,24 @@ def get_nc_time(pathtofile):
         nc.close()
     return dtime
 
+def get_sat_alt_coll_var(pathtofile,varname):
+    import os.path
+    indicator = os.path.isfile(pathtofile)
+    if indicator is False:
+        dtime = False
+        sys.exit('File does not exist')
+    else:
+        nc = netCDF4.Dataset(
+            pathtofile,mode='r',
+            )
+        if varname == 'dtime':
+            time_var = nc.variables['time']
+            var = netCDF4.num2date(time_var[:],time_var.units)
+        else:
+            var = nc.variables[varname][:]
+        nc.close()
+    return var
+
 def get_arcmfc_ts(pathtofile):
     import os.path
     indicator = os.path.isfile(pathtofile)
