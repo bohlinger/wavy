@@ -25,7 +25,7 @@ Collocate wave model output and s3a data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
-./op_collocate.py -mod mwam4 -sd 2018110112 -ed 2018110118
+./op_collocate_bestguess.py -mod mwam4 -sd 2018110112 -ed 2018110118
     """,
     formatter_class = RawTextHelpFormatter
     )
@@ -74,10 +74,12 @@ else:
 # retrieve PID
 grab_PID()
 
-if args.mod == 'ARCMFC3':
-    leadtimes = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-else:
-    leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
+if (args.mod == 'mwam4' or args.mod == 'ww3'):
+    init_step = 6
+if (args.mod == 'mwam8' or args.mod == 'ecwam' or args.mod == 'mwam3'):
+    init_step = 12
+
+leadtimes = range(init_step)
 
 # settings
 if args.twin is None:
@@ -92,53 +94,40 @@ for sat in args.sat:
            + 'CollocationFiles/')
     tmpdate = deepcopy(sdate)
     while tmpdate <= edate:
-        # get sat values
-        if 'results_dict' in globals():
-            del results_dict
-        fc_date = deepcopy(tmpdate)
-        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
-        if len(sa_obj.dtime)==0:
-            print("If possible proceed with another time step...")
-        else:
-            # loop over all forecast lead times
-            for element in leadtimes:
-                print("leadtime: ", element, "h")
-                print("fc_date: ", fc_date)
-                basetime=model_dict[args.mod]['basetime']
-                filename_ts=fc_date.strftime(args.mod
-                                            + "_vs_" + sat
-                                            + "_for_" + args.reg
-                                            + "_coll_ts_lt"
-                                            + "{:0>3d}".format(element)
-                                            + "h_%Y%m.nc")
+        for element in leadtimes:
+            fc_date = tmpdate + timedelta(hours=element)
+            init_date = deepcopy(tmpdate)
+            print("leadtime: ", element, "h")
+            print("fc_date: ", fc_date)
+            print("init_date: ", init_date)
+            # get sat values
+            sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
+            if len(sa_obj.dtime)==0:
+                print("If possible proceed with another time step...")
+            else:
+                basetime = model_dict[args.mod]['basetime']
+                filename_ts = fc_date.strftime(args.mod
+                                    + "_vs_" + sat
+                                    + "_for_" + args.reg
+                                    + "_coll_ts_lt_best"
+                                    + "_%Y%m.nc")
                 title_ts=('collocated time series for '
-                        + ' model ' + args.mod
-                        + ' vs ' + sat
-                        + ' over region of ' + args.reg
-                        + ' with leadtime '
-                        + "{:0>3d}".format(element)
-                        + ' h')
-                init_date = fc_date - timedelta(hours=element)
+                    + ' model ' + args.mod
+                    + ' vs ' + sat
+                    + ' over region ' + args.reg
+                    + ' with leadtime '
+                    + ' bestguess')
                 # get_model
                 try:
                     model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                         get_model(simmode="fc",model=args.mod,fc_date=fc_date,
                         init_date=init_date,leadtime=element)
                     # collocation
-                    if ('results_dict' in globals() 
-                        and len(results_dict['idx_valid'])>0):
-                        update_dict = collocate(args.mod,model_Hs,model_lats,
-                                            model_lons,model_time_dt,
-                                            sa_obj,fc_date,distlim=args.dist,
-                                            idx_valid=results_dict['idx_valid'])
-                        results_dict['model_Hs_matches']=\
-                                            update_dict['model_Hs_matches']
-                    else:
-                        results_dict = collocate(args.mod,model_Hs,model_lats,
-                                            model_lons,model_time_dt,
-                                            sa_obj,fc_date,distlim=args.dist)
+                    results_dict = collocate(args.mod,model_Hs,model_lats,
+                                        model_lons,model_time_dt,
+                                        sa_obj,fc_date,distlim=args.dist)
                     dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
-                                filename_ts,title_ts,basetime,results_dict)
+                            filename_ts,title_ts,basetime,results_dict)
                 except IOError as e:
                     print(e)
                 #    print('Model output not available')

@@ -58,7 +58,7 @@ args = parser.parse_args()
 if args.mod is None:
     args.mod = 'mwam4'
 
-if args.mod == 'mwam4':
+if (args.mod == 'mwam4' or args.mod == 'ww3'):
     init_times = np.array([0,6,12,18]).astype('float')
     hd = 6
 elif args.mod == 'ecwam':
@@ -94,7 +94,7 @@ varname = args.var
 title_ts = (model + ' ' + varname + ' at location: ' + station )
 basetime = datetime(1970,1,1)
 
-if model == 'mwam4':
+if (model == 'mwam4' or model == 'ww3'):
     init_step = 6
 if (model == 'mwam8' or model == 'ecwam' or model == 'mwam3'):
     init_step = 12

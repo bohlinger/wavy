@@ -582,6 +582,8 @@ class satellite_altimeter():
                 print(e)
                 if region == 'mwam8':
                     grid_date = datetime(2019,2,1,6)
+                elif region == 'ww3':
+                    grid_date = datetime(2019,12,6)
                 else:
                     grid_date = datetime(2019,2,1)
                 print('Trying default date ', grid_date)
