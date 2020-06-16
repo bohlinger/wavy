@@ -291,28 +291,28 @@ def runmean(vec,win,mode=None):
             count = count+1
     return out, std
 
-def runmean_conv(vec,win,mode='flat'):
+def runmean_conv(x,win,mode='flat'):
     """
     running mean using convolution
-    input:  vec = vector of values to me smoothed
+    input:  x = vector of values to me smoothed
             win = window length
             mode= which window to pic
     source: https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
     """
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
-    if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
-    if window_len<3:
+        raise ValueError("smooth only accepts 1 dimension arrays.")
+    if x.size < win:
+        raise ValueError("Input vector needs to be bigger than window size.")
+    if win<3:
         print("window length too small -> returning original signal")
         return x
-    s=numpy.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
-    if window == 'flat': #moving average
-        w=numpy.ones(window_len,'d')
+    s=np.r_[x[win-1:0:-1],x,x[-2:-win-1:-1]]
+    if mode == 'flat': #moving average
+        w=np.ones(win,'d')
     else:
         # ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']
-        w=eval('numpy.'+window+'(window_len)')
-    out=numpy.convolve(w/w.sum(),s,mode='valid')
+        w=eval('numpy.' + mode + '(win)')
+    out=np.convolve(w/w.sum(),s,mode='valid')
     return out
 
 def bootstr(a,reps):
