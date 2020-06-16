@@ -297,6 +297,7 @@ def runmean_conv(vec,win,mode='flat'):
     input:  vec = vector of values to me smoothed
             win = window length
             mode= which window to pic
+    source: https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
     """
     if x.ndim != 1:
         raise ValueError, "smooth only accepts 1 dimension arrays."
