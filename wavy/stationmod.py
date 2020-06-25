@@ -140,7 +140,7 @@ class station_class():
     def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varname):
         if mode == 'nc':
             if varname is None:
-                varname = 'Hs_OBS'
+                varname = 'Hs_10min'
             basedate = self.basedate
             tmpdate = sdate
             var = []
