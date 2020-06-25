@@ -29,3 +29,8 @@ cmd = 'python /home/patrikb/wavy/op/collect_model_at_location_all.py -var Tp -mo
 t = os.system(cmd)
 cmd = 'python /home/patrikb/wavy/op/collect_model_at_location_all.py -var Tm02 -mod ecwam >& /home/patrikb/wavy/logs/collect_model_at_location_all_Tm02_ecwam.out'
 t = os.system(cmd)
+# wind from mwam3force
+cmd = 'python /home/patrikb/wavy/op/collect_model_at_location_all.py -var U -mod mwam3force >& /home/patrikb/wavy/logs/collect_model_at_location_all_U_mwam3force.out'
+t = os.system(cmd)
+cmd = 'python /home/patrikb/wavy/op/collect_model_at_location_all.py -var V -mod mwam3force >& /home/patrikb/wavy/logs/collect_model_at_location_all_V_mwam3force.out'
+t = os.system(cmd)
