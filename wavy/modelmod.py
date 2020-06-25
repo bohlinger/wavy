@@ -147,7 +147,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*24)
                        - timedelta(hours=restsix))
-    elif (model == 'ARCMFC3' or model == 'mwam3force' or model == 'mwam3'):
+    elif (model == 'ARCMFC3'):
         multsix = int(leadtime/12)
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
@@ -161,6 +161,21 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*12)
                        - timedelta(hours=restsix))
+    elif (model == 'mwam3force' or model == 'mwam3'):
+        multsix = int(leadtime/12)
+        restsix = leadtime%12
+        if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
+            (fc_date - timedelta(hours=leadtime)).hour !=12):
+            print('error: --> leadtime is not available')
+        if leadtime>228:
+            print('error: --> Leadtime must be less than 228')
+        if leadtime is None:
+            pass
+        else:
+            tmp_date = (fc_date
+                       - timedelta(hours=multsix*12)
+                       - timedelta(hours=restsix)
+                       + timedelta(hours=6))
     elif (model == 'ecwam' or model == 'mwam800c3'):
         multsix = int(leadtime/12)
         restsix = leadtime%12
@@ -233,9 +248,7 @@ def make_filename(simmode=None,model=None,datein=None,
         elif (model == 'mwam4' or model=='mwam8' or model=='ecwam' or\
             model=='mwam800c3' or model == 'mwam4force' or \
             model=='mwam8force' or model=='ecwamforce' or \
-            model == 'ww3'):
-            if (model == 'mwam3' or model == 'mwam3force'):
-                init_date = init_date + timedelta(hours=6)
+            model == 'ww3' or model=='mwam3' or model=='mwam3force'):
             if (fc_date == init_date or leadtime == 0):
                 filename = (fc_date.strftime(
                             model_dict[model]['path_template'])

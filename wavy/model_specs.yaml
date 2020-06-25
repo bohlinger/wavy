@@ -47,7 +47,11 @@ mwam3force:
         rotlons: longitude
         rotlats: latitude
         time: time
-    path: /lustre/storeB/immutable/archive/projects/metproduction/DNMI_WAVE/%Y/%m/%d/
+    path: "/lustre/storeB/immutable/archive/\
+            projects/metproduction/DNMI_WAVE/"
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
+            DNMI_WAVE/%Y/%m/%d/"
     # file_template: "%Y%m%d%h_MyWaveWam3_b%Y%m%dT%h.nc"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
