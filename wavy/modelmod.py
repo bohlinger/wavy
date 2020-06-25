@@ -147,7 +147,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*24)
                        - timedelta(hours=restsix))
-    elif model == 'ARCMFC3':
+    elif (model == 'ARCMFC3' or model == 'mwam3force' or model == 'mwam3'):
         multsix = int(leadtime/12)
         restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
@@ -219,7 +219,7 @@ def make_filename(simmode=None,model=None,datein=None,
             filename = (model_dict[model]['path']
               + fc_date.strftime('%Y%m%d')
               + init_date.strftime(model_dict[model][filetemplate]))
-        if model == 'ARCMFC3':
+        elif model == 'ARCMFC3':
             init_date = init_date + timedelta(hours=6)
             filename = (fc_date.strftime(model_dict[model]['path'])
               + fc_date.strftime('%Y%m%d%H')
@@ -234,6 +234,8 @@ def make_filename(simmode=None,model=None,datein=None,
             model=='mwam800c3' or model == 'mwam4force' or \
             model=='mwam8force' or model=='ecwamforce' or \
             model == 'ww3'):
+            if (model == 'mwam3' or model == 'mwam3force'):
+                init_date = init_date + timedelta(hours=6)
             if (fc_date == init_date or leadtime == 0):
                 filename = (fc_date.strftime(
                             model_dict[model]['path_template'])
@@ -272,23 +274,13 @@ def make_filename(simmode=None,model=None,datein=None,
 
 def get_model_filepathlst(simmode=None,model=None,sdate=None,edate=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
-    if (model in model_dict and model is not 'ARCNFCnew'):
+    if model in model_dict:
         filestr = make_filename(simmode=simmode,model=model,
                         fc_date=fc_date,init_date=init_date,
                         leadtime=leadtime)
         filepathlst = [filestr]
-    elif model == 'ARCMFCnew':
-        filestr_start = make_filename(simmode=simmode,model=model,
-                            datein=sdate,expname=expname)
-        filestr_end = make_filename(simmode=simmode,model=model,
-                            datein=edate,expname=expname)
-        filelst = list(np.sort(os.listdir(model_dict[model]['path'])))
-        filepathlst = []
-        for element in filelst:
-            filepathlst.append(model_dict[model]['path'] + element)
-        sidx = filelst.index(filestr_start)
-        eidx = filelst.index(filestr_end)
-        filepathlst = filepathlst[sidx:eidx+1]
+    else:
+        print("chosen model is not specified in model_specs.yaml")
     return filepathlst
 
 def get_model_cont_mode(model,sdate,edate,filestr,expname,

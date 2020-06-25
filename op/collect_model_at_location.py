@@ -83,7 +83,8 @@ basetime = datetime(1970,1,1)
 if model == 'mwam4':
     init_step = 6
     leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
-if (model == 'mwam8' or model == 'ecwam' or model == 'mwam3'):
+if (model == 'mwam8' or model == 'ecwam' or 
+    model == 'mwam3' or model == 'mwam3force'):
     init_step = 12
     leadtimes = [0, 12, 24, 36, 48, 60, 72, 96, 120, 144]
 
