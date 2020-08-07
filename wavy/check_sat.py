@@ -79,7 +79,7 @@ if args.twin is None:
 
 # get data
 if args.sat == 'all':
-    satlist = ['s3a','s3b','j3','c2','al','cfo']
+    satlist = ['s3a','s3b','j3','c2','al','cfo','h2b']
     loc0 = []
     loc1 = []
     Hs = []

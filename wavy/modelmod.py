@@ -336,6 +336,7 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
     model_lons = f.variables[model_dict[model]['vars']['lons']][:]
     model_lats = f.variables[model_dict[model]['vars']['lats']][:]
     model_time = f.variables[model_dict[model]['vars']['time']][:]
+    units = f.variables[model_dict[model]['vars']['time']].units
     # Hs [time,lat,lon]
     if (varname == 'Hs' or varname is None):
         model_var_link = f.variables[model_dict[model]['vars']['Hs']]
@@ -355,13 +356,15 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
             model_time_dt.append(model_basetime
                     + timedelta(minutes=minutes))
     else:
-        model_time_dt=[]
-        for element in model_time:
-            model_time_dt.append(model_basetime
-                    + timedelta(seconds=element))
+        #model_time_dt=[]
+        model_time_dt = list(netCDF4.num2date(model_time,units = units))
+        print(type(model_time_dt))
+        print(model_time_dt)
+        #for element in model_time:
+        #    model_time_dt.append(model_basetime
+        #            + timedelta(seconds=element))
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
-    print(model_var_link.shape)
     if len(model_var_link.shape)>2:
         model_var_valid = \
             model_var_link[model_time_dt.index(fc_date),:,:].squeeze()

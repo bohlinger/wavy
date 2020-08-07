@@ -76,7 +76,7 @@ grab_PID()
 
 if (args.mod == 'mwam4' or args.mod == 'ww3'):
     init_step = 6
-if (args.mod == 'mwam8' or args.mod == 'ecwam' or args.mod == 'mwam3'):
+if (args.mod == 'mwam8' or args.mod == 'ecwam' or args.mod == 'mwam3' or args.mod == 'ARCMFC3'):
     init_step = 12
 
 leadtimes = range(init_step)
@@ -101,38 +101,50 @@ for sat in args.sat:
             print("fc_date: ", fc_date)
             print("init_date: ", init_date)
             # get sat values
-            sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
-            if len(sa_obj.dtime)==0:
-                print("If possible proceed with another time step...")
-            else:
-                basetime = model_dict[args.mod]['basetime']
-                filename_ts = fc_date.strftime(args.mod
+            try:
+                sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
+                if len(sa_obj.dtime)==0:
+                    print("If possible proceed with another time step...")
+                else:
+                    d = model_dict[args.mod]['basetime']
+                    # conversion from yaml-datetime.date to datetime.datetime
+                    basetime = datetime(d.year,d.month,d.day)
+                    filename_ts = fc_date.strftime(args.mod
                                     + "_vs_" + sat
                                     + "_for_" + args.reg
                                     + "_coll_ts_lt_best"
                                     + "_%Y%m.nc")
-                title_ts=('collocated time series for '
-                    + ' model ' + args.mod
-                    + ' vs ' + sat
-                    + ' over region ' + args.reg
-                    + ' with leadtime '
-                    + ' bestguess')
-                # get_model
-                try:
-                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                        get_model(simmode="fc",model=args.mod,fc_date=fc_date,
-                        init_date=init_date,leadtime=element)
-                    # collocation
-                    results_dict = collocate(args.mod,model_Hs,model_lats,
-                                        model_lons,model_time_dt,
-                                        sa_obj,fc_date,distlim=args.dist)
-                    dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
+                    title_ts=('collocated time series for '
+                        + ' model ' + args.mod
+                        + ' vs ' + sat
+                        + ' over region ' + args.reg
+                        + ' with leadtime '
+                        + ' bestguess')
+                    # get_model
+                    try:
+                        model_Hs,\
+                        model_lats,\
+                        model_lons,\
+                        model_time,\
+                        model_time_dt = get_model(simmode="fc",
+                                                model=args.mod,
+                                                fc_date=fc_date,
+                                                init_date=init_date,
+                                                leadtime=element)
+                        # collocation
+                        results_dict = collocate(args.mod,model_Hs,
+                                        model_lats,model_lons,
+                                        model_time_dt,sa_obj,
+                                        fc_date,distlim=args.dist)
+                        dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                             filename_ts,title_ts,basetime,results_dict)
-                except IOError as e:
-                    print(e)
-                #    print('Model output not available')
-                except ValueError as e:
-                    print(e)
-                #    print('Model wave field not available.')
-                #    print('Continuing with next time step.')
-        tmpdate = tmpdate + timedelta(hours=6)
+                    except IOError as e:
+                        print(e)
+                    except ValueError as e:
+                        print(e)
+            except IndexError as e:
+                print(e)
+        if (args.mod == 'ARCMFC3' or args.mod == 'mwam3'):
+            tmpdate = tmpdate + timedelta(hours=12)
+        else:
+            tmpdate = tmpdate + timedelta(hours=6)

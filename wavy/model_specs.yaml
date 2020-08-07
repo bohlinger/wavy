@@ -36,6 +36,7 @@ ARCMFC3:
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
+    init_times: [0,12]
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
 
 mwam3force:
@@ -60,6 +61,7 @@ mwam3force:
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
+    init_times: [0,12]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 +o_lat_p=25 +R=6.371e+06 +no_defs"
 
 mwam3:
@@ -79,6 +81,7 @@ mwam3:
     basetime: 1970-01-01
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
+    init_times: [0,12]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=25 +R=6.371e+06 +no_defs"
 
@@ -290,6 +293,25 @@ Erin2W: # two way coupled experiment
                         as parts of the day"
     delta_t: 3h
     _FillValue: 9.96921e+36
+
+NORA10:
+    vars:
+        Hs: significant_wave_height
+        lons: longitude
+        lats: latitude
+        time: time
+        Tp: peak_wave_period
+        Tm02: significant_wave_period # not sure if this corresponds to Tm02
+        Mdir: wave_direction
+        Pdir: peak_wave_direction
+    path_template: "/lustre/storeB/project/fou/om/NORA10/wave/"
+    path: "/lustre/storeB/project/fou/om/NORA10/wave/"
+    file_template: "wam10_%Y.nc"
+    basetime: 1970-01-01 00:00:00
+    units_time: seconds since 1970-01-01 00:00:00
+    delta_t: 0000-00-00 (01:00:00)
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
+                +o_lat_p=22 +a=6367470 +e=0"
 
 # list of continuous simulations, will be deprecated in future
 
