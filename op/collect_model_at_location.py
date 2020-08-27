@@ -80,7 +80,7 @@ model = args.mod
 varname = args.var
 basetime = datetime(1970,1,1)
 
-if model == 'mwam4':
+if (model == 'mwam4' or model == 'ww3'):
     init_step = 6
     leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
 if (model == 'mwam8' or model == 'ecwam' or 

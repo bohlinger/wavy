@@ -100,6 +100,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
     ecwam   12 hourly (00h, 12h)
     ARCMFC  24 hourly (00h)
     ARCMFC3 12 hourly (00h, 12h); naming convention +6h for bulletin
+    ARCMFC3_hc hourly
     Erin1W   3 hourly (00h, 03h, 06h, 09h, 12h, 15h, 18h)
     ww3        hourly
     """
@@ -212,6 +213,8 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
                        - timedelta(hours=restsix))
     elif (model=='ww3' or model == 'swan_karmoy250'):
         tmp_date = fc_date
+    else:
+        tmp_date = fc_date
     return tmp_date
 
 def get_latest_output_init_date(model):
@@ -266,7 +269,12 @@ def make_filename(simmode=None,model=None,datein=None,
         elif (model == 'MoskNC' or model == 'MoskWC' or \
             model=='swanKC' or model=='ww3' or model=='swan_karmoy250'):
             filename = (model_dict[model]['path'] 
-                    + fc_date.strftime(model_dict[model][filetemplate]))
+                    + fc_date.strftime(model_dict[model]['file_template']))
+        else:
+            filename = (
+                     fc_date.strftime(model_dict[model]['path'])
+                    + fc_date.strftime(model_dict[model]['file_template'])
+                    )
     elif simmode == 'cont':
         """
         explst was in model_specs.py for continuous simulations 

@@ -109,7 +109,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
     polarproj=None
 
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
-        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'CustomSvalbard'):
+        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'
+        or sa_obj.region == 'CustomSvalbard'):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
                             central_longitude=0.0,
@@ -561,7 +562,8 @@ def plot_sat(sa_obj):
     polarproj=None
 
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
-        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ErinFix'):
+        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'
+        or sa_obj.region == 'ErinFix'):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
                             central_longitude=0.0, 
