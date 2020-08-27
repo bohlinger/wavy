@@ -332,7 +332,6 @@ class satellite_altimeter():
                         + '/')
             tmplst = np.sort(os.listdir(tmpdatestr))
             filelst.append(tmplst)
-            #pathlst = [(tmpdatestr + e) for e in tmplst]
             pathlst.append([(tmpdatestr + e) for e in tmplst])
             if (edate is not None and edate!=sdate):
                 tmpdate = tmpdate + timedelta(hours=1)
@@ -501,7 +500,7 @@ class satellite_altimeter():
             ridx = range(len(LATS))
         else:
             if isinstance(region,str)==True:
-                if (region=='ARCMFC' or region=='Arctic'):
+                if "boundinglat" in region_dict['rect'][region]:
                     boundinglat = region_dict['rect'][region]["boundinglat"]
                 else:
                     llcrnrlat = region_dict['rect'][region]["llcrnrlat"]
@@ -523,14 +522,14 @@ class satellite_altimeter():
                 latlst.append(LATS[i])
                 lonlst.append(LONS[i])
                 if (
-                (region=='ARCMFC' or region=='Arctic')
+                "boundinglat" in region_dict['rect'][region]
                 and LATS[i] >= boundinglat
                     ):
                     rlatlst.append(LATS[i])
                     rlonlst.append(LONS[i])
                     ridx.append(i)
                 elif(
-                region != 'ARCMFC' and region != 'Arctic'
+                not "boundinglat" in region_dict['rect'][region]
                 and LATS[i] >= llcrnrlat
                 and LATS[i] <= urcrnrlat
                 and LONS[i] >= llcrnrlon
@@ -573,12 +572,7 @@ class satellite_altimeter():
                         leadtime=0)
             except (KeyError,IOError,ValueError) as e:
                 print(e)
-                if region == 'mwam8':
-                    grid_date = datetime(2019,2,1,6)
-                elif region == 'ww3':
-                    grid_date = datetime(2019,12,6)
-                else:
-                    grid_date = datetime(2019,2,1)
+                grid_date = model_dict[region]['grid_date']
                 print('Trying default date ', grid_date)
                 if (region == 'ARCMFC' or region=='ARCMFC3'):
                     model_Hs,model_lats,model_lons,model_time,model_time_dt = \

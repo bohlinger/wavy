@@ -71,12 +71,10 @@ class model_class():
     satpath_ftp_014_001 = pathfinder['satpath_ftp_014_001']
     
 
-    def __init__(self,sdate,edate=None,model=None,timewin=None,region=None):
+    def __init__(self,sdate,edate=None,model=None,timewin=None):
         print ('# ----- ')
         print (" ### Initializing modelmod instance ###")
         print ('# ----- ')
-        if region is None:
-            model='ARCMFC'
         if timewin is None:
             timewin = int(30)
         if edate is None:
