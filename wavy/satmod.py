@@ -284,22 +284,19 @@ class satellite_altimeter():
         pathlst, filelst = self.get_localfilelst(
                                 sdate,edate,timewin,region
                                 )
-        fLATS,fLONS,fTIME,fVAVHS,fMAXS,fVAVHS_smooth = \
+        fLATS,fLONS,fTIME,fVAVHS,fMAXS = \
                                     self.read_localfiles(pathlst)
         idx = np.array(range(len(fVAVHS)))[~np.isnan(fVAVHS)]
         fLATS = list(np.array(fLATS)[idx])
         fLONS = list(np.array(fLONS)[idx])
         fTIME = list(np.array(fTIME)[idx])
         fVAVHS = list(np.array(fVAVHS)[idx])
-        fVAVHS_smooth = list(np.array(fVAVHS_smooth)[idx])
         gloc = [fLATS,fLONS]
         gHs = fVAVHS
-        gHs_smooth = fVAVHS_smooth
         # find values for give time constraint
         ctime,cidx,timelst = self.matchtime(sdate,edate,fTIME,timewin)
         cloc = [np.array(fLATS)[cidx],np.array(fLONS)[cidx]]
         cHs = list(np.array(gHs)[cidx])
-        cHs_smooth = list(np.array(gHs_smooth)[cidx])
         cTIME = list(np.array(fTIME)[cidx])
         # find values for given region
         latlst,lonlst,rlatlst,rlonlst,ridx,region = \
@@ -307,7 +304,6 @@ class satellite_altimeter():
             polyreg=polyreg,grid_date=sdate)
         rloc = [cloc[0][ridx],cloc[1][ridx]]
         rHs = list(np.array(cHs)[ridx])
-        rHs_smooth = list(np.array(cHs_smooth)[ridx])
         rtime = list(np.array(ctime)[ridx])
         rTIME = list(np.array(cTIME)[ridx])
         self.edate = edate
@@ -315,7 +311,6 @@ class satellite_altimeter():
         self.basetime = datetime(2000,1,1)
         self.loc = rloc # regional coords [lats,lons]
         self.Hs = rHs # regional HS
-        self.Hs_smooth = rHs_smooth # region smoothed ts
         self.idx = ridx # region indices
         self.dtime = rtime # region time steps as datetime obj
         self.time = rTIME # region time steps in seconds from basedate
@@ -398,9 +393,7 @@ class satellite_altimeter():
         fLONS=list(np.array(fLONS)[indices])
         fTIME=list(np.array(fTIME)[indices])
         fVAVHS=list(np.array(fVAVHS)[indices])
-        # smooth Hs time series
-        fVAVHS_smooth,fVAVHS_std = runmean(fVAVHS,5,'centered')
-        return fLATS, fLONS, fTIME, fVAVHS, fMAXS, fVAVHS_smooth
+        return fLATS, fLONS, fTIME, fVAVHS, fMAXS
 
     def bintime(self,binframe=None):
         '''
