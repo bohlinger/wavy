@@ -229,32 +229,28 @@ def get_latest_output_init_date(model):
 
 def make_filename(simmode=None,model=None,datein=None,
     expname=None,fc_date=None,init_date=None,leadtime=None):
-    filetemplate = 'file_template'
     if simmode == 'fc':
         if model == 'ARCMFC':
-            filename = (model_dict[model]['path']
+            filename = (model_dict[model]['path_template']
               + fc_date.strftime('%Y%m%d')
-              + init_date.strftime(model_dict[model][filetemplate]))
+              + init_date.strftime(model_dict[model]['file_template']))
         elif model == 'ARCMFC3':
             init_date = init_date + timedelta(hours=6)
-            filename = (fc_date.strftime(model_dict[model]['path'])
+            filename = (fc_date.strftime(model_dict[model]['path_template'])
               + fc_date.strftime('%Y%m%d%H')
-              + init_date.strftime(model_dict[model][filetemplate]))
+              + init_date.strftime(model_dict[model]['file_template']))
         elif (model == 'Erin1W' or model == 'Erin2W'):
-            filename = (model_dict[model]['path']
-              + fc_date.strftime(model_dict[model][filetemplate]))
+            filename = (model_dict[model]['path_template']
+              + fc_date.strftime(model_dict[model]['file_template']))
         elif (model == 'ErinFix'):
-            filename = (model_dict[model]['path'] 
-                        + model_dict[model][filetemplate])
-        elif (model == 'mwam4' or model=='mwam8' or model=='ecwam' or\
-            model=='mwam800c3' or model == 'mwam4force' or \
-            model=='mwam8force' or model=='ecwamforce' or \
-            model == 'ww3' or model=='mwam3' or model=='mwam3force'):
+            filename = (model_dict[model]['path_template'] 
+                        + model_dict[model]['file_template'])
+        elif (model in model_dict):
             if (fc_date == init_date or leadtime == 0):
                 filename = (fc_date.strftime(
                             model_dict[model]['path_template'])
                             + fc_date.strftime(
-                            model_dict[model][filetemplate])
+                            model_dict[model]['file_template'])
                             )
             else:
                 filedate = check_date(model,
@@ -262,33 +258,13 @@ def make_filename(simmode=None,model=None,datein=None,
                 filename = (filedate.strftime(
                             model_dict[model]['path_template'])
                             + filedate.strftime(
-                            model_dict[model][filetemplate])
+                            model_dict[model]['file_template'])
                             )
-        elif (model == 'MoskNC' or model == 'MoskWC' or \
-            model=='swanKC' or model=='ww3' or model=='swan_karmoy250'):
-            filename = (model_dict[model]['path'] 
-                    + fc_date.strftime(model_dict[model]['file_template']))
         else:
             filename = (
-                     fc_date.strftime(model_dict[model]['path'])
+                     fc_date.strftime(model_dict[model]['path_template'])
                     + fc_date.strftime(model_dict[model]['file_template'])
                     )
-    elif simmode == 'cont':
-        """
-        explst was in model_specs.py for continuous simulations 
-        is now removed, this part of the code will be removed as well
-        """
-        explst = []
-        if expname in explst:
-            days = [1,10,20]
-            tmp = np.abs(np.array(days)-datein.day)
-            idx = list(tmp).index(np.min(tmp))
-            date = datetime(datein.year,datein.month,days[idx])
-            filepath = (model_dict[model]['path']
-                + expname
-                + date.strftime(model_dict[model]['file_template']))
-            filename = (expname + 
-                date.strftime(model_dict[model]['file_template']))
     return filename
 
 def get_model_filepathlst(simmode=None,model=None,sdate=None,edate=None,
@@ -374,59 +350,51 @@ def get_model_fc_mode(filestr=None,model=None,fc_date=None,
     return model_var_valid, model_lats, model_lons, model_time_valid,\
          model_time_dt_valid
 
+def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
+    if (init_date is None and leadtime is None):
+        leadtime = 0
+        init_date = fc_date
+    elif (init_date is None):
+        init_date = fc_date - timedelta(hours=leadtime)
+    elif (leadtime is None):
+        leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
+    return fc_date, init_date, leadtime
+    
+
 def get_model(simmode=None,model=None,sdate=None,edate=None,
     fc_date=None,init_date=None,leadtime=None,expname=None,
     sa_obj=None,timewin=None,varname=None):
     """ 
     Get model data.
     """
+    fc_date, init_date, leadtime = make_dates_and_lt(
+                                            fc_date=fc_date,
+                                            init_date=init_date,
+                                            leadtime=leadtime)
     if sa_obj is not None:
         sdate = sa_obj.sdate
         edate = sa_obj.edate
     if timewin is None:
         timewin = int(30)
-    if (simmode == 'cont'):
-        filepathlst = get_model_filepathlst(simmode=simmode,
-                        model=model,sdate=sdate,edate=edate,
-                        expname=expname)
+    filepathlst = get_model_filepathlst(simmode=simmode,model=model,
+                        fc_date=fc_date,init_date=init_date,
+                        leadtime=leadtime)
+    for element in filepathlst:
+        model_Hs, \
+        model_lats, \
+        model_lons, \
+        model_time, \
+        model_time_dt = \
+        get_model_fc_mode(filestr=element,model=model,
+                        fc_date=fc_date,init_date=init_date,
+                        leadtime=leadtime,varname=varname)
         model_Hs_lst, \
         model_time_lst, \
         model_time_dt_lst = [],[],[]
-        for element in filepathlst:
-            model_Hs, \
-            model_lats, \
-            model_lons, \
-            model_time, \
-            model_time_dt = \
-            get_model_cont_mode(model,\
-                                sdate,edate,\
-                                element,expname,\
-                                timewin)
-            for i in range(len(model_time)):
-                model_Hs_lst.append(model_Hs[i,:,:])
-                model_time_lst.append(model_time[i])
-                model_time_dt_lst.append(model_time_dt[i])
-        model_Hs = np.array(model_Hs_lst)
-    elif (simmode == 'fc'):
-        filepathlst = get_model_filepathlst(simmode=simmode,model=model,
-                            fc_date=fc_date,init_date=init_date,
-                            leadtime=leadtime)
-        for element in filepathlst:
-            model_Hs, \
-            model_lats, \
-            model_lons, \
-            model_time, \
-            model_time_dt = \
-            get_model_fc_mode(filestr=element,model=model,
-                    fc_date=fc_date,init_date=init_date,
-                    leadtime=leadtime,varname=varname)
-            model_Hs_lst, \
-            model_time_lst, \
-            model_time_dt_lst = [],[],[]
-            for i in range(len(model_time)):
-                model_Hs_lst.append(model_Hs)
-                model_time_lst.append(model_time[i])
-                model_time_dt_lst.append(model_time_dt[i])
-        model_Hs = np.array(model_Hs_lst)
+        for i in range(len(model_time)):
+            model_Hs_lst.append(model_Hs)
+            model_time_lst.append(model_time[i])
+            model_time_dt_lst.append(model_time_dt[i])
+    model_Hs = np.array(model_Hs_lst)
     return model_Hs, model_lats, model_lons, model_time_lst, \
            model_time_dt_lst

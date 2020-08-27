@@ -562,26 +562,14 @@ class satellite_altimeter():
             try:
                 grid_date = grid_date
                 print('Use date for retrieving grid: ', grid_date)
-                if (region == 'ARCMFC' or region=='ARCMFC3'):
-                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                        get_model(simmode="fc", model=region, fc_date=grid_date,
-                        init_date=grid_date)
-                else:
-                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                        get_model(simmode="fc", model=region, fc_date=grid_date,
-                        leadtime=0)
+                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                    get_model(simmode="fc", model=region, fc_date=grid_date)
             except (KeyError,IOError,ValueError) as e:
                 print(e)
                 grid_date = model_dict[region]['grid_date']
                 print('Trying default date ', grid_date)
-                if (region == 'ARCMFC' or region=='ARCMFC3'):
-                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                        get_model(simmode="fc", model=region, fc_date=grid_date,
-                        init_date=grid_date)
-                else:
-                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                        get_model(simmode="fc", model=region, fc_date=grid_date,
-                        leadtime=0)
+                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                    get_model(simmode="fc", model=region, fc_date=grid_date)
             if (len(model_lats.shape)==1):
                 model_lons, model_lats = np.meshgrid(model_lons, model_lats)
             if (region=='global' or region=='ecwam'):

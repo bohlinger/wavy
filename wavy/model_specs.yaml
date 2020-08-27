@@ -8,8 +8,8 @@ ARCMFC:
         rotlons: rlon
         rotlats: rlat
         time: time
-    path: "/lustre/storeA/project/copernicus/sea/mywavewam8r625/arctic/"
-    #'file_template':'%Y%m%d_MyWaveWam8r625_b%Y%m%d.nc',
+    path_template: "/lustre/storeA/project/copernicus/sea/\
+                    mywavewam8r625/arctic/"
     file_template: "_MyWaveWam8r625_b%Y%m%d.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -28,8 +28,8 @@ ARCMFC3:
         rotlons: rlon
         rotlats: rlat
         time: time
-    path: /lustre/storeA/project/copernicus/sea/mywavewam3/arctic/%Y/%m/
-    # file_template: "%Y%m%d%h_MyWaveWam3_b%Y%m%dT%h.nc"
+    path_template: "/lustre/storeA/project/copernicus/sea/\
+                    mywavewam3/arctic/%Y/%m/"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
@@ -52,8 +52,8 @@ ARCMFC3_hc:
         rotlons: rlon
         rotlats: rlat
         time: time
-    path: "https://thredds.met.no/thredds/dodsC/cmems/\
-            hindcastmywave3km_files/%Y/%m/"
+    path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
+                    hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -71,15 +71,9 @@ mwam3force:
         rotlons: longitude
         rotlats: latitude
         time: time
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/DNMI_WAVE/"
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    # file_template: "%Y%m%d%h_MyWaveWam3_b%Y%m%dT%h.nc"
-    # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
-    # - This is actually 2019071500_*_b20190715T00* but due
-    #   to delay the bulletin date/time is adjusted
     file_template: "W3km_force_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -99,8 +93,6 @@ mwam3:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/DNMI_WAVE/"
     file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01
     units_time: seconds since 1970-01-01 00:00:00
@@ -134,8 +126,6 @@ mwam4:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/DNMI_WAVE/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -155,8 +145,6 @@ mwam4force:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/DNMI_WAVE/"
     file_template: "W4km_force_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01
     units_time: seconds since 1970-01-01 00:00:00
@@ -177,8 +165,6 @@ mwam8:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/DNMI_WAVE/"
     file_template: "MyWave_wam8_WAVE_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -197,8 +183,6 @@ mwam8force:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/DNMI_WAVE/"
     file_template: "W8km_force_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -218,8 +202,6 @@ mwam800c3:
     path_template: "/lustre/storeB/immutable/archive/\
                     projects/metproduction/MyWavewam_800m/\
                     %Y/%m/%d/"
-    path: "/lustre/storeB/immutable/archive/\
-            projects/metproduction/MyWavewam_800m/"
     file_template: MyWave_wam800_c3WAVE%H.nc
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -237,7 +219,6 @@ ecwam:
         lats: latitude
         time: time
     path_template: "/vol/data/ec/"
-    path: "/vol/data/ec/"
     file_template: "ecwam_%Y%m%dT%HZ.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
@@ -255,7 +236,6 @@ ww3: # WW3_4km
         Fp: fp
         Tm01: t01
         Tm02: t02
-    path: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/"
     path_template: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/\
                     %Y/%m/%d/"
     # ww3_20191225T12Z.nc
@@ -276,8 +256,8 @@ ErinFix: # 14.-27. Sep 2018, validation from 18. Sep
         lons: longitude
         lats: latitude
         time: time
-    path: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
-    path_template: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
+    path_template: "/lustre/storeB/users/erinet/\
+                    Sep2018_Experiment/FIXED_Sep2018/"
     file_template: FIXED_Sep2018_091400_092700_WW3.nc
     basetime: 1990-01-01 00:00:00
     units_time: days since 1990-01-01 00:00:00
@@ -297,8 +277,6 @@ Erin1W: # one way coupled experiment
         lons: longitude
         lats: latitude
         time: time
-    path: "/lustre/storeB/users/erinet/coup_exp_output/\
-            ST3_experiments/1waycoup_direct_ST3/"
     path_template: "/lustre/storeB/users/erinet\
                     /coup_exp_output/ST3_experiments/\
                     1waycoup_direct_ST3/"
@@ -316,8 +294,6 @@ Erin2W: # two way coupled experiment
         lons: longitude
         lats: latitude
         time: time
-    path: "/lustre/storeB/users/erinet/coup_exp_output/\
-            ST3_experiments/Exp2_direct_ST3/"
     path_template: "/lustre/storeB/users/erinet/\
                     coup_exp_output/ST3_experiments/\
                     Exp2_direct_ST3/"
@@ -340,22 +316,9 @@ NORA10:
         Mdir: wave_direction
         Pdir: peak_wave_direction
     path_template: "/lustre/storeB/project/fou/om/NORA10/wave/"
-    path: "/lustre/storeB/project/fou/om/NORA10/wave/"
     file_template: "wam10_%Y.nc"
     basetime: 1970-01-01 00:00:00
     units_time: seconds since 1970-01-01 00:00:00
     delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
                 +o_lat_p=22 +a=6367470 +e=0"
-
-# list of continuous simulations, will be deprecated in future
-
-explst:
-    - OPEWAVE
-    - NoCBM1.2WAVE
-    - withCurrBM1.2WAVE
-    - BETAM106OPEWAVE
-    - NoCWAVE
-    - WithCWAVE
-    - Erin1W
-    - Erin2W
