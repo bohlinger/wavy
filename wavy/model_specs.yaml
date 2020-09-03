@@ -1,42 +1,24 @@
 --- # wave model specifications
 
-ARCMFC:
-    vars:
-        Hs: VHM0
-        lons: lon
-        lats: lat
-        rotlons: rlon
-        rotlats: rlat
-        time: time
-    path_template: "/lustre/storeA/project/copernicus/sea/\
-                    mywavewam8r625/arctic/"
-    file_template: "_MyWaveWam8r625_b%Y%m%d.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
-    proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
-    grid_date: 2019-02-01 06:00:00
-
 ARCMFC3: 
     vars:
         Hs: VHM0
         Tp: VTPK
-        tm02: VTM02
-        mdir: VMDR
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+    coords:
         lons: lon
         lats: lat
         rotlons: rlon
         rotlats: rlat
-        time: time
     path_template: "/lustre/storeA/project/copernicus/sea/\
                     mywavewam3/arctic/%Y/%m/"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
     file_template: "_MyWaveWam3_b%Y%m%dT%H.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     init_times: [0,12]
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -45,19 +27,18 @@ ARCMFC3_hc:
     vars:
         Hs: VHM0
         Tp: VTPK
-        tm02: VTM02
-        mdir: VMDR
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+    coords:
         lons: lon
         lats: lat
         rotlons: rlon
         rotlats: rlat
-        time: time
     path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
                     hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     init_times: [0,12]
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -75,11 +56,9 @@ mwam3force:
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "W3km_force_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     init_times: [0,12]
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 +o_lat_p=25 +R=6.371e+06 +no_defs"
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 \
+            +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
 
 mwam3:
@@ -87,35 +66,22 @@ mwam3:
         Hs: VHM0
         lons: longitude
         lats: latitude
+        time: time
+    coords:
         rotlons: rlon
         rotlats: rlat
-        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     init_times: [0,12]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
 
-mwam3_coords:
-    vars:
-        lons: longitude
-        lats: latitude
-    pathtofile: "/lustre/storeB/users/anac/A3km/inputfile/\
-                TRUEcoordDepthA3km.nc"
-
 mwam4:
     vars:
         Hs: hs
-        lons: longitude
-        lats: latitude
-        rotlons: rlon
-        rotlats: rlat
         time: time
         Tp: tp
         Tm10: tmp
@@ -123,13 +89,15 @@ mwam4:
         Tm02: tm2
         Mdir: thq
         Pdir: Pdir
+    coords:
+        lons: longitude
+        lats: latitude
+        rotlons: rlon
+        rotlats: rlat
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     init_times: [0,6,12,18]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
@@ -139,75 +107,18 @@ mwam4force:
     vars:
         u10: Uwind
         v10: Vwind
+        time: time
+    coords:
         lons: lon
         lats: lat
-        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "W4km_force_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
 
-
-mwam8:
-    vars:
-        Hs: VHM0
-        lons: longitude
-        lats: latitude
-        rotlons: rlon
-        rotlats: rlat
-        time: time
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
-    file_template: "MyWave_wam8_WAVE_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
-            +o_lat_p=25 +R=6.371e+06 +no_defs"
-    grid_date: 2019-02-01 06:00:00
-
-mwam8force:
-    vars:
-        u10: Uwind
-        v10: Vwind
-        lons: lon
-        lats: lat
-        time: time
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
-    file_template: "W8km_force_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
-            +o_lat_p=25 +R=6.371e+06 +no_defs"
-    grid_date: 2019-02-01 06:00:00
-
-mwam800c3:
-    vars:
-        Hs: hs,
-        lons: longitude,
-        lats: latitude',
-        rotlons: rlon,
-        rotlats: rlat,
-        time: time,
-    path_template: "/lustre/storeB/immutable/archive/\
-                    projects/metproduction/MyWavewam_800m/\
-                    %Y/%m/%d/"
-    file_template: MyWave_wam800_c3WAVE%H.nc
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-8
-            +o_lat_p=22 +R=6.371e+06 +no_defs"
 
 ecwam: 
     vars:
@@ -215,110 +126,48 @@ ecwam:
         Mdir: wave_direction
         Tp: peak_wave_period
         Tm02: mean_wave_period
+        time: time
+    coords:
         lons: longitude
         lats: latitude
-        time: time
     path_template: "/vol/data/ec/"
     file_template: "ecwam_%Y%m%dT%HZ.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
 ww3: # WW3_4km
     vars:
         Hs: hs
-        lons: longitude
-        lats: latitude
         time: time
         Mdir: dir
         Pdir: dp
         Fp: fp
         Tm01: t01
         Tm02: t02
+    coords:
+        lons: longitude
+        lats: latitude
     path_template: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/\
                     %Y/%m/%d/"
     # ww3_20191225T12Z.nc
     file_template: ww3_%Y%m%dT%HZ.nc
-    basetime: 1990-01-01 00:00:00
-    units_time: days since 1990-01-01 00:00:00
-    time_conventions: "relative julian days with decimal part
-                        as parts of the day"
-    delta_t: 1h
+    init_times: [0,6,12,18]
     _FillValue: 9.96921e+36
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
 
-ErinFix: # 14.-27. Sep 2018, validation from 18. Sep
-    vars:
-        Hs: hs
-        lons: longitude
-        lats: latitude
-        time: time
-    path_template: "/lustre/storeB/users/erinet/\
-                    Sep2018_Experiment/FIXED_Sep2018/"
-    file_template: FIXED_Sep2018_091400_092700_WW3.nc
-    basetime: 1990-01-01 00:00:00
-    units_time: days since 1990-01-01 00:00:00
-    time_conventions: "relative julian days with decimal part
-                        as parts of the day"
-    delta_t: 1h
-    _FillValue: 9.96921e+36
-    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25 
-            +lat_1=77.5 +lat_2=77.5 
-            +no_defs +R=6.371e+06"
-
-# examples for Erin's simulations
-
-Erin1W: # one way coupled experiment
-    vars:
-        Hs: hs
-        lons: longitude
-        lats: latitude
-        time: time
-    path_template: "/lustre/storeB/users/erinet\
-                    /coup_exp_output/ST3_experiments/\
-                    1waycoup_direct_ST3/"
-    file_template: ww3.%Y%m%dT%H_hs.nc
-    basetime: 1990-01-01 00:00:00
-    units_time: days since 1990-01-01 00:00:00
-    time_conventions: "relative julian days with decimal part
-                        as parts of the day"
-    delta_t: 3h
-    _FillValue: 9.96921e+36
-
-Erin2W: # two way coupled experiment
-    vars:
-        Hs: hs
-        lons: longitude
-        lats: latitude
-        time: time
-    path_template: "/lustre/storeB/users/erinet/\
-                    coup_exp_output/ST3_experiments/\
-                    Exp2_direct_ST3/"
-    file_template: ww3.%Y%m%dT%H_hs.nc
-    basetime: 1990-01-01 00:00:00
-    units_time: days since 1990-01-01 00:00:00
-    time_conventions: "relative julian days with decimal part
-                        as parts of the day"
-    delta_t: 3h
-    _FillValue: 9.96921e+36
-
 NORA10:
     vars:
         Hs: significant_wave_height
-        lons: longitude
-        lats: latitude
         time: time
         Tp: peak_wave_period
         Tm02: significant_wave_period # not sure if this corresponds to Tm02
         Mdir: wave_direction
         Pdir: peak_wave_direction
+    coords:
+        lons: longitude
+        lats: latitude
     path_template: "/lustre/storeB/project/fou/om/NORA10/wave/"
     file_template: "wam10_%Y.nc"
-    basetime: 1970-01-01 00:00:00
-    units_time: seconds since 1970-01-01 00:00:00
-    delta_t: 0000-00-00 (01:00:00)
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
                 +o_lat_p=22 +a=6367470 +e=0"
