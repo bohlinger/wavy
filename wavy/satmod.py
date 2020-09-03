@@ -57,11 +57,11 @@ import time
 # --- global functions ------------------------------------------------#
 
 # read yaml config files:
-with open("/home/patrikb/wavy/wavy/region_specs.yaml", 'r') as stream:
+with open("../config/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
-with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
+with open("../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
+with open("../config/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
 def credentials_from_netrc(remoteHostName=None):
@@ -615,7 +615,7 @@ class satellite_altimeter():
 def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
     from utils import haversine
     # read yaml config files:
-    with open("/home/patrikb/wavy/wavy/stationlist.yaml", 'r') as stream:
+    with open("../config/stationlist.yaml", 'r') as stream:
         locations=yaml.safe_load(stream)
     if ((lat is None or lon is None) and (station is None)):
         print ("location is missing")

@@ -16,7 +16,7 @@ from satmod import get_remotefiles
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
-with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
+with open("../config/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
 satpath_lustre = pathfinder['satpath_lustre']

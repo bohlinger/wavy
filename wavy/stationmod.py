@@ -70,13 +70,13 @@ from datetime import datetime
 import scipy as sp
 
 # read yaml config files:
-with open("/home/patrikb/wavy/wavy/buoy_specs.yaml", 'r') as stream:
+with open("../config/buoy_specs.yaml", 'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("/home/patrikb/wavy/wavy/pathfinder.yaml", 'r') as stream:
+with open("../config/pathfinder.yaml", 'r') as stream:
     pathfinder=yaml.safe_load(stream)
-with open("/home/patrikb/wavy/wavy/stationlist.yaml", 'r') as stream:
+with open("../config/stationlist.yaml", 'r') as stream:
     locations=yaml.safe_load(stream)
-with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+with open("../config/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
 
@@ -508,7 +508,7 @@ def floater(s):
 
 def extract_d22(searchlines):
     #Extract data of choice - reading searchlines
-    with open("/home/patrikb/wavy/wavy/d22_var_dicts.yaml", 'r') as stream:
+    with open("../config/d22_var_dicts.yaml", 'r') as stream:
         d22_var_dicts=yaml.safe_load(stream)
     dat=d22_var_dicts['dat']
     WM1=d22_var_dicts['WM1']
