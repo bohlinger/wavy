@@ -9,7 +9,7 @@ from validationmod import plot_sat
 import argparse
 from argparse import RawTextHelpFormatter
 import os
-from modelmod import get_model, check_date
+from modelmod import get_model
 from validationmod import comp_fig, validate
 from collocmod import collocate
 from  utils import disp_validation
@@ -140,11 +140,10 @@ if bool(args.show)==True:
         plot_sat(sa_obj)
     elif (args.mod is not None and args.col is True):
         # get model collocated values
-        check_date(args.mod,fc_date=edate,leadtime=args.lt)
         #get_model
         init_date = edate - timedelta(hours=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-            get_model(simmode="fc",model=args.mod,fc_date=edate,
+            get_model(model=args.mod,fc_date=edate,
             leadtime=args.lt,init_date=init_date)
         #collocation
         results_dict = collocate(args.mod,model_Hs,model_lats,
@@ -154,11 +153,10 @@ if bool(args.show)==True:
         comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
     else:
         # get model collocated values
-        check_date(args.mod,fc_date=edate,leadtime=args.lt)
         #get_model
         init_date = edate - timedelta(hours=args.lt)
         model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-            get_model(simmode="fc",model=args.mod,fc_date=edate,
+            get_model(model=args.mod,fc_date=edate,
             leadtime=args.lt,init_date=init_date)
         results_dict = {'valid_date':[edate],
                         'date_matches':[edate-timedelta(minutes=timewin),

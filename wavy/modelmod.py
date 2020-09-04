@@ -152,8 +152,8 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     
 
 def get_model(model=None,sdate=None,edate=None,
-    fc_date=None,init_date=None,leadtime=None,
-    sa_obj=None,varname=None):
+    fc_date=None,init_date=None,leadtime=0,
+    sa_obj=None,varname='Hs'):
     """ 
     toplevel function to get model data
     """

@@ -563,13 +563,13 @@ class satellite_altimeter():
                 grid_date = grid_date
                 print('Use date for retrieving grid: ', grid_date)
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc", model=region, fc_date=grid_date)
+                    get_model(model=region, fc_date=grid_date)
             except (KeyError,IOError,ValueError) as e:
                 print(e)
                 grid_date = model_dict[region]['grid_date']
                 print('Trying default date ', grid_date)
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(simmode="fc", model=region, fc_date=grid_date)
+                    get_model(model=region, fc_date=grid_date)
             if (len(model_lats.shape)==1):
                 model_lons, model_lats = np.meshgrid(model_lons, model_lats)
             if (region=='global' or region=='ecwam'):
