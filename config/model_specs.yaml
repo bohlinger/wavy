@@ -11,14 +11,12 @@ ARCMFC3:
     coords:
         lons: lon
         lats: lat
-        rotlons: rlon
-        rotlats: rlat
     path_template: "/lustre/storeA/project/copernicus/sea/\
                     mywavewam3/arctic/%Y/%m/"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
-    file_template: "_MyWaveWam3_b%Y%m%dT%H.nc"
+    file_template: "%Y%m%dT%H_MyWaveWam3_b%Y%m%dT%H.nc"
     init_times: [0,12]
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -34,8 +32,6 @@ ARCMFC3_hc:
     coords:
         lons: lon
         lats: lat
-        rotlons: rlon
-        rotlats: rlat
     path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
                     hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
@@ -47,11 +43,10 @@ mwam3force:
     vars:
         U: Uwind
         V: Vwind
+        time: time
+    coords:
         lons: lon
         lats: lat
-        rotlons: longitude
-        rotlats: latitude
-        time: time
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -64,12 +59,10 @@ mwam3force:
 mwam3:
     vars:
         Hs: VHM0
-        lons: longitude
-        lats: latitude
         time: time
     coords:
-        rotlons: rlon
-        rotlats: rlat
+        lats: latitude
+        lons: longitude
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -92,8 +85,6 @@ mwam4:
     coords:
         lons: longitude
         lats: latitude
-        rotlons: rlon
-        rotlats: rlat
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
@@ -115,6 +106,7 @@ mwam4force:
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "W4km_force_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
@@ -132,6 +124,7 @@ ecwam:
         lats: latitude
     path_template: "/vol/data/ec/"
     file_template: "ecwam_%Y%m%dT%HZ.nc"
+    init_times: [0,12]
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
 ww3: # WW3_4km

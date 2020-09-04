@@ -27,7 +27,7 @@ def collocation_loop(
         sat_rlat=sat_rlats[j]
         sat_rlon=sat_rlons[j]
         # constraints to reduce workload
-        if (model == 'ecwam' or model == 'swan_karmoy250'):
+        if (len(model_rlats.shape)==1):
             model_rlons_M, model_rlats_M = np.meshgrid(
                                             model_rlons, model_rlats
                                             )
@@ -175,7 +175,8 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
                 nearest_all_model_lats_matches.append(resultlst[7])
                 idx_valid_lst.append(resultlst[8])
             except:
-                print ("Unexpected error:", sys.exc_info()[0])
+                print ("Collocation error -> no collocation:", 
+                        sys.exc_info()[0])
                 pass
             results_dict = {
                 'valid_date':np.array(model_time_dt_valid),

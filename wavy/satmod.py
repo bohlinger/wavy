@@ -566,8 +566,15 @@ class satellite_altimeter():
                     get_model(model=region, fc_date=grid_date)
             except (KeyError,IOError,ValueError) as e:
                 print(e)
-                grid_date = model_dict[region]['grid_date']
-                print('Trying default date ', grid_date)
+                if 'grid_date' in model_dict[region]:
+                    grid_date = model_dict[region]['grid_date']
+                    print('Trying default date ', grid_date)
+                else: 
+                    grid_date = datetime(
+                                        datetime.now().year,
+                                        datetime.now().month,
+                                        datetime.now().day
+                                        )
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(model=region, fc_date=grid_date)
             if (len(model_lats.shape)==1):
