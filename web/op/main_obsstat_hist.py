@@ -8,15 +8,15 @@ sys.path.append(r'/home/patrikb/wavy/op')
 import subprocess
 import os
 
-sd = '2020010100'
-ed = '2020040100'
+sd = '2014010100'
+ed = '2018123123'
 
 # --- stations --- #
-#cmd = ( 'python /home/patrikb/wavy/op/collect_station_all.py' 
-#        + ' -var Hs_10min'
-#        + ' -sd ' + sd
-#        + ' -ed ' + ed)
-#t = os.system(cmd)
+cmd = ( 'python /home/patrikb/wavy/op/collect_station_all.py' 
+        + ' -var Hs_10min'
+        + ' -sd ' + sd
+        + ' -ed ' + ed)
+t = os.system(cmd)
 cmd = ( 'python /home/patrikb/wavy/op/collect_station_all.py'
         + ' -var Tm02_10min'
         + ' -sd ' + sd

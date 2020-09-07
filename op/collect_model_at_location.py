@@ -87,6 +87,9 @@ if (model == 'mwam8' or model == 'ecwam' or
     model == 'mwam3' or model == 'mwam3force'):
     init_step = 12
     leadtimes = [0, 12, 24, 36, 48, 60, 72, 96, 120, 144]
+if (model == 'ARCMFC3_hc'): 
+    leadtimes = [0, 36]
+    init_step = 12
 
 tmpdate = deepcopy(sdate)
 idx, idy = np.nan, np.nan

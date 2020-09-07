@@ -20,8 +20,9 @@ ARCMFC3:
     vars:
         Hs: VHM0
         Tp: VTPK
-        tm02: VTM02
-        mdir: VMDR
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
         lons: lon
         lats: lat
         rotlons: rlon
@@ -43,8 +44,9 @@ ARCMFC3_hc:
     vars:
         Hs: VHM0
         Tp: VTPK
-        tm02: VTM02
-        mdir: VMDR
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
         lons: lon
         lats: lat
         rotlons: rlon

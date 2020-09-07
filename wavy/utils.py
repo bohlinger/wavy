@@ -97,9 +97,9 @@ def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=No
         else:
             delta_t = time[i]-time[i-1]
         if delta_t<2:
-            #reject if value triples compared to neighbor
+            #reject if value doubles compared to neighbor
             # reject if greater than twice std (>2z)
-            if ( ts[i] > hs_ll and ((ts[i-1] >= 3. * ts[i]) or (z>2)) ):
+            if ( ts[i] > hs_ll and ((ts[i-1] >= 2. * ts[i]) or (z>2)) ):
                 idx_a.append(i)
         elif (ts[i] > hs_ll and z>2):
             idx_a.append(i)
@@ -122,9 +122,9 @@ def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=No
         else:
             delta_t = time[i+1]-time[i]
         if delta_t<2:
-            #reject if value triples compared to neighbor
+            #reject if value doubles compared to neighbor
             # reject if greater than twice std (>2z)
-            if ( ts[i] > hs_ll and ((ts[i+1] <= 1/3. * ts[i]) or (z>2)) ):
+            if ( ts[i] > hs_ll and ((ts[i+1] <= 1/2. * ts[i]) or (z>2)) ):
                 idx_b.append(i)
         elif (ts[i] > hs_ll and z>2):
             idx_b.append(i)

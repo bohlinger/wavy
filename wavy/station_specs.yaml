@@ -107,17 +107,6 @@ norne:
         lat: 66.02
         lon: 8.08
 
-sleipner:
-    sensor:
-        MKIIIradar: 0 # python indexing
-        NA: 1
-    manufacturer:
-        MKIIIradar: Miros
-        NA: NA
-    coords:
-        lat: 58.37
-        lon: 1.91
-
 snorrea:
     sensor:
         MKIIIradar: 0 # python indexing
