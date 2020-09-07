@@ -183,75 +183,6 @@ def haversine(lon1, lat1, lon2, lat2):
     km = 6367 * c
     return km
 
-def rmsd(a,b):
-    '''
-    root mean square deviation
-    if nans exist the prinziple of marginalization is applied
-    '''
-    a,b = np.array(a),np.array(b)
-    comb = a + b
-    idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
-    n = len(a1)
-    diff2 = (a1-b1)**2
-    msd = diff2.sum()/n
-    rmsd = np.sqrt(msd)
-    return msd, rmsd
-
-#def scatter_index(obs,model):
-#    msd,rmsd = rmsd(obs,model)
-#    SI = rmsd/np.nanmean(obs)*100.
-#    return SI
-
-def scatter_index(obs,model):
-    from utils import rmsd
-    msd,rmsd = rmsd(obs,model)
-    stddiff = np.nanstd(obs-model)
-    SIrmse = rmsd/np.nanmean(obs)*100.
-    SIstd = stddiff/np.nanmean(obs)*100.
-    return SIrmse,SIstd
-
-def corr(a,b):
-    '''
-    root mean square deviation
-    if nans exist the prinziple of marginalization is applied
-    '''
-    a,b = np.array(a),np.array(b)
-    comb = a + b
-    idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
-    corr = np.corrcoef(a1,b1)[1,0]
-    return corr
-
-def bias(a,b):
-    """
-    if nans exist the prinziple of marginalization is applied
-    """
-    a,b = np.array(a),np.array(b)
-    comb = a + b
-    idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
-    N = len(a1)
-    bias = np.sum(a1-b1)/N
-    return bias
-
-def mad(a,b):
-    """
-    mean absolute deviation
-    if nans exist the prinziple of marginalization is applied
-    """
-    a,b = np.array(a),np.array(b)
-    comb = a + b
-    idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
-    N = len(a1)
-    mad = np.sum(np.abs(a1-b1))/N
-    return mad
-
 def runmean(vec,win,mode=None):
     """
     input:  vec = vector of values to me smoothed
@@ -343,22 +274,6 @@ def marginalize(a,b=None):
         a1=a[idx]
         b1=b[idx]
         return a1,b1,idx
-
-def disp_validation(valid_dict):
-    print('\n')
-    print('# ---')
-    print('Validation stats')
-    print('# ---')
-    print('Correlation Coefficient: ' + '{:0.2f}'.format(valid_dict['corr']))
-    print('Root Mean Squared Error: ' + '{:0.2f}'.format(valid_dict['rmsd']))
-    print('Mean Absolute Error: ' + '{:0.2f}'.format(valid_dict['mad']))
-    print('Bias: ' + '{:0.2f}'.format(valid_dict['bias']))
-    print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
-    print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
-    print('Mean of Observations: ' + '{:0.2f}'.format(valid_dict['mor']))
-    print('Number of Collocated Values: ' + str(valid_dict['nov']))
-    print('\n')
-    pass
 
 def hour_rounder(t):
     # Rounds to nearest hour by adding a timedelta hour if minute >= 30

@@ -351,7 +351,6 @@ class satellite_altimeter():
         '''
         read and concatenate all data to one timeseries for each variable
         '''
-        from utils import runmean
         # --- open file and read variables --- #
         LATS = []
         LONS = []

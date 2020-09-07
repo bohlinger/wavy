@@ -10,9 +10,8 @@ import argparse
 from argparse import RawTextHelpFormatter
 import os
 from modelmod import get_model
-from validationmod import comp_fig, validate
+from validationmod import comp_fig, validate, disp_validation
 from collocmod import collocate
-from  utils import disp_validation
 from ncmod import dumptonc_sat
 
 # parser

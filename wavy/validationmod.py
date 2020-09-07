@@ -12,9 +12,94 @@
         3. 
 """
 import yaml
+import numpy as np
+
 # read yaml config files:
 with open("../config/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
+
+# define global functions
+def rmsd(a,b):
+    '''
+    root mean square deviation
+    if nans exist the prinziple of marginalization is applied
+    '''
+    a,b = np.array(a),np.array(b)
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    n = len(a1)
+    diff2 = (a1-b1)**2
+    msd = diff2.sum()/n
+    rmsd = np.sqrt(msd)
+    return msd, rmsd
+
+def scatter_index(obs,model):
+    msd,rmsd = rmsd(obs,model)
+    stddiff = np.nanstd(obs-model)
+    SIrmse = rmsd/np.nanmean(obs)*100.
+    SIstd = stddiff/np.nanmean(obs)*100.
+    return SIrmse,SIstd
+
+def corr(a,b):
+    '''
+    root mean square deviation
+    if nans exist the prinziple of marginalization is applied
+    '''
+    a,b = np.array(a),np.array(b)
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    corr = np.corrcoef(a1,b1)[1,0]
+    return corr
+
+def bias(a,b):
+    """
+    if nans exist the prinziple of marginalization is applied
+    """
+    a,b = np.array(a),np.array(b)
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    N = len(a1)
+    bias = np.sum(a1-b1)/N
+    return bias
+
+def mad(a,b):
+    """
+    mean absolute deviation
+    if nans exist the prinziple of marginalization is applied
+    """
+    a,b = np.array(a),np.array(b)
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    N = len(a1)
+    mad = np.sum(np.abs(a1-b1))/N
+    return mad
+
+def disp_validation(valid_dict):
+    print('\n')
+    print('# ---')
+    print('Validation stats')
+    print('# ---')
+    print('Correlation Coefficient: '
+            + '{:0.2f}'.format(valid_dict['corr']))
+    print('Root Mean Squared Difference: '
+            + '{:0.2f}'.format(valid_dict['rmsd']))
+    print('Mean Absolute Difference: ' + '{:0.2f}'.format(valid_dict['mad']))
+    print('Bias: ' + '{:0.2f}'.format(valid_dict['bias']))
+    print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
+    print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
+    print('Mean of Observations: ' + '{:0.2f}'.format(valid_dict['mor']))
+    print('Number of Collocated Values: ' + str(valid_dict['nov']))
+    print('\n')
+    pass
+
 
 class validation_class():
 
@@ -23,11 +108,9 @@ class validation_class():
         print ('# ----- ')
         print (" ### Initializing validation_class instance ###")
         print ('# ----- ')
-        
 
 def validate(results_dict,boot=None):
     import numpy as np
-    from utils import rmsd, corr, mad, bias, scatter_index
     """
     produced metrics:
     mean of product --> mop
