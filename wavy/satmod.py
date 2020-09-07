@@ -43,7 +43,6 @@ import calendar
 
 # libraries for parallel computing
 from joblib import Parallel, delayed
-import multiprocessing as mp
 
 # bintime
 import math
