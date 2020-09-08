@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import yaml
 import argparse
 from argparse import RawTextHelpFormatter
+import numpy as np
 
 # own import
 from satmod import get_remotefiles
