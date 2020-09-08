@@ -77,9 +77,19 @@ satpath = satpath_ftp_014_001 + sat + '/'
 destination = targetpath
 print('source: ' + satpath)
 print('destination: ' + destination)
+# check if destination exists
+if os.path.isdir(destination) == False:
+    print ( 'Your destination path does not exist')
+    print ( destination + ' will now be created')
+    cmd = 'mkdir -p ' + destination
+    os.system(cmd)
 start_time = time.time()
 sa_obj = get_remotefiles(satpath, destination,
                         sdate,edate,timewin=30,
                         corenum=nproc,download=True)
 time1 = time.time() - start_time
 print("Time used for collecting data: ", time1, " seconds")
+print("Data is being sorted into subdirectories year and month ...")
+from utils import sort_files
+filelst = os.listdir(destination)
+sort_files(destination,filelst)

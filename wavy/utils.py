@@ -280,3 +280,17 @@ def hour_rounder(t):
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
                +timedelta(hours=t.minute//30))
 
+
+def sort_files(dirpath,filelst):
+    """
+    mv CMEMS L3 files to sub-folders of year and month
+    """
+    for e in filelst:
+        if os.path.isfile(dirpath + '/' + e):
+            tmp = 'global_vavh_l3_rt_' + os.path.basename(dirpath) + '_'
+            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
+            folder = (dirpath + '/' + year + '/' + month)
+            cmd = 'mkdir -p ' + folder
+            os.system(cmd)
+            cmd = 'mv ' + e + ' ' + folder
+            os.system(cmd)
