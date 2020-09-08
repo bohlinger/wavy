@@ -64,7 +64,7 @@ else:
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
 if args.path is None:
-    targetpath = satpath_lustre + sat + '/'
+    targetpath = satpath_lustre + sat
 else:
     targetpath = args.path
 

@@ -117,7 +117,7 @@ def get_credentials():
 
 def tmploop_get_remotefiles(i,matching,user,pw,
                             server,path,
-                            satpath_lustre):
+                            destination):
     #for element in matching:
     print("File: ",matching[i])
     dlstr=('ftp://' + user + ':' + pw + '@' 
@@ -126,7 +126,7 @@ def tmploop_get_remotefiles(i,matching,user,pw,
         print ("Attempt to download data: ")
         try:
             print ("Downloading file")
-            urlretrieve(dlstr, satpath_lustre + matching[i])
+            urlretrieve(dlstr, destination + '/' + matching[i])
             urlcleanup()
         except Exception as e:
             print (e.__doc__)
@@ -207,9 +207,6 @@ def get_remotefiles(satpath,destination,sdate,edate,timewin,
         # update time
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,(tmpdate + relativedelta(months=+1)).month,1)
     print ('Files downloaded to: \n' + destination)
-    print ('Organizing downloaded files according to years and months')
-    filelst = os.listdir(destination)
-    sort_files(destination,filelst)
 
 # flatten all lists before returning them
 # define flatten function for lists
