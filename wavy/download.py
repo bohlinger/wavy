@@ -91,5 +91,5 @@ time1 = time.time() - start_time
 print("Time used for collecting data: ", time1, " seconds")
 print("Data is being sorted into subdirectories year and month ...")
 from utils import sort_files
-filelst = os.listdir(destination)
+filelst = np.sort(os.listdir(destination))
 sort_files(destination,filelst)

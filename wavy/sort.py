@@ -7,9 +7,6 @@ purpose: mv files to sub-folders of year and month
 import numpy as np
 import os
 
-# flatten lists
-flatten = lambda l: [item for sublist in l for item in sublist]
-
 def get_localfiles():
     """
     get list of local files
