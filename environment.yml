@@ -12,6 +12,5 @@ dependencies:
   - cartopy
   - cmocean
   - joblib
-  - ftplib
   - urllib
   - gzip
