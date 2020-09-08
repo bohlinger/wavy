@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from math import radians, cos, sin, asin, sqrt, floor
 import sys
+import os
 from sklearn import gaussian_process
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel
 
