@@ -206,10 +206,10 @@ def get_remotefiles(satpath,destination,sdate,edate,timewin,
                         )
         # update time
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,(tmpdate + relativedelta(months=+1)).month,1)
+    print ('Files downloaded to: \n' + destination)
     print ('Organizing downloaded files according to years and months')
     filelst = os.listdir(destination)
     sort_files(destination,filelst)
-    print ('Files downloaded to: \n' + destination)
 
 # flatten all lists before returning them
 # define flatten function for lists
