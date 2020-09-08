@@ -288,10 +288,13 @@ def sort_files(dirpath,filelst):
     """
     for e in filelst:
         if os.path.isfile(dirpath + '/' + e):
+            print(dirpath)
             tmp = 'global_vavh_l3_rt_' + os.path.basename(dirpath) + '_'
+            print(tmp)
             year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
             folder = (dirpath + '/' + year + '/' + month)
+            print(folder)
             cmd = 'mkdir -p ' + folder
             os.system(cmd)
-            cmd = 'mv ' + e + ' ' + folder
+            cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
