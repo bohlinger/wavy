@@ -25,6 +25,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import os
 import yaml
+import time
 
 # get_altim
 if sys.version_info <= (3, 0):
@@ -51,8 +52,8 @@ import math
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 
-import time
-
+# credentials
+from credentials import get_credentials
 # --- global functions ------------------------------------------------#
 
 # read yaml config files:
@@ -60,64 +61,12 @@ with open("../config/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
 with open("../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
+with open("../config/satellite_specs.yaml",'r') as stream:
+    satellite_dict=yaml.safe_load(stream)
 
-def credentials_from_netrc(remoteHostName=None):
-    import netrc
-    import os.path
-    if remoteHostName is None:
-        remoteHostName = "nrt.cmems-du.eu"
-    # get user home path
-    usrhome = os.getenv("HOME")
-    netrc = netrc.netrc()
-    user = netrc.authenticators(remoteHostName)[0]
-    pw = netrc.authenticators(remoteHostName)[2]
-    return user, pw
-
-def credentials_from_txt():
-    import os.path
-    print("try local file credentials.txt")
-    # get user home path
-    usrhome = os.getenv("HOME")
-    my_dict = {}
-    with open(usrhome + "/credentials.txt", 'r') as f:
-        for line in f:
-            items = line.split('=')
-            key, values = items[0], items[1]
-            my_dict[key] = values
-    # 1:-2 to remove the linebreak and quotation marks \n
-    user = my_dict['user'][1:-2]
-    pw = my_dict['pw'][1:-2]
-    return user, pw
-
-def get_credentials():
-    # get credentials from .netrc
-    import os.path
-    usrhome = os.getenv("HOME")
-    if os.path.isfile(usrhome + "/.netrc"):
-        try:
-            print ('Attempt to obtain credentials from .netrc')
-            user, pw = credentials_from_netrc()
-            return user, pw
-        except AttributeError:
-            print ("std copernicus user in netrc file not registered")
-            print ("try local file credentials.txt")
-            print ("file must contain:")
-            print ("user='username'")
-            print ("pw='yourpassword'")
-            except_key = 1
-    elif (os.path.isfile(usrhome + "/.netrc") == False
-    or except_key == 1):
-        try:
-            user, pw = credentials_from_txt()
-            return user, pw
-        except:
-            print("Credentials could not be obtained")
-
-def tmploop_get_remotefiles(i,matching,user,pw,
+def tmploop_get_remote_files(i,matching,user,pw,
                             server,path,
-                            destination):
+                            path_local):
     #for element in matching:
     print("File: ",matching[i])
     dlstr=('ftp://' + user + ':' + pw + '@' 
@@ -126,7 +75,7 @@ def tmploop_get_remotefiles(i,matching,user,pw,
         print ("Attempt to download data: ")
         try:
             print ("Downloading file")
-            urlretrieve(dlstr, destination + '/' + matching[i])
+            urlretrieve(dlstr, path_local + '/' + matching[i])
             urlcleanup()
         except Exception as e:
             print (e.__doc__)
@@ -141,13 +90,13 @@ def tmploop_get_remotefiles(i,matching,user,pw,
         print ('Exit program')
         sys.exit()
 
-def get_remotefiles(satpath,destination,sdate,edate,timewin,
+def get_remote_files(path_remote,path_local,sdate,edate,timewin,
                     corenum,download):
     '''
     Download swath files and store them at defined location
     time stamps in file name stand for: from, to, creation
     '''
-    if download is None:
+    if download is False:
         print ("No download initialized, checking local files")
         return
     # credentials
@@ -159,7 +108,7 @@ def get_remotefiles(satpath,destination,sdate,edate,timewin,
         # server and path
         if sdate >= datetime(2017,7,9):
             server='nrt.cmems-du.eu'
-            path=(satpath
+            path=(path_remote
                  + '/'
                  + str(tmpdate.year)
                  + '/'
@@ -199,14 +148,14 @@ def get_remotefiles(satpath,destination,sdate,edate,timewin,
         print ('Downloading ' + str(len(matching)) + ' files: .... \n')
         print ("Used number of cores " + str(corenum) + "!")
         Parallel(n_jobs=corenum)(
-                        delayed(tmploop_get_remotefiles)(
+                        delayed(tmploop_get_remote_files)(
                         i,matching,user,pw,server,
-                        path,destination
+                        path,path_local
                         ) for i in range(len(matching))
                         )
         # update time
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,(tmpdate + relativedelta(months=+1)).month,1)
-    print ('Files downloaded to: \n' + destination)
+    print ('Files downloaded to: \n' + path_local)
 
 # flatten all lists before returning them
 # define flatten function for lists
@@ -236,27 +185,26 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_altimeter():
+class satellite_l3():
     '''
-    class to handle netcdf files containing satellite altimeter derived
-    level 3 data i.e. Hs[time], lat[time], lon[time] 
+    class to handle netcdf files containing satellite level 3 data 
+    i.e. Hs[time], lat[time], lon[time] 
     This class offers the following added functionality:
      - get swaths of desired days and read
      - get the closest time stamp(s)
      - get the location (lon, lat) for this time stamp
      - get Hs value for this time
     '''
-    satpath_copernicus = pathfinder['satpath_copernicus']
 
-    def __init__(self,sdate,sat=None,edate=None,timewin=None,download=None,
-        region=None,corenum=None,mode=None,polyreg=None):
+    def __init__(
+        self,sdate,sat='s3a',instr='altimeter',provider='cmems',
+        edate=None,timewin=None,download=False,region=None,
+        corenum=1,polyreg=None
+        ):
         print ('# ----- ')
         print (" ### Initializing satellite_altimeter instance ###")
         print ('# ----- ')
-        if sat is None:
-            sat = ''
-        if corenum is None:
-            corenum = 1
+        # check settings
         if edate is None:
             print ("Requested time: ", str(sdate))
             edate = sdate
@@ -266,20 +214,20 @@ class satellite_altimeter():
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
         # make satpaths
-        satpath_lustre = pathfinder['satpath_lustre'] + sat + '/'
-        satpath_ftp_014_001 = (pathfinder['satpath_ftp_014_001'] 
-                            + 'dataset-wav-alti-l3-swh-rt-global-' 
-                            +  sat + '/'
-                            )
-        self.satpath_lustre = satpath_lustre
+        path_local = satellite_dict[instr][provider]['path']['local'] 
+                        + sat + '/'
+        path_remote = satellite_dict[instr][provider]['path']['remote'] 
+                        + sat + '/'
+        self.path_local = path_local
+        self.path_remote = path_remote
         # retrieve files
-        get_remotefiles(satpath_ftp_014_001,satpath_lustre,
+        get_remote_files(path_remote,path_local,
                         sdate,edate,timewin,corenum,download)
-        pathlst, filelst = self.get_localfilelst(
+        pathlst, filelst = self.get_local_filelst(
                                 sdate,edate,timewin,region
                                 )
         fLATS,fLONS,fTIME,fVAVHS,fMAXS = \
-                                    self.read_localfiles(pathlst)
+                                    self.read_local_files(pathlst)
         idx = np.array(range(len(fVAVHS)))[~np.isnan(fVAVHS)]
         fLATS = list(np.array(fLATS)[idx])
         fLONS = list(np.array(fLONS)[idx])
@@ -314,13 +262,13 @@ class satellite_altimeter():
         print ("Satellite object initialized including " 
                 + str(len(self.Hs)) + " footprints.")
 
-    def get_localfilelst(self,sdate,edate,timewin,region):
+    def get_local_filelst(self,sdate,edate,timewin,region):
         print ("Time window: ", timewin)
         tmpdate=deepcopy(sdate-timedelta(minutes=timewin))
         pathlst = []
         filelst = []
         while (tmpdate <= edate + timedelta(minutes=timewin)):
-            tmpdatestr=(self.satpath_lustre
+            tmpdatestr=(self.path_local
                         + str(tmpdate.year)
                         + '/' + tmpdate.strftime('%m')
                         + '/')
@@ -341,7 +289,7 @@ class satellite_altimeter():
         print (str(int(len(pathlst))) + " valid files found")
         return pathlst,filelst
 
-    def read_localfiles(self,pathlst):
+    def read_local_files(self,pathlst):
         '''
         read and concatenate all data to one timeseries for each variable
         '''

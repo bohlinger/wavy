@@ -1,11 +1,34 @@
 --- # specifications for satellite missions
 
-altimeter:
-    s3a:
-    s3b:
-    c2:
-    al:
+"""
+structure local files: 
+        + instrument type (altimeter/scatterometer) 
+        + provider (eumetsat/cmems)
+        + specs
+"""
 
-other:
-    cfo:
-        SWIM:
+altimeter:
+    eumetsat:
+        level: 2
+        satellite: s3a, s3b
+        path:
+            local:
+            remote:
+    cmems:
+        level: 3
+        satellite: s3a, s3b, c2, al, j3, h2b
+        path:
+            local:
+            remote: "/Core/\
+                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                    dataset-wav-alti-l3-swh-rt-global-"
+
+scatterometer:
+    cmems:
+        level: 3
+        satellite: cfo
+        path: 
+            local:
+            remote: "/Core/\
+                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                    dataset-wav-alti-l3-swh-rt-global-"
