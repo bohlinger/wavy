@@ -1,26 +1,19 @@
 --- # storage of important paths
-# """
-#    structure local files: 
-#          location (local/remote) 
-#        + type (station/satellite) 
-#        + format (d22/nc)
-#    structure remote files:
-#          network_protocol (FTP/FTPS/SFTP)
-#        + type (station/satellite)
-#        + productname
-# """
 
-local:
-    station:
-        d22: "/lustre/storeB/immutable/archive/projects/\
-             metproduction/DNMI_OFFSHORE/"
-             # +rig+'/d22/'+YY+'/'+dy+'.d22'
-        nc: "/opdata/offshore/" #+rig+'/d22/'+dy+'.d22'
-    satellite: /lustre/storeA/project/fou/om/altimeter/
+stationpath_lustre_om: /lustre/storeA/project/fou/om/waveverification/data/
 
-remote:
-    FTP:
-        satellite:
-            cmems_014_001: "/Core/\
-                        WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
-                        dataset-wav-alti-l3-swh-rt-global-satID"
+stationpath_lustre_hi: /lustre/storeA/project/fou/hi/waveverification/data/
+
+satpath_lustre: /lustre/storeA/project/fou/om/altimeter/
+
+satpath_copernicus: /lustre/storeB/project/copernicus/ARC-MFC/sentinel3a/
+
+satpath_ftp_014_001: "/Core/WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                     dataset-wav-alti-l3-swh-rt-global-"
+
+station_d22_starc: "/lustre/storeB/immutable/archive/projects/\
+                   metproduction/DNMI_OFFSHORE/"
+                   # +rig+'/d22/'+YY+'/'+dy+'.d22'
+#station_d22_opdate = ('/vol/gorgon/offshore/')#+rig+'/d22/'+dy+'.d22'
+station_d22_opdate: "/opdata/offshore/" #+rig+'/d22/'+dy+'.d22'
+# opdata points to gorgon!
