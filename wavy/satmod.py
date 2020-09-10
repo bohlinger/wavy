@@ -231,12 +231,12 @@ class satellite_class():
         # find values for give time constraint
         cidx,dtimelst = self.matchtime(
                                 sdate,edate,vardict['time'],
-                                vardict['reference_time'],timewin
+                                vardict['time_unit'],timewin
                                 )
         cvardict = {}
         for element in vardict:
-            if element != 'reference_time':
-                cvardict[element] = vardict[element][cidx]
+            if element != 'time_unit':
+                cvardict[element] = list(np.array(vardict[element])[cidx])
         del vardict
         # find values for given region
         ridx = self.matchregion(cvardict['latitude'],
@@ -244,8 +244,8 @@ class satellite_class():
                                 polyreg=polyreg,grid_date=sdate)
         rvardict = {}
         for element in cvardict:
-            if element != 'reference_time':
-                rvardict[element] = cvardict[element][cidx]
+            if element != 'time_unit':
+                rvardict[element] = list(np.array(cvardict[element])[cidx])
         del cvardict
         # define class variables
         self.edate = edate
@@ -301,38 +301,41 @@ class satellite_class():
         vardict = {}
         for element in pathlst:
             progress(count,str(int(len(pathlst))),'')
+            stdname_lst = []
             try:
                 # file includes a 1-D dataset with dimension time
                 f = netCDF4.Dataset(element,'r')
-                ncvars = [var for var in f.variables]
+                ncvars = [v for v in f.variables]
                 for ncvar in ncvars:
                     stdname = f.variables[ncvar].getncattr('standard_name')
                     if stdname in varlst_cf:
-                        if ncvar in vardict:
-                            var = list(f.variables[ncvar][:])
-                            vardict[stdname] += var
+                        if stdname in vardict:
+                            if stdname in stdname_lst:
+                                print("Caution: variable " +
+                                        "standard_name is not unique !!!")
+                                print("only 1. appearance is used.")
+                                print("variable " + ncvar + " is neglected")
+                            else:
+                                tmp = list(f.variables[ncvar][:])
+                                vardict[stdname] += tmp
                         else:
-                            var = list(f.variables[ncvar][:])
-                            vardict[stdname] = var
+                            tmp = list(f.variables[ncvar][:])
+                            vardict[stdname] = tmp
+                        stdname_lst.append(stdname)
             except (IOError):
                 print ("No such file or directory")
             count = count + 1
         print ('\n')
-        # apply flatten to all lists
-        #for key in vardict:
-        #    print(key)
-        #    print(vardict[key])
-        #    vardict[key]=flatten(vardict[key])
         # remove redundant entries
         time_unique,indices=np.unique(vardict['time'],return_index=True)
         for key in vardict:
             vardict[key]=list(np.array(vardict[key])[indices])
         if (f.variables[shortcuts_dict['lons']].getncattr('valid_min') == 0):
             # transform to -180 to 180 degrees
-            tmp = vardict[shortcuts_dict['lons']]
-            vardict[shortcuts_dict['lons']] = ((tmp - 180) % 360) - 180
+            tmp = np.array(vardict[shortcuts_dict['lons']])
+            vardict[shortcuts_dict['lons']] = list(((tmp - 180) % 360) - 180)
         # add reference time from netcdf
-        vardict['time_units'] = f.variables['time'].units
+        vardict['time_unit'] = f.variables['time'].units
         # close nc-file
         f.close()
         return vardict
@@ -399,7 +402,7 @@ class satellite_class():
             region = polyreg
             ridx = self.matchregion_poly(LATS,LONS,region=region,
                                     grid_date=grid_date)
-        return latlst, lonlst, rlatlst, rlonlst, ridx, region
+        return ridx
 
     def matchregion_prim(self,LATS,LONS,region):
         if (region is None or region == "Global"):
