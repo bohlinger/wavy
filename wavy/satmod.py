@@ -310,7 +310,7 @@ class satellite_class():
                     if stdname in varlst_cf:
                         if ncvar in vardict:
                             var = list(f.variables[ncvar][:])
-                            vardict[stdname].append(var)
+                            vardict[stdname] += var
                         else:
                             var = list(f.variables[ncvar][:])
                             vardict[stdname] = var
@@ -319,8 +319,10 @@ class satellite_class():
             count = count + 1
         print ('\n')
         # apply flatten to all lists
-        for key in vardict:
-            vardict[key]=flatten(vardict[key])
+        #for key in vardict:
+        #    print(key)
+        #    print(vardict[key])
+        #    vardict[key]=flatten(vardict[key])
         # remove redundant entries
         time_unique,indices=np.unique(vardict['time'],return_index=True)
         for key in vardict:
