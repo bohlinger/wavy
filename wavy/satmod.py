@@ -380,7 +380,7 @@ class satellite_class():
                     cidx.append(idx)
                 del tmp
                 idx=idx+1
-        return cidx, dtimelst[cidx]
+        return cidx, list(np.array(dtimelst)[cidx])
 
     def matchregion(self,LATS,LONS,region,polyreg,grid_date):
         # find values for given region
