@@ -306,13 +306,13 @@ class satellite_class():
                 f = netCDF4.Dataset(element,'r')
                 ncvars = [var for var in f.variables]
                 for ncvar in ncvars:
-                    stdname = nc.variables[ncvar].getncattr('standard_name')
+                    stdname = f.variables[ncvar].getncattr('standard_name')
                     if stdname in varlst_cf:
                         if ncvar in vardict:
-                            var = list(nc.variables[ncvar][:])
+                            var = list(f.variables[ncvar][:])
                             vardict[stdname].append(var)
                         else:
-                            var = list(nc.variables[ncvar][:])
+                            var = list(f.variables[ncvar][:])
                             vardict[stdname] = var
             except (IOError):
                 print ("No such file or directory")
@@ -325,12 +325,12 @@ class satellite_class():
         time_unique,indices=np.unique(vardict['time'],return_index=True)
         for key in vardict:
             vardict[key]=list(np.array(vardict[key])[indices])
-        if (nc.variables[shortcuts_dict['lons']].getncattr('valid_min') == 0):
+        if (f.variables[shortcuts_dict['lons']].getncattr('valid_min') == 0):
             # transform to -180 to 180 degrees
             tmp = vardict[shortcuts_dict['lons']]
             vardict[shortcuts_dict['lons']] = ((tmp - 180) % 360) - 180
         # add reference time from netcdf
-        vardict['time_units'] = nc.variables['time'].units
+        vardict['time_units'] = f.variables['time'].units
         # close nc-file
         f.close()
         return vardict
