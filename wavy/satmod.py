@@ -215,9 +215,9 @@ class satellite_class():
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
         # make satpaths
-        path_local = satellite_dict[instr][provider]['local']['path'] 
+        path_local = satellite_dict[instr][provider]['local']['path']\
                         + sat + '/'
-        path_remote = satellite_dict[instr][provider]['remote']['path'] 
+        path_remote = satellite_dict[instr][provider]['remote']['path']\
                         + sat + '/'
         self.path_local = path_local
         self.path_remote = path_remote
