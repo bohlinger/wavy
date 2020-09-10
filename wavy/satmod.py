@@ -258,7 +258,7 @@ class satellite_class():
         self.region = region
         self.sat = sat
         print ("Satellite object initialized including " 
-                + str(len(list(self.vars.keys())[0])) + " footprints.")
+                + str(len(self.vars['time'])) + " footprints.")
 
 
     def get_local_filelst(self,sdate,edate,timewin,region):
