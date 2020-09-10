@@ -17,11 +17,8 @@ from satmod import get_remotefiles
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
-with open("../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-
-satpath_lustre = pathfinder['satpath_lustre']
-satpath_ftp_014_001 = pathfinder['satpath_ftp_014_001']
+with open("../config/satellite_specs.yaml", 'r') as stream:
+    satellite_dict = yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -47,7 +44,11 @@ parser.add_argument("-nproc", metavar='nproc',
 
 args = parser.parse_args()
 
-now=datetime.now()
+# settings
+instr = 'altimeter'
+provider = 'cmems'
+
+now = datetime.now()
 if args.sat is None:
     sat = 's3a'
 else:
@@ -65,7 +66,7 @@ else:
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
 if args.path is None:
-    targetpath = satpath_lustre + sat
+    targetpath = satellite_dict[instr][provider]['local']['path']
 else:
     targetpath = args.path
 
@@ -74,7 +75,8 @@ if args.nproc is None:
 else:
     nproc = args.nproc
 
-satpath = satpath_ftp_014_001 + sat + '/'
+#satpath = satpath_ftp_014_001 + sat + '/'
+satpath = satellite_dict[instr][provider]['remote']['path']
 destination = targetpath
 print('source: ' + satpath)
 print('destination: ' + destination)
