@@ -89,7 +89,8 @@ if os.path.isdir(destination) == False:
 start_time = time.time()
 sa_obj = get_remote_files(satpath, destination,
                         sdate,edate,timewin=30,
-                        corenum=nproc,download=True)
+                        corenum=nproc,download=True,
+                        instr=instr,provider=provider)
 time1 = time.time() - start_time
 print("Time used for collecting data: ", time1, " seconds")
 print("Data is being sorted into subdirectories year and month ...")
