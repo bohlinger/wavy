@@ -4,7 +4,7 @@
 import sys
 import numpy as np
 from datetime import datetime, timedelta
-from satmod import satellite_altimeter as sa
+from satmod import satellite_class as sa
 from validationmod import plot_sat
 import argparse
 from argparse import RawTextHelpFormatter
@@ -55,6 +55,8 @@ print ("Parsed arguments: ",args)
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 # setup
+varlst = ['Hs']
+
 sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 
@@ -79,16 +81,16 @@ if args.twin is None:
 # get data
 if args.sat == 'all':
     satlist = ['s3a','s3b','j3','c2','al','cfo','h2b']
-    loc0 = []
-    loc1 = []
-    Hs = []
+    lats = []
+    lons = []
+    var = []
     time = []
     dtime = []
     for sat in satlist:
-        sa_obj = sa(sdate,sat=sat,edate=edate,
-                    timewin=timewin,polyreg=args.reg)
-        loc0.append(sa_obj.loc[0])
-        loc1.append(sa_obj.loc[1])
+        sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+                    polyreg=args.reg,varlst=varlst)
+        lats.append(sa_obj.vardict['latitude'])
+        lons.append(sa_obj.vardict['longitude'])
         Hs.append(sa_obj.Hs)
         time.append(sa_obj.time)
         dtime.append(sa_obj.dtime)
@@ -131,7 +133,8 @@ elif args.sat == 'multi':
     sa_obj.region = args.reg
     sa_obj.sat = str(satlist)
 else:
-    sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,polyreg=args.reg)
+    sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,
+                polyreg=args.reg,varlst=varlst)
 
 # plot
 if bool(args.show)==True:

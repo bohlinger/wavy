@@ -61,6 +61,8 @@ with open("../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 with open("../config/satellite_specs.yaml",'r') as stream:
     satellite_dict=yaml.safe_load(stream)
+with open("../config/variable_shortcuts.yaml",'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
 
 def tmploop_get_remote_files(i,matching,user,pw,
                             server,path,
@@ -198,10 +200,10 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,timewin=None,download=False,region=None,
-        corenum=1,polyreg=None
+        corenum=1,polyreg=None,varlst=None
         ):
         print ('# ----- ')
-        print (" ### Initializing satellite_altimeter instance ###")
+        print (" ### Initializing satellite_class object ###")
         print ('# ----- ')
         # check settings
         if edate is None:
@@ -225,7 +227,7 @@ class satellite_class():
         pathlst, filelst = self.get_local_filelst(
                                 sdate,edate,timewin,region
                                 )
-        vardict = self.read_local_files(pathlst)
+        vardict = self.read_local_files(pathlst,varlst)
         # find values for give time constraint
         cidx,dtimelst = self.matchtime(
                                 sdate,edate,vardict['time'],
