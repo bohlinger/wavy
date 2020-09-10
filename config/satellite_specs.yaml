@@ -11,24 +11,30 @@ altimeter:
     eumetsat:
         level: 2
         satellite: s3a, s3b
-        path:
-            local:
-            remote:
+        local:
+            path:
+        remote:
+            path:
+            server:
     cmems:
         level: 3
         satellite: s3a, s3b, c2, al, j3, h2b
-        path:
-            local:
-            remote: "/Core/\
-                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
-                    dataset-wav-alti-l3-swh-rt-global-"
+        local:
+            path:
+        remote: 
+            path: "/Core/\
+                   WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                   dataset-wav-alti-l3-swh-rt-global-"
+            server: "nrt.cmems-du.eu"
 
 scatterometer:
     cmems:
         level: 3
         satellite: cfo
-        path: 
-            local:
-            remote: "/Core/\
-                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
-                    dataset-wav-alti-l3-swh-rt-global-"
+        local:
+            path:
+        remote: 
+            path: "/Core/\
+                   WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                   dataset-wav-alti-l3-swh-rt-global-"
+            server: "nrt.cmems-du.eu"

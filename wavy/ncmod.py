@@ -1013,18 +1013,18 @@ def ncdump(nc_fid, verb=True):
     '''
     Function from:
     http://schubert.atmos.colostate.edu/~cslocum/netcdf_example.html
-
+    #
     ncdump outputs dimensions, variables and their attribute information.
     The information is similar to that of NCAR's ncdump utility.
     ncdump requires a valid instance of Dataset.
-
+    #
     Parameters
     ----------
     nc_fid : netCDF4.Dataset
         A netCDF4 dateset object
     verb : Boolean
         whether or not nc_attrs, nc_dims, and nc_vars are printed
-
+    #
     Returns
     -------
     nc_attrs : list
@@ -1050,7 +1050,6 @@ def ncdump(nc_fid, verb=True):
                       repr(nc_fid.variables[key].getncattr(ncattr)))
         except KeyError:
             print ("WARNING: %s does not contain variable attributes" % key)
-
     # NetCDF global attributes
     nc_attrs = nc_fid.ncattrs()
     if verb:

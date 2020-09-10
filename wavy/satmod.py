@@ -38,15 +38,13 @@ from ftplib import FTP
 
 # read_altim
 import netCDF4 as netCDF4
+from ncmod import get_nc_1D
 
 # create_file
 import calendar
 
 # libraries for parallel computing
 from joblib import Parallel, delayed
-
-# bintime
-import math
 
 # get_remote
 from dateutil.relativedelta import relativedelta
@@ -107,16 +105,16 @@ def get_remote_files(path_remote,path_local,sdate,edate,timewin,
     while (tmpdate <= edate):
         # server and path
         if sdate >= datetime(2017,7,9):
-            server='nrt.cmems-du.eu'
-            path=(path_remote
+            server = satellite_dict[instr][provider]['remote']['server']
+            path = (path_remote
                  + '/'
                  + str(tmpdate.year)
                  + '/'
                  + tmpdate.strftime('%m')
                  + '/')
             print ('# ----- ')
-            print ('Chosen product: ')
-            print ('WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001')
+            print ('Chosen source: ')
+            print (instr + ' from ' + provider + ': ' + server)
             print ('# ----- ')
         else:
             sys.exit("Product not available for chosen date!")
@@ -154,7 +152,8 @@ def get_remote_files(path_remote,path_local,sdate,edate,timewin,
                         ) for i in range(len(matching))
                         )
         # update time
-        tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,(tmpdate + relativedelta(months=+1)).month,1)
+        tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
+                            (tmpdate + relativedelta(months=+1)).month,1)
     print ('Files downloaded to: \n' + path_local)
 
 # flatten all lists before returning them
@@ -185,10 +184,10 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_l3():
+class satellite_class():
     '''
-    class to handle netcdf files containing satellite level 3 data 
-    i.e. Hs[time], lat[time], lon[time] 
+    class to handle netcdf files containing satellite data i.e. 
+    Hs[time], lat[time], lon[time] 
     This class offers the following added functionality:
      - get swaths of desired days and read
      - get the closest time stamp(s)
@@ -214,9 +213,9 @@ class satellite_l3():
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
         # make satpaths
-        path_local = satellite_dict[instr][provider]['path']['local'] 
+        path_local = satellite_dict[instr][provider]['local']['path'] 
                         + sat + '/'
-        path_remote = satellite_dict[instr][provider]['path']['remote'] 
+        path_remote = satellite_dict[instr][provider]['remote']['path'] 
                         + sat + '/'
         self.path_local = path_local
         self.path_remote = path_remote
@@ -226,41 +225,36 @@ class satellite_l3():
         pathlst, filelst = self.get_local_filelst(
                                 sdate,edate,timewin,region
                                 )
-        fLATS,fLONS,fTIME,fVAVHS,fMAXS = \
-                                    self.read_local_files(pathlst)
-        idx = np.array(range(len(fVAVHS)))[~np.isnan(fVAVHS)]
-        fLATS = list(np.array(fLATS)[idx])
-        fLONS = list(np.array(fLONS)[idx])
-        fTIME = list(np.array(fTIME)[idx])
-        fVAVHS = list(np.array(fVAVHS)[idx])
-        gloc = [fLATS,fLONS]
-        gHs = fVAVHS
+        vardict = self.read_local_files(pathlst)
         # find values for give time constraint
-        ctime,cidx,timelst = self.matchtime(sdate,edate,fTIME,timewin)
-        cloc = [np.array(fLATS)[cidx],np.array(fLONS)[cidx]]
-        cHs = list(np.array(gHs)[cidx])
-        cTIME = list(np.array(fTIME)[cidx])
+        cidx,dtimelst = self.matchtime(
+                                sdate,edate,vardict['time'],
+                                vardict['reference_time'],timewin
+                                )
+        cvardict = {}
+        for element in vardict:
+            if element != 'reference_time':
+                cvardict[element] = vardict[element][cidx]
+        del vardict
         # find values for given region
-        latlst,lonlst,rlatlst,rlonlst,ridx,region = \
-            self.matchregion(cloc[0],cloc[1],region=region,\
-            polyreg=polyreg,grid_date=sdate)
-        rloc = [cloc[0][ridx],cloc[1][ridx]]
-        rHs = list(np.array(cHs)[ridx])
-        rtime = list(np.array(ctime)[ridx])
-        rTIME = list(np.array(cTIME)[ridx])
+        ridx = self.matchregion(cvardict['latitude'],
+                                cvardict['longitude'],region=region,
+                                polyreg=polyreg,grid_date=sdate)
+        rvardict = {}
+        for element in cvardict:
+            if element != 'reference_time':
+                rvardict[element] = cvardict[element][cidx]
+        del cvardict
+        # define class variables
         self.edate = edate
         self.sdate = sdate
-        self.basetime = datetime(2000,1,1)
-        self.loc = rloc # regional coords [lats,lons]
-        self.Hs = rHs # regional HS
-        self.idx = ridx # region indices
-        self.dtime = rtime # region time steps as datetime obj
-        self.time = rTIME # region time steps in seconds from basedate
+        self.vars = rvardict
         self.timewin = timewin
         self.region = region
         self.sat = sat
         print ("Satellite object initialized including " 
-                + str(len(self.Hs)) + " footprints.")
+                + str(len(list(self.vars.keys())[0])) + " footprints.")
+
 
     def get_local_filelst(self,sdate,edate,timewin,region):
         print ("Time window: ", timewin)
@@ -289,51 +283,55 @@ class satellite_l3():
         print (str(int(len(pathlst))) + " valid files found")
         return pathlst,filelst
 
-    def read_local_files(self,pathlst):
+    def read_local_files(self,pathlst,varlst=['Hs']):
         '''
         read and concatenate all data to one timeseries for each variable
         '''
         # --- open file and read variables --- #
-        LATS = []
-        LONS = []
-        VAVHS = []
-        TIME = []
-        MAXS = []
+        varlst = varlst + ['lons','lats','time']
+        varlst_cf = []
+        for var in varlst:
+            varlst_cf.append(shortcuts_dict[var])
         count = 0
         print ("Processing " + str(int(len(pathlst))) + " files")
         print (pathlst[0])
         print (pathlst[-1])
+        vardict = {}
         for element in pathlst:
             progress(count,str(int(len(pathlst))),'')
             try:
                 # file includes a 1-D dataset with dimension time
                 f = netCDF4.Dataset(element,'r')
-                tmp = f.variables['longitude'][:]
-                # transform
-                lons = ((tmp - 180) % 360) - 180
-                lats = f.variables['latitude'][:]
-                time = f.variables['time'][:]
-                VAVH = f.variables['VAVH'][:]
-                f.close()
-                LATS.append(lats)
-                LONS.append(lons)
-                TIME.append(time)
-                VAVHS.append(VAVH)
-                MAXS.append(np.max(VAVH.astype('float')))
+                nc_vars = [var for var in f.variables]
+                for ncvar in ncvars:
+                    stdname = nc.variables[ncvar].getncattr('standard_name')
+                    if stdname in varlst_cf:
+                        if ncvar in vardict:
+                            var = list(nc.variables[ncvar][:])
+                            vardict[stdname].append(var)
+                        else:
+                            var = list(nc.variables[ncvar][:])
+                            vardict[stdname] = var
             except (IOError):
                 print ("No such file or directory")
             count = count + 1
         print ('\n')
         # apply flatten to all lists
-        fTIME,fLATS,fLONS,fVAVHS,fMAXS=\
-            flatten(TIME),flatten(LATS),flatten(LONS),\
-            flatten(VAVHS),MAXS
-        fTIME_unique,indices=np.unique(fTIME,return_index=True)
-        fLATS=list(np.array(fLATS)[indices])
-        fLONS=list(np.array(fLONS)[indices])
-        fTIME=list(np.array(fTIME)[indices])
-        fVAVHS=list(np.array(fVAVHS)[indices])
-        return fLATS, fLONS, fTIME, fVAVHS, fMAXS
+        for key in vardict:
+            vardict[key]=flatten(vardict[key])
+        # remove redundant entries
+        time_unique,indices=np.unique(vardict['time'],return_index=True)
+        for key in vardict:
+            vardict[key]=list(np.array(vardict[key])[indices])
+        if (nc.variables[shortcuts_dict['lons']].getncattr('valid_min') == 0):
+            # transform to -180 to 180 degrees
+            tmp = vardict[shortcuts_dict['lons']]
+            vardict[shortcuts_dict['lons']] = ((tmp - 180) % 360) - 180
+        # add reference time from netcdf
+        vardict['time_units'] = nc.variables['time'].units
+        # close nc-file
+        f.close()
+        return vardict
 
     def bintime(self,binframe=None):
         '''
@@ -341,71 +339,41 @@ class satellite_l3():
         e.g. days, weeks, months, years ...
         currently only daily bins
         '''
-        listofdatetimes=self.rtime
-        listofdatetimes_sec=self.rTIME
-        sdate=listofdatetimes[0]
-        edate=listofdatetimes[-1]
-        trange=int(math.ceil((edate-sdate).total_seconds()/60./60./24.))
-        freqlst=[]
-        datelst=[]
-        dincr=0
-        timewin = 0
-        for i in range(trange):
-            lodt=sdate+timedelta(days=dincr)
-            ctime,cidx,timelst = self.matchtime(
-                                    datetime(lodt.year,lodt.month,lodt.day),
-                                    datetime(lodt.year,lodt.month,lodt.day)
-                                    +timedelta(days=1),
-                                    listofdatetimes_sec,
-                                    timewin = timewin)
-            count=len(np.array(self.rHs)[
-                                cidx][
-                                ~np.isnan(np.array(self.rHs)[cidx])
-                                     ]
-                    )
-            freqlst.append(count)
-            dincr=dincr+1
-            datelst.append(lodt)
         return freqlst,datelst
 
-    def matchtime(self,sdate,edate,fTIME,timewin=None):
+    def matchtime(self,sdate,edate,time,reftime,timewin=None):
         '''
         fct to obtain the index of the time step closest to the 
         requested time step from buoy and forecast including the 
-        respective time stamp(s). Similarily, indices are chosen
-        for the time and defined region.
+        respective time stamp(s).
         '''
         if timewin is None:
             timewin = 0
-        basetime=datetime(2000,1,1)
         # create list of datetime instances
-        timelst=[]
-        ctime=[]
+        dtimelst=[]
         cidx=[]
         idx=0
         print ('Time window is: ', timewin)
         if (edate is None or sdate==edate):
-            for element in fTIME:
-                tmp=basetime + timedelta(seconds=element)
-                timelst.append(tmp)
+            for element in time:
+                tmp = netCDF4.num2date(element,reftime)
+                dtimelst.append(tmp)
                 # choose closest match within window of win[minutes]
                 if (tmp >= sdate-timedelta(minutes=timewin) 
                 and tmp < sdate+timedelta(minutes=timewin)):
-                    ctime.append(tmp)
                     cidx.append(idx)
                 del tmp
                 idx=idx+1
         if (edate is not None and edate!=sdate):
-            for element in fTIME:
-                tmp=basetime + timedelta(seconds=element)
-                timelst.append(tmp)
+            for element in time:
+                tmp = netCDF4.num2date(element,reftime)
+                dtimelst.append(tmp)
                 if (tmp >= sdate-timedelta(minutes=timewin)
                 and tmp < edate+timedelta(minutes=timewin)):
-                    ctime.append(tmp)
                     cidx.append(idx)
                 del tmp
                 idx=idx+1
-        return ctime, cidx, timelst
+        return cidx, dtimelst[cidx]
 
     def matchregion(self,LATS,LONS,region,polyreg,grid_date):
         # find values for given region
@@ -422,22 +390,16 @@ class satellite_l3():
                 else:
                     print ("Specified region: " + region + "\n"
                       + " --> Bounds: " + str(region_dict['rect'][region]))
-            latlst,lonlst,rlatlst,rlonlst,ridx = \
-                self.matchregion_prim(LATS,LONS,region=region)
+            ridx = self.matchregion_prim(LATS,LONS,region=region)
         else:
             region = polyreg
-            latlst,lonlst,rlatlst,rlonlst,ridx = \
-                self.matchregion_poly(LATS,LONS,region=region,
+            ridx = self.matchregion_poly(LATS,LONS,region=region,
                                     grid_date=grid_date)
         return latlst, lonlst, rlatlst, rlonlst, ridx, region
 
     def matchregion_prim(self,LATS,LONS,region):
         if (region is None or region == "Global"):
             region = "Global"
-            latlst = LATS
-            lonlst = LONS
-            rlatlst= LATS
-            rlonlst= LONS
             ridx = range(len(LATS))
         else:
             if isinstance(region,str)==True:
@@ -454,20 +416,12 @@ class satellite_l3():
                 llcrnrlon = region[2]
                 urcrnrlon = region[3]
             # check if coords in region
-            latlst=[]
-            lonlst=[]
-            rlatlst=[]
-            rlonlst=[]
             ridx=[]
             for i in range(len(LATS)):
-                latlst.append(LATS[i])
-                lonlst.append(LONS[i])
                 if (
                 "boundinglat" in region_dict['rect'][region]
                 and LATS[i] >= boundinglat
                     ):
-                    rlatlst.append(LATS[i])
-                    rlonlst.append(LONS[i])
                     ridx.append(i)
                 elif(
                 not "boundinglat" in region_dict['rect'][region]
@@ -476,14 +430,12 @@ class satellite_l3():
                 and LONS[i] >= llcrnrlon
                 and LONS[i] <= urcrnrlon
                     ):
-                    rlatlst.append(LATS[i])
-                    rlonlst.append(LONS[i])
                     ridx.append(i)
         if not ridx:
             print ("No values for chosen region and time frame!!!")
         else:
             print ("Values found for chosen region and time frame.")
-        return latlst, lonlst, rlatlst, rlonlst, ridx
+        return ridx
 
     def matchregion_poly(self,LATS,LONS,region,grid_date):
         from matplotlib.patches import Polygon
@@ -532,8 +484,6 @@ class satellite_l3():
                 ridx = list(np.where((Vx>xmin) & (Vx<xmax) & 
                                 (Vy>ymin) & (Vy<ymax))[0]
                             )
-                latlst, lonlst = LATS, LONS
-                rlatlst, rlonlst = LATS[ridx], LONS[ridx]
         elif isinstance(region,str)==True:
             print ("Specified region: " + region + "\n"
               + " --> Bounded by polygon: \n"
@@ -549,15 +499,16 @@ class satellite_l3():
             lats = np.array(LATS).ravel()
             lons = np.array(LONS).ravel()
             points = np.c_[lons,lats]
-            hits = Path(poly.xy).contains_points(points)
-            rlatlst = list(np.array(LATS)[hits])
-            rlonlst = list(np.array(LONS)[hits])
+            # radius seems to be important to correctly define polygone
+            # see discussion here:
+            # https://github.com/matplotlib/matplotlib/issues/9704
+            hits = Path(poly.xy).contains_points(points,radius=1e-9)
             ridx = list(np.array(range(len(LONS)))[hits])
         if not ridx:
             print ("No values for chosen region and time frame!!!")
         else:
             print ("Values found for chosen region and time frame.")
-        return latlst, lonlst, rlatlst, rlonlst, ridx
+        return ridx
 
 
 def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):

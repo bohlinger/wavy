@@ -49,9 +49,6 @@ from ftplib import FTP
 # create_file
 import calendar
 
-# bintime
-import math
-
 import sys
 
 # get_remote

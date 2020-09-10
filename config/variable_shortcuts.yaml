@@ -1,6 +1,13 @@
---- # variable shortcut information table
+--- # variable shortcut information table for cf convention
 
+# time
 time: time
+
+# coordinates
+lons: longitude
+lats: latitude
+
+# variables
 Hs: sea_surface_wave_significant_height
 Tp: sea_surface_wave_period_at_variance_spectral_density_maximum
 Tm01: sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment
