@@ -38,7 +38,6 @@ from ftplib import FTP
 
 # read_altim
 import netCDF4 as netCDF4
-from ncmod import get_nc_1D
 
 # create_file
 import calendar
