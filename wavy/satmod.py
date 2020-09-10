@@ -90,7 +90,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         sys.exit()
 
 def get_remote_files(path_remote,path_local,sdate,edate,timewin,
-                    corenum,download):
+                    corenum,download,instr,provider):
     '''
     Download swath files and store them at defined location
     time stamps in file name stand for: from, to, creation
@@ -222,7 +222,8 @@ class satellite_class():
         self.path_remote = path_remote
         # retrieve files
         get_remote_files(path_remote,path_local,
-                        sdate,edate,timewin,corenum,download)
+                        sdate,edate,timewin,corenum,download,
+                        instr,provider)
         pathlst, filelst = self.get_local_filelst(
                                 sdate,edate,timewin,region
                                 )
