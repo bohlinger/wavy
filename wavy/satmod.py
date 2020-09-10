@@ -228,6 +228,7 @@ class satellite_class():
                                 sdate,edate,timewin,region
                                 )
         vardict = self.read_local_files(pathlst,varlst)
+        print(len(vardict['time']) + ' footprints found')
         # find values for give time constraint
         cidx,dtimelst = self.matchtime(
                                 sdate,edate,vardict['time'],
@@ -238,6 +239,7 @@ class satellite_class():
             if element != 'time_unit':
                 cvardict[element] = list(np.array(vardict[element])[cidx])
         del vardict
+        print(len(cvardict['time']) + ' footprints found')
         # find values for given region
         ridx = self.matchregion(cvardict['latitude'],
                                 cvardict['longitude'],region=region,
@@ -247,6 +249,7 @@ class satellite_class():
             if element != 'time_unit':
                 rvardict[element] = list(np.array(cvardict[element])[cidx])
         del cvardict
+        print(len(rvardict['time']) + ' footprints found')
         # define class variables
         self.edate = edate
         self.sdate = sdate
