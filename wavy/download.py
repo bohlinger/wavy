@@ -13,7 +13,7 @@ from argparse import RawTextHelpFormatter
 import numpy as np
 
 # own import
-from satmod import get_remotefiles
+from satmod import get_remote_files
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
