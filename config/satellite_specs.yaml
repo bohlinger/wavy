@@ -1,11 +1,11 @@
 --- # specifications for satellite missions
 
-"""
-structure local files: 
-        + instrument type (altimeter/scatterometer) 
-        + provider (eumetsat/cmems)
-        + specs
-"""
+# """
+# structure local files: 
+#        + instrument type (altimeter/scatterometer) 
+#        + provider (eumetsat/cmems)
+#        + specs
+# """
 
 altimeter:
     eumetsat:
