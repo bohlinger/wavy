@@ -1,14 +1,14 @@
 --- # storage of important paths
-"""
-    structure local files: 
-          location (local/remote) 
-        + type (station/satellite) 
-        + format (d22/nc)
-    structure remote files:
-          network_protocol (FTP/FTPS/SFTP)
-        + type (station/satellite)
-        + productname
-"""
+# """
+#    structure local files: 
+#          location (local/remote) 
+#        + type (station/satellite) 
+#        + format (d22/nc)
+#    structure remote files:
+#          network_protocol (FTP/FTPS/SFTP)
+#        + type (station/satellite)
+#        + productname
+# """
 
 local:
     station:
