@@ -87,7 +87,7 @@ if os.path.isdir(destination) == False:
     cmd = 'mkdir -p ' + destination
     os.system(cmd)
 start_time = time.time()
-sa_obj = get_remotefiles(satpath, destination,
+sa_obj = get_remote_files(satpath, destination,
                         sdate,edate,timewin=30,
                         corenum=nproc,download=True)
 time1 = time.time() - start_time
