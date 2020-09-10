@@ -75,9 +75,8 @@ if args.nproc is None:
 else:
     nproc = args.nproc
 
-#satpath = satpath_ftp_014_001 + sat + '/'
-satpath = satellite_dict[instr][provider]['remote']['path'] + sat + '/'
-destination = targetpath + '/' + sat + '/'
+satpath = satellite_dict[instr][provider]['remote']['path'] + sat
+destination = targetpath + '/' + sat
 print('destination: ' + destination)
 # check if destination exists
 if os.path.isdir(destination) == False:
