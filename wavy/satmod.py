@@ -304,7 +304,7 @@ class satellite_class():
             try:
                 # file includes a 1-D dataset with dimension time
                 f = netCDF4.Dataset(element,'r')
-                nc_vars = [var for var in f.variables]
+                ncvars = [var for var in f.variables]
                 for ncvar in ncvars:
                     stdname = nc.variables[ncvar].getncattr('standard_name')
                     if stdname in varlst_cf:
