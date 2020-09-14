@@ -484,7 +484,7 @@ class satellite_class():
                     get_model(model=region, fc_date=grid_date)
             if (len(model_lats.shape)==1):
                 model_lons, model_lats = np.meshgrid(model_lons, model_lats)
-            if (region=='global' or region=='ecwam'):
+            if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:
                 proj4 = model_dict[region]['proj4']
