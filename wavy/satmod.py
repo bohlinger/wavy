@@ -239,7 +239,8 @@ class satellite_class():
             if element != 'time_unit':
                 cvardict[element] = list(np.array(vardict[element])[cidx])
         del vardict
-        print('In chosen time period: ', len(cvardict['time']), ' footprints found')
+        print('In chosen time period: ', len(cvardict['time']), 
+            ' footprints found')
         # find values for given region
         ridx = self.matchregion(cvardict['latitude'],
                                 cvardict['longitude'],region=region,
@@ -247,10 +248,10 @@ class satellite_class():
         rvardict = {}
         for element in cvardict:
             if element != 'time_unit':
-                rvardict[element] = list(np.array(cvardict[element])[cidx])
+                rvardict[element] = list(np.array(cvardict[element])[ridx])
         del cvardict
-        print('For chosen region and time: ', 
-            len(rvardict['time']), ' footprints found')
+        print('For chosen region and time: ', len(rvardict['time']), 
+            ' footprints found')
         # define class variables
         self.edate = edate
         self.sdate = sdate
