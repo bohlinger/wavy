@@ -82,6 +82,7 @@ class model_class():
         self.model = model
         self.basetime = model_dict[model]['basetime']
 
+
 def get_model_filedate(model,fc_date,leadtime):
     '''
     get init_date for latest model output file and checks if available
