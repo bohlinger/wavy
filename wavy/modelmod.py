@@ -66,10 +66,6 @@ class model_class():
     This class should communicate with the satellite, model, and 
     station classes.
     '''
-    satpath_lustre = pathfinder['satpath_lustre']
-    satpath_copernicus = pathfinder['satpath_copernicus']
-    satpath_ftp_014_001 = pathfinder['satpath_ftp_014_001']
-    
 
     def __init__(self,sdate,edate=None,model=None):
         print ('# ----- ')
