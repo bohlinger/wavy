@@ -191,17 +191,11 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             tmp_date = (fc_date
                        - timedelta(hours=multsix*12)
                        - timedelta(hours=restsix))
-    elif (model == 'Erin1W' or model == 'Erin2W'):
-        multsix = int(leadtime/3)
-        restsix = leadtime%3
+    elif (model == 'Erin1way' or model == 'Erin2way'):
+        multsix = int(leadtime/12)
+        restsix = leadtime%12
         if ((fc_date - timedelta(hours=leadtime)).hour != 0 and
-            (fc_date - timedelta(hours=leadtime)).hour != 3 and
-            (fc_date - timedelta(hours=leadtime)).hour != 6 and
-            (fc_date - timedelta(hours=leadtime)).hour != 9 and
-            (fc_date - timedelta(hours=leadtime)).hour !=12 and
-            (fc_date - timedelta(hours=leadtime)).hour !=15 and
-            (fc_date - timedelta(hours=leadtime)).hour !=18 and
-            (fc_date - timedelta(hours=leadtime)).hour !=21):
+            (fc_date - timedelta(hours=leadtime)).hour !=12):
             print('error: --> leadtime is not available')
         if leadtime>60:
             print('error: --> Leadtime must be less than 60')
@@ -209,7 +203,7 @@ def check_date(model,fc_date=None,init_date=None,leadtime=None):
             pass
         else:
             tmp_date = (fc_date 
-                       - timedelta(hours=multsix*3)
+                       - timedelta(hours=multsix*12)
                        - timedelta(hours=restsix))
     elif (model=='ww3' or model == 'swan_karmoy250'):
         tmp_date = fc_date
@@ -242,9 +236,10 @@ def make_filename(simmode=None,model=None,datein=None,
             filename = (fc_date.strftime(model_dict[model]['path'])
               + fc_date.strftime('%Y%m%d%H')
               + init_date.strftime(model_dict[model][filetemplate]))
-        elif (model == 'Erin1W' or model == 'Erin2W'):
+        elif (model == 'Erin1way' or model == 'Erin2way'):
+            init_date = fc_date - timedelta(hours=leadtime)
             filename = (model_dict[model]['path']
-              + fc_date.strftime(model_dict[model][filetemplate]))
+              + init_date.strftime(model_dict[model][filetemplate]))
         elif (model == 'ErinFix'):
             filename = (model_dict[model]['path'] 
                         + model_dict[model][filetemplate])

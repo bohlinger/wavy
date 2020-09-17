@@ -109,7 +109,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
     polarproj=None
 
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
-        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'
+        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'\
         or sa_obj.region == 'CustomSvalbard'):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
@@ -145,6 +145,10 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
                         figsize=(9, 9))
     # plot domain extent
     if projection != polarproj:
+        latmin = 45
+        latmax = 85
+        lonmin = -26
+        lonmax = 32
         #ax.set_extent([lonmin, 52,latmin, 81],crs = ccrs.PlateCarree())
         ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
         #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
@@ -563,7 +567,7 @@ def plot_sat(sa_obj):
 
     if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
         or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'
-        or sa_obj.region == 'ErinFix'):
+        or sa_obj.region == 'Erin1way' or sa_obj.region == 'Erin2way'):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
                             central_longitude=0.0, 

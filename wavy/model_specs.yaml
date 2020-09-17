@@ -262,15 +262,19 @@ ww3: # WW3_4km
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
 
-ErinFix: # 14.-27. Sep 2018, validation from 18. Sep
+# examples for Erin's simulations
+
+Erin1way: # one way coupled experiment
     vars:
         Hs: hs
         lons: longitude
         lats: latitude
         time: time
-    path: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
-    path_template: "/lustre/storeB/users/erinet/Sep2018_Experiment/FIXED_Sep2018/"
-    file_template: FIXED_Sep2018_091400_092700_WW3.nc
+    path: "/lustre/storeB/project/nwp/nansenlegacyrf4/\
+            Wave_AA_Coupling/Dec2019_UnCoup/"
+    path_template: "/lustre/storeB/project/nwp/nansenlegacyrf4/\"
+            Wave_AA_Coupling/Dec2019_UnCoup/"
+    file_template: Dec2019_UnCoup_WW3_%Y%m%d%H.nc
     basetime: 1990-01-01 00:00:00
     units_time: days since 1990-01-01 00:00:00
     time_conventions: "relative julian days with decimal part
@@ -280,46 +284,29 @@ ErinFix: # 14.-27. Sep 2018, validation from 18. Sep
     proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25 
             +lat_1=77.5 +lat_2=77.5 
             +no_defs +R=6.371e+06"
+    init_times: [0,12]
 
-# examples for Erin's simulations
-
-Erin1W: # one way coupled experiment
+Erin2way: # two way coupled experiment
     vars:
         Hs: hs
         lons: longitude
         lats: latitude
         time: time
-    path: "/lustre/storeB/users/erinet/coup_exp_output/\
-            ST3_experiments/1waycoup_direct_ST3/"
-    path_template: "/lustre/storeB/users/erinet\
-                    /coup_exp_output/ST3_experiments/\
-                    1waycoup_direct_ST3/"
-    file_template: ww3.%Y%m%dT%H_hs.nc
+    path: "/lustre/storeB/project/nwp/nansenlegacyrf4/\
+            Wave_AA_Coupling/Dec2019_CoupVerification/"
+    path_template: "/lustre/storeB/project/nwp/nansenlegacyrf4/\"
+            Wave_AA_Coupling/Dec2019_CoupVerification/"
+    file_template: Dec2019_CoupVerification_WW3_%Y%m%d%H.nc
     basetime: 1990-01-01 00:00:00
     units_time: days since 1990-01-01 00:00:00
     time_conventions: "relative julian days with decimal part
                         as parts of the day"
-    delta_t: 3h
+    delta_t: 1h
     _FillValue: 9.96921e+36
-
-Erin2W: # two way coupled experiment
-    vars:
-        Hs: hs
-        lons: longitude
-        lats: latitude
-        time: time
-    path: "/lustre/storeB/users/erinet/coup_exp_output/\
-            ST3_experiments/Exp2_direct_ST3/"
-    path_template: "/lustre/storeB/users/erinet/\
-                    coup_exp_output/ST3_experiments/\
-                    Exp2_direct_ST3/"
-    file_template: ww3.%Y%m%dT%H_hs.nc
-    basetime: 1990-01-01 00:00:00
-    units_time: days since 1990-01-01 00:00:00
-    time_conventions: "relative julian days with decimal part
-                        as parts of the day"
-    delta_t: 3h
-    _FillValue: 9.96921e+36
+    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25 
+            +lat_1=77.5 +lat_2=77.5 
+            +no_defs +R=6.371e+06"
+    init_times: [0,12]
 
 NORA10:
     vars:
