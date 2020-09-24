@@ -178,7 +178,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
     # sort out data/coordinates for plotting
-    slons, slats = sa_obj.loc[1],sa_obj.loc[0]
+    slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
     clons, clats = results_dict["model_lons_matches"],\
                     results_dict["model_lats_matches"]
     mhs = MHs.squeeze() 
@@ -638,7 +638,7 @@ def plot_sat(sa_obj):
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 
     # sort out data/coordinates for plotting
-    slons, slats = sa_obj.loc[1],sa_obj.loc[0]
+    slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
 
     # check region and determine projection
 
