@@ -257,7 +257,10 @@ class satellite_class():
         self.sdate = sdate
         self.vars = rvardict
         self.timewin = timewin
-        self.region = region
+        if region is None:
+            self.region = polyreg
+        else:
+            self.region = region
         self.sat = sat
         print ("Satellite object initialized including " 
                 + str(len(self.vars['time'])) + " footprints.")

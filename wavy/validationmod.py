@@ -642,11 +642,7 @@ def plot_sat(sa_obj):
 
     # check region and determine projection
 
-    polarproj=None
-
-    if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
-        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'
-        or sa_obj.region == 'ErinFix'):
+    if (sa_obj.region == 'global'):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
                             central_longitude=0.0, 
