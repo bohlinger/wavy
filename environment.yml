@@ -12,3 +12,4 @@ dependencies:
   - cartopy>=0.18.0
   - cmocean
   - joblib
+  - sklearn>=0.19
