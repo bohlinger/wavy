@@ -253,18 +253,17 @@ class satellite_class():
             del cvardict
             print('For chosen region and time: ', len(rvardict['time']), 
                 ' footprints found')
-        else:
-            rvardict = None
-        # define class variables
-        self.edate = edate
-        self.sdate = sdate
-        self.vars = rvardict
-        self.timewin = timewin
-        self.region = region
-        self.sat = sat
-        print ("Satellite object initialized including " 
+            # define class variables
+            self.edate = edate
+            self.sdate = sdate
+            self.vars = rvardict
+            self.timewin = timewin
+            self.region = region
+            self.sat = sat
+            print ("Satellite object initialized including " 
                 + str(len(self.vars['time'])) + " footprints.")
-
+        else:
+            print('No satellite_class object initialized')
 
     def get_local_filelst(self,sdate,edate,timewin,region):
         print ("Time window: ", timewin)
