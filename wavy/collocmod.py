@@ -10,13 +10,41 @@ from utils import progress
 import yaml
 # own imports
 from utils import haversine
-from stationmod import matchtime
 
 # read yaml config files:
 with open("../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 with open("../config/variable_shortcuts.yaml",'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
+
+def matchtime(sdate,edate,dtime,timewin=None):
+    '''
+    fct to obtain the index of the time step closest to the 
+    requested time including the respective time stamp(s). 
+    Similarily, indices are chosen for the time and defined region.
+    '''
+    if timewin is None:
+        timewin = 0
+    # create list of datetime instances
+    ctime=[]
+    cidx=[]
+    idx=0
+    if (edate is None or sdate==edate):
+        for element in time:
+            # choose closest match within window of win[minutes]
+            if (element >= sdate-timedelta(minutes=timewin)
+            and element <= sdate+timedelta(minutes=timewin)):
+                ctime.append(element)
+                cidx.append(idx)
+            idx=idx+1
+    if (edate is not None and edate!=sdate):
+        for element in time:
+            if (element >= sdate-timedelta(minutes=timewin)
+            and element < edate+timedelta(minutes=timewin)):
+                ctime.append(element)
+                cidx.append(idx)
+            idx=idx+1
+    return ctime, cidx
 
 def collocation_loop(
     j,sat_time_dt,model_time_dt_valid,distlim,model,
@@ -113,8 +141,8 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
                         + 'no values for collocation!'
                         + '\n###'
                         )
-    ctime, cidx = matchtime(datein,datein,sa_obj.vars['time'],
-                    sa_obj.basetime,timewin=sa_obj.timewin)
+    dtime = netCDF4.num2date(sa_obj.vars['time'],sa_obj.vars['time_unit'])
+    ctime, cidx = matchtime(datein,datein,dtime,timewin=sa_obj.timewin)
     sat_time_dt=np.array(sa_obj.dtime)[cidx]
     model_time_idx = model_time_dt.index(datein)
     model_time_dt_valid=[model_time_dt[model_time_idx]]
@@ -132,9 +160,9 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     nearest_all_model_lats_matches=[]
     idx_valid_lst=[]
     # create local variables before loop
-    sat_rlats=sa_obj.loc[0][cidx]
-    sat_rlons=sa_obj.loc[1][cidx]
-    sat_rHs=np.array(sa_obj.Hs)[cidx]
+    sat_rlats=sa_obj.vars['latitude'][cidx]
+    sat_rlons=sa_obj.vars['longitude'][cidx]
+    sat_rHs=np.array(sa_obj.vars[shorcuts_dict[var]])[cidx]
     # flatten numpy arrays
     model_rHs = model_Hs.squeeze().flatten()
     model_rlons = model_lons.flatten()

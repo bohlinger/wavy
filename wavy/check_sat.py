@@ -149,7 +149,7 @@ if bool(args.show)==True:
             leadtime=args.lt,init_date=init_date)
         #collocation
         results_dict = collocate(args.mod,model_Hs,model_lats,
-            model_lons,model_time_dt,sa_obj,edate,distlim=dist)
+            model_lons,model_time_dt,sa_obj,'Hs',edate,distlim=dist)
         valid_dict=validate(results_dict)
         disp_validation(valid_dict)
         comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
