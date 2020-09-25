@@ -227,31 +227,34 @@ class satellite_class():
         pathlst, filelst = self.get_local_filelst(
                                 sdate,edate,timewin,region
                                 )
-        vardict = self.read_local_files(pathlst,varlst)
-        print('Total: ', len(vardict['time']), ' footprints found')
-        # find values for give time constraint
-        cidx,dtimelst = self.matchtime(
+        if pathlst > 0:
+            vardict = self.read_local_files(pathlst,varlst)
+            print('Total: ', len(vardict['time']), ' footprints found')
+            # find values for give time constraint
+            cidx,dtimelst = self.matchtime(
                                 sdate,edate,vardict['time'],
                                 vardict['time_unit'],timewin
                                 )
-        cvardict = {}
-        for element in vardict:
-            if element != 'time_unit':
-                cvardict[element] = list(np.array(vardict[element])[cidx])
-        del vardict
-        print('In chosen time period: ', len(cvardict['time']), 
-            ' footprints found')
-        # find values for given region
-        ridx = self.matchregion(cvardict['latitude'],
+            cvardict = {}
+            for element in vardict:
+                if element != 'time_unit':
+                    cvardict[element] = list(np.array(vardict[element])[cidx])
+            del vardict
+            print('In chosen time period: ', len(cvardict['time']), 
+                ' footprints found')
+            # find values for given region
+            ridx = self.matchregion(cvardict['latitude'],
                                 cvardict['longitude'],
                                 region=region,grid_date=sdate)
-        rvardict = {}
-        for element in cvardict:
-            if element != 'time_unit':
-                rvardict[element] = list(np.array(cvardict[element])[ridx])
-        del cvardict
-        print('For chosen region and time: ', len(rvardict['time']), 
-            ' footprints found')
+            rvardict = {}
+            for element in cvardict:
+                if element != 'time_unit':
+                    rvardict[element] = list(np.array(cvardict[element])[ridx])
+            del cvardict
+            print('For chosen region and time: ', len(rvardict['time']), 
+                ' footprints found')
+        else:
+            rvardict = None
         # define class variables
         self.edate = edate
         self.sdate = sdate
