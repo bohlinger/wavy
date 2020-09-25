@@ -723,7 +723,7 @@ def plot_sat(sa_obj,var):
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
     # - add satellite
-    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[shorcuts_dict[var]],
+    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[shortcuts_dict[var]],
                 marker='o',verts=levels, edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
