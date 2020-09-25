@@ -641,7 +641,7 @@ def plot_sat(sa_obj):
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
 
     # check region and determine projection
-
+    
     if (sa_obj.region == 'global' 
         or (sa_obj.region in region_dict['rect'] 
             and 'boundinglat' in region_dict['rect'][region])
@@ -680,7 +680,7 @@ def plot_sat(sa_obj):
                         subplot_kw=dict(projection=projection),
                         figsize=(9, 9))
     # plot domain extent
-    if projection != polarproj:
+    if polarproj not in locals():
         ax.set_extent([lonmin+6, 45,latmin+6, 84],crs = ccrs.PlateCarree())
     else:
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
