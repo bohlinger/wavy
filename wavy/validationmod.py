@@ -691,7 +691,8 @@ def plot_sat(sa_obj,var):
     gl = ax.gridlines(draw_labels=True,
                 linewidth = 1,color = 'gray', alpha = 0.4, 
                 linestyle = '-')
-    gl.xlabels_top = gl.ylabels_right = False
+    gl.xlabels_top = gl.xlabels_left = gl.xlabels_right = False
+    gl.ylabels_top = gl.ylabels_bottom = gl.ylabels_right = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     
