@@ -680,7 +680,7 @@ def plot_sat(sa_obj):
                         subplot_kw=dict(projection=projection),
                         figsize=(9, 9))
     # plot domain extent
-    if polarproj not in locals():
+    if 'polarproj' not in locals():
         ax.set_extent([lonmin+6, 45,latmin+6, 84],crs = ccrs.PlateCarree())
     else:
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
