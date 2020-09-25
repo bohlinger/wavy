@@ -9,6 +9,7 @@ import numpy as np
 from utils import progress
 import yaml
 import netCDF4
+from datetime import datetime, timedelta
 # own imports
 from utils import haversine
 
