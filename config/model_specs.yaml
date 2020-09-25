@@ -85,9 +85,10 @@ mwam4:
     coords:
         lons: longitude
         lats: latitude
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
+    #path_template: "/lustre/storeB/immutable/\
+    #        archive/projects/metproduction/\
+    #        DNMI_WAVE/%Y/%m/%d/"
+    path_template: "/thredds/dodsC/fou-hi/mywavewam4archive/%Y/%m/%d/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
