@@ -135,7 +135,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     """
     get stellite time steps close to model time step. 
     """
-    if len(sa_obj.vars[shorcuts_dict[var]]) < 1:
+    if len(sa_obj.vars[shortcuts_dict[var]]) < 1:
         raise Exception ( '\n###\n'
                         + 'Collocation not possible, '
                         + 'no values for collocation!'
@@ -162,7 +162,7 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     # create local variables before loop
     sat_rlats=sa_obj.vars['latitude'][cidx]
     sat_rlons=sa_obj.vars['longitude'][cidx]
-    sat_rHs=np.array(sa_obj.vars[shorcuts_dict[var]])[cidx]
+    sat_rHs=np.array(sa_obj.vars[shortcuts_dict[var]])[cidx]
     # flatten numpy arrays
     model_rHs = model_Hs.squeeze().flatten()
     model_rlons = model_lons.flatten()
