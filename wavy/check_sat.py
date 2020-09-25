@@ -139,7 +139,7 @@ else:
 # plot
 if bool(args.show)==True:
     if args.mod is None:
-        plot_sat(sa_obj)
+        plot_sat(sa_obj,'Hs')
     elif (args.mod is not None and args.col is True):
         # get model collocated values
         #get_model

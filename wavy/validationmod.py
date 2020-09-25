@@ -17,6 +17,8 @@ import numpy as np
 # read yaml config files:
 with open("../config/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
+with open("../config/variable_shortcuts.yaml",'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
 
 # define global functions
 def rmsd(a,b):
@@ -627,7 +629,7 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
     #plt.show()
 
 
-def plot_sat(sa_obj):
+def plot_sat(sa_obj,var):
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -639,7 +641,6 @@ def plot_sat(sa_obj):
 
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
-
     # check region and determine projection
     
     if (sa_obj.region == 'global' 
@@ -722,7 +723,7 @@ def plot_sat(sa_obj):
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
     # - add satellite
-    sc = ax.scatter(slons,slats,s=10,c=sa_obj.Hs,
+    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[shorcuts_dict[var]],
                 marker='o',verts=levels, edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
