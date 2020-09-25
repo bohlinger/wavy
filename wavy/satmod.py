@@ -199,7 +199,7 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,timewin=None,download=False,region=None,
-        corenum=1,polyreg=None,varlst=None
+        corenum=1,varlst=None
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -243,8 +243,8 @@ class satellite_class():
             ' footprints found')
         # find values for given region
         ridx = self.matchregion(cvardict['latitude'],
-                                cvardict['longitude'],region=region,
-                                polyreg=polyreg,grid_date=sdate)
+                                cvardict['longitude'],
+                                region=region,grid_date=sdate)
         rvardict = {}
         for element in cvardict:
             if element != 'time_unit':
@@ -257,10 +257,7 @@ class satellite_class():
         self.sdate = sdate
         self.vars = rvardict
         self.timewin = timewin
-        if region is None:
-            self.region = polyreg
-        else:
-            self.region = region
+        self.region = region
         self.sat = sat
         print ("Satellite object initialized including " 
                 + str(len(self.vars['time'])) + " footprints.")
@@ -390,11 +387,12 @@ class satellite_class():
                 idx=idx+1
         return cidx, list(np.array(dtimelst)[cidx])
 
-    def matchregion(self,LATS,LONS,region,polyreg,grid_date):
+    def matchregion(self,LATS,LONS,region,grid_date):
+        # region in region_dict[poly]:
         # find values for given region
-        if polyreg is None:
+        if region not in region_dict['poly']:
             if region is None:
-                region = 'Global'
+                region = 'global'
             if ~isinstance(region,str)==True:
                 print ("Manuall specified region "
                     + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n"
@@ -405,16 +403,15 @@ class satellite_class():
                 else:
                     print ("Specified region: " + region + "\n"
                       + " --> Bounds: " + str(region_dict['rect'][region]))
-            ridx = self.matchregion_prim(LATS,LONS,region=region)
+            ridx = self.matchregion_rect(LATS,LONS,region=region)
         else:
-            region = polyreg
             ridx = self.matchregion_poly(LATS,LONS,region=region,
                                     grid_date=grid_date)
         return ridx
 
-    def matchregion_prim(self,LATS,LONS,region):
-        if (region is None or region == "Global"):
-            region = "Global"
+    def matchregion_rect(self,LATS,LONS,region):
+        if (region is None or region == "global"):
+            region = "global"
             ridx = range(len(LATS))
         else:
             if isinstance(region,str)==True:

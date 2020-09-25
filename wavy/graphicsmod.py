@@ -261,7 +261,7 @@ def quip_ia(sa_obj, region=None, save=None, outpath=None, filetype=None):
     import matplotlib.pyplot as plt
     from mpl_toolkits.basemap import Basemap, cm
     if region is None:
-        region = 'Global'
+        region = 'global'
     if outpath is None:
         outpath = 'outpath/'
     if save == True:
@@ -290,7 +290,7 @@ class graphics_class():
         print (" ### Initializing graphics_class instance ###")
         print ('# ----- ')
         if region is None:
-            region='Global'
+            region='global'
         self.region = region
         print ("graphics_class object initialized")
 

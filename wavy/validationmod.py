@@ -642,7 +642,10 @@ def plot_sat(sa_obj):
 
     # check region and determine projection
 
-    if (sa_obj.region == 'global'):
+    if (sa_obj.region == 'global' 
+        or (sa_obj.region in region_dict['rect'] 
+            and 'boundinglat' in region_dict['rect'][region])
+        ):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
                             central_longitude=0.0, 
