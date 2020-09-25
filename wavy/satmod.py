@@ -390,11 +390,11 @@ class satellite_class():
     def matchregion(self,LATS,LONS,region,grid_date):
         # region in region_dict[poly]:
         # find values for given region
-        if region not in region_dict['poly']:
+        if (region not in region_dict['poly'] and region not in model_dict):
             if region is None:
                 region = 'global'
             if ~isinstance(region,str)==True:
-                print ("Manuall specified region "
+                print ("Manually specified region "
                     + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n"
                     + " --> Bounds: " + str(region))
             else:
