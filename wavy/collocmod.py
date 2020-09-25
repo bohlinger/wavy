@@ -15,6 +15,8 @@ from stationmod import matchtime
 # read yaml config files:
 with open("../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
+with open("../config/variable_shortcuts.yaml",'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
 
 def collocation_loop(
     j,sat_time_dt,model_time_dt_valid,distlim,model,
@@ -101,20 +103,17 @@ def collocation_loop(
            return
 
 def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
-    sa_obj,datein,distlim=None,idx_valid=None):
+    sa_obj,var,datein,distlim=6,idx_valid=None):
     """
     get stellite time steps close to model time step. 
     """
-    if len(sa_obj.Hs) < 1:
+    if len(sa_obj.vars[shorcuts_dict[var]]) < 1:
         raise Exception ( '\n###\n'
                         + 'Collocation not possible, '
                         + 'no values for collocation!'
                         + '\n###'
                         )
-    if distlim is None:
-        distlim = int(6)
-    timewin = sa_obj.timewin
-    ctime, cidx = matchtime(datein,datein,sa_obj.time,
+    ctime, cidx = matchtime(datein,datein,sa_obj.vars['time'],
                     sa_obj.basetime,timewin=sa_obj.timewin)
     sat_time_dt=np.array(sa_obj.dtime)[cidx]
     model_time_idx = model_time_dt.index(datein)
