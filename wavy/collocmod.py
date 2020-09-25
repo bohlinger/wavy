@@ -145,9 +145,9 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
                         )
     dtime = netCDF4.num2date(sa_obj.vars['time'],sa_obj.vars['time_unit'])
     ctime, cidx = matchtime(datein,datein,dtime,timewin=sa_obj.timewin)
-    sat_time_dt=np.array(sa_obj.dtime)[cidx]
+    sat_time_dt = dtime[cidx]
     model_time_idx = model_time_dt.index(datein)
-    model_time_dt_valid=[model_time_dt[model_time_idx]]
+    model_time_dt_valid = [model_time_dt[model_time_idx]]
     print ("date matches found:")
     print (model_time_dt_valid)
     # Compare wave heights of satellite with model with 
