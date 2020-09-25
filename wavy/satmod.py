@@ -268,26 +268,29 @@ class satellite_class():
         tmpdate=deepcopy(sdate-timedelta(minutes=timewin))
         pathlst = []
         filelst = []
-        while (tmpdate <= edate + timedelta(minutes=timewin)):
-            tmpdatestr=(self.path_local
+        try:
+            while (tmpdate <= edate + timedelta(minutes=timewin)):
+                tmpdatestr=(self.path_local
                         + str(tmpdate.year)
                         + '/' + tmpdate.strftime('%m')
                         + '/')
-            tmplst = np.sort(os.listdir(tmpdatestr))
-            filelst.append(tmplst)
-            pathlst.append([(tmpdatestr + e) for e in tmplst])
-            if (edate is not None and edate!=sdate):
-                tmpdate = tmpdate + timedelta(hours=1)
-            else:
-                tmpdate = tmpdate + relativedelta(months=+1)
-        filelst=np.sort(flatten(filelst))
-        pathlst=np.sort(flatten(pathlst))
-        idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=timewin))
-        tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=timewin))
-        del tmp
-        pathlst = np.unique(pathlst[idx_start:idx_end+1])
-        filelst = np.unique(filelst[idx_start:idx_end+1])
-        print (str(int(len(pathlst))) + " valid files found")
+                tmplst = np.sort(os.listdir(tmpdatestr))
+                filelst.append(tmplst)
+                pathlst.append([(tmpdatestr + e) for e in tmplst])
+                if (edate is not None and edate!=sdate):
+                    tmpdate = tmpdate + timedelta(hours=1)
+                else:
+                    tmpdate = tmpdate + relativedelta(months=+1)
+            filelst=np.sort(flatten(filelst))
+            pathlst=np.sort(flatten(pathlst))
+            idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=timewin))
+            tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=timewin))
+            del tmp
+            pathlst = np.unique(pathlst[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
+            print (str(int(len(pathlst))) + " valid files found")
+        except FileNotFoundError as e:
+            print(e)
         return pathlst,filelst
 
     def read_local_files(self,pathlst,varlst=['Hs']):
