@@ -88,7 +88,7 @@ if args.sat == 'all':
     dtime = []
     for sat in satlist:
         sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
-                    polyreg=args.reg,varlst=varlst)
+                    region=args.reg,varlst=varlst)
         lats.append(sa_obj.vardict['latitude'])
         lons.append(sa_obj.vardict['longitude'])
         Hs.append(sa_obj.Hs)
@@ -116,7 +116,7 @@ elif args.sat == 'multi':
     dtime = []
     for sat in satlist:
         sa_obj = sa(sdate,sat=sat,edate=edate,
-                    timewin=timewin,polyreg=args.reg)
+                    timewin=timewin,region=args.reg)
         loc0.append(sa_obj.loc[0])
         loc1.append(sa_obj.loc[1])
         Hs.append(sa_obj.Hs)
@@ -134,7 +134,7 @@ elif args.sat == 'multi':
     sa_obj.sat = str(satlist)
 else:
     sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,
-                polyreg=args.reg,varlst=varlst)
+                region=args.reg,varlst=varlst)
 
 # plot
 if bool(args.show)==True:
