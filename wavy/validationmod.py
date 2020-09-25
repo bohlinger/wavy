@@ -690,11 +690,11 @@ def plot_sat(sa_obj):
     #ax.plot(5, 60, transform = ccrs.PlateCarree())
     #ax.gridlines(draw_labels = True)
     #ax.gridlines(linewidth = 1.5,color = 'gray', alpha = 0.4, linestyle = '--')
-    if (projection != polarproj and projection!=azimproj):
-        gl = ax.gridlines(draw_labels=True)
-        gl.xlabels_top = gl.ylabels_right = False
-        gl.xformatter = LONGITUDE_FORMATTER
-        gl.yformatter = LATITUDE_FORMATTER
+    #if (projection != polarproj and projection!=azimproj):
+    #    gl = ax.gridlines(draw_labels=True)
+    #    gl.xlabels_top = gl.ylabels_right = False
+    #    gl.xformatter = LONGITUDE_FORMATTER
+    #    gl.yformatter = LATITUDE_FORMATTER
     
     # colors
     #cmap = mplcm.GMT_haxby
@@ -704,7 +704,7 @@ def plot_sat(sa_obj):
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
     # - add coastline
-    if projection != polarproj:
+    if 'polarproj' not in locals():
         ax.add_geometries(land.intersecting_geometries(
                     #[lonmin, lonmax, latmin, latmax]),
                     [lonmin-20, lonmax+10, latmin-10, 90]),
