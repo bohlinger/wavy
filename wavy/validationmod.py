@@ -668,8 +668,8 @@ def plot_sat(sa_obj,var):
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
         else: print("Error: Region not defined!")
         azimproj = ccrs.LambertAzimuthalEqualArea(
-                        central_longitude=0.0,
-                        central_latitude=60.0)
+                        central_longitude=(lonmin+lonmax)/2.,
+                        central_latitude=(latmin+latmax)/2)
         projection = azimproj
         land = cfeature.GSHHSFeature(scale='i', levels=[1],
                         facecolor=cfeature.COLORS['land'])
@@ -688,9 +688,9 @@ def plot_sat(sa_obj,var):
 
     # plot lats/lons
     #ax.plot(5, 60, transform = ccrs.PlateCarree())
-    ax.gridlines(draw_labels = True)
-    ax.gridlines(linewidth = 1.5,color = 'gray', alpha = 0.4, linestyle = '-')
-    gl = ax.gridlines(draw_labels=True)
+    gl = ax.gridlines(draw_labels=True,
+                linewidth = 1,color = 'gray', alpha = 0.4, 
+                linestyle = '-')
     gl.xlabels_top = gl.ylabels_right = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
