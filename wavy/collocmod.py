@@ -162,9 +162,9 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     nearest_all_model_lats_matches=[]
     idx_valid_lst=[]
     # create local variables before loop
-    sat_rlats=sa_obj.vars['latitude'][cidx]
-    sat_rlons=sa_obj.vars['longitude'][cidx]
-    sat_rHs=np.array(sa_obj.vars[shortcuts_dict[var]])[cidx]
+    sat_rlats = np.array(sa_obj.vars['latitude'])[cidx]
+    sat_rlons = np.array(sa_obj.vars['longitude'])[cidx]
+    sat_rHs = np.array(sa_obj.vars[shortcuts_dict[var]])[cidx]
     # flatten numpy arrays
     model_rHs = model_Hs.squeeze().flatten()
     model_rlons = model_lons.flatten()
