@@ -31,7 +31,7 @@ def matchtime(sdate,edate,dtime,timewin=None):
     cidx=[]
     idx=0
     if (edate is None or sdate==edate):
-        for element in time:
+        for element in dtime:
             # choose closest match within window of win[minutes]
             if (element >= sdate-timedelta(minutes=timewin)
             and element <= sdate+timedelta(minutes=timewin)):
@@ -39,7 +39,7 @@ def matchtime(sdate,edate,dtime,timewin=None):
                 cidx.append(idx)
             idx=idx+1
     if (edate is not None and edate!=sdate):
-        for element in time:
+        for element in dtime:
             if (element >= sdate-timedelta(minutes=timewin)
             and element < edate+timedelta(minutes=timewin)):
                 ctime.append(element)
