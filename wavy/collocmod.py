@@ -8,6 +8,7 @@ import sys
 import numpy as np
 from utils import progress
 import yaml
+import netCDF4
 # own imports
 from utils import haversine
 
