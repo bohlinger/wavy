@@ -638,6 +638,7 @@ def plot_sat(sa_obj,var):
     import cartopy.feature as cfeature
     import cmocean
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    import matplotlib.ticker as mticker
 
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
@@ -688,11 +689,11 @@ def plot_sat(sa_obj,var):
 
     # plot lats/lons
     #ax.plot(5, 60, transform = ccrs.PlateCarree())
-    gl = ax.gridlines(draw_labels=True,
+    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = 'gray', alpha = 0.4, 
                 linestyle = '-')
-    gl.xlabels_top = gl.xlabels_left = gl.xlabels_right = False
-    gl.ylabels_top = gl.ylabels_bottom = gl.ylabels_right = False
+    gl.xlabels_bottom = True
+    gl.ylabels_left = True
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     
