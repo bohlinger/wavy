@@ -239,6 +239,8 @@ class satellite_class():
             for element in vardict:
                 if element != 'time_unit':
                     cvardict[element] = list(np.array(vardict[element])[cidx])
+                else:
+                    cvardict[element] = vardict[element]
             del vardict
             print('In chosen time period: ', len(cvardict['time']), 
                 ' footprints found')
@@ -250,6 +252,8 @@ class satellite_class():
             for element in cvardict:
                 if element != 'time_unit':
                     rvardict[element] = list(np.array(cvardict[element])[ridx])
+                else:
+                    rvardict[element] = cvardict[element]
             del cvardict
             print('For chosen region and time: ', len(rvardict['time']), 
                 ' footprints found')
