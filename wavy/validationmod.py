@@ -732,7 +732,7 @@ def plot_sat(sa_obj,var):
             region_dict['poly'][sa_obj.region]['lons'],
             region_dict['poly'][sa_obj.region]['lats'],
             'k:',
-            transform=ccrs.PlateCarree())
+            transform=ccrs.PlateCarree()
             )
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
