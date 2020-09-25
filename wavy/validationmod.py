@@ -735,7 +735,7 @@ def plot_sat(sa_obj,var):
     cbar.ax.set_ylabel('Hs [m]')
     plt.title(sa_obj.sat
             + ' with '
-            + len(sa_obj.vars[shortcuts_dict[var]])
+            + str(len(sa_obj.vars[shortcuts_dict[var]]))
             + ' footprints: '
             + '\n'
             + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )
