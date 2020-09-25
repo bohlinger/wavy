@@ -655,7 +655,6 @@ def plot_sat(sa_obj,var):
         projection = polarproj
         land = cfeature.GSHHSFeature(scale='i', levels=[1],
                         facecolor=cfeature.COLORS['land'])
-        #pass
     else:
         if sa_obj.region in region_dict['rect']:
             latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
@@ -682,7 +681,7 @@ def plot_sat(sa_obj,var):
                         figsize=(9, 9))
     # plot domain extent
     if 'polarproj' not in locals():
-        ax.set_extent([lonmin+6, 45,latmin+6, 84],crs = ccrs.PlateCarree())
+        ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
     else:
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
 
@@ -727,7 +726,14 @@ def plot_sat(sa_obj,var):
                 marker='o',verts=levels, edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
-    
+    # - plot polygon
+    if sa_obj.region in region_dict['poly']:
+        ax.plot(
+            region_dict['poly'][sa_obj.region]['lons'],
+            region_dict['poly'][sa_obj.region]['lats'],
+            'k:',
+            transform=ccrs.PlateCarree())
+            )
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
                         fraction=0.03, pad=0.03)
