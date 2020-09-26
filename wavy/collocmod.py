@@ -59,14 +59,6 @@ def collocation_loop(
         sat_rlat=sat_rlats[j]
         sat_rlon=sat_rlons[j]
         # constraints to reduce workload
-        if (len(model_rlats.shape)==1):
-            model_rlons_M, model_rlats_M = np.meshgrid(
-                                            model_rlons, model_rlats
-                                            )
-            model_rlats_flat = model_rlats_M.flatten()
-            model_rlons_flat = model_rlons_M.flatten()
-            model_rlons = model_rlons_flat
-            model_rlats = model_rlats_flat
         model_rlats_new=model_rlats[
                     (model_rlats>=sat_rlat-lat_win)
                     &
