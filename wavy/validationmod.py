@@ -21,7 +21,7 @@ with open("../config/variable_shortcuts.yaml",'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
 
 # define global functions
-def rmsd(a,b):
+def calc_rmsd(a,b):
     '''
     root mean square deviation
     if nans exist the prinziple of marginalization is applied
@@ -37,16 +37,15 @@ def rmsd(a,b):
     rmsd = np.sqrt(msd)
     return msd, rmsd
 
-def scatter_index(obs,model):
-    msd,rmsd = rmsd(obs,model)
+def calc_scatter_index(obs,model):
+    msd,rmsd = calc_rmsd(obs,model)
     stddiff = np.nanstd(obs-model)
     SIrmse = rmsd/np.nanmean(obs)*100.
     SIstd = stddiff/np.nanmean(obs)*100.
     return SIrmse,SIstd
 
-def corr(a,b):
+def calc_corrcoef(a,b):
     '''
-    root mean square deviation
     if nans exist the prinziple of marginalization is applied
     '''
     a,b = np.array(a),np.array(b)
@@ -57,7 +56,7 @@ def corr(a,b):
     corr = np.corrcoef(a1,b1)[1,0]
     return corr
 
-def bias(a,b):
+def calc_bias(a,b):
     """
     if nans exist the prinziple of marginalization is applied
     """
@@ -70,7 +69,7 @@ def bias(a,b):
     bias = np.sum(a1-b1)/N
     return bias
 
-def mad(a,b):
+def calc_mad(a,b):
     """
     mean absolute deviation
     if nans exist the prinziple of marginalization is applied
@@ -127,12 +126,12 @@ def validate(results_dict,boot=None):
     if (boot is None or boot ==  False):
         mop = np.nanmean(model_Hs_matches)
         mor = np.nanmean(sat_Hs_matches)
-        msd, rmsd = rmsd(model_Hs_matches,sat_Hs_matches)
+        msd, rmsd = calc_rmsd(model_Hs_matches,sat_Hs_matches)
         nov = len(sat_Hs_matches)
-        mad = mad(model_Hs_matches,sat_Hs_matches)
-        corr = corr(model_Hs_matches,sat_Hs_matches)
-        bias = bias(model_Hs_matches,sat_Hs_matches)
-        SI = scatter_index(model_Hs_matches,sat_Hs_matches)
+        mad = calc_mad(model_Hs_matches,sat_Hs_matches)
+        corr = calc_corrcoef(model_Hs_matches,sat_Hs_matches)
+        bias = calc_bias(model_Hs_matches,sat_Hs_matches)
+        SI = calc_scatter_index(model_Hs_matches,sat_Hs_matches)
         arcmfc_validation_dict = {
             'mop':mop,
             'mor':mor,
