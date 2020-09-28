@@ -284,10 +284,10 @@ def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     for dt in time_dt:
         time.append((dt-basetime).total_seconds())
     time = np.array(time)
-    mHs = results_dict['model_Hs_matches']
+    mHs = results_dict['model_matches']
     mlons = results_dict['model_lons_matches']
     mlats = results_dict['model_lats_matches']
-    sHs = results_dict['sat_Hs_matches']
+    sHs = results_dict['sat_matches']
     slons = results_dict['sat_lons_matches']
     slats = results_dict['sat_lats_matches']
     dists = results_dict['dist_matches']

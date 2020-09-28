@@ -123,17 +123,17 @@ def validate(results_dict,boot=None):
     scatter index --> SI
     """
     date_matches = np.array(results_dict['date_matches'])
-    model_Hs_matches = np.array(results_dict['model_Hs_matches'])
-    sat_Hs_matches = np.array(results_dict['sat_Hs_matches'])
+    model_matches = np.array(results_dict['model_matches'])
+    sat_matches = np.array(results_dict['sat_matches'])
     if (boot is None or boot ==  False):
-        mop = np.nanmean(model_Hs_matches)
-        mor = np.nanmean(sat_Hs_matches)
-        msd, rmsd = calc_rmsd(model_Hs_matches,sat_Hs_matches)
-        nov = len(sat_Hs_matches)
-        mad = calc_mad(model_Hs_matches,sat_Hs_matches)
-        corr = calc_corrcoef(model_Hs_matches,sat_Hs_matches)
-        bias = calc_bias(model_Hs_matches,sat_Hs_matches)
-        SI = calc_scatter_index(model_Hs_matches,sat_Hs_matches)
+        mop = np.nanmean(model_matches)
+        mor = np.nanmean(sat_matches)
+        msd, rmsd = calc_rmsd(model_matches,sat_matches)
+        nov = len(sat_matches)
+        mad = calc_mad(model_matches,sat_matches)
+        corr = calc_corrcoef(model_matches,sat_matches)
+        bias = calc_bias(model_matches,sat_matches)
+        SI = calc_scatter_index(model_matches,sat_matches)
         arcmfc_validation_dict = {
             'mop':mop,
             'mor':mor,
@@ -156,8 +156,8 @@ def validate(results_dict,boot=None):
         CORR=np.zeros(reps)*np.nan
         for i in range(reps):
             results_dict = {'date_matches':date_matches[newidx[boot_idx[:,i]]],
-                        'model_Hs_matches':newmodel[boot_idx[:,i]],
-                        'sat_Hs_matches':newsat[boot_idx[:,i]]}
+                        'model_matches':newmodel[boot_idx[:,i]],
+                        'sat_matches':newsat[boot_idx[:,i]]}
             try:
                 RMSD[i]=validate(results_dict)['rmsd']
                 MSD[i]=validate(results_dict)['mad']
@@ -270,13 +270,11 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
                     transform = ccrs.PlateCarree(), 
                     cmap = cmocean.cm.amp, norm = norm)
-    #im = ax.contourf(Mlons, Mlats, mhs, transform = ccrs.PlateCarree())
 
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linestyle = ':', linewidths = 0.3)
-    #ax.clabel(imc, fmt='%.1f', colors='w', fontsize=fs)
-    ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
+    ax.clabel(imc, fmt='%.1f', colors='w', fontsize=fs)
 
     if projection != polarproj:
         # - lons
@@ -309,11 +307,6 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
                     transform = ccrs.PlateCarree(), fontsize=fs)
 
     # - add coastline
-    #ax.add_geometries(land.intersecting_geometries(
-    #                [lonmin, lonmax, latmin, latmax]),
-    #                ccrs.PlateCarree(),
-    #                facecolor=cfeature.COLORS['land'],
-    #                edgecolor='black',linewidth=1)
     if projection != polarproj:
         ax.add_geometries(land.intersecting_geometries(
                     [lonmin, lonmax, latmin, latmax]),
@@ -333,7 +326,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
     # - add satellite
     if len(clats)>0:
         sc = ax.scatter(clons,clats,s=10,
-                c=results_dict['sat_Hs_matches'],
+                c=results_dict['sat_matches'],
                 marker='o',verts=levels, edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm, 
                 transform=ccrs.PlateCarree())
@@ -792,14 +785,14 @@ def ts_fig(results_dict):
     import matplotlib.pyplot as plt
     import matplotlib.cm as mplcm
     import matplotlib as mpl
-    mHs = results_dict["model_Hs_matches"]
-    sHs = results_dict["sat_Hs_matches"]
+    modelval = results_dict["model_matches"]
+    satval = results_dict["sat_matches"]
     time = results_dict["date_matches"]
     fig = plt.figure(figsize=(16,9))
     ax = fig.add_subplot(111)
     fs = 12
-    plt.plot(time,sHs,'ko',label='sHs')
-    plt.plot(time,mHs,'ro',label='mHs')
+    plt.plot(time,satval,'ko',label='sHs')
+    plt.plot(time,modelval,'ro',label='mHs')
     plt.legend(fontsize=fs,loc='best')
     plt.ylabel('Hs [m]',fontsize=fs)
     #plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=4))

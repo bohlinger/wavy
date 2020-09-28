@@ -50,8 +50,8 @@ def matchtime(sdate,edate,dtime,timewin=None):
 
 def collocation_loop(
     j,sat_time_dt,model_time_dt_valid,distlim,model,
-    sat_rlats,sat_rlons,sat_rHs,
-    model_rlats,model_rlons,model_rHs,
+    sat_rlats,sat_rlons,sat_rval,
+    model_rlats,model_rlons,model_rval,
     moving_win):
     from utils import haversine
     lat_win = 0.1
@@ -104,12 +104,12 @@ def collocation_loop(
                         ))
         tmp_idx2 = distlst.index(np.min(distlst))
         idx_valid = tmp_idx[tmp_idx2]
-        if (distlst[tmp_idx2]<=distlim and model_rHs[idx_valid]>=0):
+        if (distlst[tmp_idx2]<=distlim and model_rval[idx_valid]>=0):
             nearest_all_dist_matches=distlst[tmp_idx2]
             nearest_all_date_matches=sat_time_dt[j]
-            nearest_all_model_Hs_matches=\
-                           model_rHs[idx_valid]
-            nearest_all_sat_Hs_matches=sat_rHs[j]
+            nearest_all_model_matches=\
+                           model_rval[idx_valid]
+            nearest_all_sat_matches=sat_rval[j]
             nearest_all_sat_lons_matches=sat_rlon
             nearest_all_sat_lats_matches=sat_rlat
             nearest_all_model_lons_matches=\
@@ -117,14 +117,14 @@ def collocation_loop(
             nearest_all_model_lats_matches=\
                             model_rlats[idx_valid]
             return nearest_all_date_matches,nearest_all_dist_matches,\
-                nearest_all_model_Hs_matches,nearest_all_sat_Hs_matches,\
+                nearest_all_model_matches,nearest_all_sat_matches,\
                 nearest_all_sat_lons_matches, nearest_all_sat_lats_matches,\
                 nearest_all_model_lons_matches, \
                 nearest_all_model_lats_matches, idx_valid
         else:
            return
 
-def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
+def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
     sa_obj,var,datein,distlim=6,idx_valid=None):
     """
     get stellite time steps close to model time step. 
@@ -146,8 +146,8 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     # constraint on distance and time frame
     nearest_all_date_matches=[]
     nearest_all_dist_matches=[]
-    nearest_all_model_Hs_matches=[]
-    nearest_all_sat_Hs_matches=[]
+    nearest_all_model_matches=[]
+    nearest_all_sat_matches=[]
     nearest_all_sat_lons_matches=[]
     nearest_all_sat_lats_matches=[]
     nearest_all_model_lons_matches=[]
@@ -156,9 +156,9 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
     # create local variables before loop
     sat_rlats = np.array(sa_obj.vars['latitude'])[cidx]
     sat_rlons = np.array(sa_obj.vars['longitude'])[cidx]
-    sat_rHs = np.array(sa_obj.vars[shortcuts_dict[var]])[cidx]
+    sat_rval = np.array(sa_obj.vars[shortcuts_dict[var]])[cidx]
     # flatten numpy arrays
-    model_rHs = model_Hs.squeeze().flatten()
+    model_rval = model_val.squeeze().flatten()
     model_rlons = model_lons.flatten()
     model_rlats = model_lats.flatten()
     # moving window compensating for increasing latitudes
@@ -183,13 +183,13 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
             try:
                 resultlst = collocation_loop(\
                     j,sat_time_dt,model_time_dt_valid,distlim,model,\
-                    sat_rlats,sat_rlons,sat_rHs,\
-                    model_rlats,model_rlons,model_rHs,\
+                    sat_rlats,sat_rlons,sat_rval,\
+                    model_rlats,model_rlons,model_rval,\
                     moving_win)
                 nearest_all_date_matches.append(resultlst[0])
                 nearest_all_dist_matches.append(resultlst[1])
-                nearest_all_model_Hs_matches.append(resultlst[2])
-                nearest_all_sat_Hs_matches.append(resultlst[3])
+                nearest_all_model_matches.append(resultlst[2])
+                nearest_all_sat_matches.append(resultlst[3])
                 nearest_all_sat_lons_matches.append(resultlst[4])
                 nearest_all_sat_lats_matches.append(resultlst[5])
                 nearest_all_model_lons_matches.append(resultlst[6])
@@ -203,8 +203,8 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
                 'valid_date':np.array(model_time_dt_valid),
                 'date_matches':np.array(nearest_all_date_matches),
                 'dist_matches':np.array(nearest_all_dist_matches),
-                'model_Hs_matches':np.array(nearest_all_model_Hs_matches),
-                'sat_Hs_matches':np.array(nearest_all_sat_Hs_matches),
+                'model_matches':np.array(nearest_all_model_matches),
+                'sat_matches':np.array(nearest_all_sat_matches),
                 'sat_lons_matches':np.array(nearest_all_sat_lons_matches),
                 'sat_lats_matches':np.array(nearest_all_sat_lats_matches),
                 'model_lons_matches':np.array(nearest_all_model_lons_matches),
@@ -212,5 +212,5 @@ def collocate(model,model_Hs,model_lats,model_lons,model_time_dt,\
                 'idx_valid':np.array(idx_valid_lst)
                 }
     else:
-        results_dict = {'model_Hs_matches':model_rHs[idx_valid]}
+        results_dict = {'model_matches':model_rval[idx_valid]}
     return results_dict

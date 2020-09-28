@@ -13,6 +13,10 @@ from modelmod import get_model
 from validationmod import comp_fig, validate, disp_validation
 from collocmod import collocate
 from ncmod import dumptonc_sat
+import yaml
+
+with open("../config/variable_shortcuts.yaml",'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -139,7 +143,7 @@ else:
 # plot
 if bool(args.show)==True:
     if args.mod is None:
-        plot_sat(sa_obj,'Hs')
+        plot_sat(sa_obj,shortcuts_dict['Hs'])
     elif (args.mod is not None and args.col is True):
         # get model collocated values
         #get_model
@@ -149,7 +153,8 @@ if bool(args.show)==True:
             leadtime=args.lt,init_date=init_date)
         #collocation
         results_dict = collocate(args.mod,model_Hs,model_lats,
-            model_lons,model_time_dt,sa_obj,'Hs',edate,distlim=dist)
+            model_lons,model_time_dt,sa_obj,shortcuts_dict['Hs'],
+            edate,distlim=dist)
         valid_dict=validate(results_dict)
         disp_validation(valid_dict)
         comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
@@ -163,9 +168,9 @@ if bool(args.show)==True:
         results_dict = {'valid_date':[edate],
                         'date_matches':[edate-timedelta(minutes=timewin),
                                         edate+timedelta(minutes=timewin)],
-                        'model_lons_matches':sa_obj.loc[1],
-                        'model_lats_matches':sa_obj.loc[0],
-                        'sat_Hs_matches':sa_obj.Hs}
+                        'model_lons_matches':sa_obj.vars['longitude'],
+                        'model_lats_matches':sa_obj.vars['latitude'],
+                        'sat_matches':sa_obj.vars[shortcuts_dict['Hs']]}
         comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
 
 # dump to .ncfile
