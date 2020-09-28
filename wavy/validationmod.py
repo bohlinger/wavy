@@ -19,6 +19,8 @@ with open("../config/region_specs.yaml", 'r') as stream:
     region_dict=yaml.safe_load(stream)
 with open("../config/variable_shortcuts.yaml",'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
+with open("../config/model_specs.yaml", 'r') as stream:
+    model_dict=yaml.safe_load(stream)
 
 # define global functions
 def calc_rmsd(a,b):
@@ -661,7 +663,8 @@ def plot_sat(sa_obj,var):
             latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
             lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
             lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
-        elif sa_obj.region in region_dict['poly']:
+        elif (sa_obj.region in region_dict['poly'] 
+        or sa_obj.region in model_dict):
             latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
             latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
             lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
