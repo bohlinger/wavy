@@ -16,8 +16,6 @@ from utils import haversine
 # read yaml config files:
 with open("../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("../config/variable_shortcuts.yaml",'r') as stream:
-    shortcuts_dict=yaml.safe_load(stream)
 
 def matchtime(sdate,edate,dtime,timewin=None):
     '''
@@ -129,7 +127,7 @@ def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
     """
     get stellite time steps close to model time step. 
     """
-    if len(sa_obj.vars[shortcuts_dict[var]]) < 1:
+    if len(sa_obj.vars[var]) < 1:
         raise Exception ( '\n###\n'
                         + 'Collocation not possible, '
                         + 'no values for collocation!'
@@ -156,7 +154,7 @@ def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
     # create local variables before loop
     sat_rlats = np.array(sa_obj.vars['latitude'])[cidx]
     sat_rlons = np.array(sa_obj.vars['longitude'])[cidx]
-    sat_rval = np.array(sa_obj.vars[shortcuts_dict[var]])[cidx]
+    sat_rval = np.array(sa_obj.vars[var])[cidx]
     # flatten numpy arrays
     model_rval = model_val.squeeze().flatten()
     model_rlons = model_lons.flatten()
