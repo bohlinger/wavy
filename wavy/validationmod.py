@@ -643,8 +643,12 @@ def plot_sat(sa_obj,var):
 
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
+    if sa_obj.region in model_dict:
+        from modelmod import get_model
+        grid_date = model_dict[sa_obj.region]['grid_date']
+        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                get_model(model=sa_obj.region, fc_date=grid_date)
     # check region and determine projection
-    
     if (sa_obj.region == 'global' 
         or (sa_obj.region in region_dict['rect'] 
             and 'boundinglat' in region_dict['rect'][sa_obj.region].keys())
@@ -670,10 +674,6 @@ def plot_sat(sa_obj,var):
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])
         elif sa_obj.region in model_dict:
             # model bounds
-            from modelmod import get_model
-            grid_date = model_dict[sa_obj.region]['grid_date']
-            model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                    get_model(model=sa_obj.region, fc_date=grid_date)
             latmin = np.min(model_lats)
             latmax = np.max(model_lats)
             lonmin = np.min(model_lons)
@@ -698,8 +698,7 @@ def plot_sat(sa_obj,var):
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
 
     # plot model grid if region is a model domain
-    if (sa_obj.region in model_dict and 
-    sa_obj.region not in region_dict['rect']):
+    if sa_obj.region in model_dict:
         ax.plot(model_lons[0,:], model_lats[0,:], '-', 
                 transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
