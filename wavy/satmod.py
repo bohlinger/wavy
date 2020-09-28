@@ -474,7 +474,6 @@ class satellite_class():
             from modelmod import get_model
             import pyproj
             try:
-                grid_date = grid_date
                 print('Use date for retrieving grid: ', grid_date)
                 model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(model=region, fc_date=grid_date)

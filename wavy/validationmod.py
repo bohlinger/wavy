@@ -673,6 +673,11 @@ def plot_sat(sa_obj,var):
             latmax = np.max(sa_obj.vars['latitude'])
             lonmin = np.min(sa_obj.vars['longitude'])
             lonmax = np.max(sa_obj.vars['longitude'])
+            # model bounds
+            from modelmod import get_model
+            grid_date = model_dict[sa_obj.region]['grid_date']
+            model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                    get_model(model=sa_obj.region, fc_date=grid_date)
         else: print("Error: Region not defined!")
         azimproj = ccrs.LambertAzimuthalEqualArea(
                         central_longitude=(lonmin+lonmax)/2.,
@@ -692,9 +697,21 @@ def plot_sat(sa_obj,var):
     else:
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
 
-
+    # plot model grid if region is a model domain
+    if sa_obj.region in model_dict:
+        ax.plot(model_lons[0,:], model_lats[0,:], '-', 
+                transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+        ax.plot(model_lons[-1,:], model_lats[-1,:], '-', 
+                transform= ccrs.PlateCarree(),
+                color = 'gray', linewidth =2)
+        ax.plot(model_lons[:,0], model_lats[:,0], '-', 
+                transform= ccrs.PlateCarree(),
+                color = 'gray', linewidth =2)
+        ax.plot(model_lons[:,-1], model_lats[:,-1], '-', 
+                transform= ccrs.PlateCarree(),
+                color = 'gray', linewidth =2)
     # plot lats/lons
-    #ax.plot(5, 60, transform = ccrs.PlateCarree())
     gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = 'gray', alpha = 0.4, 
                 linestyle = '-')
