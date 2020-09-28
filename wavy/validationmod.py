@@ -698,7 +698,8 @@ def plot_sat(sa_obj,var):
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
 
     # plot model grid if region is a model domain
-    if sa_obj.region in model_dict:
+    if (sa_obj.region in model_dict and 
+    sa_obj.region not in region_dict['rect']):
         ax.plot(model_lons[0,:], model_lats[0,:], '-', 
                 transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
