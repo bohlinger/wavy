@@ -663,12 +663,16 @@ def plot_sat(sa_obj,var):
             latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
             lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
             lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
-        elif (sa_obj.region in region_dict['poly'] 
-        or sa_obj.region in model_dict):
-            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
-            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
-            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
-            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+        elif sa_obj.region in region_dict['poly']: 
+            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])
+            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])
+            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])
+            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])
+        elif sa_obj.region in model_dict:
+            latmin = np.min(sa_obj.vars['latitude'])
+            latmax = np.max(sa_obj.vars['latitude'])
+            lonmin = np.min(sa_obj.vars['longitude'])
+            lonmax = np.max(sa_obj.vars['longitude'])
         else: print("Error: Region not defined!")
         azimproj = ccrs.LambertAzimuthalEqualArea(
                         central_longitude=(lonmin+lonmax)/2.,
