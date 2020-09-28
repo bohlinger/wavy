@@ -13,16 +13,6 @@ rect:
         boundinglat: 50.
     Arctic:
         boundinglat: 66.
-    mwam4:
-        llcrnrlon: -32.
-        llcrnrlat: 42.
-        urcrnrlon: 94.
-        urcrnrlat: 84.
-    ww3:
-        llcrnrlon: -32.
-        llcrnrlat: 42.
-        urcrnrlon: 94.
-        urcrnrlat: 84.
     Moskenes:
         llcrnrlon: 11.5
         llcrnrlat: 67.
