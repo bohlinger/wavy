@@ -23,6 +23,16 @@ rect:
         llcrnrlat: 62.
         urcrnrlon: 8.14
         urcrnrlat: 63.15
+    mwam4:
+        llcrnrlon: -32.
+        llcrnrlat: 42.
+        urcrnrlon: 94.
+        urcrnrlat: 84.
+    ww3:
+        llcrnrlon: -32.
+        llcrnrlat: 42.
+        urcrnrlon: 94.
+        urcrnrlat: 84.
 
 # polynomial
 poly:
