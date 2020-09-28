@@ -231,10 +231,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
                         figsize=(9, 9))
     # plot domain extent
     if projection != polarproj:
-        #ax.set_extent([lonmin, 52,latmin, 81],crs = ccrs.PlateCarree())
-        ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
         #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-        #ax.set_extent([-26, 32,latmin, latmax],crs = ccrs.PlateCarree())
+        ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
         ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
         ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
@@ -334,7 +332,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
                         fraction=0.046, pad=0.04)
-    cbar.ax.set_ylabel('Hs [m]',size=fs)
+    cbar.ax.set_ylabel(var + ' [m]',size=fs)
     cbar.ax.tick_params(labelsize=fs)
 
     # - title
@@ -739,7 +737,7 @@ def plot_sat(sa_obj,var):
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
     # - add satellite
-    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[shortcuts_dict[var]],
+    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[var],
                 marker='o',verts=levels, edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
@@ -755,10 +753,10 @@ def plot_sat(sa_obj,var):
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
                         fraction=0.03, pad=0.03)
                         #fraction=0.046, pad=0.04)
-    cbar.ax.set_ylabel('Hs [m]')
+    cbar.ax.set_ylabel(var + ' [m]')
     plt.title(sa_obj.sat
             + ' with '
-            + str(len(sa_obj.vars[shortcuts_dict[var]]))
+            + str(len(sa_obj.vars[var]))
             + ' footprints: '
             + '\n'
             + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )
