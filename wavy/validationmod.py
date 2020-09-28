@@ -669,15 +669,15 @@ def plot_sat(sa_obj,var):
             lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])
         elif sa_obj.region in model_dict:
-            latmin = np.min(sa_obj.vars['latitude'])
-            latmax = np.max(sa_obj.vars['latitude'])
-            lonmin = np.min(sa_obj.vars['longitude'])
-            lonmax = np.max(sa_obj.vars['longitude'])
             # model bounds
             from modelmod import get_model
             grid_date = model_dict[sa_obj.region]['grid_date']
             model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     get_model(model=sa_obj.region, fc_date=grid_date)
+            latmin = np.min(model_lats)
+            latmax = np.max(model_lats)
+            lonmin = np.min(model_lons)
+            lonmax = np.max(model_lons)
         else: print("Error: Region not defined!")
         azimproj = ccrs.LambertAzimuthalEqualArea(
                         central_longitude=(lonmin+lonmax)/2.,
