@@ -157,7 +157,8 @@ if bool(args.show)==True:
             edate,distlim=dist)
         valid_dict=validate(results_dict)
         disp_validation(valid_dict)
-        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
+        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,
+                results_dict,shortcuts_dict['Hs'])
     else:
         # get model collocated values
         #get_model
@@ -171,7 +172,8 @@ if bool(args.show)==True:
                         'model_lons_matches':sa_obj.vars['longitude'],
                         'model_lats_matches':sa_obj.vars['latitude'],
                         'sat_matches':sa_obj.vars[shortcuts_dict['Hs']]}
-        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,results_dict)
+        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,
+                results_dict,shortcuts_dict['Hs'])
 
 # dump to .ncfile
 if args.dump is not None:

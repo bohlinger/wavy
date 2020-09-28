@@ -168,7 +168,7 @@ def validate(results_dict,boot=None):
         arcmfc_validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return arcmfc_validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,mode=None,path=None):
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     # imports
     import matplotlib.cm as mplcm
