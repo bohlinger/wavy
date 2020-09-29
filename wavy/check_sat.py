@@ -94,7 +94,7 @@ if args.sat == 'all':
                     region=args.reg,varlst=varlst)
         lats.append(sa_obj.vars['latitude'])
         lons.append(sa_obj.vars['longitude'])
-        var.append(sa_obj.vars[shortcuts_dict[varlst[0]])
+        var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
         time.append(sa_obj.vars['time'])
     lats = flatten(lats)
     lons = flatten(lons)
