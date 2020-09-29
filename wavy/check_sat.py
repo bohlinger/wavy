@@ -90,12 +90,15 @@ if args.sat == 'all':
     var = []
     time = []
     for sat in satlist:
-        sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+        try:
+            sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
                     region=args.reg,varlst=varlst)
-        lats.append(sa_obj.vars['latitude'])
-        lons.append(sa_obj.vars['longitude'])
-        var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
-        time.append(sa_obj.vars['time'])
+            lats.append(sa_obj.vars['latitude'])
+            lons.append(sa_obj.vars['longitude'])
+            var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
+            time.append(sa_obj.vars['time'])
+        except:
+            pass
     lats = flatten(lats)
     lons = flatten(lons)
     var = flatten(var)
@@ -114,15 +117,19 @@ elif args.sat == 'multi':
     var = []
     time = []
     for sat in satlist:
-        sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+        try:
+            sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
                     region=args.reg,varlst=varlst)
-        lats.append(sa_obj.vars['latitude'])
-        lons.append(sa_obj.vars['longitude'])
-        var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
-        time.append(sa_obj.vars['time'])
+            lats.append(sa_obj.vars['latitude'])
+            lons.append(sa_obj.vars['longitude'])
+            var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
+            time.append(sa_obj.vars['time'])
+        except:
+            pass
     lats = flatten(lats)
     lons = flatten(lons)
     var = flatten(var)
+    time = flatten(time)
     sa_obj.vars['time'] = time
     sa_obj.vars['latitude'] = np.array(lats)
     sa_obj.vars['longitude'] = np.array(lons)
