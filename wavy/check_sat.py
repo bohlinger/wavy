@@ -89,51 +89,44 @@ if args.sat == 'all':
     lons = []
     var = []
     time = []
-    dtime = []
     for sat in satlist:
         sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
                     region=args.reg,varlst=varlst)
-        lats.append(sa_obj.vardict['latitude'])
-        lons.append(sa_obj.vardict['longitude'])
-        Hs.append(sa_obj.Hs)
-        time.append(sa_obj.time)
-        dtime.append(sa_obj.dtime)
-    loc0 = flatten(loc0)
-    loc1 = flatten(loc1)
-    Hs = flatten(Hs)
+        lats.append(sa_obj.vars['latitude'])
+        lons.append(sa_obj.vars['longitude'])
+        var.append(sa_obj.vars[shortcuts_dict[varlst[0]])
+        time.append(sa_obj.vars['time'])
+    lats = flatten(lats)
+    lons = flatten(lons)
+    var = flatten(var)
     time = flatten(time)
-    dtime = flatten(dtime)
-    loc = [loc0,loc1]
-    sa_obj.loc = np.array(loc)
-    sa_obj.Hs = np.array(Hs)
-    sa_obj.time = time
-    sa_obj.dtime = dtime
+    sa_obj.vars['latitude'] = np.array(lats)
+    sa_obj.vars['longitude'] = np.array(lons)
+    sa_obj.vars[shortcuts_dict[varlst[0]]] = np.array(var)
+    sa_obj.vars['time'] = time
     sa_obj.region = args.reg
     sa_obj.sat = str(satlist)
 elif args.sat == 'multi':
     #satlist = [int(item) for item in args.list.split(',')]
     satlist = args.l.split(',')
-    loc0 = []
-    loc1 = []
-    Hs = []
+    lats = []
+    lons = []
+    var = []
     time = []
-    dtime = []
     for sat in satlist:
-        sa_obj = sa(sdate,sat=sat,edate=edate,
-                    timewin=timewin,region=args.reg)
-        loc0.append(sa_obj.loc[0])
-        loc1.append(sa_obj.loc[1])
-        Hs.append(sa_obj.Hs)
-        time.append(sa_obj.time)
-        dtime.append(sa_obj.dtime)
-    loc0 = flatten(loc0)
-    loc1 = flatten(loc1)
-    Hs = flatten(Hs)
-    sa_obj.time = time
-    sa_obj.dtime = dtime
-    loc = [loc0,loc1]
-    sa_obj.loc = loc
-    sa_obj.Hs = Hs
+        sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+                    region=args.reg,varlst=varlst)
+        lats.append(sa_obj.vars['latitude'])
+        lons.append(sa_obj.vars['longitude'])
+        var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
+        time.append(sa_obj.vars['time'])
+    lats = flatten(lats)
+    lons = flatten(lons)
+    var = flatten(var)
+    sa_obj.vars['time'] = time
+    sa_obj.vars['latitude'] = np.array(lats)
+    sa_obj.vars['longitude'] = np.array(lons)
+    sa_obj.vars[shortcuts_dict[varlst[0]]] = np.array(var)
     sa_obj.region = args.reg
     sa_obj.sat = str(satlist)
 else:
@@ -143,7 +136,7 @@ else:
 # plot
 if bool(args.show)==True:
     if args.mod is None:
-        plot_sat(sa_obj,shortcuts_dict['Hs'])
+        plot_sat(sa_obj,shortcuts_dict[varlst[0]])
     elif (args.mod is not None and args.col is True):
         # get model collocated values
         #get_model
@@ -153,12 +146,12 @@ if bool(args.show)==True:
             leadtime=args.lt,init_date=init_date)
         #collocation
         results_dict = collocate(args.mod,model_Hs,model_lats,
-            model_lons,model_time_dt,sa_obj,shortcuts_dict['Hs'],
+            model_lons,model_time_dt,sa_obj,shortcuts_dict[varlst[0]],
             edate,distlim=dist)
         valid_dict=validate(results_dict)
         disp_validation(valid_dict)
         comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,
-                results_dict,shortcuts_dict['Hs'])
+                results_dict,shortcuts_dict[varlst[0]])
     else:
         # get model collocated values
         #get_model
@@ -171,9 +164,9 @@ if bool(args.show)==True:
                                         edate+timedelta(minutes=timewin)],
                         'model_lons_matches':sa_obj.vars['longitude'],
                         'model_lats_matches':sa_obj.vars['latitude'],
-                        'sat_matches':sa_obj.vars[shortcuts_dict['Hs']]}
+                        'sat_matches':sa_obj.vars[shortcuts_dict[varlst[0]]]}
         comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,
-                results_dict,shortcuts_dict['Hs'])
+                results_dict,shortcuts_dict[varlst[0]])
 
 # dump to .ncfile
 if args.dump is not None:

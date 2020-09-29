@@ -272,7 +272,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linestyle = ':', linewidths = 0.3)
-    ax.clabel(imc, fmt='%.1f', colors='w', fontsize=fs)
+    ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
     if projection != polarproj:
         # - lons
