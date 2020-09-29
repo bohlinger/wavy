@@ -172,15 +172,19 @@ def grab_PID():
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
+    on the earth (specified in decimal degrees).
+    Input must be np.array
     """
+    # create array
+    Mdeg=np.array([lon1,lat1,lon2,lat2])
     # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    Mrad=np.deg2rad(Mdeg)
     # haversine formula 
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a))
+    dlon = Mrad[2,:] - Mrad[0,:]
+    dlat = Mrad[3,:] - Mrad[1,:]
+    a = (np.sin(dlat/2)**2 +
+        np.cos(Mrad[1,:]) * np.cos(Mrad[3,:]) * np.sin(dlon/2)**2)
+    c = 2 * np.arcsin(np.sqrt(a))
     km = 6367 * c
     return km
 
