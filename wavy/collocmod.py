@@ -51,6 +51,7 @@ def collocation_loop(
     sat_rlats,sat_rlons,sat_rval,
     model_rlats,model_rlons,model_rval,
     moving_win):
+    from utils import haversine
     lat_win = 0.1
     if model in model_dict:
         sat_rlat=sat_rlats[j]
@@ -85,11 +86,20 @@ def collocation_loop(
                     (model_rlons<=sat_rlon+moving_win)
                     ]
         # compute distances
-        distlst = haversine(
-                        np.array([sat_rlon]*len(model_rlons_new)),
-                        np.array([sat_rlat]*len(model_rlons_new)),
+        if sys.version_info <= (3, 0):
+            distlst=map(
+                        haversine,
+                        [sat_rlon]*len(model_rlons_new),
+                        [sat_rlat]*len(model_rlons_new),
                         model_rlons_new,model_rlats_new
                         )
+        else:
+            distlst=list(map(
+                        haversine,
+                        [sat_rlon]*len(model_rlons_new),
+                        [sat_rlat]*len(model_rlons_new),
+                        model_rlons_new,model_rlats_new
+                        ))
         tmp_idx2 = distlst.index(np.min(distlst))
         idx_valid = tmp_idx[tmp_idx2]
         if (distlst[tmp_idx2]<=distlim and model_rval[idx_valid]>=0):
@@ -115,8 +125,7 @@ def collocation_loop(
 def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
     sa_obj,var,datein,distlim=6,idx_valid=None):
     """
-    get stellite time steps close to model time step and in the 
-    given proximety of the model grid.
+    get stellite time steps close to model time step. 
     """
     if len(sa_obj.vars[var]) < 1:
         raise Exception ( '\n###\n'
