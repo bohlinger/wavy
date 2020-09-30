@@ -219,11 +219,19 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
         else: print("Error: Region not defined!")
 
-        land = cfeature.GSHHSFeature(scale='i', levels=[1], 
+        #land = cfeature.GSHHSFeature(scale='i', levels=[1], 
+        #                facecolor=cfeature.COLORS['land'])
+        #projection = ccrs.LambertAzimuthalEqualArea(
+        #                central_longitude=0.0, 
+        #                central_latitude=60.0)
+        projection = ccrs.Mercator(
+                        central_longitude=(lonmin+lonmax)/2.,
+                        min_latitude=latmin, max_latitude=latmax,
+                        globe=None, latitude_true_scale=(latmin+latmax)/2.,
+                        false_easting=0.0, false_northing=0.0,
+                        scale_factor=None)
+        land = cfeature.GSHHSFeature(scale='i', levels=[1],
                         facecolor=cfeature.COLORS['land'])
-        projection = ccrs.LambertAzimuthalEqualArea(
-                        central_longitude=0.0, 
-                        central_latitude=60.0)
 
     # make figure
     fig, ax = plt.subplots(nrows=1, ncols=1, 
@@ -670,13 +678,20 @@ def plot_sat(sa_obj,var):
             lonmin = np.min(model_lons)
             lonmax = np.max(model_lons)
         else: print("Error: Region not defined!")
-        azimproj = ccrs.LambertAzimuthalEqualArea(
+        #azimproj = ccrs.LambertAzimuthalEqualArea(
+        #                central_longitude=(lonmin+lonmax)/2.,
+        #                central_latitude=(latmin+latmax)/2)
+        #projection = azimproj
+        #land = cfeature.GSHHSFeature(scale='i', levels=[1],
+        #                facecolor=cfeature.COLORS['land'])
+        projection = ccrs.Mercator(
                         central_longitude=(lonmin+lonmax)/2.,
-                        central_latitude=(latmin+latmax)/2)
-        projection = azimproj
+                        min_latitude=latmin, max_latitude=latmax,
+                        globe=None, latitude_true_scale=(latmin+latmax)/2.,
+                        false_easting=0.0, false_northing=0.0,
+                        scale_factor=None)
         land = cfeature.GSHHSFeature(scale='i', levels=[1],
                         facecolor=cfeature.COLORS['land'])
-        #projection = ccrs.Mercator()
 
     # make figure
     fig, ax = plt.subplots(nrows=1, ncols=1,
