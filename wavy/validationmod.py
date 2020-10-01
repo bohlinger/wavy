@@ -316,7 +316,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
-                        fraction=0.046, pad=0.04)
+                        fraction=0.04, pad=0.04)
     cbar.ax.set_ylabel(var + ' [m]',size=fs)
     cbar.ax.tick_params(labelsize=fs)
 
@@ -331,7 +331,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
             ,fontsize=fs)
     # - save figure
     if path != None:
-        plt.savefig(path + model + '_test_' 
+        plt.savefig(path + '/' + model + '_test_' 
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
                 + 'T' 
                 + results_dict['valid_date'][0].strftime("%H") 
@@ -607,7 +607,7 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
     #plt.show()
 
 
-def plot_sat(sa_obj,var):
+def plot_sat(sa_obj,var,path=None):
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -756,17 +756,20 @@ def plot_sat(sa_obj,var):
             + ' to '
             + sa_obj.edate.strftime("%Y-%m-%d %H:%M:%S UTC" )
             ,fontsize=fs)
-    #plt.savefig(sa_obj.sat + '_coverage_from_'
-    #        + sa_obj.sdate.strftime("%Y%m%d")
-    #        + 'T'
-    #        + sa_obj.sdate.strftime("%H")
-    #        + 'Z'
-    #        + '_to_'
-    #        + sa_obj.edate.strftime("%Y%m%d")
-    #        + 'T' 
-    #        + sa_obj.edate.strftime("%H")
-    #        + 'Z'
-    #        + '.png', format = 'png', dpi=300)
+
+    # - save figure
+    if path != None:
+        plt.savefig(path + '/' + sa_obj.sat + '_coverage_from_'
+            + sa_obj.sdate.strftime("%Y%m%d")
+            + 'T'
+            + sa_obj.sdate.strftime("%H")
+            + 'Z'
+            + '_to_'
+            + sa_obj.edate.strftime("%Y%m%d")
+            + 'T' 
+            + sa_obj.edate.strftime("%H")
+            + 'Z'
+            + '.png', format = 'png', dpi=300)
     plt.show()
 
 def ts_fig(results_dict):
