@@ -13,5 +13,13 @@ dependencies:
   - cmocean
   - joblib
   - scikit-learn>=0.19
+  - pandas
+# packages for dashboard
   - plotly
   - dash
+  - dash-core-components
+  - dash-html-components
+  - dash-auth # for user authentication
+  - dash-table # data table components
+  - Flask 
+  - gunicorn # needed for deployment 
