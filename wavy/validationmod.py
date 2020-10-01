@@ -236,7 +236,6 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     # plot domain extent
     if projection != polarproj:
         ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-        #ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
         ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
         ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
@@ -252,15 +251,6 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
         lonmax = 180
         ax.set_extent([lonmin, lonmax, latmin, latmax],crs = ccrs.PlateCarree())
 
-    # plot lats/lons
-    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
-                linewidth = 1,color = 'gray', alpha = 0.4,
-                linestyle = '-')
-    gl.xlabels_bottom = True
-    gl.ylabels_left = True
-    gl.xformatter = LONGITUDE_FORMATTER
-    gl.yformatter = LATITUDE_FORMATTER
-
     # colors
     if mode == 'dir':
         cmap = cmocean.cm.phase
@@ -275,7 +265,19 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
-    fs = 12
+    fs = 11
+
+    # plot lats/lons
+    gridcolor = 'gray'
+    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+                linewidth = 1,color = gridcolor, alpha = 0.4,
+                linestyle = '-')
+    gl.xlabels_bottom = True
+    gl.ylabels_left = True
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': fs, 'color': gridcolor}
+    gl.ylabel_style = {'size': fs, 'color': gridcolor}
 
     # - model contours
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
@@ -326,7 +328,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
             + ' coverage \n from ' 
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
-            ,fontsize=12)
+            ,fontsize=fs)
+    # - save figure
     if path != None:
         plt.savefig(path + model + '_test_' 
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
@@ -686,27 +689,33 @@ def plot_sat(sa_obj,var):
         ax.plot(model_lons[:,-1], model_lats[:,-1], '-', 
                 transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-    # plot lats/lons
-    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
-                linewidth = 1,color = 'gray', alpha = 0.4, 
-                linestyle = '-')
-    gl.xlabels_bottom = True
-    gl.ylabels_left = True
-    gl.xformatter = LONGITUDE_FORMATTER
-    gl.yformatter = LATITUDE_FORMATTER
-    
+
     # colors
-    #cmap = mplcm.GMT_haxby
     cmap = cmocean.cm.amp
     levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,
                     3,3.5,4,4.5,6,7,8,9,10,12,15,20]
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
+    # draw figure features
+    mpl.rcParams['contour.negative_linestyle'] = 'solid'
+    fs = 11
+
+    # plot lats/lons
+    gridcolor = 'gray'
+    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+                linewidth = 1,color = gridcolor, alpha = 0.4,
+                linestyle = '-')
+    gl.xlabels_bottom = True
+    gl.ylabels_left = True
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
+    gl.xlabel_style = {'size': fs, 'color': gridcolor}
+    gl.ylabel_style = {'size': fs, 'color': gridcolor}
+
     # - add coastline
     if 'polarproj' not in locals():
         ax.add_geometries(land.intersecting_geometries(
-                    #[lonmin, lonmax, latmin, latmax]),
-                    [lonmin-20, lonmax+10, latmin-10, 90]),
+                    [lonmin, lonmax, latmin, latmax]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
                     edgecolor='black',linewidth=1)
@@ -730,14 +739,14 @@ def plot_sat(sa_obj,var):
         ax.plot(
             region_dict['poly'][sa_obj.region]['lons'],
             region_dict['poly'][sa_obj.region]['lats'],
-            'k:',
-            transform=ccrs.PlateCarree()
+            'k:',transform=ccrs.PlateCarree()
             )
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.03, pad=0.03)
-                        #fraction=0.046, pad=0.04)
+                        fraction=0.04, pad=0.04)
     cbar.ax.set_ylabel(var + ' [m]')
+    cbar.ax.tick_params(labelsize=fs)
+
     plt.title(sa_obj.sat
             + ' with '
             + str(len(sa_obj.vars[var]))
@@ -746,7 +755,7 @@ def plot_sat(sa_obj,var):
             + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )
             + ' to '
             + sa_obj.edate.strftime("%Y-%m-%d %H:%M:%S UTC" )
-            ,fontsize=12)
+            ,fontsize=fs)
     #plt.savefig(sa_obj.sat + '_coverage_from_'
     #        + sa_obj.sdate.strftime("%Y%m%d")
     #        + 'T'
