@@ -179,6 +179,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     import cartopy.feature as cfeature
     import cmocean
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    import matplotlib.ticker as mticker
 
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
@@ -219,11 +220,6 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
         else: print("Error: Region not defined!")
 
-        #land = cfeature.GSHHSFeature(scale='i', levels=[1], 
-        #                facecolor=cfeature.COLORS['land'])
-        #projection = ccrs.LambertAzimuthalEqualArea(
-        #                central_longitude=0.0, 
-        #                central_latitude=60.0)
         projection = ccrs.Mercator(
                         central_longitude=(lonmin+lonmax)/2.,
                         min_latitude=latmin, max_latitude=latmax,
@@ -239,8 +235,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
                         figsize=(9, 9))
     # plot domain extent
     if projection != polarproj:
-        #ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-        ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
+        ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
+        #ax.set_extent([-26, 32.,45, 85.],crs = ccrs.PlateCarree())
         ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
         ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
@@ -255,6 +251,15 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
         lonmin = -180
         lonmax = 180
         ax.set_extent([lonmin, lonmax, latmin, latmax],crs = ccrs.PlateCarree())
+
+    # plot lats/lons
+    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+                linewidth = 1,color = 'gray', alpha = 0.4,
+                linestyle = '-')
+    gl.xlabels_bottom = True
+    gl.ylabels_left = True
+    gl.xformatter = LONGITUDE_FORMATTER
+    gl.yformatter = LATITUDE_FORMATTER
 
     # colors
     if mode == 'dir':
@@ -281,36 +286,6 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
                     transform = ccrs.PlateCarree(), 
                     colors='w', linestyle = ':', linewidths = 0.3)
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
-
-    if projection != polarproj:
-        # - lons
-        cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
-                    colors='k', linewidths = .6, alpha = 0.6, 
-                    levels=range(-40,70,10))
-        cs = ax.contour(Mlons, Mlats, Mlons, transform = ccrs.PlateCarree(),
-                    colors='k', linewidths = 2, alpha = 0.6, 
-                    levels=range(0,1))
-        # - lats
-        cs = ax.contour(Mlons, Mlats, Mlats, transform = ccrs.PlateCarree(),
-                    colors='k', linewidths = .6, alpha = 0.6, 
-                    levels=range(45,85,5))
-
-        # - text for lats
-        lat = np.arange (70, 90, 10)
-        lon = np.repeat (40, len(lat))
-
-        # - regular lat, lon projection
-        for lon, lat in zip (lon, lat):
-            plt.text (lon, lat, LATITUDE_FORMATTER.format_data(lat), 
-                    transform = ccrs.PlateCarree(), fontsize=fs)
-        # - text for lons
-        lon = np.arange (30,50,10)
-        lat = np.repeat (75,len(lon))
-
-        # - regular lat, lon projection
-        for lon, lat in zip (lon, lat):
-            plt.text (lon, lat, LONGITUDE_FORMATTER.format_data(lon), 
-                    transform = ccrs.PlateCarree(), fontsize=fs)
 
     # - add coastline
     if projection != polarproj:
@@ -678,12 +653,6 @@ def plot_sat(sa_obj,var):
             lonmin = np.min(model_lons)
             lonmax = np.max(model_lons)
         else: print("Error: Region not defined!")
-        #azimproj = ccrs.LambertAzimuthalEqualArea(
-        #                central_longitude=(lonmin+lonmax)/2.,
-        #                central_latitude=(latmin+latmax)/2)
-        #projection = azimproj
-        #land = cfeature.GSHHSFeature(scale='i', levels=[1],
-        #                facecolor=cfeature.COLORS['land'])
         projection = ccrs.Mercator(
                         central_longitude=(lonmin+lonmax)/2.,
                         min_latitude=latmin, max_latitude=latmax,
