@@ -13,3 +13,5 @@ dependencies:
   - cmocean
   - joblib
   - scikit-learn>=0.19
+  - plotly
+  - dash
