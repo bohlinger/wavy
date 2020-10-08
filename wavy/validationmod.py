@@ -13,13 +13,17 @@
 """
 import yaml
 import numpy as np
+import os
 
 # read yaml config files:
-with open("../config/region_specs.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/region_specs.yaml'))
+with open(moddir,'r') as stream:
     region_dict=yaml.safe_load(stream)
-with open("../config/variable_shortcuts.yaml",'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_shortcuts.yaml'))
+with open(moddir,'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
-with open("../config/model_specs.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
+with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 # define global functions
