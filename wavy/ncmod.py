@@ -34,18 +34,25 @@ from copy import deepcopy
 import time
 
 # read yaml config files:
-with open("../config/model_specs.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
+with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("../config/buoy_specs.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/buoy_specs.yaml'))
+with open(moddir,'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("../config/station_specs.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/station_specs.yaml'))
+with open(moddir,'r') as stream:
     station_dict=yaml.safe_load(stream)
-with open("../config/variable_info.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
+with open(moddir,'r') as stream:
     var_dict=yaml.safe_load(stream)
-with open("../config/d22_var_dicts.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/d22_var_dicts.yaml'))
+with open(moddir,'r') as stream:
     d22_dict=yaml.safe_load(stream)
-with open("../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
 
 # --- global functions ------------------------------------------------#
 """
@@ -53,42 +60,6 @@ definition of some global functions
 """
 # currently None
 # ---------------------------------------------------------------------#
-
-
-class ncmod():
-    '''
-    class to write to netcdf files from satellite, station, or model data
-    satellite: level 3 data i.e. Hs[time], lat[time], lon[time] 
-    station: e.g. Hs[time], lat, lon
-    model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
-    This class should communicate with the satellite, model, and 
-    station classes.
-    '''
-    satpath_lustre = pathfinder['satpath_lustre']
-    satpath_copernicus = pathfinder['satpath_copernicus']
-    satpath_ftp_014_001 = pathfinder['satpath_ftp_014_001']
-    
-    def __init__(self,sdate,edate=None,model=None,timewin=None,region=None):
-        print ('# ----- ')
-        print (" ### Initializing ncmod instance ###")
-        print ('# ----- ')
-        if region is None:
-            model='ARCMFC'
-        if timewin is None:
-            timewin = int(30)
-        if edate is None:
-            edate=sdate
-            if timewin is None:
-                timewin = int(30)
-            print ("Requested time: ", str(sdate))
-            print (" with timewin: ", str(timewin))
-        else:
-            print ("Requested time frame: " +
-                str(sdate) + " - " + str(edate))
-        self.sdate = sdate
-        self.edate = edate
-        self.model = model
-        self.basetime = model_dict[model]['basetime']
 
 def get_nc_time(pathtofile):
     """

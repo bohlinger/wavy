@@ -17,8 +17,9 @@ from satmod import get_remote_files
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
-with open("../config/satellite_specs.yaml", 'r') as stream:
-    satellite_dict = yaml.safe_load(stream)
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/satellite_specs.yaml'))
+with open(moddir,'r') as stream:
+    satellite_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(

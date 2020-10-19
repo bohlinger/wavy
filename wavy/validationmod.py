@@ -1,15 +1,5 @@
 """
     Module to organize the validation procedure
-    could include:
-        1. Function to create two types of validation files
-            One netcdf files comprising the observational and collocated 
-            model time series together and one netcdf file including the 
-            computed validation statistics for each considered model time 
-            step
-            May use functions from netcdf module ncmod
-            Any new time step (e.g. continuing for a month) is appended
-        2. Function to produce chosen validation figure
-        3. 
 """
 import yaml
 import numpy as np

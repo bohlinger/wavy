@@ -51,17 +51,25 @@ from copy import deepcopy
 
 # credentials
 from credentials import get_credentials
-# --- global functions ------------------------------------------------#
 
 # read yaml config files:
-with open("../config/region_specs.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/region_specs.yaml'))
+with open(moddir,'r') as stream:
     region_dict=yaml.safe_load(stream)
-with open("../config/model_specs.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
+with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("../config/satellite_specs.yaml",'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/satellite_specs.yaml'))
+with open(moddir,'r') as stream:
     satellite_dict=yaml.safe_load(stream)
-with open("../config/variable_shortcuts.yaml",'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_shortcuts.yaml'))
+with open(moddir,'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
+
+# --- global functions ------------------------------------------------#
 
 def tmploop_get_remote_files(i,matching,user,pw,
                             server,path,
@@ -187,7 +195,7 @@ def check_date(filelst,date):
 
 class satellite_class():
     '''
-    class to handle netcdf files containing satellite data i.e. 
+    Class to handle netcdf files containing satellite data i.e. 
     Hs[time], lat[time], lon[time] 
     This class offers the following added functionality:
      - get swaths of desired days and read

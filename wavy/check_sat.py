@@ -15,7 +15,8 @@ from collocmod import collocate
 from ncmod import dumptonc_sat
 import yaml
 
-with open("../config/variable_shortcuts.yaml",'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_shortcuts.yaml'))
+with open(moddir,'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
 
 # parser

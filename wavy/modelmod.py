@@ -54,10 +54,9 @@ definition of some global functions
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-with open("../config/model_specs.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
+with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
-with open("../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
 
 class model_class():
     '''

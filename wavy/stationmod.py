@@ -7,12 +7,6 @@ field related data from stations. I try to mostly follow the PEP
 convention for python code style. Constructive comments on style and 
 effecient programming are most welcome!
 '''
-__version__ = "0.5.0"
-__author__="Patrik Bohlinger, Norwegian Meteorological Institute"
-__maintainer__ = "Patrik Bohlinger"
-__email__ = "patrikb@met.no"
-__status__ = "operational ARCMFC branch"
-
 # --- import libraries ------------------------------------------------#
 '''
 List of libraries needed for this class. Sorted in categories to serve
@@ -21,16 +15,11 @@ effortless orientation. May be combined at some point.
 # read_altim
 import os
 import sys
-#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
-#import python
-#python.module('load', 'compiler/intelPE2018')
-#python.module('load', 'hdf5/1.10.5-intel2018')
-#python.module('load', 'netcdf/4.7.0-intel2018')
 import netCDF4
 
 # ignore irrelevant warnings from matplotlib for stdout
-import warnings
-warnings.filterwarnings("ignore")
+#import warnings
+#warnings.filterwarnings("ignore")
 
 # all class
 import numpy as np
@@ -63,15 +52,20 @@ from datetime import datetime
 import scipy as sp
 
 # read yaml config files:
-with open("../config/buoy_specs.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/buoy_specs.yaml'))
+with open(moddir,'r') as stream:
     buoy_dict=yaml.safe_load(stream)
-with open("../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-with open("../config/stationlist.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/stationlist.yaml'))
+with open(moddir,'r') as stream:
     locations=yaml.safe_load(stream)
-with open("../config/station_specs.yaml", 'r') as stream:
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/station_specs.yaml'))
+with open(moddir,'r') as stream:
     station_dict=yaml.safe_load(stream)
 
+with open("../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
 
 station_d22_starc = pathfinder['station_d22_starc']
 station_d22_opdate = pathfinder['station_d22_opdate']
@@ -95,10 +89,7 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 class station_class():
     '''
-    class to handle station files on  Hs[time], lat[time], lon[time] 
-    This class offers the following added functionality:
-     - get the closest time stamp(s)
-     - get Hs value for this time
+    Class to handle platform based time series.
     '''
     basedate = datetime(1970,1,1)
     def __init__(self,statname,sdate,edate,
@@ -175,9 +166,8 @@ class station_class():
                     time.append((tmpdate-self.basedate).total_seconds())
                     var.append(np.real(tmp))
                     timedt.append(tmpdate)
-                except:
-#                    print('no entry --> pass')
-                    pass
+                except Exception as e:
+                    print(e)
                 tmpdate = tmpdate + timedelta(minutes=deltat)
         return var, time, timedt
 
