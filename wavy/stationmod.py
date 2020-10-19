@@ -28,6 +28,7 @@ import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
 import yaml
+import os
 
 # get_altim
 import urllib
