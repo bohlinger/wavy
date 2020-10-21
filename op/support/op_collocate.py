@@ -47,6 +47,8 @@ args = parser.parse_args()
 
 now = datetime.now()
 
+varlst = ['Hs']
+
 if args.mod is None:
     args.mod = 'mwam4'
 
@@ -99,7 +101,8 @@ for sat in args.sat:
         if 'results_dict' in globals():
             del results_dict
         fc_date = deepcopy(tmpdate)
-        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg)
+        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
+                    varlst=varlst)
         if len(sa_obj.dtime)==0:
             print("If possible proceed with another time step...")
         else:
@@ -125,8 +128,8 @@ for sat in args.sat:
                 # get_model
                 try:
                     model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-                        get_model(simmode="fc",model=args.mod,fc_date=fc_date,
-                        init_date=init_date,leadtime=element)
+                        get_model(model=args.mod,fc_date=fc_date,
+                        leadtime=element,init_date=init_date)
                     # collocation
                     if ('results_dict' in globals() 
                         and len(results_dict['idx_valid'])>0):
@@ -134,8 +137,8 @@ for sat in args.sat:
                                             model_lons,model_time_dt,
                                             sa_obj,fc_date,distlim=args.dist,
                                             idx_valid=results_dict['idx_valid'])
-                        results_dict['model_Hs_matches']=\
-                                            update_dict['model_Hs_matches']
+                        results_dict['model_matches']=\
+                                            update_dict['model_matches']
                     else:
                         results_dict = collocate(args.mod,model_Hs,model_lats,
                                             model_lons,model_time_dt,
