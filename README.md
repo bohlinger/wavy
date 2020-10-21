@@ -23,10 +23,6 @@ https://help.github.com/en/articles/cloning-a-repository
 ```
 conda env create -f environment.yml
 ```
-Additiona functionality can be investigated using:
-```
-conda create --help 
-```
 4. Configuration files are organized under wavy/config and might need adjustments according to your plans. Examples are the locations of your wave model output files or observation data (e.g. satellite altimetry data)
 
 ### HELP

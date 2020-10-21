@@ -207,7 +207,7 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,timewin=None,download=False,region=None,
-        corenum=1,varlst=None
+        corenum=1,varlst=None,vardef=None
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -236,7 +236,7 @@ class satellite_class():
                                 sdate,edate,timewin,region
                                 )
         if len(pathlst) > 0:
-            vardict = self.read_local_files(pathlst,varlst)
+            vardict = self.read_local_files(pathlst,varlst,provider,vardef)
             print('Total: ', len(vardict['time']), ' footprints found')
             # find values for give time constraint
             cidx,dtimelst = self.matchtime(
@@ -307,7 +307,7 @@ class satellite_class():
             print(e)
         return pathlst,filelst
 
-    def read_local_files(self,pathlst,varlst=['Hs']):
+    def read_local_files(self,pathlst,varlst=['Hs'],provider,vardef):
         '''
         read and concatenate all data to one timeseries for each variable
         '''
@@ -330,6 +330,10 @@ class satellite_class():
                 ncvars = [v for v in f.variables]
                 for ncvar in ncvars:
                     stdname = f.variables[ncvar].getncattr('standard_name')
+                    if (stdname in satellite_dict['altimeter'][provider]\
+                    ['misc']['vardef']):
+                        ncvar = satellite_dict['altimeter'][provider]\
+                                ['misc']['vardef'][stdname]
                     if stdname in varlst_cf:
                         if stdname in vardict:
                             if stdname in stdname_lst:

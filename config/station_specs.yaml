@@ -6,6 +6,8 @@ path:
             d22: ["/lustre/storeB/immutable/archive/projects/\
             metproduction/DNMI_OFFSHORE/", # +rig+"/d22/"+YY+"/"+dy+".d22
             "/opdata/offshore/"] # +rig+'/d22/'+dy+'.d22'
+            nc: "/lustre/storeB/project/fou/om/waveverification/obs/\
+                stations/%Y/%m/"
         remote:
 platform:
     ekofiskL:
