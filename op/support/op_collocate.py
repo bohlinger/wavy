@@ -18,7 +18,7 @@ with open("/home/patrikb/wavy/config/model_specs.yaml", 'r') as stream:
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Collocate wave model output and s3a data and dump to monthly nc-file.
+Collocate wave model output and satellite data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
@@ -99,7 +99,7 @@ for sat in args.sat:
         if 'results_dict' in globals():
             del results_dict
         fc_date = deepcopy(tmpdate)
-        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
+        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg)
         if len(sa_obj.dtime)==0:
             print("If possible proceed with another time step...")
         else:
