@@ -65,7 +65,8 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config
 with open(moddir,'r') as stream:
     station_dict=yaml.safe_load(stream)
 
-with open("../config/pathfinder.yaml", 'r') as stream:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/pathfinder.yaml'))
+with open(moddir,'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
 station_d22_starc = pathfinder['station_d22_starc']
