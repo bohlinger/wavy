@@ -343,9 +343,11 @@ class satellite_class():
                             if stdname in stdname_lst:
                                 print("Caution: variable " +
                                         "standard_name is not unique !!!")
-                                if stdname in satellite_dict['altimeter']\
-                                [provider]['misc']['vardef']:
-                                    print( "The following predefined "
+                                if satellite_dict['altimeter'][provider]\
+                                ['misc']['vardef'] is not None:
+                                    if stdname in satellite_dict['altimeter']\
+                                    [provider]['misc']['vardef']:
+                                        print( "The following predefined "
                                         + "preferred nc-variable name "
                                         + "is chosen:\n", ncvar, "for "
                                         + "stdname: ", stdname )
