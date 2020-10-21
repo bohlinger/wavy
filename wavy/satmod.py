@@ -331,10 +331,10 @@ class satellite_class():
                 for ncvar in ncvars:
                     stdname = f.variables[ncvar].getncattr('standard_name')
                     if (stdname in satellite_dict['altimeter'][provider]\
-                    ['misc']['vardef'] 
-                    and ncvar != satellite_dict['altimeter'][provider]\
-                    ['misc']['vardef'][stdname]):
-                        ncvar = satellite_dict['altimeter'][provider]\
+                    ['misc']['vardef']):
+                        if: ncvar != satellite_dict['altimeter'][provider]\
+                        ['misc']['vardef'][stdname]:
+                            ncvar = satellite_dict['altimeter'][provider]\
                                 ['misc']['vardef'][stdname]
                     if stdname in varlst_cf:
                         if stdname in vardict:
