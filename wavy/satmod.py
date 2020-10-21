@@ -236,7 +236,7 @@ class satellite_class():
                                 sdate,edate,timewin,region
                                 )
         if len(pathlst) > 0:
-            vardict = self.read_local_files(pathlst,varlst)
+            vardict = self.read_local_files(pathlst,provider,varlst)
             print('Total: ', len(vardict['time']), ' footprints found')
             # find values for give time constraint
             cidx,dtimelst = self.matchtime(
