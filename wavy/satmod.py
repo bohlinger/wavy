@@ -207,7 +207,7 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,timewin=None,download=False,region=None,
-        corenum=1,varlst=None,vardef=None
+        corenum=1,varlst=None
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -236,7 +236,7 @@ class satellite_class():
                                 sdate,edate,timewin,region
                                 )
         if len(pathlst) > 0:
-            vardict = self.read_local_files(pathlst,varlst,provider,vardef)
+            vardict = self.read_local_files(pathlst,varlst)
             print('Total: ', len(vardict['time']), ' footprints found')
             # find values for give time constraint
             cidx,dtimelst = self.matchtime(
@@ -307,7 +307,7 @@ class satellite_class():
             print(e)
         return pathlst,filelst
 
-    def read_local_files(self,pathlst,varlst=['Hs'],provider,vardef):
+    def read_local_files(self,pathlst,provider,varlst=['Hs']):
         '''
         read and concatenate all data to one timeseries for each variable
         '''
