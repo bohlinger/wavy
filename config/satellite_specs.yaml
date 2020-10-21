@@ -16,6 +16,7 @@ altimeter:
         remote:
             path:
             server:
+        misc:
     cmems:
         level: 3
         satellite: s3a, s3b, c2, al, j3, h2b, cfo
@@ -26,3 +27,6 @@ altimeter:
                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
                    dataset-wav-alti-l3-swh-rt-global-"
             server: "nrt.cmems-du.eu"
+        misc:
+            vardef: # stdname: abbreviation
+                sea_surface_wave_significant_height: VAVH
