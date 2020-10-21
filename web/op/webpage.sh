@@ -46,6 +46,6 @@ echo '<p><small>'                      >> ${htmlFile}
 echo 'Generated on '`date`             >> ${htmlFile}
 echo '</small></p>'                    >> ${htmlFile}
 
-cat /home/patri/home/patrikb/wavy/wavy/web/op/tail.html                >> ${htmlFile}
+cat /home/patrikb/home/patrikb/wavy/wavy/web/op/tail.html                >> ${htmlFile}
 
 exit

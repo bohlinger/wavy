@@ -3,19 +3,16 @@ import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
 from datetime import datetime, timedelta
-from satmod import satellite_altimeter as sa
-from stationmod import station_class as sc
-from stationmod import matchtime
+from satmod import satellite_class as sa
 from modelmod import get_model
 from collocmod import collocate
-from validationmod import validate
 from copy import deepcopy
 from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
-from ncmod import get_nc_time, dumptonc_ts, check_vals_in_nc
+from ncmod import dumptonc_ts
 import yaml
-with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
+with open("/home/patrikb/wavy/config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 # parser
@@ -43,6 +40,8 @@ parser.add_argument("-twin", metavar='time window', type=int,
     help="time window for collocation")
 parser.add_argument("-dist", metavar='distance limit', type=int,
     help="distance limit for collocation")
+parser.add_argument("-path", metavar='outpath',
+    help="path to where collocation files are to be stored")
 
 args = parser.parse_args()
 
@@ -71,9 +70,13 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+if args.path is None:
+    args.path = '/lustre/storeB/project/fou/om/waveverification/'
+
 # retrieve PID
 grab_PID()
 
+# define leadtimes
 if args.mod == 'ARCMFC3':
     leadtimes = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
 else:
@@ -86,7 +89,7 @@ if args.dist is None:
     args.dist = 6
 
 for sat in args.sat:
-    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    outpath = (args.path + '/'
            + args.mod + '/satellites/altimetry'
            + '/' + sat + '/'
            + 'CollocationFiles/')
