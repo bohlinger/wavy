@@ -345,7 +345,7 @@ class satellite_class():
                                 [provider]['misc']['vardef']:
                                     print( "The following predefined "
                                         + "preferred nc-variable name "
-                                        + "is chosen: ", ncvar, "for "
+                                        + "is chosen:\n", ncvar, "for "
                                         + "stdname: ", stdname )
                                 else:
                                     print("only 1. appearance is used.")
