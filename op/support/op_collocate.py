@@ -127,21 +127,28 @@ for sat in args.sat:
                 init_date = fc_date - timedelta(hours=element)
                 # get_model
                 try:
-                    model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                    #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                    model_var_dict = \
                         get_model(model=args.mod,fc_date=fc_date,
                         leadtime=element,init_date=init_date)
                     # collocation
                     if ('results_dict' in globals() 
                         and len(results_dict['idx_valid'])>0):
-                        update_dict = collocate(args.mod,model_Hs,model_lats,
-                                            model_lons,model_time_dt,
+                        update_dict = collocate(args.mod,
+                                            model_var_dict['model_var'],
+                                            model_var_dict['model_lats'],
+                                            model_var_dict['model_lons'],
+                                            model_var_dict['model_time_dt'],
                                             sa_obj,fc_date,distlim=args.dist,
                                             idx_valid=results_dict['idx_valid'])
                         results_dict['model_matches']=\
                                             update_dict['model_matches']
                     else:
-                        results_dict = collocate(args.mod,model_Hs,model_lats,
-                                            model_lons,model_time_dt,
+                        results_dict = collocate(args.mod,
+                                            model_var_dict['model_var'],
+                                            model_var_dict['model_lats'],
+                                            model_var_dict['model_lons'],
+                                            model_var_dict['model_time_dt'],
                                             sa_obj,fc_date,distlim=args.dist)
                     dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                                 filename_ts,title_ts,basetime,results_dict)

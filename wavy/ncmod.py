@@ -243,7 +243,7 @@ def dumptonc_ts_cf(outpath,filename,title,basetime,dID,data_dict):
     nc.close()
     return
 
-def dumptonc_ts(outpath,filename,title,basetime,results_dict):
+def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
     """
     1. check if nc file already exists
     2. - if so use append mode
@@ -251,10 +251,7 @@ def dumptonc_ts(outpath,filename,title,basetime,results_dict):
     """
     time_dt = results_dict['date_matches']
     # create time vector in seconds since first date
-    time = []
-    for dt in time_dt:
-        time.append((dt-basetime).total_seconds())
-    time = np.array(time)
+    time = netCDF4.date2num(time_dt, model_time_unit)
     mHs = results_dict['model_matches']
     mlons = results_dict['model_lons_matches']
     mlats = results_dict['model_lats_matches']
@@ -340,7 +337,7 @@ def dumptonc_ts(outpath,filename,title,basetime,results_dict):
         # time
         nctime.standard_name = 'time matches'
         nctime.long_name = 'associated time steps between model and observation'
-        nctime.units = 'seconds since ' + str(basetime)
+        nctime.units = model_time_unit
         nctime[:] = time
         # mHs
         ncmHs.standard_name = 'model Hs'
