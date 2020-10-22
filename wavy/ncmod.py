@@ -166,7 +166,9 @@ def get_nc_ts(pathtofile,varlst):
             vardict[name]=var
         time_var = nc.variables['time']
         dtime = netCDF4.num2date(time_var[:],time_var.units)
-        vardict['dtime']=dtime
+        vardict['dtime'] = dtime
+        vardict['time'] = time_var[:]
+        vardict['time_unit'] = time_var.units
         nc.close()
     return vardict
 
@@ -454,14 +456,14 @@ def dumptonc_ts_station(outpath,filename,title,\
         ncvar[:] = sc_obj.varname
     nc.close()
 
-def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
+def dumptonc_stats(outpath,filename,title,time_dt,time_unit,valid_dict):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file
     """
     # create time vector in seconds since first date
-    time = np.array((time_dt-basetime).total_seconds())
+    time = netCDF4.date2num(time_dt,time_unit)
     mop = np.array(valid_dict['mop'])
     mor = np.array(valid_dict['mor'])
     rmsd = np.array(valid_dict['rmsd'])
@@ -561,7 +563,7 @@ def dumptonc_stats(outpath,filename,title,basetime,time_dt,valid_dict):
         # time
         nctime.standard_name = 'time matches'
         nctime.long_name = 'associated time steps between model and observation'
-        nctime.units = 'seconds since ' + str(basetime)
+        nctime.units = time_unit
         nctime[:] = time
         # mop
         ncmop.standard_name = 'mop'

@@ -2,12 +2,9 @@
 import sys
 sys.path.append(r'/home/patrikb/wavy/wavy')
 
+import netCDF4
 from datetime import datetime, timedelta
-from satmod import satellite_altimeter as sa
-from stationmod import station_class as sc
 from stationmod import matchtime
-from modelmod import get_model
-from collocmod import collocate
 from validationmod import validate
 from copy import deepcopy
 from ncmod import dumptonc_stats
@@ -22,7 +19,7 @@ with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Validate wave model output against s3a data and dump to monthly nc-file.
+Validate wave model output against satellite data and dump to monthly nc-file.
 If file exists, data is appended.
 
 Usage:
@@ -40,6 +37,8 @@ parser.add_argument("-sd", metavar='startdate',
     help="start date of time period")
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
+parser.add_argument("-path", metavar='outpath',
+    help="path to where collocation files are to be stored")
 
 args = parser.parse_args()
 
@@ -68,6 +67,9 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+if args.path is None:
+    args.path = '/lustre/storeB/project/fou/om/waveverification/'
+
 # retrieve PID
 grab_PID()
 
@@ -77,22 +79,20 @@ else:
     leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
 
 for sat in args.sat:
-    inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    inpath = (args.path
            + args.mod + '/satellites/altimetry/'
            + sat + '/' + 'CollocationFiles/')
-    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    outpath = (args.path
            + args.mod + '/satellites/altimetry/' 
            + sat + '/' + 'ValidationFiles/')
     tmpdate = deepcopy(sdate)
-
     while tmpdate <= edate:
         print(tmpdate)
         for element in leadtimes:
             # settings
             fc_date = deepcopy(tmpdate)
-            basetime = model_dict[args.mod]['basetime']
             # get model collocated values
-            from ncmod import get_arcmfc_ts
+            from ncmod import get_nc_ts
             filename_ts=fc_date.strftime(args.mod
                                         + "_vs_" + sat
                                         + "_for_" + args.reg
@@ -104,23 +104,27 @@ for sat in args.sat:
                                 + filename_ts):
                 print(filename_ts + ' not found!')
             else:
-                dtime, sHs, mHs = get_arcmfc_ts(inpath 
-                                            + fc_date.strftime('%Y/%m/') 
-                                            + filename_ts)
+                coll_dict = get_nc_ts(inpath 
+                                        + fc_date.strftime('%Y/%m/') 
+                                        + filename_ts,
+                                        ['mHs','sHs','dtime','time_unit']
+                                        )
                 del filename_ts
                 # find collocations for given model time step and validate
                 from stationmod import matchtime
-                time_lst = []
-                for dt in dtime:
-                    time_lst.append((dt-basetime).total_seconds())
-                ctime,idx = matchtime(tmpdate, tmpdate, time_lst, 
-                                            basetime, timewin=30)
+                time_lst = list(netCDF4.date2num(coll_dict['dtime'],
+                                                 coll_dict['time_unit']
+                                                )
+                                )
+                ctime, idx = matchtime(tmpdate,tmpdate,time_lst,
+                                       coll_dict['time_unit'],
+                                       timewin=30)
                 if len(idx)==0:
                     pass
                 else:
-                    results_dict = {'date_matches':dtime[idx],
-                            'model_Hs_matches':mHs[idx],
-                            'sat_Hs_matches':sHs[idx]}
+                    results_dict = {'date_matches':coll_dict['dtime'][idx],
+                            'model_matches':coll_dict['mHs'][idx],
+                            'sat_matches':coll_dict['sHs'][idx]}
                     valid_dict=validate(results_dict)
                     print(valid_dict)
                     # dump to nc-file: validation
@@ -133,5 +137,6 @@ for sat in args.sat:
                                             + "h_%Y%m.nc")
                     time_dt = fc_date
                     dumptonc_stats(outpath + fc_date.strftime('%Y/%m/'), \
-                        filename_stat,title_stat,basetime,time_dt,valid_dict)
+                        filename_stat,title_stat,time_dt,\
+                        coll_dict['time_unit'],valid_dict)
         tmpdate = tmpdate + timedelta(hours=6)

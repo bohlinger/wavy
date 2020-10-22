@@ -306,7 +306,7 @@ def extract_d22(searchlines):
     del dat
     return sensor_lst, dates
 
-def matchtime(sdate,edate,time,basetime=None,timewin=None):
+def matchtime(sdate,edate,time,time_unit,timewin=None):
     '''
     fct to obtain the index of the time step closest to the 
     requested time including the respective time stamp(s). 
@@ -321,10 +321,10 @@ def matchtime(sdate,edate,time,basetime=None,timewin=None):
     idx=0
     if (edate is None or sdate==edate):
         for element in time:
-            if basetime is None:
+            if time_unit is None:
                 tmp = element
             else:
-                tmp = basetime + timedelta(seconds=element)
+                tmp = netCDF4.date2num(element,time_unit)
             timelst.append(tmp)
             # choose closest match within window of win[minutes]
             if (tmp >= sdate-timedelta(minutes=timewin)
