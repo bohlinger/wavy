@@ -127,6 +127,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
                                             units = model_time.units) )
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
+    model_time_unit = model_time.units
     if len(model_var_link.shape)>2: # for mulitple time steps
         model_var_valid = \
             model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
@@ -134,7 +135,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
         model_var_valid = model_var_link[:,:].squeeze()
     f.close()
     return model_var_valid, model_lats, model_lons, model_time_valid,\
-         model_time_dt_valid
+         model_time_dt_valid, model_time_unit
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     if (init_date is None and leadtime is None):
@@ -163,7 +164,8 @@ def get_model(model=None,sdate=None,edate=None,
     model_lats, \
     model_lons, \
     model_time, \
-    model_time_dt = get_model_fc_mode(filestr=filename,model=model,
+    model_time_dt 
+    model_time_unit = get_model_fc_mode(filestr=filename,model=model,
                     fc_date=fc_date,leadtime=leadtime,varname=varname)
     model_var_dict = {
                     'model_var':model_var,
