@@ -110,7 +110,6 @@ for sat in args.sat:
             for element in leadtimes:
                 print("leadtime: ", element, "h")
                 print("fc_date: ", fc_date)
-                basetime=model_dict[args.mod]['basetime']
                 filename_ts=fc_date.strftime(args.mod
                                             + "_vs_" + sat
                                             + "_for_" + args.reg
@@ -151,7 +150,9 @@ for sat in args.sat:
                                             model_var_dict['model_time_dt'],
                                             sa_obj,fc_date,distlim=args.dist)
                     dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
-                                filename_ts,title_ts,basetime,results_dict)
+                                filename_ts,title_ts,\
+                                model_var_dict['model_time_unit'],\
+                                results_dict)
                 except IOError as e:
                     print(e)
                 #    print('Model output not available')
