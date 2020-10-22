@@ -500,7 +500,8 @@ class satellite_class():
             import pyproj
             try:
                 print('Use date for retrieving grid: ', grid_date)
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                model_var_dict = \
                     get_model(model=region, fc_date=grid_date)
             except (KeyError,IOError,ValueError) as e:
                 print(e)
@@ -513,10 +514,17 @@ class satellite_class():
                                         datetime.now().month,
                                         datetime.now().day
                                         )
-                model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+                model_var_dict = \
                     get_model(model=region, fc_date=grid_date)
-            if (len(model_lats.shape)==1):
-                model_lons, model_lats = np.meshgrid(model_lons, model_lats)
+            if (len(model_var_dict['model_lats'].shape)==1):
+                model_lons, model_lats = np.meshgrid(
+                                        model_var_dict['model_lons'], 
+                                        model_var_dict['model_lats']
+                                        )
+            else:
+                model_lons = model_var_dict['model_lons']
+                model_lats = model_var_dict['model_lats']
             if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:

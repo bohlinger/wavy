@@ -141,7 +141,7 @@ def validate(results_dict,boot=None):
     elif boot is True:
         from utils import bootstr, marginalize
         reps=1000
-        newmodel,newsat,newidx = marginalize(model_Hs_matches,sat_Hs_matches)
+        newmodel,newsat,newidx = marginalize(model_matches,sat_matches)
         sat_boot,boot_idx=bootstr(newsat,reps)
         print (len(sat_boot[np.isnan(sat_boot)]))
         RMSD=np.zeros(reps)*np.nan
@@ -617,7 +617,7 @@ def plot_sat(sa_obj,var,path=None):
     if sa_obj.region in model_dict:
         from modelmod import get_model
         grid_date = model_dict[sa_obj.region]['grid_date']
-        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+        model_var_dict = \
                 get_model(model=sa_obj.region, fc_date=grid_date)
     # check region and determine projection
     if (sa_obj.region == 'global' 
@@ -645,10 +645,10 @@ def plot_sat(sa_obj,var,path=None):
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])
         elif sa_obj.region in model_dict:
             # model bounds
-            latmin = np.min(model_lats)
-            latmax = np.max(model_lats)
-            lonmin = np.min(model_lons)
-            lonmax = np.max(model_lons)
+            latmin = np.min(model_var_dict['model_lats'])
+            latmax = np.max(model_var_dict['model_lats'])
+            lonmin = np.min(model_var_dict['model_lons'])
+            lonmax = np.max(model_var_dict['model_lons'])
         else: print("Error: Region not defined!")
         projection = ccrs.Mercator(
                         central_longitude=(lonmin+lonmax)/2.,
@@ -671,16 +671,20 @@ def plot_sat(sa_obj,var,path=None):
 
     # plot model grid if region is a model domain
     if sa_obj.region in model_dict:
-        ax.plot(model_lons[0,:], model_lats[0,:], '-', 
+        ax.plot(model_var_dict['model_lons'][0,:], 
+                model_var_dict['model_lats'][0,:], '-', 
                 transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
-        ax.plot(model_lons[-1,:], model_lats[-1,:], '-', 
+        ax.plot(model_var_dict['model_lons'[-1,:], 
+                model_var_dict['model_lats'][-1,:], '-', 
                 transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-        ax.plot(model_lons[:,0], model_lats[:,0], '-', 
+        ax.plot(model_var_dict['model_lons'][:,0], 
+                model_var_dict['model_lats'][:,0], '-', 
                 transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-        ax.plot(model_lons[:,-1], model_lats[:,-1], '-', 
+        ax.plot(model_var_dict['model_lons'][:,-1], 
+                model_var_dict['model_lats'][:,-1], '-', 
                 transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
 

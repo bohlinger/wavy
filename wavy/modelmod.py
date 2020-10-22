@@ -54,7 +54,8 @@ definition of some global functions
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
 
@@ -79,7 +80,6 @@ class model_class():
         self.sdate = sdate
         self.edate = edate
         self.model = model
-        self.basetime = model_dict[model]['basetime']
 
 
 def get_model_filedate(model,fc_date,leadtime):
@@ -159,10 +159,18 @@ def get_model(model=None,sdate=None,edate=None,
                                             leadtime=leadtime)
     filename = make_model_filename(model=model,
                         fc_date=fc_date,leadtime=leadtime)
-    model_Hs, \
+    model_var, \
     model_lats, \
     model_lons, \
     model_time, \
     model_time_dt = get_model_fc_mode(filestr=filename,model=model,
                     fc_date=fc_date,leadtime=leadtime,varname=varname)
-    return model_Hs, model_lats, model_lons, model_time, model_time_dt
+    model_var_dict = {
+                    'model_var':model_var,
+                    'model_lats':model_lats,
+                    'model_lons':model_lons,
+                    'model_time':model_time,
+                    'model_time_dt':model_time_dt,
+                    'model_time_unit':model_time_unit,
+                    }
+    return model_var_dict

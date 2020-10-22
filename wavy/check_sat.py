@@ -149,31 +149,34 @@ if bool(args.show)==True:
         # get model collocated values
         #get_model
         init_date = edate - timedelta(hours=args.lt)
-        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-            get_model(model=args.mod,fc_date=edate,
-            leadtime=args.lt,init_date=init_date)
+        #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+        model_var_dict = get_model(model=args.mod,fc_date=edate,
+                                leadtime=args.lt,init_date=init_date)
         #collocation
-        results_dict = collocate(args.mod,model_Hs,model_lats,
-            model_lons,model_time_dt,sa_obj,shortcuts_dict[varlst[0]],
-            edate,distlim=dist)
+        results_dict = collocate(args.mod,model_ar_dict['model_var'],
+            model_var_dict['model_lats'],model_var_dict['model_lons'],
+            model_var_dict['model_time_dt'],sa_obj,
+            shortcuts_dict[varlst[0]],edate,distlim=dist)
         valid_dict=validate(results_dict)
         disp_validation(valid_dict)
-        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,
+        comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
+                model_var_dict['model_lons'],model_var_dict['model_lats'],
                 results_dict,shortcuts_dict[varlst[0]])
     else:
         # get model collocated values
         #get_model
         init_date = edate - timedelta(hours=args.lt)
-        model_Hs,model_lats,model_lons,model_time,model_time_dt = \
-            get_model(model=args.mod,fc_date=edate,
-            leadtime=args.lt,init_date=init_date)
+        #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
+        model_var_dict = get_model(model=args.mod,fc_date=edate,
+                                leadtime=args.lt,init_date=init_date)
         results_dict = {'valid_date':[edate],
                         'date_matches':[edate-timedelta(minutes=timewin),
                                         edate+timedelta(minutes=timewin)],
                         'model_lons_matches':sa_obj.vars['longitude'],
                         'model_lats_matches':sa_obj.vars['latitude'],
                         'sat_matches':sa_obj.vars[shortcuts_dict[varlst[0]]]}
-        comp_fig(args.mod,sa_obj,model_Hs,model_lons,model_lats,
+        comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
+                model_var_dict['model_lons'],model_var_dict['model_lats'],
                 results_dict,shortcuts_dict[varlst[0]])
 
 # dump to .ncfile
