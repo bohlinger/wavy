@@ -11,6 +11,7 @@ from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 from ncmod import dumptonc_ts
+import os
 import yaml
 
 with open("/home/patrikb/wavy/config/model_specs.yaml", 'r') as stream:
