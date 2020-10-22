@@ -164,7 +164,7 @@ def get_model(model=None,sdate=None,edate=None,
     model_lats, \
     model_lons, \
     model_time, \
-    model_time_dt 
+    model_time_dt, \
     model_time_unit = get_model_fc_mode(filestr=filename,model=model,
                     fc_date=fc_date,leadtime=leadtime,varname=varname)
     model_var_dict = {
