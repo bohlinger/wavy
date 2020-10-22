@@ -163,7 +163,7 @@ def get_nc_ts(pathtofile,varlst):
                 pathtofile,mode='r',
                 )
             var = nc.variables[name][:]
-            vardict[name]=var
+            vardict[name] = var
         time_var = nc.variables['time']
         dtime = netCDF4.num2date(time_var[:],time_var.units)
         vardict['dtime'] = dtime

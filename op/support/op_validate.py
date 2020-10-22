@@ -93,7 +93,7 @@ for sat in args.sat:
             fc_date = deepcopy(tmpdate)
             # get model collocated values
             from ncmod import get_nc_ts
-            filename_ts=fc_date.strftime(args.mod
+            filename_ts = fc_date.strftime(args.mod
                                         + "_vs_" + sat
                                         + "_for_" + args.reg
                                         + "_coll_ts_lt"
@@ -107,22 +107,21 @@ for sat in args.sat:
                 coll_dict = get_nc_ts(inpath 
                                         + fc_date.strftime('%Y/%m/') 
                                         + filename_ts,
-                                        ['mHs','sHs','dtime','time_unit']
+                                        ['mHs','sHs']
                                         )
                 del filename_ts
                 # find collocations for given model time step and validate
                 from stationmod import matchtime
-                time_lst = list(netCDF4.date2num(coll_dict['dtime'],
-                                                 coll_dict['time_unit']
-                                                )
-                                )
+                time_lst = list(coll_dict['time'])
                 ctime, idx = matchtime(tmpdate,tmpdate,time_lst,
                                        coll_dict['time_unit'],
                                        timewin=30)
                 if len(idx)==0:
                     pass
                 else:
-                    results_dict = {'date_matches':coll_dict['dtime'][idx],
+                    dtime = netCDF4.num2date(coll_dict['time'],
+                                             coll_dict['time_unit'])
+                    results_dict = {'date_matches':dtime[idx],
                             'model_matches':coll_dict['mHs'][idx],
                             'sat_matches':coll_dict['sHs'][idx]}
                     valid_dict=validate(results_dict)
