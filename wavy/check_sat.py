@@ -152,7 +152,7 @@ if bool(args.show)==True:
         model_var_dict = get_model(model=args.mod,fc_date=edate,
                                 leadtime=args.lt,init_date=init_date)
         #collocation
-        results_dict = collocate(args.mod,model_ar_dict['model_var'],
+        results_dict = collocate(args.mod,model_var_dict['model_var'],
             model_var_dict['model_lats'],model_var_dict['model_lons'],
             model_var_dict['model_time_dt'],sa_obj,
             shortcuts_dict[varlst[0]],edate,distlim=dist)
