@@ -12,8 +12,13 @@ import argparse
 from argparse import RawTextHelpFormatter
 from ncmod import dumptonc_ts
 import yaml
+
 with open("/home/patrikb/wavy/config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..', 'config/variable_shortcuts.yaml'))
+with open(moddir,'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -138,7 +143,8 @@ for sat in args.sat:
                                             model_var_dict['model_lats'],
                                             model_var_dict['model_lons'],
                                             model_var_dict['model_time_dt'],
-                                            sa_obj,fc_date,distlim=args.dist,
+                                            sa_obj,shortcuts_dict[varlst[0]],
+                                            fc_date,distlim=args.dist,
                                             idx_valid=results_dict['idx_valid'])
                         results_dict['model_matches']=\
                                             update_dict['model_matches']
@@ -148,7 +154,8 @@ for sat in args.sat:
                                             model_var_dict['model_lats'],
                                             model_var_dict['model_lons'],
                                             model_var_dict['model_time_dt'],
-                                            sa_obj,fc_date,distlim=args.dist)
+                                            sa_obj,shortcuts_dict[varlst[0]],
+                                            fc_date,distlim=args.dist)
                     dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                                 filename_ts,title_ts,\
                                 model_var_dict['model_time_unit'],\
