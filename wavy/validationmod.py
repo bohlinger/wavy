@@ -673,20 +673,20 @@ def plot_sat(sa_obj,var,path=None):
     if sa_obj.region in model_dict:
         ax.plot(model_var_dict['model_lons'][0,:], 
                 model_var_dict['model_lats'][0,:], '-', 
-                transform= ccrs.PlateCarree(), 
-                color = 'gray', linewidth =2)
+                transform = ccrs.PlateCarree(), 
+                color = 'gray', linewidth = 2)
         ax.plot(model_var_dict['model_lons'[-1,:], 
                 model_var_dict['model_lats'][-1,:], '-', 
-                transform= ccrs.PlateCarree(),
-                color = 'gray', linewidth =2)
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
         ax.plot(model_var_dict['model_lons'][:,0], 
                 model_var_dict['model_lats'][:,0], '-', 
-                transform= ccrs.PlateCarree(),
-                color = 'gray', linewidth =2)
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
         ax.plot(model_var_dict['model_lons'][:,-1], 
                 model_var_dict['model_lats'][:,-1], '-', 
-                transform= ccrs.PlateCarree(),
-                color = 'gray', linewidth =2)
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
 
     # colors
     cmap = cmocean.cm.amp

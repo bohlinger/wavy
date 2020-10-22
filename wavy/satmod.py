@@ -500,7 +500,6 @@ class satellite_class():
             import pyproj
             try:
                 print('Use date for retrieving grid: ', grid_date)
-                #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                 model_var_dict = \
                     get_model(model=region, fc_date=grid_date)
             except (KeyError,IOError,ValueError) as e:
@@ -514,7 +513,6 @@ class satellite_class():
                                         datetime.now().month,
                                         datetime.now().day
                                         )
-                #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                 model_var_dict = \
                     get_model(model=region, fc_date=grid_date)
             if (len(model_var_dict['model_lats'].shape)==1):

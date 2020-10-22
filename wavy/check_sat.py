@@ -149,7 +149,6 @@ if bool(args.show)==True:
         # get model collocated values
         #get_model
         init_date = edate - timedelta(hours=args.lt)
-        #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
         model_var_dict = get_model(model=args.mod,fc_date=edate,
                                 leadtime=args.lt,init_date=init_date)
         #collocation
@@ -166,7 +165,6 @@ if bool(args.show)==True:
         # get model collocated values
         #get_model
         init_date = edate - timedelta(hours=args.lt)
-        #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
         model_var_dict = get_model(model=args.mod,fc_date=edate,
                                 leadtime=args.lt,init_date=init_date)
         results_dict = {'valid_date':[edate],
