@@ -109,7 +109,7 @@ for sat in args.sat:
         fc_date = deepcopy(tmpdate)
         sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
                     varlst=varlst)
-        if (len(sa_obj.vars['time'])==0 or 'vars' not in vars(sa_obj)):
+        if ('vars' not in vars(sa_obj) or len(sa_obj.vars['time'])==0):
             print("If possible proceed with another time step...")
         else:
             # loop over all forecast lead times
