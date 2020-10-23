@@ -107,8 +107,13 @@ for sat in args.sat:
         if 'results_dict' in globals():
             del results_dict
         fc_date = deepcopy(tmpdate)
-        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
+        try:
+            sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
                     varlst=varlst)
+        except Exception as e:
+            print(e)
+            sa_obj.vars = {}
+            sa_obj.vars['time'] = []
         if len(sa_obj.vars['time'])==0:
             print("If possible proceed with another time step...")
         else:
@@ -132,7 +137,6 @@ for sat in args.sat:
                 init_date = fc_date - timedelta(hours=element)
                 # get_model
                 try:
-                    #model_Hs,model_lats,model_lons,model_time,model_time_dt = \
                     model_var_dict = \
                         get_model(model=args.mod,fc_date=fc_date,
                         leadtime=element,init_date=init_date)
@@ -168,4 +172,7 @@ for sat in args.sat:
                     print(e)
                 #    print('Model wave field not available.')
                 #    print('Continuing with next time step.')
+                except IndexError as e:
+                    print(e)
+                #    print('time step not in model output file')
         tmpdate = tmpdate + timedelta(hours=6)

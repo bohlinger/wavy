@@ -123,8 +123,8 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
     model_time = f.variables[model_dict[model]['vars']['time']]
     # Hs [time,lat,lon]
     model_var_link = f.variables[model_dict[model]['vars'][varname]]
-    model_time_dt = list(netCDF4.num2date(  model_time[:],
-                                            units = model_time.units) )
+    model_time_dt = list(netCDF4.num2date(model_time[:],
+                                          units = model_time.units) )
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
     model_time_unit = model_time.units
