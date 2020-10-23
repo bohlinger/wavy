@@ -107,14 +107,9 @@ for sat in args.sat:
         if 'results_dict' in globals():
             del results_dict
         fc_date = deepcopy(tmpdate)
-        try:
-            sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
+        sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
                     varlst=varlst)
-        except Exception as e:
-            print(e)
-            sa_obj.vars = {}
-            sa_obj.vars['time'] = []
-        if len(sa_obj.vars['time'])==0:
+        if (len(sa_obj.vars['time'])==0 or 'vars' not in vars(sa_obj)):
             print("If possible proceed with another time step...")
         else:
             # loop over all forecast lead times
