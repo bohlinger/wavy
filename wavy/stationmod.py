@@ -324,7 +324,7 @@ def matchtime(sdate,edate,time,time_unit,timewin=None):
             if time_unit is None:
                 tmp = element
             else:
-                tmp = netCDF4.date2num(element,time_unit)
+                tmp = netCDF4.num2date(element,time_unit)
             timelst.append(tmp)
             # choose closest match within window of win[minutes]
             if (tmp >= sdate-timedelta(minutes=timewin)
@@ -338,7 +338,7 @@ def matchtime(sdate,edate,time,time_unit,timewin=None):
             if basetime is None:
                 tmp = element
             else:
-                tmp = basetime + timedelta(seconds=element)
+                tmp = netCDF4.num2date(element,time_unit)
             timelst.append(tmp)
             if (tmp >= sdate-timedelta(minutes=timewin)
             and tmp < edate+timedelta(minutes=timewin)):
