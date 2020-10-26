@@ -266,7 +266,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
-    gl.xlabels_bottom = True
+    #gl.xlabels_bottom = True
+    gl.bottom_labels = True
     gl.ylabels_left = True
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
@@ -703,7 +704,8 @@ def plot_sat(sa_obj,var,path=None):
     gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
-    gl.xlabels_bottom = True
+    #gl.xlabels_bottom = True
+    gl.bottom_labels = True
     gl.ylabels_left = True
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
