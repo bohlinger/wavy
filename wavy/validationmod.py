@@ -304,7 +304,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     if len(clats)>0:
         sc = ax.scatter(clons,clats,s=10,
                 c=results_dict['sat_matches'],
-                marker='o',verts=levels, edgecolor = 'face',
+                marker='o', edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm, 
                 transform=ccrs.PlateCarree())
 
@@ -729,7 +729,7 @@ def plot_sat(sa_obj,var,path=None):
 
     # - add satellite
     sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[var],
-                marker='o',verts=levels, edgecolor = 'face',
+                marker='o', edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
     # - plot polygon
