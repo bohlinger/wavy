@@ -280,7 +280,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
                     transform = ccrs.PlateCarree(), 
-                    colors='w', linestyle = ':', linewidths = 0.3)
+                    colors='w', linewidths = 0.3)
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
     # - add coastline
@@ -403,11 +403,11 @@ def comp_wind(model,var,Mlons,Mlats,date,region,mode=None):
     if mode == 'dir':
         imc = ax.contour(Mlons, Mlats, var, levels = levels[::5],
                     transform = ccrs.PlateCarree(),
-                    colors='w', linestyle = ':', linewidths = 0.3)
+                    colors='w', linewidths = 0.3)
     else:
         imc = ax.contour(Mlons, Mlats, var, levels = levels[15::1],
                     transform = ccrs.PlateCarree(),
-                    colors='w', linestyle = ':', linewidths = 0.3)
+                    colors='w', linewidths = 0.3)
 
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
@@ -538,7 +538,7 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
 
     imc = ax.contour(Mlons, Mlats, var, levels = levels[15::1],
                     transform = ccrs.PlateCarree(),
-                    colors='w', linestyle = ':', linewidths = 0.3)
+                    colors='w', linewidths = 0.3)
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
     # add quivers for wind
     qv = ax.quiver(Mlons, Mlats, u, v, color='k', transform=ccrs.PlateCarree(),scale=500)
