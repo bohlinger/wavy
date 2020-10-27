@@ -128,7 +128,7 @@ def validate(results_dict,boot=None):
         corr = calc_corrcoef(model_matches,sat_matches)
         bias = calc_bias(model_matches,sat_matches)
         SI = calc_scatter_index(model_matches,sat_matches)
-        arcmfc_validation_dict = {
+        validation_dict = {
             'mop':mop,
             'mor':mor,
             'msd':msd,
@@ -159,8 +159,8 @@ def validate(results_dict,boot=None):
                 CORR[i]=validate(results_dict)['corr']
             except IndexError as e:
                 print (e)
-        arcmfc_validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
-    return arcmfc_validation_dict
+        validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
+    return validation_dict
 
 def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
