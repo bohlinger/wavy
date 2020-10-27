@@ -110,5 +110,5 @@ for element in forecasts:
            + fc_date.strftime('%Y/%m/'))
     cmd = 'mkdir -p ' + outpath
     os.system(cmd)
-    cmd = 'mv ' + model + '_fig_val*.png ' + outpath
+    cmd = 'mv ' + args.mod + '*_fig_val*.png ' + outpath
     os.system(cmd)
