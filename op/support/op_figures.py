@@ -89,7 +89,7 @@ valid_dict_lst = {'rmsd':rmsd_lst,
                   'nov':nov_lst}
 
 # Make ts-plots
-for val_name in valid_dict:
+for val_name in valid_dict_lst:
     filename_fig = fc_date.strftime(args.mod 
                             + "_vs_" + args.sat
                             + "_for_" + args.reg
