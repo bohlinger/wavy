@@ -40,7 +40,7 @@ if args.d is None:
 else:
     fc_date = datetime(int(args.d[0:4]),int(args.d[4:6]),1)
 
-forecasts = [0]
+forecasts = [0,24,48]
 
 if args.mod is None:
     args.mod = 'mwam4'
@@ -54,6 +54,13 @@ if args.reg is None:
 if args.path is None:
     args.path = '/lustre/storeB/project/fou/om/waveverification/'
 
+# make a list of validation metrics for various lead times
+rmsd_lst = []
+bias_lst = []
+corr_lst = []
+SI_lst = []
+nov_lst = []
+dtime_lst = []
 for element in forecasts:
     # Get stats ts
     inpath = (args.path
@@ -68,20 +75,36 @@ for element in forecasts:
                                     + "{:0>3d}".format(element)
                                     + "h_%Y%m.nc")
     valid_dict, dtime = get_arcmfc_stats(inpath + filename_stat)
+    rmsd_lst.append(valid_dict['rmsd'])
+    bias_lst.append(valid_dict['bias'])
+    corr_lst.append(valid_dict['corr'])
+    SI_lst.append(valid_dict['SI'])
+    nov_lst.append(valid_dict['nov'])
+    dtime_lst.append(dtime)
 
-    # Make ts-plots
-    for val_name in valid_dict:
-        filename_fig = fc_date.strftime(args.mod 
-                                + "_vs_" + args.sat
-                                + "_for_" + args.reg
-                                + "_fig_val" 
-                                + "_ts_" + val_name
-                                + "_lt{:0>3d}".format(element)
-                                + "h_%Y%m.png")
-        ts = valid_dict[val_name]
-        make_val_ts_fig_op(val_name,ts,dtime,filename_fig)
+valid_dict_lst = {'rmsd':rmsd_lst,
+                  'bias':bias_lst,
+                  'corr':corr_lst,
+                  'SI':SI_lst,
+                  'nov':nov_lst}
 
-    # Get collocation ts
+# Make ts-plots
+for val_name in valid_dict:
+    filename_fig = fc_date.strftime(args.mod 
+                            + "_vs_" + args.sat
+                            + "_for_" + args.reg
+                            + "_fig_val" 
+                            + "_ts_" + val_name
+                            + "_lt{:0>3d}".format(element)
+                            + "h_%Y%m.png")
+    ts = valid_dict[val_name]
+    make_val_ts_fig_op(val_name,ts,dtime_lst,filename_fig,forecasts)
+
+# Get collocation ts
+dtime_lst = []
+sHs_lst = []
+mHs_lst = []
+for element in forecasts:
     inpath = (args.path
             + args.mod + '/satellites/altimetry'
             + '/' + args.sat + '/'
@@ -94,21 +117,27 @@ for element in forecasts:
                                 + "{:0>3d}".format(element)
                                 + "h_%Y%m.nc")
     dtime, sHs, mHs = get_arcmfc_ts(inpath + filename_coll)
+    dtime_lst.append(dtime)
+    sHs_lst.append(sHs)
+    mHs_lst.append(mHs)
 
-    # Make scatter-plots
+# Make scatter-plots
+for i in range(len(forecasts)):
     filename_fig = fc_date.strftime(args.mod
                                 + "_vs_" + args.sat
                                 + "_for_" + args.reg
                                 + "_fig_val_scatter"
                                 + "_lt{:0>3d}".format(element)
                                 + "h_%Y%m.png")
-    make_val_scatter_fig_op(mHs,sHs,filename_fig)
-    outpath = (args.path
+    make_val_scatter_fig_op(mHs_lst[i],sHs[i],filename_fig,forecasts,i)
+
+# clean up
+outpath = (args.path
            + args.mod + '/satellites/altimetry'
            + '/' + args.sat + '/'
            + 'ValidationFigures/'
            + fc_date.strftime('%Y/%m/'))
-    cmd = 'mkdir -p ' + outpath
-    os.system(cmd)
-    cmd = 'mv ' + args.mod + '*_fig_val*.png ' + outpath
-    os.system(cmd)
+cmd = 'mkdir -p ' + outpath
+os.system(cmd)
+cmd = 'mv ' + args.mod + '*_fig_val*.png ' + outpath
+os.system(cmd)
