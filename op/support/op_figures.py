@@ -13,9 +13,7 @@ from argparse import RawTextHelpFormatter
 # parser
 parser = argparse.ArgumentParser(
     description="""
-Validate wave model output against s3a data and dump to monthly nc-file.
-If file exists, data is appended.
-
+Create validation figures for validation files based on satellite altimetry.
 Usage:
 ./op_figures.py -mod mwam4
     """,
@@ -30,7 +28,11 @@ parser.add_argument("-reg", metavar='region',
 
 args = parser.parse_args()
 
+varlst = ['Hs']
 now = datetime.now()
+
+fc_date = datetime.now()
+forecasts = [0]
 
 if args.mod is None:
     args.mod = 'mwam4'
@@ -41,12 +43,12 @@ if args.sat is None:
 if args.reg is None:
     args.reg = model
 
-fc_date = datetime.now()
-forecasts = [0]
+if args.path is None:
+    args.path = '/lustre/storeB/project/fou/om/waveverification/'
 
 for element in forecasts:
     # Get stats ts
-    inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    inpath = (args.path
                 + args.mod + '/satellites/altimetry'
                 + '/' + args.sat + '/'
                 + 'ValidationFiles/'
@@ -72,7 +74,7 @@ for element in forecasts:
         make_val_ts_fig_op(val_name,ts,dtime,filename_fig)
 
     # Get collocation ts
-    inpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    inpath = (args.path
             + args.mod + '/satellites/altimetry'
             + '/' + args.sat + '/'
             + 'CollocationFiles/'
@@ -93,7 +95,7 @@ for element in forecasts:
                                 + "_lt{:0>3d}".format(element)
                                 + "h_%Y%m.png")
     make_val_scatter_fig_op(mHs,sHs,filename_fig)
-    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    outpath = (args.path
            + args.mod + '/satellites/altimetry'
            + '/' + args.sat + '/'
            + 'ValidationFigures/'
