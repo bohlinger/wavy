@@ -129,7 +129,7 @@ for i in range(len(forecasts)):
                                 + "_fig_val_scatter"
                                 + "_lt{:0>3d}".format(element)
                                 + "h_%Y%m.png")
-    make_val_scatter_fig_op(mHs_lst[i],sHs[i],filename_fig,forecasts,i)
+    make_val_scatter_fig_op(mHs_lst[i],sHs_lst[i],filename_fig,forecasts,i)
 
 # clean up
 outpath = (args.path
