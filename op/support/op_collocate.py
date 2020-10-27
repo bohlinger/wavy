@@ -47,7 +47,7 @@ parser.add_argument("-twin", metavar='time window', type=int,
 parser.add_argument("-dist", metavar='distance limit', type=int,
     help="distance limit for collocation")
 parser.add_argument("-path", metavar='outpath',
-    help="path to where collocation files are to be stored")
+    help="path to where files are to be stored")
 
 args = parser.parse_args()
 

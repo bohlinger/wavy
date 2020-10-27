@@ -25,13 +25,21 @@ parser.add_argument("-sat", metavar='satellite',
     help="satellite mission to be used for collocation")
 parser.add_argument("-reg", metavar='region',
     help="region of interest")
+parser.add_argument("-d", metavar='date',
+    help="month to be plotted fmt: %Y%m")
+parser.add_argument("-path", metavar='outpath',
+    help="path to where files are to be stored")
 
 args = parser.parse_args()
 
 varlst = ['Hs']
 now = datetime.now()
 
-fc_date = datetime.now()
+if args.d is None:
+    fc_date = datetime.now()
+else:
+    fc_date = datetime(int(args.d[0:4]),int(args.d[4:6]),1)
+
 forecasts = [0]
 
 if args.mod is None:

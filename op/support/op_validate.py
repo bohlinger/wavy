@@ -38,7 +38,7 @@ parser.add_argument("-sd", metavar='startdate',
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period")
 parser.add_argument("-path", metavar='outpath',
-    help="path to where collocation files are to be stored")
+    help="path to where files are to be stored")
 
 args = parser.parse_args()
 
