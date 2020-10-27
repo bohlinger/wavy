@@ -95,8 +95,7 @@ for val_name in valid_dict_lst:
                             + "_for_" + args.reg
                             + "_fig_val" 
                             + "_ts_" + val_name
-                            + "_lt{:0>3d}".format(element)
-                            + "h_%Y%m.png")
+                            + "_%Y%m.png")
     ts = valid_dict_lst[val_name]
     make_val_ts_fig_op(val_name,ts,dtime_lst,filename_fig,forecasts)
 
@@ -127,7 +126,7 @@ for i in range(len(forecasts)):
                                 + "_vs_" + args.sat
                                 + "_for_" + args.reg
                                 + "_fig_val_scatter"
-                                + "_lt{:0>3d}".format(element)
+                                + "_lt{:0>3d}".format(forecasts[i])
                                 + "h_%Y%m.png")
     make_val_scatter_fig_op(mHs_lst[i],sHs_lst[i],filename_fig,forecasts,i)
 
