@@ -49,7 +49,7 @@ if args.sat is None:
     args.sat = 's3a'
 
 if args.reg is None:
-    args.reg = model
+    args.reg = args.mod
 
 if args.path is None:
     args.path = '/lustre/storeB/project/fou/om/waveverification/'
