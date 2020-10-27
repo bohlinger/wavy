@@ -97,7 +97,7 @@ for val_name in valid_dict:
                             + "_ts_" + val_name
                             + "_lt{:0>3d}".format(element)
                             + "h_%Y%m.png")
-    ts = valid_dict[val_name]
+    ts = valid_dict_lst[val_name]
     make_val_ts_fig_op(val_name,ts,dtime_lst,filename_fig,forecasts)
 
 # Get collocation ts
