@@ -21,8 +21,8 @@ def calc_rmsd(a,b):
     '''
     root mean square deviation
     if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
     '''
-    a,b = np.array(a),np.array(b)
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
     a1=a[idx]
@@ -43,8 +43,8 @@ def calc_scatter_index(obs,model):
 def calc_corrcoef(a,b):
     '''
     if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
     '''
-    a,b = np.array(a),np.array(b)
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
     a1=a[idx]
@@ -55,8 +55,8 @@ def calc_corrcoef(a,b):
 def calc_bias(a,b):
     """
     if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
     """
-    a,b = np.array(a),np.array(b)
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
     a1=a[idx]
@@ -69,8 +69,8 @@ def calc_mad(a,b):
     """
     mean absolute deviation
     if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
     """
-    a,b = np.array(a),np.array(b)
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
     a1=a[idx]
@@ -109,6 +109,7 @@ class validation_class():
 def validate(results_dict,boot=None):
     import numpy as np
     """
+    vars in dict: np.arrays with np.nan for invalids
     produced metrics:
     mean of product --> mop
     mean of reference --> mor
@@ -116,9 +117,9 @@ def validate(results_dict,boot=None):
     number of data values --> nov
     scatter index --> SI
     """
-    date_matches = np.array(results_dict['date_matches'])
-    model_matches = np.array(results_dict['model_matches'])
-    sat_matches = np.array(results_dict['sat_matches'])
+    date_matches = results_dict['date_matches']
+    model_matches = results_dict['model_matches']
+    sat_matches = results_dict['sat_matches']
     if (boot is None or boot ==  False):
         mop = np.nanmean(model_matches)
         mor = np.nanmean(sat_matches)

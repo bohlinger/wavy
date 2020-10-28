@@ -112,18 +112,18 @@ for sat in args.sat:
                 del filename_ts
                 # find collocations for given model time step and validate
                 from stationmod import matchtime
-                time_lst = list(coll_dict['time'])
+                time_lst = list(coll_dict['time'].filled(np.nan))
                 ctime, idx = matchtime(tmpdate,tmpdate,time_lst,
                                        coll_dict['time_unit'],
                                        timewin=30)
                 if len(idx)==0:
                     pass
                 else:
-                    dtime = netCDF4.num2date(coll_dict['time'],
+                    dtime = netCDF4.num2date(coll_dict['time'].filled(np.nan),
                                              coll_dict['time_unit'])
                     results_dict = {'date_matches':dtime[idx],
-                            'model_matches':coll_dict['mHs'][idx],
-                            'sat_matches':coll_dict['sHs'][idx]}
+                        'model_matches':coll_dict['mHs'][idx].filled(np.nan),
+                        'sat_matches':coll_dict['sHs'][idx].filled(np.nan)}
                     valid_dict=validate(results_dict)
                     print(valid_dict)
                     # dump to nc-file: validation

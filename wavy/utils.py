@@ -265,11 +265,12 @@ def bootstr(a,reps):
     return b, bidx.astype('int')
 
 def marginalize(a,b=None):
+    """
+    input: np.arrays with np.nan for invalids
+    """
     if b is None:
-        a = np.array(a)
         return a[~np.isnan[a]]
     else:
-        a,b = np.array(a),np.array(b)
         comb = a + b
         idx = np.array(range(len(a)))[~np.isnan(comb)]
         a1=a[idx]
