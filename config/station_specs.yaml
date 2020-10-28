@@ -10,6 +10,36 @@ path:
                 stations/%Y/%m/"
         remote:
 platform:
+    asgardb:
+        sensor:
+            MKIIIradar: 0 # python indexing
+        manufacturer:
+            MKIIIradar: Miros
+        coords:
+            lat: 65.11
+            lon: 6.79
+        operator: Equinor_Energy
+#    aastahansteen:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
+#    brage:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Wintershall_Dea_Norge
+    draugen:
+        sensor:
+            MKIIIradar: 0 # python indexing
+            MKIIIradar: 1
+        manufacturer:
+            MKIIIradar: Miros
+            MKIIIradar: Miros
+        coords:
+            lat: 64.35
+            lon: 7.78
+        operator: OKEA
     ekofiskL:
         sensor:
             waverider: 0 # python indexing
@@ -22,24 +52,7 @@ platform:
         coords:
             lat: 56.54
             lon: 3.21
-    asgardb:
-        sensor:
-            MKIIIradar: 0 # python indexing
-        manufacturer:
-            MKIIIradar: Miros
-        coords:
-            lat: 65.11
-            lon: 6.79
-    draugen:
-        sensor:
-            MKIIIradar: 0 # python indexing
-            MKIIIradar: 1
-        manufacturer:
-            MKIIIradar: Miros
-            MKIIIradar: Miros
-        coords:
-            lat: 64.35
-            lon: 7.78
+        operator: ConocoPhillips_Skandinavia
     gjoa:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -48,6 +61,12 @@ platform:
         coords:
             lat: 61.33
             lon: 3.9
+        operator: Neptun_Energy_Norge
+#    goliat:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: VarEnergi
     grane:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -56,6 +75,12 @@ platform:
         coords:
             lat: 59.17
             lon: 2.48
+        operator: Equinor_Energy
+#    gudrun:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
     heimdal:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -80,6 +105,7 @@ platform:
         coords:
             lat: 56.28
             lon: 3.39
+        operator: Equinor_Energy
     heidrun:
         sensor:
             NA_1: 0 # python indexing
@@ -90,6 +116,7 @@ platform:
         coords:
             lat: 65.32
             lon: 7.32
+        operator: Equinor_Energy
     heimdal:
         sensor:
             NA: 0 # python indexing
@@ -98,6 +125,27 @@ platform:
         coords:
             lat: 59.57
             lon: 2.23
+        operator: Equinor_Energy
+#    kvitebjorn:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
+#    kristin:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
+#    huldra:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
+#    njord:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
     norne:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -106,6 +154,12 @@ platform:
         coords:
             lat: 66.02
             lon: 8.08
+        operator: Equinor_Energy
+#    ormenlange:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: NorskeShell
     snorrea:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -114,6 +168,16 @@ platform:
         coords:
             lat: 61.45
             lon: 2.15
+        operator: Equinor_Energy
+#    snorreb:
+#        sensor:
+#            NA_1: 0 # python indexing
+#        manufacturer:
+#            NA_1: NA
+#        coords:
+#            lat: 61.52
+#            lon: 2.21
+#        operator: Equinor_Energy
     sleipner:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -122,7 +186,8 @@ platform:
         coords:
             lat: 58.37
             lon: 1.91
-    stafjorda:
+        operator: Equinor_Energy
+    stafjorda: # established typo should be stafjord
         sensor:
             MKIIIradar: 0 # python indexing
         manufacturer:
@@ -130,6 +195,16 @@ platform:
         coords:
             lat: 61.25
             lon: 1.85
+        operator: Equinor_Energy
+#    statfjordb:
+#        sensor:
+#            NA_1: 0 # python indexing
+#        manufacturer:
+#            NA_1: NA
+#        coords:
+#            lat: 61.20
+#            lon: 1.83
+#        operator: Equinor_Energy
     trolla:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -138,6 +213,7 @@ platform:
         coords:
             lat: 60.64
             lon: 3.72
+        operator: Equinor_Energy
     trollb:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -146,6 +222,7 @@ platform:
         coords:
             lat: 60.77
             lon: 3.5
+        operator: Equinor_Energy
     #ula:
     #   sensor:
     #       NA_1: 0 # python indexing
@@ -154,6 +231,7 @@ platform:
     #   coord:
     #       lat: 57.10
     #       lon:  2.85
+    #   operator: Aker_BP
     valhall:
         sensor:
             SAABWaveRadar_1: 0 # python indexing
@@ -164,6 +242,17 @@ platform:
         coords:
             lat: 56.28
             lon: 3.39
+        operator: Aker_BP
+#    veslefrikka:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
+#    veslefrikkb:
+#        sensor:
+#        manufacturer:
+#        coords:
+#        operator: Equinor_Energy
     visund:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -172,3 +261,4 @@ platform:
         coords:
             lat: 61.37
             lon: 2.46
+        operator: Equinor_Energy
