@@ -74,10 +74,10 @@ if args.path is None:
 # retrieve PID
 grab_PID()
 
-if args.mod == "ARCMFC3":
-    leadtimes = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-else:
-    leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
+# define leadtimes
+leadtimes = model_dict[args.mod]['leadtimes']
+# define init_step
+init_step = model_dict[args.mod]['init_step']
 
 for sat in args.sat:
     inpath = (args.path
@@ -139,4 +139,4 @@ for sat in args.sat:
                     dumptonc_stats(outpath + fc_date.strftime('%Y/%m/'), \
                         filename_stat,title_stat,time_dt,\
                         coll_dict['time_unit'],valid_dict)
-        tmpdate = tmpdate + timedelta(hours=6)
+        tmpdate = tmpdate + timedelta(hours=init_step)

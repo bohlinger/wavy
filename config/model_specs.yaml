@@ -19,6 +19,7 @@ ARCMFC3:
     file_template: "%Y%m%dT%H_MyWaveWam3_b%Y%m%dT%H.nc"
     init_times: [0,12]
     init_step: 12
+    leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
     grid_date: 2020-02-01 00:00:00
 
@@ -53,6 +54,7 @@ mwam3force:
     file_template: "W3km_force_%Y%m%dT%HZ.nc"
     init_times: [0,12]
     init_step: 12
+    leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 \
             +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -70,6 +72,7 @@ mwam3:
     file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,12]
     init_step: 12
+    leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -95,6 +98,7 @@ mwam4:
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
     init_step: 6
+    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
@@ -113,6 +117,7 @@ mwam4force:
     file_template: "W4km_force_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
     init_step: 6
+    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
@@ -132,6 +137,7 @@ ecwam:
     file_template: "ecwam_%Y%m%dT%HZ.nc"
     init_times: [0,12]
     init_step: 12
+    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
 ww3: # WW3_4km
@@ -152,6 +158,7 @@ ww3: # WW3_4km
     file_template: ww3_%Y%m%dT%HZ.nc
     init_times: [0,6,12,18]
     init_step: 6
+    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
     _FillValue: 9.96921e+36
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"

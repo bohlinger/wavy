@@ -85,11 +85,8 @@ if args.path is None:
 grab_PID()
 
 # define leadtimes
-if args.mod == 'ARCMFC3':
-    leadtimes = [12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-else:
-    leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
-
+leadtimes = model_dict[args.mod]['leadtimes']
+# define init_step
 init_step = model_dict[args.mod]['init_step']
 
 # settings
