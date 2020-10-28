@@ -37,7 +37,14 @@ parser.add_argument("-sd", metavar='startdate',
 parser.add_argument("-ed", metavar='enddate',
     help="end date of time period to be downloaded")
 parser.add_argument("-sat", metavar='satellite',
-    help="source satellite mission")
+    help="satellite mission, currently available: \
+        \ns3a - Sentinel-3A\
+        \ns3b - Sentinel-3B\
+        \nj3 - Jason-3 (reference mission)\
+        \nc2 - Cryosat-2\
+        \nal - SARAL/AltiKa\
+        \ncfo - CFOSAT\
+        \nh2b - HaiYang-2B")
 parser.add_argument("-path", metavar='path',
     help="destination for downloaded data")
 parser.add_argument("-nproc", metavar='nproc',

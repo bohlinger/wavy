@@ -32,8 +32,15 @@ Check availability of satellite SWH data. Example:
 parser.add_argument("-reg", metavar='region',
     help="region to check")
 parser.add_argument("-sat", metavar='satellite',
-    help="source satellite mission")
-parser.add_argument('-l', metavar='list of satellites', 
+    help="satellite mission, currently available: \
+        \ns3a - Sentinel-3A\
+        \ns3b - Sentinel-3B\
+        \nj3 - Jason-3 (reference mission)\
+        \nc2 - Cryosat-2\
+        \nal - SARAL/AltiKa\
+        \ncfo - CFOSAT\
+        \nh2b - HaiYang-2B")
+parser.add_argument('-l', metavar='satellite list', 
     help='delimited list input for sats', type=str)
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period to check")

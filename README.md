@@ -8,7 +8,7 @@ Package to aid wave model validation using satellite altimetry and other sources
 1. downloading satellite data
 2. quicklook examples
 3. usage examples on collocation and validation
-4. simple html setup
+4. simple html setup with basic validation figures
 
 ## Additional info
 The collocation method follows Bohlinger et al. (2019): https://www.sciencedirect.com/science/article/pii/S1463500319300435. The satellite data is obtained from http://marine.copernicus.eu/services-portfolio/access-to-products/?option=com_csw&view=details&product_id=WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001. In the end of this exercise validation figures are produced comparable to https://cmems.met.no/ARC-MFC/Wave3kmValidation/2020-10/index.html.
@@ -21,15 +21,28 @@ https://help.github.com/en/articles/cloning-a-repository
 2. To make it consistent with the description in this README please use as target location your home directory e.g.: ~/wavy.
 3. Install wavy using conda using the environment.yml like:
 ```
+cd ~/wavy
 conda env create -f environment.yml
 ```
 4. Configuration files are organized under wavy/config and might need adjustments according to your plans. Examples are the locations of your wave model output files or observation data (e.g. satellite altimetry data)
+5. Prepare your wavy environment with providing the directories for satellite data and model data. Then download satellite data using the download.py script:
+```
+cd ~/wavy/wavy
+# to get help check
+./download.py -h
+# then download some satellite altimeter data
+./download.py -sat s3a -sd 2020100100 -ed 2020101000
+```
 
 ### HELP
 Executable files usually have help function which can be read using e.g.:
 ./{YourExecutable}.py -h
+e.g.:
+cd ~/wavy/wavy
+./download.py -h
 
 ### Quicklook examples
+The script "check_sat.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. 
 1. browse for satellite data and show footprints on map for one time step:
 ```
 ./check_sat.py -sat c2 -reg Vietnam -sd 2019100118 --show

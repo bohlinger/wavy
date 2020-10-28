@@ -40,7 +40,7 @@ if args.d is None:
 else:
     fc_date = datetime(int(args.d[0:4]),int(args.d[4:6]),1)
 
-forecasts = [0,24,48]
+leadtimes = [0,24,48]
 
 if args.mod is None:
     args.mod = 'mwam4'
@@ -61,7 +61,7 @@ corr_lst = []
 SI_lst = []
 nov_lst = []
 dtime_lst = []
-for element in forecasts:
+for element in leadtimes:
     # Get stats ts
     inpath = (args.path
                 + args.mod + '/satellites/altimetry'
@@ -97,13 +97,13 @@ for val_name in valid_dict_lst:
                             + "_ts_" + val_name
                             + "_%Y%m.png")
     ts = valid_dict_lst[val_name]
-    make_val_ts_fig_op(val_name,ts,dtime_lst,filename_fig,forecasts)
+    make_val_ts_fig_op(val_name,ts,dtime_lst,filename_fig,leadtimes)
 
 # Get collocation ts
 dtime_lst = []
 sHs_lst = []
 mHs_lst = []
-for element in forecasts:
+for element in leadtimes:
     inpath = (args.path
             + args.mod + '/satellites/altimetry'
             + '/' + args.sat + '/'
@@ -121,14 +121,14 @@ for element in forecasts:
     mHs_lst.append(mHs)
 
 # Make scatter-plots
-for i in range(len(forecasts)):
+for i in range(len(leadtimes)):
     filename_fig = fc_date.strftime(args.mod
                                 + "_vs_" + args.sat
                                 + "_for_" + args.reg
                                 + "_fig_val_scatter"
-                                + "_lt{:0>3d}".format(forecasts[i])
+                                + "_lt{:0>3d}".format(leadtimes[i])
                                 + "h_%Y%m.png")
-    make_val_scatter_fig_op(mHs_lst[i],sHs_lst[i],filename_fig,forecasts,i)
+    make_val_scatter_fig_op(mHs_lst[i],sHs_lst[i],filename_fig,leadtimes,i)
 
 # clean up
 outpath = (args.path
