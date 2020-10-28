@@ -13,6 +13,7 @@ from argparse import RawTextHelpFormatter
 from utils import grab_PID
 import os
 import yaml
+import numpy as np
 with open("/home/patrikb/wavy/config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
