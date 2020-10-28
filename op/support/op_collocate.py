@@ -90,6 +90,8 @@ if args.mod == 'ARCMFC3':
 else:
     leadtimes = [0, 6, 12, 18, 24, 36, 48, 60]
 
+init_step = model_dict[args.mod]['init_step']
+
 # settings
 if args.twin is None:
     args.twin = 30
@@ -170,4 +172,4 @@ for sat in args.sat:
                 except IndexError as e:
                     print(e)
                 #    print('time step not in model output file')
-        tmpdate = tmpdate + timedelta(hours=6)
+        tmpdate = tmpdate + timedelta(hours = init_step)

@@ -18,6 +18,10 @@ import yaml
 with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..', 'config/variable_shortcuts.yaml'))
+with open(moddir,'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
+
 # parser
 parser = argparse.ArgumentParser(
     description="""
@@ -43,10 +47,14 @@ parser.add_argument("-twin", metavar='time window', type=int,
     help="time window for collocation")
 parser.add_argument("-dist", metavar='distance limit', type=int,
     help="distance limit for collocation")
+parser.add_argument("-path", metavar='outpath',
+    help="path to where files are to be stored")
 
 args = parser.parse_args()
 
 now = datetime.now()
+
+varlst = ['Hs']
 
 if args.mod is None:
     args.mod = 'mwam4'
@@ -71,13 +79,13 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+if args.path is None:
+    args.path = '/lustre/storeB/project/fou/om/waveverification/'
+
 # retrieve PID
 grab_PID()
 
-if (args.mod == 'mwam4' or args.mod == 'ww3'):
-    init_step = 6
-if (args.mod == 'mwam8' or args.mod == 'ecwam' or args.mod == 'mwam3' or args.mod == 'ARCMFC3'):
-    init_step = 12
+init_step = model_dict[args.mod]['init_step']
 
 leadtimes = range(init_step)
 
@@ -88,7 +96,7 @@ if args.dist is None:
     args.dist = 6
 
 for sat in args.sat:
-    outpath = ('/lustre/storeB/project/fou/om/waveverification/'
+    outpath = (args.path
            + args.mod + '/satellites/altimetry'
            + '/' + sat + '/'
            + 'CollocationFiles/')
@@ -144,7 +152,4 @@ for sat in args.sat:
                         print(e)
             except IndexError as e:
                 print(e)
-        if (args.mod == 'ARCMFC3' or args.mod == 'mwam3'):
-            tmpdate = tmpdate + timedelta(hours=12)
-        else:
-            tmpdate = tmpdate + timedelta(hours=6)
+        tmpdate = tmpdate + timedelta(hours = init_step)

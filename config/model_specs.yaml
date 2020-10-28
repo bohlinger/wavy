@@ -18,6 +18,7 @@ ARCMFC3:
     #   to delay the bulletin date/time is adjusted
     file_template: "%Y%m%dT%H_MyWaveWam3_b%Y%m%dT%H.nc"
     init_times: [0,12]
+    init_step: 12
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
     grid_date: 2020-02-01 00:00:00
 
@@ -35,7 +36,6 @@ ARCMFC3_hc:
     path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
                     hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
-    init_times: [0,12]
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
     grid_date: 2020-02-01 00:00:00
 
@@ -52,6 +52,7 @@ mwam3force:
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "W3km_force_%Y%m%dT%HZ.nc"
     init_times: [0,12]
+    init_step: 12
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 \
             +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -68,6 +69,7 @@ mwam3:
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,12]
+    init_step: 12
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
@@ -92,6 +94,7 @@ mwam4:
                     fou-hi/mywavewam4archive/%Y/%m/%d/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
+    init_step: 6
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
@@ -109,6 +112,7 @@ mwam4force:
             DNMI_WAVE/%Y/%m/%d/"
     file_template: "W4km_force_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
+    init_step: 6
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
@@ -127,6 +131,7 @@ ecwam:
     path_template: "/vol/data/ec/"
     file_template: "ecwam_%Y%m%dT%HZ.nc"
     init_times: [0,12]
+    init_step: 12
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
 ww3: # WW3_4km
@@ -146,6 +151,7 @@ ww3: # WW3_4km
     # ww3_20191225T12Z.nc
     file_template: ww3_%Y%m%dT%HZ.nc
     init_times: [0,6,12,18]
+    init_step: 6
     _FillValue: 9.96921e+36
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
