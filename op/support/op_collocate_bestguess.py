@@ -114,8 +114,9 @@ for sat in args.sat:
             print("init_date: ", init_date)
             # get sat values
             try:
-                sa_obj = sa(fc_date,sat=sat,timewin=args.twin,polyreg=args.reg)
-                if len(sa_obj.dtime)==0:
+                sa_obj = sa(fc_date,sat=sat,timewin=args.twin,region=args.reg,
+                    varlst=varlst)
+                if ('vars' not in vars(sa_obj) or len(sa_obj.vars['time'])==0):
                     print("If possible proceed with another time step...")
                 else:
                     d = model_dict[args.mod]['basetime']
@@ -134,22 +135,21 @@ for sat in args.sat:
                         + ' bestguess')
                     # get_model
                     try:
-                        model_Hs,\
-                        model_lats,\
-                        model_lons,\
-                        model_time,\
-                        model_time_dt = get_model(simmode="fc",
-                                                model=args.mod,
-                                                fc_date=fc_date,
-                                                init_date=init_date,
-                                                leadtime=element)
+                        model_var_dict = \
+                            get_model(model=args.mod,fc_date=fc_date,
+                            leadtime=element,init_date=init_date)
                         # collocation
-                        results_dict = collocate(args.mod,model_Hs,
-                                        model_lats,model_lons,
-                                        model_time_dt,sa_obj,
-                                        fc_date,distlim=args.dist)
+                        results_dict = collocate(args.mod,
+                                            model_var_dict['model_var'],
+                                            model_var_dict['model_lats'],
+                                            model_var_dict['model_lons'],
+                                            model_var_dict['model_time_dt'],
+                                            sa_obj,shortcuts_dict[varlst[0]],
+                                            fc_date,distlim=args.dist)
                         dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
-                            filename_ts,title_ts,basetime,results_dict)
+                                filename_ts,title_ts,\
+                                model_var_dict['model_time_unit'],\
+                                results_dict)
                     except IOError as e:
                         print(e)
                     except ValueError as e:
