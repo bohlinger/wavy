@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+from pathlib import Path
+home = str(Path.home())
+wavy_script_dir = home + '/wavy/wavy'
+sys.path.append(wavy_script_dir)
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(wavy_script_dir)
 
 import netCDF4
 from datetime import datetime, timedelta
@@ -14,7 +18,7 @@ from utils import grab_PID
 import os
 import yaml
 import numpy as np
-with open("/home/patrikb/wavy/config/model_specs.yaml", 'r') as stream:
+with open(home + "/wavy/config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 # parser

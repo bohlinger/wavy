@@ -9,13 +9,10 @@
 '''
 import sys
 import os
-sys.path.append(r'/home/patrikb/wavy/wavy')
-#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
-#import python
-#python.module('load', 'compiler/intelPE2018')
-#python.module('load', 'hdf5/1.10.5-intel2018')
-#python.module('load', 'netcdf/4.7.0-intel2018')
-#python.module('load', 'Python/3.7.2')
+from pathlib import Path
+home = str(Path.home())
+wavy_script_dir = home + '/wavy/wavy'
+sys.path.append(wavy_script_dir)
 
 from datetime import datetime, timedelta
 import numpy as np
@@ -87,11 +84,12 @@ else:
 grab_PID()
 basetime = datetime(1970,1,1)
 
-with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+with open( home + "/wavy/wavy/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
 for station in (station_dict):
-    cmd = ("python /home/patrikb/wavy/op/collect_model_at_location_bestguess.py"
+    cmd = ("python " + home 
+            + "/wavy/op/collect_model_at_location_bestguess.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr 
             + " -stat " + station

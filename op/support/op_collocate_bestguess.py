@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+from pathlib import Path
+home = str(Path.home())
+wavy_script_dir = home + '/wavy/wavy'
+sys.path.append(wavy_script_dir)
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(wavy_script_dir)
 
 from datetime import datetime, timedelta
 from satmod import satellite_altimeter as sa
@@ -15,10 +19,11 @@ import argparse
 from argparse import RawTextHelpFormatter
 from ncmod import get_nc_time, dumptonc_ts, check_vals_in_nc
 import yaml
-with open("/home/patrikb/wavy/wavy/model_specs.yaml", 'r') as stream:
+with open(home + "/wavy/config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..', 'config/variable_shortcuts.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '../..', 'config/variable_shortcuts.yaml'))
 with open(moddir,'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
 

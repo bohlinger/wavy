@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+from pathlib import Path
+home = str(Path.home())
+wavy_script_dir = home + '/wavy/wavy'
+sys.path.append(wavy_script_dir)
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
+sys.path.append(wavy_script_dir)
 
 import os
 from datetime import datetime, timedelta
