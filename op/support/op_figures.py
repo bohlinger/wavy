@@ -2,7 +2,6 @@
 from pathlib import Path
 home = str(Path.home())
 wavy_script_dir = home + '/wavy/wavy'
-sys.path.append(wavy_script_dir)
 import sys
 sys.path.append(wavy_script_dir)
 
