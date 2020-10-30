@@ -119,9 +119,7 @@ for sat in args.sat:
                 if ('vars' not in vars(sa_obj) or len(sa_obj.vars['time'])==0):
                     print("If possible proceed with another time step...")
                 else:
-                    d = model_dict[args.mod]['basetime']
                     # conversion from yaml-datetime.date to datetime.datetime
-                    basetime = datetime(d.year,d.month,d.day)
                     filename_ts = fc_date.strftime(args.mod
                                     + "_vs_" + sat
                                     + "_for_" + args.reg
