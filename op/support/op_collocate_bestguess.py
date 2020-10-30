@@ -1,30 +1,30 @@
 #!/usr/bin/env python
-from pathlib import Path
-home = str(Path.home())
-wavy_script_dir = home + '/wavy/wavy'
-import sys
-sys.path.append(wavy_script_dir)
-
 from datetime import datetime, timedelta
-from satmod import satellite_altimeter as sa
-from stationmod import station_class as sc
-from stationmod import matchtime
-from modelmod import get_model
-from collocmod import collocate
-from validationmod import validate
 from copy import deepcopy
-from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
-from ncmod import get_nc_time, dumptonc_ts, check_vals_in_nc
+import os
 import yaml
-with open(home + "/wavy/config/model_specs.yaml", 'r') as stream:
+import sys
+
+with open("../../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+wavy_dir = pathfinder['wavy_dir']
+sys.path.append(wavy_dir + '/wavy')
+
+with open(wavy_dir + "/config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../..', 'config/variable_shortcuts.yaml'))
 with open(moddir,'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
+
+from satmod import satellite_class as sa
+from modelmod import get_model
+from collocmod import collocate
+from utils import grab_PID
+from ncmod import dumptonc_ts
 
 # parser
 parser = argparse.ArgumentParser(

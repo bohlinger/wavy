@@ -9,20 +9,20 @@
 '''
 import sys
 import os
-from pathlib import Path
-home = str(Path.home())
-wavy_script_dir = home + '/wavy/wavy'
-sys.path.append(wavy_script_dir)
-
 from datetime import datetime, timedelta
 import numpy as np
 import time
-
 from copy import deepcopy
-from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 import yaml
+
+with open("../../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+wavy_dir = pathfinder['wavy_dir']
+sys.path.append(wavy_dir + '/wavy')
+
+from utils import grab_PID
 
 # parser
 parser = argparse.ArgumentParser(
@@ -84,12 +84,12 @@ else:
 grab_PID()
 basetime = datetime(1970,1,1)
 
-with open( home + "/wavy/wavy/station_specs.yaml", 'r') as stream:
+with open( wavy_dir + "/config/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
 for station in (station_dict):
-    cmd = ("python " + home 
-            + "/wavy/op/collect_model_at_location_bestguess.py"
+    cmd = ("python " + wavy_dir
+            + "/op/collect_model_at_location_bestguess.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr 
             + " -stat " + station

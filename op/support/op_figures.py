@@ -1,17 +1,20 @@
 #!/usr/bin/env python
-from pathlib import Path
-home = str(Path.home())
-wavy_script_dir = home + '/wavy/wavy'
-import sys
-sys.path.append(wavy_script_dir)
 
+import sys
 import os
 from datetime import datetime, timedelta
 from copy import deepcopy
-from graphicsmod import make_val_ts_fig_op, make_val_scatter_fig_op
-from ncmod import get_arcmfc_stats, get_arcmfc_ts
 import argparse
 from argparse import RawTextHelpFormatter
+import yaml
+
+with open("../../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+wavy_dir = pathfinder['wavy_dir']
+sys.path.append(wavy_dir + '/wavy')
+
+from graphicsmod import make_val_ts_fig_op, make_val_scatter_fig_op
+from ncmod import get_arcmfc_stats, get_arcmfc_ts
 
 # parser
 parser = argparse.ArgumentParser(
