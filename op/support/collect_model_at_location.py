@@ -15,12 +15,9 @@ import argparse
 from argparse import RawTextHelpFormatter
 import yaml
 
-with open("../../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-wavy_dir = pathfinder['wavy_dir']
-sys.path.append(wavy_dir + '/wavy')
+sys.path.append('../../wavy')
 
-with open(wavy_dir + "/config/station_specs.yaml", 'r') as stream:
+with open("../../config/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
 from modelmod import get_model, check_date

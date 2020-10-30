@@ -7,12 +7,9 @@ import os
 import yaml
 import sys
 
-with open("../../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-wavy_dir = pathfinder['wavy_dir']
-sys.path.append(wavy_dir + '/wavy')
+sys.path.append('../../wavy')
 
-with open(wavy_dir + "/config/model_specs.yaml", 'r') as stream:
+with open("../../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),

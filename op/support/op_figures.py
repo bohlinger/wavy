@@ -8,10 +8,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import yaml
 
-with open("../../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-wavy_dir = pathfinder['wavy_dir']
-sys.path.append(wavy_dir + '/wavy')
+sys.path.append('../../wavy')
 
 from graphicsmod import make_val_ts_fig_op, make_val_scatter_fig_op
 from ncmod import get_arcmfc_stats, get_arcmfc_ts

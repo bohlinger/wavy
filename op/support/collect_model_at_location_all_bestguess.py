@@ -17,10 +17,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import yaml
 
-with open("../../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-wavy_dir = pathfinder['wavy_dir']
-sys.path.append(wavy_dir + '/wavy')
+sys.path.append('../../wavy')
 
 from utils import grab_PID
 
@@ -84,12 +81,14 @@ else:
 grab_PID()
 basetime = datetime(1970,1,1)
 
-with open( wavy_dir + "/config/station_specs.yaml", 'r') as stream:
+with open("../../config/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
+op_support_path = os.path.abspath(os.path.dirname( __file__ ))
+
 for station in (station_dict):
-    cmd = ("python " + wavy_dir
-            + "/op/collect_model_at_location_bestguess.py"
+    cmd = ("python " + op_support_path
+            + "/collect_model_at_location_bestguess.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr 
             + " -stat " + station

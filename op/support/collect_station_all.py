@@ -10,12 +10,9 @@ import yaml
 import argparse
 from argparse import RawTextHelpFormatter
 
-with open("../../config/pathfinder.yaml", 'r') as stream:
-    pathfinder=yaml.safe_load(stream)
-wavy_dir = pathfinder['wavy_dir']
-sys.path.append(wavy_dir + '/wavy')
+sys.path.append(r'../../wavy')
 
-with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+with open("../../config/station_specs.yaml", 'r') as stream:
     station_specs=yaml.safe_load(stream)
 
 from utils import grab_PID
@@ -59,10 +56,13 @@ else:
 # retrieve PID
 grab_PID()
 
+op_support_path = os.path.abspath(os.path.dirname( __file__ ))
+
 # stations
 for station in station_specs.keys():
     for sensor in station_specs[station]['sensor'].keys():
-        cmdstr = ("python /home/patrikb/wavy/op/collect_station.py"
+        cmdstr = ("python " + op_support_path
+            + "/collect_station.py"
             + " -sd "
             + sdstr
             + " -ed "

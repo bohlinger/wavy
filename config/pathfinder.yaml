@@ -1,7 +1,5 @@
 --- # storage of important paths
 
-wavy_dir: /home/patrikb/wavy
-
 stationpath_lustre_om: /lustre/storeA/project/fou/om/waveverification/data/
 
 stationpath_lustre_hi: /lustre/storeA/project/fou/hi/waveverification/data/
