@@ -9,27 +9,25 @@
 '''
 import os
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
-#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
-#import python
-#python.module('load', 'compiler/intelPE2018')
-#python.module('load', 'hdf5/1.10.5-intel2018')
-#python.module('load', 'netcdf/4.7.0-intel2018')
-
-from modelmod import get_model, check_date
-from datetime import datetime, timedelta
-#from station_specs import station_dict
-from ncmod import dumptonc_ts_pos,check_vals_in_nc
 import numpy as np
-from stationmod import matchtime, get_loc_idx
 from copy import deepcopy
-from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 import yaml
 
-with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+with open("../../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+wavy_dir = pathfinder['wavy_dir']
+sys.path.append(wavy_dir + '/wavy')
+
+with open(wavy_dir + "/config/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
+
+from modelmod import get_model, check_date
+from datetime import datetime, timedelta
+from ncmod import dumptonc_ts_pos,check_vals_in_nc
+from stationmod import matchtime, get_loc_idx
+from utils import grab_PID
 
 # parser
 parser = argparse.ArgumentParser(

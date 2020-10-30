@@ -9,23 +9,20 @@
 '''
 import sys
 import os
-sys.path.append(r'/home/patrikb/wavy/wavy')
-#sys.path.append(os.getenv("HOME") + "/met-ecflow-support/lib/python")
-#import python
-#python.module('load', 'compiler/intelPE2018')
-#python.module('load', 'hdf5/1.10.5-intel2018')
-#python.module('load', 'netcdf/4.7.0-intel2018')
-#python.module('load', 'Python/3.7.2')
-
 from datetime import datetime, timedelta
 import numpy as np
 import time
-
 from copy import deepcopy
-from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 import yaml
+
+with open("../../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+wavy_dir = pathfinder['wavy_dir']
+sys.path.append(wavy_dir + '/wavy')
+
+from utils import grab_PID
 
 # parser
 parser = argparse.ArgumentParser(
@@ -79,11 +76,12 @@ else:
 # retrieve PID
 grab_PID()
 
-with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
+with open(wavy_dir + "/config/station_specs.yaml", 'r') as stream:
     station_dict=yaml.safe_load(stream)
 
 for station in (station_dict):
-    cmd = ("python /home/patrikb/wavy/op/collect_model_at_location.py"
+    cmd = ("python " + wavy_dir
+            + "/op/collect_model_at_location.py"
             + " -sd " + sdatestr
             + " -ed " + edatestr
             + " -station " + station 

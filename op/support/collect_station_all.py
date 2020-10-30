@@ -4,19 +4,21 @@
     - dump to netcdf
 '''
 import sys
-sys.path.append(r'/home/patrikb/wavy/wavy')
-sys.path.append(r'/home/patrikb/wavy/op')
-
 import os
 from datetime import datetime, timedelta
-
 import yaml
-from utils import grab_PID
 import argparse
 from argparse import RawTextHelpFormatter
 
+with open("../../config/pathfinder.yaml", 'r') as stream:
+    pathfinder=yaml.safe_load(stream)
+wavy_dir = pathfinder['wavy_dir']
+sys.path.append(wavy_dir + '/wavy')
+
 with open("/home/patrikb/wavy/wavy/station_specs.yaml", 'r') as stream:
     station_specs=yaml.safe_load(stream)
+
+from utils import grab_PID
 
 # parser
 parser = argparse.ArgumentParser(
