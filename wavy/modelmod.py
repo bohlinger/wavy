@@ -107,8 +107,9 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
             tmpstr = model_dict[model]['file_template']
             for i in range(model_dict[model]['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
-                replacestr=(filedate + 
-                            model_dict[model]['xtra_h'][i]).\
+                replacestr=(filedate 
+                            + timedelta(hours = \
+                                        model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
                 tmpstr.replace('filedate','',1)
             filename = tmpstr
