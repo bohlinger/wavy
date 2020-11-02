@@ -22,7 +22,7 @@ ARCMFC3:
     xtra_h: [0,6] # h adjustment according to position in filename
     nr_filedates: 2
     # defining format which substitutes filedate in file_template
-    filedate_formats: ['%Y%m%dT%H','%Y%m%dT%H']
+    filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
     init_times: [0,12]
     init_step: 12
     leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]

@@ -107,11 +107,11 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
             tmpstr = model_dict[model]['file_template']
             for i in range(model_dict[model]['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
-                replacestr=(filedate 
+                replacestr = (filedate \
                             + timedelta(hours = \
                                         model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
-                tmpstr.replace('filedate',replacestr,1)
+                tmpstr = tmpstr.replace('filedate',replacestr,1)
             filename = (filedate.strftime(model_dict[model]['path_template']) 
                         + tmpstr)
         else:
