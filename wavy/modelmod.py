@@ -111,7 +111,7 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
                             + timedelta(hours = \
                                         model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
-                tmpstr.replace('filedate','',1)
+                tmpstr.replace('filedate',replacestr,1)
             filename = tmpstr
         else:
             filedate = get_model_filedate(model,fc_date,leadtime)
