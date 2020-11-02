@@ -34,7 +34,7 @@ cd ~/wavy/wavy
 # to get help check
 ./download.py -h
 # then download some satellite altimeter data
-./download.py -sat s3a -sd 2020100100 -ed 2020101000
+./download.py -sat s3a -sd 2020110100 -ed 2020111000
 ```
 
 ### HELP
@@ -49,54 +49,54 @@ The script "check_sat.py" is designed to provide quick and easy access to inform
 1. browse for satellite data and show footprints on map for one time step:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -sd 2020010112 --show
+./check_sat.py -sat s3a -reg mwam4 -sd 2020110112 --show
 ```
 2. browse for satellite data and show footprints on map for time period:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -sd 2020010100 -ed 2020010300 --show
+./check_sat.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 --show
 ```
 3. same as above but now dump data to netcdf-file for further use and sharing
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -sd 2020010100 -ed 2020010300 -dump /home/patrikb/tmp_altimeter/quickdump/
+./check_sat.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/
 ```
 4. browse for satellite data, collocate and show footprints and model for one time step:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020010112 -lt 0 -twin 30 --col --show
+./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
 5. use multiple satellite missions in one line e.g. all of them:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020010112 -lt 30 -twin 30 --col --show
+./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 6. or list of stellites:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat multi -l s3a,c2,al -mod mwam4 -reg mwam4 -sd 2020010112 -lt 30 -twin 30 -col --show
+./check_sat.py -sat multi -l s3a,c2,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 -col --show
 ```
 
 ### Setup of operational usage: examples
 1. Collocation and systematically dump to netcdf-file:
 ```
 cd ~/wavy/op/support
-./op_collocate.py -sat s3a -mod mwam4 -sd 2020010100 -ed 2020011000 -path ~/tmp_validation/
+./op_collocate.py -sat s3a -mod mwam4 -sd 2020110100 -ed 2020111000 -path ~/tmp_validation/
 ```
 2. Validation and systematically dump to netcdf-file:
 ```
 cd ~/wavy/op/support
-./op_validate.py -sat s3a -mod mwam4 -sd 2020010200 -ed 2020011000 -path ~/tmp_validation/
+./op_validate.py -sat s3a -mod mwam4 -sd 2020110100 -ed 2020111000 -path ~/tmp_validation/
 ```
 3. Plotting basic validation figures:
 ```
 cd ~/wavy/op/support
-./op_figures.py -sat s3a -mod mwam4 -d 202001 -path ~/tmp_validation/
+./op_figures.py -sat s3a -mod mwam4 -d 202011 -path ~/tmp_validation/
 ```
 ### Creating of simple html file for publishing and/or sharing results
 ```
 cd ~/wavy/web/op
-sh webpage.sh -i ~/tmp_validation -w ~/wavy/web/op -m mwam4 -s s3a -Y 2020 -M 01
+sh webpage.sh -i ~/tmp_validation -w ~/wavy/web/op -m mwam4 -s s3a -Y 2020 -M 11
 ```
 Now, copy and paste the location of the index.html into your browser to test the html-page.
 
