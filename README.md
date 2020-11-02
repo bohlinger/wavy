@@ -27,6 +27,8 @@ https://help.github.com/en/articles/cloning-a-repository
 cd ~/wavy
 conda env create -f environment.yml
 ```
+Info on installing conda, e.g.:
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 4. Configuration files are organized under wavy/config and might need adjustments according to your plans. Examples are the locations of your wave model output files or observation data (e.g. satellite altimetry data)
 5. Prepare your wavy environment with providing the directories for satellite data and model data. Then download satellite data using the download.py script:
 ```
