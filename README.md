@@ -15,7 +15,10 @@ The collocation method follows Bohlinger et al. (2019): https://www.sciencedirec
 
 ## Getting Started
 ### Installing wavy with conda
-1. First download or clone the wavy github repository: https://github.com/bohlinger/wavy
+1. First download or clone the wavy github repository: 
+```
+git clone --single-branch --branch wavyMini https://github.com/bohlinger/wavy.git
+```
 Info on how-to clone a repository:
 https://help.github.com/en/articles/cloning-a-repository
 2. To make it consistent with the description in this README please use as target location your home directory e.g.: ~/wavy.
