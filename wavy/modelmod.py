@@ -112,7 +112,8 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
                                         model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
                 tmpstr.replace('filedate',replacestr,1)
-            filename = tmpstr
+            filename = (filedate.strftime(model_dict[model]['path_template']) 
+                        + tmpstr)
         else:
             filedate = get_model_filedate(model,fc_date,leadtime)
             filename = (
