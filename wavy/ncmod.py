@@ -612,9 +612,9 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
                            )
 
     # generate time for netcdf file
-    basetime=sa_obj.basetime
-    nctime.units = 'seconds since 2000-01-01 00:00:00'
-    nctime[:] = sa_obj.time
+    nctime.units = sa_obj.vars['time_unit']
+    nctime[:] = sa_obj.vars['time']
+    nctime.standard_name = 'time'
     ncHs.units = 'm'
     ncHs[:] = sa_obj.vars['sea_surface_wave_significant_height']
     ncHs.standard_name = 'sea_surface_wave_significant_height'
@@ -622,11 +622,11 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
         'Significant wave height estimate from altimeter wave form'
     ncHs.valid_range = 0., 25.
     nclongitude.units = 'degree_east'
-    nclongitude[:] = sa_obj.loc[1]
+    nclongitude[:] = sa_obj.vars['longitude']
     nclongitude.standard_name = 'longitude'
     nclongitude.valid_min = -180.
     nclongitude.valid_max = 180.
-    nclatitude[:] = sa_obj.loc[0]
+    nclatitude[:] = sa_obj.vars['latitude']
     nclatitude.standard_name = 'latitude'
     nclatitude.units = 'degree_north'
     nclatitude.valid_min = -90.
