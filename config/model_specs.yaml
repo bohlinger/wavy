@@ -44,7 +44,7 @@ ARCMFC3_hc:
                     hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
-    init_times: range(1,25,1)
+    init_times: 
     grid_date: 2020-02-01 00:00:00
 
 mwam3force:
