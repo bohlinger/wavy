@@ -1,89 +1,5 @@
 --- # wave model specifications
 
-ARCMFC3: 
-    vars:
-        Hs: VHM0
-        Tp: VTPK
-        Tm02: VTM02
-        Mdir: VMDR
-        Pdir: VPED
-        time: time
-    coords:
-        lons: lon
-        lats: lat
-    path_template: "/lustre/storeA/project/copernicus/sea/\
-                    mywavewam3/arctic/%Y/%m/"
-    # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
-    # - This is actually 2019071500_*_b20190715T00* but due
-    #   to delay the bulletin date/time is adjusted
-    # introduce the sub-string filedate into filename
-    # for each time a date should be replaced
-    file_template: "filedate_MyWaveWam3_bfiledate.nc"
-    xtra_h: [0,6] # h adjustment according to position in filename
-    nr_filedates: 2
-    # defining format which substitutes filedate in file_template
-    filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
-    init_times: [0,12]
-    init_step: 12
-    leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-    proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
-    grid_date: 2020-02-01 00:00:00
-
-ARCMFC3_hc:
-    vars:
-        Hs: VHM0
-        Tp: VTPK
-        Tm02: VTM02
-        Mdir: VMDR
-        Pdir: VPED
-        time: time
-    coords:
-        lons: lon
-        lats: lat
-    path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
-                    hindcastmywave3km_files/%Y/%m/"
-    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
-    proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
-    init_times: 
-    grid_date: 2020-02-01 00:00:00
-
-mwam3force:
-    vars:
-        U: Uwind
-        V: Vwind
-        time: time
-    coords:
-        lons: lon
-        lats: lat
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
-    file_template: "W3km_force_%Y%m%dT%HZ.nc"
-    init_times: [0,12]
-    init_step: 12
-    leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 \
-            +o_lat_p=25 +R=6.371e+06 +no_defs"
-    grid_date: 2020-02-01 00:00:00
-
-mwam3:
-    vars:
-        Hs: VHM0
-        time: time
-    coords:
-        lats: latitude
-        lons: longitude
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
-    file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
-    init_times: [0,12]
-    init_step: 12
-    leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
-            +o_lat_p=25 +R=6.371e+06 +no_defs"
-    grid_date: 2020-02-01 00:00:00
-
 mwam4:
     vars:
         Hs: hs
@@ -110,27 +26,7 @@ mwam4:
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
 
-mwam4force: 
-    vars:
-        u10: Uwind
-        v10: Vwind
-        time: time
-    coords:
-        lons: lon
-        lats: lat
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
-    file_template: "W4km_force_%Y%m%dT%HZ.nc"
-    init_times: [0,6,12,18]
-    init_step: 6
-    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
-            +o_lat_p=22 +R=6.371e+06 +no_defs"
-    grid_date: 2020-01-01 00:00:00
-
-
-ecwam: 
+ecwam_vietnam: 
     vars:
         Hs: significant_wave_height
         Mdir: wave_direction
@@ -147,42 +43,4 @@ ecwam:
     leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
-ww3: # WW3_4km
-    vars:
-        Hs: hs
-        time: time
-        Mdir: dir
-        Pdir: dp
-        Fp: fp
-        Tm01: t01
-        Tm02: t02
-    coords:
-        lons: longitude
-        lats: latitude
-    path_template: "/lustre/storeB/project/fou/om/op_test/WW3_4km_hist/\
-                    %Y/%m/%d/"
-    # ww3_20191225T12Z.nc
-    file_template: ww3_%Y%m%dT%HZ.nc
-    init_times: [0,6,12,18]
-    init_step: 6
-    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
-    _FillValue: 9.96921e+36
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
-            +o_lat_p=22 +R=6.371e+06 +no_defs"
-    grid_date: 2020-01-01 00:00:00
-
-NORA10:
-    vars:
-        Hs: significant_wave_height
-        time: time
-        Tp: peak_wave_period
-        Tm02: significant_wave_period # not sure if this corresponds to Tm02
-        Mdir: wave_direction
-        Pdir: peak_wave_direction
-    coords:
-        lons: longitude
-        lats: latitude
-    path_template: "/lustre/storeB/project/fou/om/NORA10/wave/"
-    file_template: "wam10_%Y.nc"
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
-                +o_lat_p=22 +a=6367470 +e=0"
+swan_vietnam:
