@@ -27,8 +27,7 @@ parser = argparse.ArgumentParser(
 Download satellite netcdf from Copernicus DU.
 
 Usage:
-./download.py
-./download.py -sat s3a -sd 2018110112 -ed 2018110118
+./download.py -sat s3a -sd 2020100100 -ed 2020101000
     """,
     formatter_class = RawTextHelpFormatter
     )
