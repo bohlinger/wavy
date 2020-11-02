@@ -28,6 +28,7 @@ https://help.github.com/en/articles/cloning-a-repository
 ```
 cd ~/wavy
 conda env create -f environment.yml
+conda activate wavy
 ```
 Info on installing conda, e.g.:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
