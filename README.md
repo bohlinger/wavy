@@ -99,10 +99,11 @@ cd ~/wavy/wavy
 ./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 (Caution: As for now, all chosen satellites should have some data, if not there will be an error)
+
 6. Or list of stellites:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat multi -l s3a,c2,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 -col --show
+./check_sat.py -sat multi -l s3a,c2,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 
 ### Setup of operational usage: examples
