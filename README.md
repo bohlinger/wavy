@@ -5,10 +5,10 @@ Patrik Bohlinger, Norwegian Meteorological Institute, patrikb@met.no
 
 ## Purpose
 Package to aid wave model validation using satellite altimetry and other sources. This README does not describe all functionalities but is tailored to the Vietnam workshop comprising:
-1. downloading satellite data
-2. quicklook examples
-3. usage examples on collocation and validation
-4. simple html setup with basic validation figures
+1. Downloading satellite data
+2. Quicklook examples
+3. Usage examples on collocation and validation
+4. Simple html setup with basic validation figures
 
 ## Additional info
 The collocation method follows Bohlinger et al. (2019): https://www.sciencedirect.com/science/article/pii/S1463500319300435. The satellite data is obtained from http://marine.copernicus.eu/services-portfolio/access-to-products/?option=com_csw&view=details&product_id=WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001. In the end of this exercise validation figures are produced comparable to https://cmems.met.no/ARC-MFC/Wave3kmValidation/2020-10/index.html.
@@ -37,11 +37,11 @@ https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 cd ~/wavy/wavy
 ```
 
-to get help check
+To get help check ...
 ```
 ./download.py -h
 ```
-then download some satellite altimeter data
+... then download some satellite altimeter data:
 ```
 ./download.py -sat s3a -sd 2020110100 -ed 2020111000
 ```
@@ -59,32 +59,33 @@ cd ~/wavy/wavy
 ```
 ### Quicklook examples
 The script "check_sat.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. 
-1. browse for satellite data and show footprints on map for one time step:
+1. Browse for satellite data and show footprints on map for one time step:
 ```
 cd ~/wavy/wavy
 ./check_sat.py -sat s3a -reg mwam4 -sd 2020110112 --show
 ```
-2. browse for satellite data and show footprints on map for time period:
+2. Browse for satellite data and show footprints on map for time period:
 ```
 cd ~/wavy/wavy
 ./check_sat.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 --show
 ```
-3. same as above but now dump data to netcdf-file for further use and sharing
+3. Same as above but now dump data to netcdf-file for further use and sharing
 ```
 cd ~/wavy/wavy
 ./check_sat.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/
 ```
-4. browse for satellite data, collocate and show footprints and model for one time step:
+4. Browse for satellite data, collocate and show footprints and model for one time step:
 ```
 cd ~/wavy/wavy
 ./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
-5. use multiple satellite missions in one line e.g. all of them:
+5. Use multiple satellite missions in one line e.g. all of them:
 ```
 cd ~/wavy/wavy
 ./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
-6. or list of stellites:
+(Caution: As for now, all chosen satellites should have some data, if not there will be an error)
+6. Or list of stellites:
 ```
 cd ~/wavy/wavy
 ./check_sat.py -sat multi -l s3a,c2,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 -col --show
