@@ -16,7 +16,13 @@ ARCMFC3:
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
-    file_template: "%Y%m%dT%H_MyWaveWam3_b%Y%m%dT%H.nc"
+    # introduce the sub-string filedate into filename
+    # for each time a date should be replaced
+    file_template: "filedate_MyWaveWam3_bfiledate.nc"
+    xtra_h: [0,6] # h adjustment according to position in filename
+    nr_filedates: 2
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%dT%H','%Y%m%dT%H']
     init_times: [0,12]
     init_step: 12
     leadtimes: [0, 12, 36, 60, 84, 108, 132, 156, 180, 204, 228]
@@ -38,6 +44,7 @@ ARCMFC3_hc:
                     hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
     proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
+    init_times: range(1,25,1)
     grid_date: 2020-02-01 00:00:00
 
 mwam3force:
