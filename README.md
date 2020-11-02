@@ -95,11 +95,12 @@ cd ~/wavy/op/support
 cd ~/wavy/web/op
 sh webpage.sh -i ~/tmp_validation -w ~/wavy/web/op -m mwam4 -s s3a -Y 2020 -M 01
 ```
+Now, copy and paste the location of the index.html into your browser to test the html-page.
 
 ### Exercises
-1. Exercise 1:
+1. Exercise:
 Add your own altimeter directory and wave model to wavy.
-2. Exercise 2:
+2. Exercise:
 Try to execute these commands using your own wave model.
-3. Exercise 3:
+3. Exercise:
 Make your own html example using wavy.
