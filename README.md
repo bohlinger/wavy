@@ -48,11 +48,15 @@ then download some satellite altimeter data
 
 ### HELP
 Executable files usually have help function which can be read using e.g.:
+```
 ./{YourExecutable}.py -h
+```
+
 e.g.:
+```
 cd ~/wavy/wavy
 ./download.py -h
-
+```
 ### Quicklook examples
 The script "check_sat.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. 
 1. browse for satellite data and show footprints on map for one time step:
