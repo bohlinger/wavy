@@ -105,7 +105,7 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
         if 'xtra_h' in model_dict[model]:
             filedate = get_model_filedate(model,fc_date,leadtime)
             tmpstr = model_dict[model]['file_template']
-            for i in range(mode_dict['nr_filedates']):
+            for i in range(model_dict['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
                 replacestr=(filedate + 
                             model_dict[model]['xtra_h'][i]).\
