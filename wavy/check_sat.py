@@ -106,6 +106,7 @@ if args.sat == 'all':
             var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
             time.append(sa_obj.vars['time'])
         except:
+            print(sat + ' not available')
             pass
     lats = flatten(lats)
     lons = flatten(lons)
@@ -118,7 +119,6 @@ if args.sat == 'all':
     sa_obj.region = args.reg
     sa_obj.sat = str(satlist)
 elif args.sat == 'multi':
-    #satlist = [int(item) for item in args.list.split(',')]
     satlist = args.l.split(',')
     lats = []
     lons = []

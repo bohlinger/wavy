@@ -582,7 +582,7 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
                     fullpath,mode='w',
                     )
     nc.title = sa_obj.sat + ' altimeter significant wave height'
-    timerange=len(sa_obj.Hs)
+    timerange=len(sa_obj.vars['time'])
     dimsize = None
     # dimensions
     dimtime = nc.createDimension(
@@ -616,7 +616,7 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
     nctime.units = 'seconds since 2000-01-01 00:00:00'
     nctime[:] = sa_obj.time
     ncHs.units = 'm'
-    ncHs[:] = sa_obj.Hs
+    ncHs[:] = sa_obj.vars['sea_surface_wave_significant_height']
     ncHs.standard_name = 'sea_surface_wave_significant_height'
     ncHs.long_name = \
         'Significant wave height estimate from altimeter wave form'
