@@ -28,16 +28,13 @@ mwam4:
 
 ecwam_vietnam: 
     vars:
-        Hs: significant_wave_height
-        Mdir: wave_direction
-        Tp: peak_wave_period
-        Tm02: mean_wave_period
+        Hs: sea_surface_wave_significant_height
         time: time
     coords:
         lons: longitude
         lats: latitude
-    path_template: "/vol/data/ec/"
-    file_template: "ecwam_%Y%m%dT%HZ.nc"
+    path_template: "/home/patrikb/Documents/Vietnam/%Y/"
+    file_template: "vietnam_wave_%Y%m%d_%H.nc"
     init_times: [0,12]
     init_step: 12
     leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
