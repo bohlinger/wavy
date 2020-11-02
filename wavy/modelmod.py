@@ -102,13 +102,14 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
     creates/returns filename based on fc_date,init_date,leadtime
     """
     if model in model_dict:
-        if xtra_h in model_dict[model]:
+        if 'xtra_h' in model_dict[model]:
             filedate = get_model_filedate(model,fc_date,leadtime)
             tmpstr = model_dict[model]['file_template']
             for i in range(mode_dict['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
                 replacestr=(filedate + 
-                            model_dict[model][xtra_h][i]).strftime(filedatestr)
+                            model_dict[model]['xtra_h'][i]).\
+                            strftime(filedatestr)
                 tmpstr.replace('filedate','',1)
             filename = tmpstr
         else:
