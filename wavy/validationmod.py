@@ -202,10 +202,10 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
         lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
     elif sa_obj.region in model_dict:
         # model bounds
-        latmin = np.min(Mlons)
+        latmin = np.min(Mlats)
         latmax = np.max(Mlats)
         lonmin = np.min(Mlons)
-        lonmax = np.max(Mlats)
+        lonmax = np.max(Mlons)
     else: print("Error: Region not defined!")
 
     projection = ccrs.Mercator(
