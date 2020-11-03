@@ -7,7 +7,7 @@ dependencies:
   - numpy>=1.15.4
   - scipy>=1.2.0
   - netCDF4
-  - yaml
+  - pyyaml
   - pyproj>=2.3
   - cartopy>=0.18.0
   - cmocean
