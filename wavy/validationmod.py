@@ -200,6 +200,12 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
         latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
         lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
         lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+    elif sa_obj.region in model_dict:
+        # model bounds
+        latmin = np.min(Mlons)
+        latmax = np.max(Mlats)
+        lonmin = np.min(Mlons)
+        lonmax = np.max(Mlats)
     else: print("Error: Region not defined!")
 
     projection = ccrs.Mercator(
@@ -284,7 +290,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
-                        fraction=0.04, pad=0.04)
+                        fraction=0.035, pad=0.04)
     cbar.ax.set_ylabel(var + ' [m]',size=fs)
     cbar.ax.tick_params(labelsize=fs)
 
@@ -416,8 +422,8 @@ def plot_sat(sa_obj,var,path=None):
 
     # colors
     cmap = cmocean.cm.amp
-    levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,
-                    3,3.5,4,4.5,6,7,8,9,10,12,15,20]
+    levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
     # draw figure features
@@ -467,7 +473,7 @@ def plot_sat(sa_obj,var,path=None):
             )
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.04, pad=0.04)
+                        fraction=0.035, pad=0.04)
     cbar.ax.set_ylabel(var + ' [m]')
     cbar.ax.tick_params(labelsize=fs)
 

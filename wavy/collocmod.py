@@ -159,6 +159,8 @@ def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
     sat_rval = np.array(sa_obj.vars[var])[cidx]
     # flatten numpy arrays
     model_rval = model_val.squeeze().flatten()
+    if (len(model_lons.shape)==1):
+        model_lons, model_lats = np.meshgrid(model_lons,model_lats)
     model_rlons = model_lons.flatten()
     model_rlats = model_lats.flatten()
     # moving window compensating for increasing latitudes
