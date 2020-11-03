@@ -39,5 +39,19 @@ ecwam_vietnam:
     init_step: 12
     leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
     proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2020-11-01 12:00:00
 
 swan_vietnam:
+    vars:
+        Hs: hs
+        time: time
+    coords:
+        lons: longitude
+        lats: latitude
+    path_template: "/home/patrikb/Documents/Vietnam/%Y/"
+    file_template: "SWAN%Y%m%d%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2020-11-03 12:00:00
