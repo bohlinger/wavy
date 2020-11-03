@@ -114,11 +114,10 @@ cd ~/wavy/wavy
 ./download.py -sat h3b -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat cfo -sd 2020103000 -ed 2020111000 -nproc 2
 ```
-Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute check_sat.py:
+Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute check_sat.py while altering the leadtime (-lt) and time constraints (-twin):
 ```
-./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
+./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 60 --col --show
 ```
-(Caution: As for now, all chosen satellites should have some data, if not there will be an error)
 
 6. Or list of satellites:
 ```
