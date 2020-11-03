@@ -112,7 +112,9 @@ cd ~/wavy/wavy
 ./download.py -sat s3b -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat al -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat h3b -sd 2020103000 -ed 2020111000 -nproc 2
-# The delivery of files from j3 and c2 is temporarily interupted
+```
+Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute check_sat.py:
+```
 ./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 (Caution: As for now, all chosen satellites should have some data, if not there will be an error)
