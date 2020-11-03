@@ -112,6 +112,7 @@ cd ~/wavy/wavy
 ./download.py -sat s3b -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat al -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat h3b -sd 2020103000 -ed 2020111000 -nproc 2
+./download.py -sat cfo -sd 2020103000 -ed 2020111000 -nproc 2
 ```
 Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute check_sat.py:
 ```
