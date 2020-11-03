@@ -375,22 +375,24 @@ def plot_sat(sa_obj,var,path=None):
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
 
     # plot model domain if region is a model domain
-    if (sa_obj.region in model_dict 
+    if (sa_obj.region in model_dict
     and len(model_var_dict['model_lats'].shape)==1):
-        ax.plot(model_var_dict['model_lons'][0], 
+        lenlons = len(model_var_dict['model_lons'][:])
+        lenlats = len(model_var_dict['model_lats'][:])
+        ax.plot([model_var_dict['model_lons'][0]]*lenlats,    
                 model_var_dict['model_lats'][:], '-', 
                 transform = ccrs.PlateCarree(), 
                 color = 'gray', linewidth = 2)
         ax.plot(model_var_dict['model_lons'][:], 
-                model_var_dict['model_lats'][-1], '-', 
+                [model_var_dict['model_lats'][-1]]*lenlons, '-',    
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][-1], 
+        ax.plot([model_var_dict['model_lons'][-1]]*lenlats,      
                 model_var_dict['model_lats'][::-1], '-', 
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
         ax.plot(model_var_dict['model_lons'][::-1], 
-                model_var_dict['model_lats'][0], '-', 
+                [model_var_dict['model_lats'][0]]*lenlons, '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
     if (sa_obj.region in model_dict 
