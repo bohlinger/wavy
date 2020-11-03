@@ -23,7 +23,9 @@ git clone --single-branch --branch wavyMini https://github.com/bohlinger/wavy.gi
 ```
 Info on how-to clone a repository:
 https://help.github.com/en/articles/cloning-a-repository
+
 2. To make it consistent with the description in this README please use as target location your home directory e.g.: ~/wavy.
+
 3. Install wavy using conda using the environment.yml like:
 ```
 cd ~/wavy
