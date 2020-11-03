@@ -35,9 +35,14 @@ conda activate wavy
 Info on installing conda, e.g.:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
-4. Configuration files are organized under wavy/config and might need adjustments according to your plans. Examples are the locations of your wave model output files or observation data (e.g. satellite altimetry data)
+4. Configuration files are organized under wavy/config and might need adjustments according to your plans. Examples are the locations of your wave model output files or observation data (e.g. satellite altimetry data). What is needed for this workshop is shown below.
 
-5. Prepare your wavy environment with providing the directories for satellite data and model data. There are multiple config files but we only need to worry about a few for now. Explore the config file for satellites like this:
+5. Prepare access to Copernicus products. Enter your account credentials into the .netrc-file. Your .netrc should look something like:
+```
+machine nrt.cmems-du.eu    login {USER}  password {PASSWORD}
+```
+
+6. Prepare your wavy environment with providing the directories for satellite data and model data. There are multiple config files but we only need to worry about a few for now. Explore the config file for satellites like this:
 ```
 cd ~/wavy/config
 vim satellite_specs.yaml
@@ -60,7 +65,7 @@ To get help check ...
 ```
 ... then download some satellite altimeter data:
 ```
-./download.py -sat s3a -sd 2020110100 -ed 2020111000
+./download.py -sat s3a -sd 2020103000 -ed 2020111000
 ```
 
 ### HELP
@@ -76,6 +81,11 @@ cd ~/wavy/wavy
 ```
 ### Quicklook examples
 The script "check_sat.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. 
+0. Checkout the help:
+```
+cd ~/wavy/wavy
+./check_sat.py -h
+```
 1. Browse for satellite data and show footprints on map for one time step:
 ```
 cd ~/wavy/wavy
@@ -96,17 +106,21 @@ cd ~/wavy/wavy
 cd ~/wavy/wavy
 ./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
-5. Use multiple satellite missions in one line e.g. all of them:
+5. Use multiple satellite missions in one line e.g. all of them. First download the data. This time use the key "-nproc" to speed up the downloading.
 ```
 cd ~/wavy/wavy
+./download.py -sat s3b -sd 2020103000 -ed 2020111000 -nproc 2
+./download.py -sat al -sd 2020103000 -ed 2020111000 -nproc 2
+./download.py -sat h3b -sd 2020103000 -ed 2020111000 -nproc 2
+# The delivery of files from j3 and c2 is temporarily interupted
 ./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 (Caution: As for now, all chosen satellites should have some data, if not there will be an error)
 
-6. Or list of stellites:
+6. Or list of satellites:
 ```
 cd ~/wavy/wavy
-./check_sat.py -sat multi -l s3a,c2,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
+./check_sat.py -sat multi -l s3a,s3b,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 
 ### Setup of operational usage: examples
@@ -134,8 +148,20 @@ Now, copy and paste the location of the index.html into your browser to test the
 
 ### Exercises
 1. Exercise:
-Add your own altimeter directory and wave model to wavy.
+Add your own wave model to wavy. I already added the ecwam example, now add your SWAN model. This is done in the config file for models:
+```
+cd ~/wavy/config
+vim model_specs.yaml
+```
 2. Exercise:
-Try to execute these commands using your own wave model.
+Try to execute the above described steps (quicklook and operational examples) using your own wave model.
+
 3. Exercise:
-Make your own html example using wavy.
+Make your own html example using wavy. Add some describing text and use figures for your own wave model.
+
+4. Add a preferred region for validation. Here the following config file for region specification is important:
+```
+cd ~/wavy/config
+vim region_specs.yaml
+```
+In this file, either a regular region (lat/lon) or a polygon can be defined.
