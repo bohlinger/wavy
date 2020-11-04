@@ -250,11 +250,11 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     # plot lats/lons
     gridcolor = 'gray'
-    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+    gl = ax.gridlines(draw_labels=True, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
-    gl.bottom_labels = True
-    gl.left_lables = True
+    gl.top_labels = False
+    gl.right_lables = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': fs, 'color': gridcolor}
@@ -329,7 +329,7 @@ def plot_sat(sa_obj,var,path=None):
         from modelmod import get_model
         grid_date = model_dict[sa_obj.region]['grid_date']
         model_var_dict = \
-                get_model(model=sa_obj.region, fc_date=grid_date)
+                get_model(model=sa_obj.region,fc_date=grid_date)
     # check region and determine projection
     if (sa_obj.region == 'global' 
         or (sa_obj.region in region_dict['rect'] 
@@ -378,7 +378,7 @@ def plot_sat(sa_obj,var,path=None):
     if 'polarproj' not in locals():
         ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
     else:
-        ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
+        ax.set_extent([-180, 180,-90, 90],crs = ccrs.PlateCarree())
 
     # plot model domain if region is a model domain
     if (sa_obj.region in model_dict
@@ -432,11 +432,11 @@ def plot_sat(sa_obj,var,path=None):
 
     # plot lats/lons
     gridcolor = 'gray'
-    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+    gl = ax.gridlines(draw_labels=True, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
-    gl.bottom_labels = True
-    gl.left_labels = True
+    gl.top_labels = False
+    gl.right_labels = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': fs, 'color': gridcolor}
