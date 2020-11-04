@@ -231,6 +231,13 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
 
+    # plot polygon if defined
+    if sa_obj.region in region_dict['poly']:
+        ax.plot(region_dict['poly'][sa_obj.region]['lons'],
+                region_dict['poly'][sa_obj.region]['lats'], 
+                '-', transform= ccrs.PlateCarree(), 
+                color = 'gray', linewidth =2)
+
     # colors
     if mode == 'dir':
         cmap = cmocean.cm.phase
@@ -419,6 +426,13 @@ def plot_sat(sa_obj,var,path=None):
                 model_var_dict['model_lats'][:,-1], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
+
+    # plot polygon if defined
+    if sa_obj.region in region_dict['poly']:
+        ax.plot(region_dict['poly'][sa_obj.region]['lons'],
+                region_dict['poly'][sa_obj.region]['lats'], 
+                '-', transform= ccrs.PlateCarree(),
+                color = 'gray', linewidth =2)
 
     # colors
     cmap = cmocean.cm.amp

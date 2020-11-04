@@ -166,4 +166,4 @@ Make your own html example using wavy. Add some describing text and use figures 
 cd ~/wavy/config
 vim region_specs.yaml
 ```
-In this file, either a regular region (lat/lon) or a polygon can be defined.
+In this file, either a regular region (lat/lon) or a polygon can be defined. Caution: when defining a polygon, the order of nodes is important.
