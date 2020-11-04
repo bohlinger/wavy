@@ -164,7 +164,6 @@ def validate(results_dict,boot=None):
     return validation_dict
 
 def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
-
     # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -238,7 +237,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
         levels = range(0,360,10)
         norm = mpl.colors.BoundaryNorm(levels, cmap.N)
     else:
-        #cmap = mplcm.GMT_haxby
+        # cmap = mplcm.GMT_haxby
         cmap = cmocean.cm.amp
         levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
@@ -254,7 +253,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
     gl.top_labels = False
-    gl.right_lables = False
+    gl.right_labels = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': fs, 'color': gridcolor}
@@ -313,6 +312,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     plt.show()
 
 def plot_sat(sa_obj,var,path=None):
+    # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
