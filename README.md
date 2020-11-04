@@ -125,6 +125,11 @@ cd ~/wavy/wavy
 ./check_sat.py -sat multi -l s3a,s3b,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 
+7. Now concentrate on a subregion of your model domain by specifiying a region different from the model domain. The subregion is defined in region_specs.yaml.
+```
+cd ~/wavy/wavy
+./check_sat.py -sat s3a -reg NorwegianSea -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
+```
 ### Setup of operational usage: examples
 1. Collocation and systematically dump to netcdf-file:
 ```
