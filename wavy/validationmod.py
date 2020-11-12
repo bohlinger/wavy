@@ -320,7 +320,7 @@ path=None,**kwargs):
             plons.append(kwargs['poi'][poi]['lon'])
         scp = ax.scatter(plons,plats,s=20, c='b',
                 marker = 'x',transform = ccrs.PlateCarree())
-        for n in len(names):
+        for n in range(len(names)):
             ax.annotate(names[n], (plons[n], plats[n]))
 
     # - colorbar
