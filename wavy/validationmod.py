@@ -520,12 +520,18 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
 
     # - point of interests
     if 'poi' in kwargs.keys():
+        names=[]
+        plons=[]
+        plats=[]
         for poi in kwargs['poi']:
-            names = poi
-            plats = kwargs['poi'][poi]['lat']
-            plons = kwargs['poi'][poi]['lon']
-        scp = ax.scatter(plons,plats,s=10, c='k',
+            names.append(poi)
+            plats.append(kwargs['poi'][poi]['lat'])
+            plons.append(kwargs['poi'][poi]['lon'])
+        scp = ax.scatter(plons,plats,s=20, c='b',
                 marker = 'x',transform = ccrs.PlateCarree())
+        for n in range(len(names)):
+            ax.text(plons[n], plats[n], names[n],
+                    transform = ccrs.PlateCarree())
 
     # - plot polygon
     if sa_obj.region in region_dict['poly']:
