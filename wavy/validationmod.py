@@ -315,8 +315,10 @@ path=None,**kwargs):
             names = poi
             plats = kwargs['poi'][poi]['lat']
             plons = kwargs['poi'][poi]['lon']
-        scp = ax.scatter(plons,plats,s=10, c='k',
+        scp = ax.scatter(plons,plats,s=20, c='b',
                 marker = 'x',transform = ccrs.PlateCarree())
+        for n in len(names):
+            ax.annotate(names[i], (plons[n], lats[n]))
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
