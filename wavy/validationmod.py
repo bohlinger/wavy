@@ -321,11 +321,12 @@ path=None,**kwargs):
         scp = ax.scatter(plons,plats,s=20, c='b',
                 marker = 'x',transform = ccrs.PlateCarree())
         for n in range(len(names)):
-            ax.annotate(names[n], (plons[n], plats[n]))
+            ax.text(plons[n], plats[n], names[n], 
+                    transform = ccrs.PlateCarree())
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
-                        fraction=0.035, pad=0.04, extend = extend)
+                        fraction=0.035, pad=0.04)
     cbar.ax.set_ylabel(var + ' [m]',size=fs)
     cbar.ax.tick_params(labelsize=fs)
 
@@ -535,7 +536,7 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
             )
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.035, pad=0.04, extend = extend)
+                        fraction=0.035, pad=0.04)
     cbar.ax.set_ylabel(var + ' [m]')
     cbar.ax.tick_params(labelsize=fs)
 
