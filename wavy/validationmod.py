@@ -321,7 +321,7 @@ path=None,**kwargs):
         scp = ax.scatter(plons,plats,s=20, c='b',
                 marker = 'x',transform = ccrs.PlateCarree())
         for n in len(names):
-            ax.annotate(names[i], (plons[n], lats[n]))
+            ax.annotate(names[n], (plons[n], plats[n]))
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
