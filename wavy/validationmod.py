@@ -249,14 +249,14 @@ path=None,**kwargs):
         levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 
-    if cmap in kwargs.keys():
+    if 'cmap' in kwargs.keys():
         cmap = kwargs['cmap']
-    if levels in kwargs.keys():
+    if 'levels' in kwargs.keys():
         levels = kwargs['levels']
-    if scl in kwargs.keys():
+    if 'scl' in kwargs.keys():
         scl = kwargs['scl']
     else: scl = 18
-    if icl in kwargs.keys():
+    if 'icl' in kwargs.keys():
         icl = kwargs['icl']
     else: icl = 1
 
@@ -451,9 +451,9 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
     levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 
-    if cmap in kwargs.keys():
+    if 'cmap' in kwargs.keys():
         cmap = kwargs['cmap']
-    if levels in kwargs.keys():
+    if 'levels' in kwargs.keys():
         levels = kwargs['levels']
 
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
