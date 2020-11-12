@@ -309,6 +309,15 @@ path=None,**kwargs):
                 cmap = cmocean.cm.amp, norm = norm, 
                 transform = ccrs.PlateCarree())
 
+    # - point of interests
+    if 'poi' in kwargs.keys():
+        for poi in kwargs['poi']:
+            names = poi
+            plats = kwargs['poi'][poi]['lat']
+            plons = kwargs['poi'][poi]['lon']
+        scp = ax.scatter(plons,plats,s=10, c='k',
+                marker = 'x',transform = ccrs.PlateCarree())
+
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
                         fraction=0.035, pad=0.04, extend = extend)
@@ -502,6 +511,16 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
                 marker='o', edgecolor = 'face',
                 cmap = cmocean.cm.amp, norm = norm,
                 transform = ccrs.PlateCarree())
+
+    # - point of interests
+    if 'poi' in kwargs.keys():
+        for poi in kwargs['poi']:
+            names = poi
+            plats = kwargs['poi'][poi]['lat']
+            plons = kwargs['poi'][poi]['lon']
+        scp = ax.scatter(plons,plats,s=10, c='k',
+                marker = 'x',transform = ccrs.PlateCarree())
+
     # - plot polygon
     if sa_obj.region in region_dict['poly']:
         ax.plot(
