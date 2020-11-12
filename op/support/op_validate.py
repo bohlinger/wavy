@@ -54,7 +54,7 @@ if args.mod is None:
 if args.sat is None:
     args.sat = ['s3a']
 elif args.sat == "all":
-    args.sat = ['s3a','s3b','c2','j3','al','cfo']
+    args.sat = ['s3a','s3b','c2','j3','al','cfo','h2b']
 else: args.sat = [args.sat]
 
 if args.reg is None:
