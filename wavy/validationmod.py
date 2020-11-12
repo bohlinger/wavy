@@ -261,6 +261,9 @@ path=None,**kwargs):
     else: icl = 1
 
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+    extend = 'neither'
+    if 'extend' in kwargs.keys():
+        extend = kwargs['extend']
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -281,7 +284,7 @@ path=None,**kwargs):
     # - model contours
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
                     transform = ccrs.PlateCarree(), 
-                    cmap = cmocean.cm.amp, norm = norm)
+                    cmap = cmocean.cm.amp, norm = norm, extend = extend)
 
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[scl::icl],
                     transform = ccrs.PlateCarree(), 
@@ -302,13 +305,13 @@ path=None,**kwargs):
     if len(clats)>0:
         sc = ax.scatter(clons,clats,s=10,
                 c=results_dict['sat_matches'],
-                marker='o', edgecolor = 'face',
-                cmap=cmocean.cm.amp, norm = norm, 
-                transform=ccrs.PlateCarree())
+                marker = 'o', edgecolor = 'face',
+                cmap = cmocean.cm.amp, norm = norm, 
+                transform = ccrs.PlateCarree())
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
-                        fraction=0.035, pad=0.04)
+                        fraction=0.035, pad=0.04, extend = extend)
     cbar.ax.set_ylabel(var + ' [m]',size=fs)
     cbar.ax.tick_params(labelsize=fs)
 
@@ -457,6 +460,9 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
         levels = kwargs['levels']
 
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+    extend = 'neither'
+    if 'extend' in kwargs.keys():
+        extend = kwargs['extend']
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -494,8 +500,8 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
     # - add satellite
     sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[var],
                 marker='o', edgecolor = 'face',
-                cmap=cmocean.cm.amp, norm = norm,
-                transform=ccrs.PlateCarree())
+                cmap = cmocean.cm.amp, norm = norm,
+                transform = ccrs.PlateCarree())
     # - plot polygon
     if sa_obj.region in region_dict['poly']:
         ax.plot(
@@ -505,7 +511,7 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
             )
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.035, pad=0.04)
+                        fraction=0.035, pad=0.04, extend = extend)
     cbar.ax.set_ylabel(var + ' [m]')
     cbar.ax.tick_params(labelsize=fs)
 
