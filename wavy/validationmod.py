@@ -311,10 +311,13 @@ path=None,**kwargs):
 
     # - point of interests
     if 'poi' in kwargs.keys():
+        names=[]
+        plons=[]
+        plats=[]
         for poi in kwargs['poi']:
-            names = poi
-            plats = kwargs['poi'][poi]['lat']
-            plons = kwargs['poi'][poi]['lon']
+            names.append(poi)
+            plats.append(kwargs['poi'][poi]['lat'])
+            plons.append(kwargs['poi'][poi]['lon'])
         scp = ax.scatter(plons,plats,s=20, c='b',
                 marker = 'x',transform = ccrs.PlateCarree())
         for n in len(names):
