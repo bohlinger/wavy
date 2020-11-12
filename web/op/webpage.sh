@@ -52,8 +52,6 @@ scatterImg1=${Imgpath}${mod}_vs_${sat}_for_${reg}_fig_val_scatter_lt000h_${YEAR}
 scatterImg2=${Imgpath}${mod}_vs_${sat}_for_${reg}_fig_val_scatter_lt024h_${YEAR}${MONTH}.png
 scatterImg3=${Imgpath}${mod}_vs_${sat}_for_${reg}_fig_val_scatter_lt048h_${YEAR}${MONTH}.png
 
-echo $madImg
-
 # Create html document:
 htmlFile=${web}/index.html
 
