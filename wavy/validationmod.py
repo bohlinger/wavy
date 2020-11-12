@@ -163,7 +163,8 @@ def validate(results_dict,boot=None):
         validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,
+path=None,**kwargs):
     # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -242,13 +243,24 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     if mode == 'dir':
         cmap = cmocean.cm.phase
         levels = range(0,360,10)
-        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
     else:
         # cmap = mplcm.GMT_haxby
         cmap = cmocean.cm.amp
         levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+
+    if cmap in kwargs.keys():
+        cmap = kwargs['cmap']
+    if levels in kwargs.keys():
+        levels = kwargs['levels']
+    if scl in kwargs.keys():
+        scl = kwargs['scl']
+    else: scl = 18
+    if icl in kwargs.keys():
+        icl = kwargs['icl']
+    else: icl = 1
+
+    norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -271,7 +283,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
                     transform = ccrs.PlateCarree(), 
                     cmap = cmocean.cm.amp, norm = norm)
 
-    imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
+    imc = ax.contour(Mlons, Mlats, mhs, levels = levels[scl::icl],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linewidths = 0.3)
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
@@ -318,7 +330,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
                 + 'Z.png', format = 'png', dpi=200)
     plt.show()
 
-def plot_sat(sa_obj,var,path=None):
+def plot_sat(sa_obj,var,path=None,**kwargs):
     # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -438,6 +450,12 @@ def plot_sat(sa_obj,var,path=None):
     cmap = cmocean.cm.amp
     levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+
+    if cmap in kwargs.keys():
+        cmap = kwargs['cmap']
+    if levels in kwargs.keys():
+        levels = kwargs['levels']
+
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
     # draw figure features
