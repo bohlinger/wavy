@@ -199,8 +199,6 @@ def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
        - if not create file
     """
     time_dt = results_dict['date_matches']
-    # create time vector in seconds since first date
-    time = netCDF4.date2num(time_dt, model_time_unit)
     mHs = results_dict['model_matches']
     mlons = results_dict['model_lons_matches']
     mlats = results_dict['model_lats_matches']
@@ -216,6 +214,9 @@ def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
                         fullpath,mode='a',
                         clobber=False
                         )
+        # create time vector in seconds since first date
+        model_time_unit = nc.variables['time'].units
+        time = netCDF4.date2num(time_dt, model_time_unit)
         # variables
         #ncrtime=nc.variables['rtime'][:]
         startidx = len(nc['time'])
@@ -229,6 +230,8 @@ def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
         nc.variables['slats'][startidx:endidx] = slats[:]
         nc.variables['dists'][startidx:endidx] = dists[:]
     else:
+        # create time vector in seconds since first date
+        time = netCDF4.date2num(time_dt, model_time_unit)
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
