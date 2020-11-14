@@ -97,14 +97,19 @@ if args.sat == 'all':
     lons = []
     var = []
     time = []
+    sats = []
     for sat in satlist:
         try:
-            sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
-                    region=args.reg,varlst=varlst)
-            lats.append(sa_obj.vars['latitude'])
-            lons.append(sa_obj.vars['longitude'])
-            var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
-            time.append(sa_obj.vars['time'])
+            sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+                            region=args.reg,varlst=varlst)
+            if ('vars' in vars(sa_obj_tmp).keys()
+            and len(sa_obj_tmp.vars['time'])>0):
+                sa_obj = sa_obj_tmp
+                lats.append(sa_obj.vars['latitude'])
+                lons.append(sa_obj.vars['longitude'])
+                var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
+                time.append(sa_obj.vars['time'])
+                sats.append(sat)
         except:
             print(sat + ' not available')
             pass
@@ -117,21 +122,26 @@ if args.sat == 'all':
     sa_obj.vars[shortcuts_dict[varlst[0]]] = np.array(var)
     sa_obj.vars['time'] = time
     sa_obj.region = args.reg
-    sa_obj.sat = str(satlist)
+    sa_obj.sat = str(sats)
 elif args.sat == 'multi':
     satlist = args.l.split(',')
     lats = []
     lons = []
     var = []
     time = []
+    sats = []
     for sat in satlist:
         try:
-            sa_obj = sa(sdate,sat=sat,edate=edate,timewin=timewin,
-                    region=args.reg,varlst=varlst)
-            lats.append(sa_obj.vars['latitude'])
-            lons.append(sa_obj.vars['longitude'])
-            var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
-            time.append(sa_obj.vars['time'])
+            sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+                            region=args.reg,varlst=varlst)
+            if ('vars' in vars(sa_obj_tmp).keys()
+            and len(sa_obj_tmp.vars['time'])>0):
+                sa_obj = sa_obj_tmp
+                lats.append(sa_obj.vars['latitude'])
+                lons.append(sa_obj.vars['longitude'])
+                var.append(sa_obj.vars[shortcuts_dict[varlst[0]]])
+                time.append(sa_obj.vars['time'])
+                sats.append(sat)
         except:
             pass
     lats = flatten(lats)
@@ -143,7 +153,7 @@ elif args.sat == 'multi':
     sa_obj.vars['longitude'] = np.array(lons)
     sa_obj.vars[shortcuts_dict[varlst[0]]] = np.array(var)
     sa_obj.region = args.reg
-    sa_obj.sat = str(satlist)
+    sa_obj.sat = str(sats)
 else:
     sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,
                 region=args.reg,varlst=varlst)
@@ -154,7 +164,6 @@ if bool(args.show)==True:
         plot_sat(sa_obj,shortcuts_dict[varlst[0]])
     elif (args.mod is not None and args.col is True):
         # get model collocated values
-        #get_model
         init_date = edate - timedelta(hours=args.lt)
         model_var_dict = get_model(model=args.mod,fc_date=edate,
                                 leadtime=args.lt,init_date=init_date)
@@ -170,7 +179,6 @@ if bool(args.show)==True:
                 results_dict,shortcuts_dict[varlst[0]])
     else:
         # get model collocated values
-        #get_model
         init_date = edate - timedelta(hours=args.lt)
         model_var_dict = get_model(model=args.mod,fc_date=edate,
                                 leadtime=args.lt,init_date=init_date)
