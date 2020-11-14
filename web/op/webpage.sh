@@ -29,7 +29,7 @@ else
   MONTH=${M}
 fi
 
-if [ -z ${reg+x} ]; then
+if [ -z ${r+x} ]; then
   echo "Region not supplied correctly, model is chosen as region"
   reg=${m}
 else
