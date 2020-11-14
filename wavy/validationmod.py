@@ -163,7 +163,8 @@ def validate(results_dict,boot=None):
         validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,
+path=None,**kwargs):
 
     # imports
     import matplotlib.cm as mplcm
@@ -187,64 +188,60 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     # inflate coords if regular lat/lon grid
     if (len(Mlons.shape)==1):
         Mlons, Mlats = np.meshgrid(Mlons, Mlats)    
+
+    # check region bounds
+    if sa_obj.region in region_dict['rect']:
+        latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
+        latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
+        lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
+        lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
+    elif sa_obj.region in region_dict['poly']:
+        latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
+        latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
+        lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
+        lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
+    elif sa_obj.region in model_dict:
+        # model bounds
+        latmin = np.min(Mlats)
+        latmax = np.max(Mlats)
+        lonmin = np.min(Mlons)
+        lonmax = np.max(Mlons)
+    else: print("Error: Region not defined!")
+
     # check region and determine projection
-    polarproj=None
-
-    if (sa_obj.region == 'ARCMFC' or sa_obj.region == 'mwam8'\
-        or sa_obj.region == 'ARCMFC3' or sa_obj.region == 'ARCMFC3_hc'
-        or sa_obj.region == 'CustomSvalbard'):
-        # Polar Stereographic Projection
-        polarproj = ccrs.NorthPolarStereo(
-                            central_longitude=0.0,
-                            true_scale_latitude=66,
-                            globe=None)
-        projection = polarproj
-        land = cfeature.GSHHSFeature(scale='i', levels=[1],
-                        facecolor=cfeature.COLORS['land'])
-    else:
-        # other projection for regional visualization
-        if sa_obj.region in region_dict['rect']:
-            latmin = region_dict['rect'][sa_obj.region]['llcrnrlat']
-            latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
-            lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
-            lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
-        elif sa_obj.region in region_dict['poly']:
-            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
-            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
-            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
-            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
-        else: print("Error: Region not defined!")
-
-        projection = ccrs.Mercator(
-                        central_longitude=(lonmin+lonmax)/2.,
-                        min_latitude=latmin, max_latitude=latmax,
-                        globe=None, latitude_true_scale=(latmin+latmax)/2.,
-                        false_easting=0.0, false_northing=0.0,
-                        scale_factor=None)
-        land = cfeature.GSHHSFeature(scale='i', levels=[1],
-                        facecolor=cfeature.COLORS['land'])
+    """
+    here, a routine is needed to determine a suitable projection
+    """
+    projection = ccrs.Mercator(
+                    central_longitude=(lonmin+lonmax)/2.,
+                    min_latitude=latmin, max_latitude=latmax,
+                    globe=None, latitude_true_scale=(latmin+latmax)/2.,
+                    false_easting=0.0, false_northing=0.0,
+                    scale_factor=None)
+    land = cfeature.GSHHSFeature(scale='i', levels=[1],
+                    facecolor=cfeature.COLORS['land'])
 
     # make figure
     fig, ax = plt.subplots(nrows=1, ncols=1, 
                         subplot_kw=dict(projection=projection),
                         figsize=(9, 9))
     # plot domain extent
-    if projection != polarproj:
-        ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-        ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
+    ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
+    ax.plot(Mlons[0,:], Mlats[0,:], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
-        ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
+    ax.plot(Mlons[-1,:], Mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
-        ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(), 
+    ax.plot(Mlons[:,0], Mlats[:,0], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
-        ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
+    ax.plot(Mlons[:,-1], Mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
                 color = 'gray', linewidth =2)
-    else:
-        latmin = 40
-        latmax = 90
-        lonmin = -180
-        lonmax = 180
-        ax.set_extent([lonmin, lonmax, latmin, latmax],crs = ccrs.PlateCarree())
+
+    # plot polygon if defined
+    if sa_obj.region in region_dict['poly']:
+        ax.plot(region_dict['poly'][sa_obj.region]['lons'],
+                region_dict['poly'][sa_obj.region]['lats'],
+                '-', transform= ccrs.PlateCarree(),
+                color = 'gray', linewidth =2)
 
     # colors
     if mode == 'dir':
@@ -256,7 +253,22 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
         cmap = cmocean.cm.amp
         levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+
+    if 'cmap' in kwargs.keys():
+        cmap = kwargs['cmap']
+    if 'levels' in kwargs.keys():
+        levels = kwargs['levels']
+    if 'scl' in kwargs.keys():
+        scl = kwargs['scl']
+    else: scl = 18
+    if 'icl' in kwargs.keys():
+        icl = kwargs['icl']
+    else: icl = 1
+
+    norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+    extend = 'neither'
+    if 'extend' in kwargs.keys():
+        extend = kwargs['extend']
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -264,11 +276,11 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
 
     # plot lats/lons
     gridcolor = 'gray'
-    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+    gl = ax.gridlines(draw_labels=True, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
-    gl.bottom_labels = True
-    gl.left_lables = True
+    gl.top_labels = False
+    gl.right_labels = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': fs, 'color': gridcolor}
@@ -277,7 +289,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     # - model contours
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
                     transform = ccrs.PlateCarree(), 
-                    cmap = cmocean.cm.amp, norm = norm)
+                    cmap = cmocean.cm.amp, norm = norm, extend = extend)
 
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[18::1],
                     transform = ccrs.PlateCarree(), 
@@ -285,14 +297,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
     # - add coastline
-    if projection != polarproj:
-        ax.add_geometries(land.intersecting_geometries(
-                    [lonmin, lonmax, latmin, latmax]),
-                    ccrs.PlateCarree(),
-                    facecolor=cfeature.COLORS['land'],
-                    edgecolor='black',linewidth=1)
-    else:
-        ax.add_geometries(land.intersecting_geometries(
+    ax.add_geometries(land.intersecting_geometries(
                     [lonmin, lonmax, latmin, latmax]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
@@ -308,6 +313,21 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,path=None):
                 marker='o', edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm, 
                 transform=ccrs.PlateCarree())
+
+    # - point of interests
+    if 'poi' in kwargs.keys():
+        names=[]
+        plons=[]
+        plats=[]
+        for poi in kwargs['poi']:
+            names.append(poi)
+            plats.append(kwargs['poi'][poi]['lat'])
+            plons.append(kwargs['poi'][poi]['lon'])
+        scp = ax.scatter(plons,plats,s=20, c='b',
+                marker = 'x',transform = ccrs.PlateCarree())
+        for n in range(len(names)):
+            ax.text(plons[n], plats[n], names[n],
+                    transform = ccrs.PlateCarree())
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
@@ -602,7 +622,8 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
     #plt.show()
 
 
-def plot_sat(sa_obj,var,path=None):
+def plot_sat(sa_obj,var,path=None,**kwargs):
+    
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -670,30 +691,67 @@ def plot_sat(sa_obj,var,path=None):
     else:
         ax.set_extent([-180, 180,40, 90],crs = ccrs.PlateCarree())
 
-    # plot model grid if region is a model domain
-    if sa_obj.region in model_dict:
-        ax.plot(model_var_dict['model_lons'][0,:], 
-                model_var_dict['model_lats'][0,:], '-', 
-                transform = ccrs.PlateCarree(), 
-                color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][-1,:], 
-                model_var_dict['model_lats'][-1,:], '-', 
+    # plot model domain if region is a model domain
+    if (sa_obj.region in model_dict
+    and len(model_var_dict['model_lats'].shape)==1):
+        lenlons = len(model_var_dict['model_lons'][:])
+        lenlats = len(model_var_dict['model_lats'][:])
+        ax.plot([model_var_dict['model_lons'][0]]*lenlats,
+                model_var_dict['model_lats'][:], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][:,0], 
-                model_var_dict['model_lats'][:,0], '-', 
+        ax.plot(model_var_dict['model_lons'][:],
+                [model_var_dict['model_lats'][-1]]*lenlons, '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][:,-1], 
-                model_var_dict['model_lats'][:,-1], '-', 
+        ax.plot([model_var_dict['model_lons'][-1]]*lenlats,
+                model_var_dict['model_lats'][::-1], '-',
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
+        ax.plot(model_var_dict['model_lons'][::-1],
+                [model_var_dict['model_lats'][0]]*lenlons, '-',
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
+    if (sa_obj.region in model_dict
+    and len(model_var_dict['model_lats'].shape)==2):
+        ax.plot(model_var_dict['model_lons'][0,:],
+                model_var_dict['model_lats'][0,:], '-',
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
+        ax.plot(model_var_dict['model_lons'][-1,:],
+                model_var_dict['model_lats'][-1,:], '-',
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
+        ax.plot(model_var_dict['model_lons'][:,0],
+                model_var_dict['model_lats'][:,0], '-',
+                transform = ccrs.PlateCarree(),
+                color = 'gray', linewidth = 2)
+        ax.plot(model_var_dict['model_lons'][:,-1],
+                model_var_dict['model_lats'][:,-1], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
 
+    # plot polygon if defined
+    if sa_obj.region in region_dict['poly']:
+        ax.plot(region_dict['poly'][sa_obj.region]['lons'],
+                region_dict['poly'][sa_obj.region]['lats'],
+                '-', transform= ccrs.PlateCarree(),
+                color = 'gray', linewidth =2)
+
     # colors
     cmap = cmocean.cm.amp
-    levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.5,
-                    3,3.5,4,4.5,6,7,8,9,10,12,15,20]
+    levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+
+    if 'cmap' in kwargs.keys():
+        cmap = kwargs['cmap']
+    if 'levels' in kwargs.keys():
+        levels = kwargs['levels']
+
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+    extend = 'neither'
+    if 'extend' in kwargs.keys():
+        extend = kwargs['extend']
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -701,11 +759,11 @@ def plot_sat(sa_obj,var,path=None):
 
     # plot lats/lons
     gridcolor = 'gray'
-    gl = ax.gridlines(draw_labels=False, crs=ccrs.PlateCarree(),
+    gl = ax.gridlines(draw_labels=True, crs=ccrs.PlateCarree(),
                 linewidth = 1,color = gridcolor, alpha = 0.4,
                 linestyle = '-')
-    gl.bottom_labels = True
-    gl.left_labels = True
+    gl.top_labels = False
+    gl.right_labels = False
     gl.xformatter = LONGITUDE_FORMATTER
     gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': fs, 'color': gridcolor}
@@ -733,6 +791,22 @@ def plot_sat(sa_obj,var,path=None):
                 marker='o', edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
+
+    # - point of interests
+    if 'poi' in kwargs.keys():
+        names=[]
+        plons=[]
+        plats=[]
+        for poi in kwargs['poi']:
+            names.append(poi)
+            plats.append(kwargs['poi'][poi]['lat'])
+            plons.append(kwargs['poi'][poi]['lon'])
+        scp = ax.scatter(plons,plats,s=20, c='b',
+                marker = 'x',transform = ccrs.PlateCarree())
+        for n in range(len(names)):
+            ax.text(plons[n], plats[n], names[n],
+                    transform = ccrs.PlateCarree())
+
     # - plot polygon
     if sa_obj.region in region_dict['poly']:
         ax.plot(
@@ -740,6 +814,7 @@ def plot_sat(sa_obj,var,path=None):
             region_dict['poly'][sa_obj.region]['lats'],
             'k:',transform=ccrs.PlateCarree()
             )
+
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
                         fraction=0.04, pad=0.04)
