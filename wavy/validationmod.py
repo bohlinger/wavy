@@ -340,7 +340,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
             ,fontsize=fs)
     # - save figure
     if ('savepath' in kwargs.keys() and kwargs['savepath'] != None):
-        plt.savefig(path + '/' + model + '_' 
+        plt.savefig( kwargs['savepath'] + '/' + model + '_' 
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
                 + 'T' 
                 + results_dict['valid_date'][0].strftime("%H") 
@@ -559,7 +559,8 @@ def plot_sat(sa_obj,var,**kwargs):
 
     # - save figure
     if ('savepath' in kwargs.keys() and kwargs['savepath'] != None):
-        plt.savefig(path + '/' + sa_obj.sat + '_coverage_from_'
+        plt.savefig( kwargs['savepath'] + '/' 
+            + sa_obj.sat + '_coverage_from_'
             + sa_obj.sdate.strftime("%Y%m%d")
             + 'T'
             + sa_obj.sdate.strftime("%H")
