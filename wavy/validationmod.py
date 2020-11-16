@@ -552,7 +552,7 @@ def plot_sat(sa_obj,var,**kwargs):
     # - save figure
     if ('savepath' in kwargs.keys() and kwargs['savepath'] != None):
         plt.savefig( kwargs['savepath'] + '/' 
-            + sa_obj.sat + '_coverage_for_' 
+            + 'satellite_coverage_for_' 
             + sa_obj.region + '_from_'
             + sa_obj.sdate.strftime("%Y%m%d")
             + 'T'
