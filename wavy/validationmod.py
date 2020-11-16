@@ -15,6 +15,9 @@ with open(moddir,'r') as stream:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/quicklook_specs.yaml'))
+with open(moddir,'r') as stream:
+    quicklook_dict=yaml.safe_load(stream)
 
 # define global functions
 def calc_rmsd(a,b):
@@ -250,19 +253,13 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
 
     if 'cmap' in kwargs.keys():
         cmap = kwargs['cmap']
-    if 'levels' in kwargs.keys():
-        levels = kwargs['levels']
-    if 'scl' in kwargs.keys():
-        scl = kwargs['scl']
-    else: scl = 18
-    if 'icl' in kwargs.keys():
-        icl = kwargs['icl']
-    else: icl = 1
+
+    if (sa_obj.region in quicklook_dict
+    and 'cm_levels' in quicklook_dict[sa_obj.region]
+    and quicklook_dict[sa_obj.region]['cm_levels'] is not None):
+        levels = quicklook_dict[sa_obj.region]['cm_levels']
 
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
-    extend = 'neither'
-    if 'extend' in kwargs.keys():
-        extend = kwargs['extend']
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -283,8 +280,9 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
     # - model contours
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
                     transform = ccrs.PlateCarree(), 
-                    cmap = cmocean.cm.amp, norm = norm, extend = extend)
-
+                    cmap = cmocean.cm.amp, norm = norm)
+    scl = quicklook_dict[sa_obj.region][scl]
+    icl = quicklook_dict[sa_obj.region][icl]
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[scl::icl],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linewidths = 0.3)
@@ -308,20 +306,17 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
                 cmap = cmocean.cm.amp, norm = norm, 
                 transform = ccrs.PlateCarree())
 
-    # - point of interests
-    if 'poi' in kwargs.keys():
-        names=[]
-        plons=[]
-        plats=[]
-        for poi in kwargs['poi']:
-            names.append(poi)
-            plats.append(kwargs['poi'][poi]['lat'])
-            plons.append(kwargs['poi'][poi]['lon'])
-        scp = ax.scatter(plons,plats,s=20, c='b',
-                marker = 'x',transform = ccrs.PlateCarree())
-        for n in range(len(names)):
-            ax.text(plons[n], plats[n], names[n], 
-                    transform = ccrs.PlateCarree())
+    # - point of interests depending on region
+    if (sa_obj.region in quicklook_dict 
+    and 'poi' in quicklook_dict[sa_obj.region]):
+        for poi in quicklook_dict[sa_obj.region]['poi']:
+            pname = quicklook_dict[sa_obj.region]['poi'][poi][name]
+            plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
+            plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
+            scp = ax.scatter(plon,plat,s=20, c='b',
+                marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
+                transform = ccrs.PlateCarree())
+            ax.text(plons, plat, pname, transform = ccrs.PlateCarree())
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
@@ -470,16 +465,15 @@ def plot_sat(sa_obj,var,**kwargs):
     cmap = cmocean.cm.amp
     levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+    if (sa_obj.region in quicklook_dict 
+    and 'cm_levels' in quicklook_dict[sa_obj.region]
+    and quicklook_dict[sa_obj.region]['cm_levels'] is not None):
+        levels = quicklook_dict[sa_obj.region]['cm_levels']
 
     if 'cmap' in kwargs.keys():
         cmap = kwargs['cmap']
-    if 'levels' in kwargs.keys():
-        levels = kwargs['levels']
 
     norm = mpl.colors.BoundaryNorm(levels, cmap.N)
-    extend = 'neither'
-    if 'extend' in kwargs.keys():
-        extend = kwargs['extend']
 
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
@@ -520,20 +514,17 @@ def plot_sat(sa_obj,var,**kwargs):
                 cmap = cmocean.cm.amp, norm = norm,
                 transform = ccrs.PlateCarree())
 
-    # - point of interests
-    if 'poi' in kwargs.keys():
-        names=[]
-        plons=[]
-        plats=[]
-        for poi in kwargs['poi']:
-            names.append(poi)
-            plats.append(kwargs['poi'][poi]['lat'])
-            plons.append(kwargs['poi'][poi]['lon'])
-        scp = ax.scatter(plons,plats,s=20, c='b',
-                marker = 'x',transform = ccrs.PlateCarree())
-        for n in range(len(names)):
-            ax.text(plons[n], plats[n], names[n],
-                    transform = ccrs.PlateCarree())
+    # - point of interests depending on region
+    if (sa_obj.region in quicklook_dict
+    and 'poi' in quicklook_dict[sa_obj.region]):
+        for poi in quicklook_dict[sa_obj.region]['poi']:
+            pname = quicklook_dict[sa_obj.region]['poi'][poi][name]
+            plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
+            plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
+            scp = ax.scatter(plon,plat,s=20, c='b',
+                marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
+                transform = ccrs.PlateCarree())
+            ax.text(plons, plat, pname, transform = ccrs.PlateCarree())
 
     # - plot polygon
     if sa_obj.region in region_dict['poly']:

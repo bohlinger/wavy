@@ -1,0 +1,20 @@
+--- # quicklook figure specifications
+
+# rectangular on lat lon, or bounded by lat
+
+swan_vietnam:
+    poi: 
+        HSI:
+            name: Hoang Sa Islands
+            lat: 16.33
+            lon: 111.6
+            marker: x
+        TSI:
+            name: Truong Sa Islands
+            lat: 9.8
+            lon: 112.5
+            marker: x
+    cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12]
+    scl: 9 # solid contour lines index in cm_levels
+    icl: 1 # scl index increment
