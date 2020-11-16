@@ -58,7 +58,7 @@ parser.add_argument("--col",metavar="collocation",
     help="collocation",action='store_const',const=True)
 parser.add_argument("--show",
     help="show figure",action='store_const',const=True)
-parser.add_argument("-savep", metavar="savepath"
+parser.add_argument("-savep", metavar="savepath",
     help="save figure to path")
 parser.add_argument("-dump", metavar="outpath",
     help="dump data to .nc-file")
