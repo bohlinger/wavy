@@ -310,7 +310,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
     if (sa_obj.region in quicklook_dict 
     and 'poi' in quicklook_dict[sa_obj.region]):
         for poi in quicklook_dict[sa_obj.region]['poi']:
-            pname = quicklook_dict[sa_obj.region]['poi'][poi][name]
+            pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
             plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
             plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
             scp = ax.scatter(plon,plat,s=20, c='b',
@@ -518,7 +518,7 @@ def plot_sat(sa_obj,var,**kwargs):
     if (sa_obj.region in quicklook_dict
     and 'poi' in quicklook_dict[sa_obj.region]):
         for poi in quicklook_dict[sa_obj.region]['poi']:
-            pname = quicklook_dict[sa_obj.region]['poi'][poi][name]
+            pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
             plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
             plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
             scp = ax.scatter(plon,plat,s=20, c='b',
