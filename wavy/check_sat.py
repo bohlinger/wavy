@@ -195,7 +195,7 @@ else:
                     'sat_matches':sa_obj.vars[shortcuts_dict[varlst[0]]]}
     comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
             model_var_dict['model_lons'],model_var_dict['model_lats'],
-            results_dict,shortcuts_dict[varlst[0]]
+            results_dict,shortcuts_dict[varlst[0]],
             savepath=args.savep,showfig=args.show)
 
 # dump to .ncfile
