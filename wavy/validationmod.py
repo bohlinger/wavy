@@ -316,7 +316,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
             scp = ax.scatter(plon,plat,s=20, c='b',
                 marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
                 transform = ccrs.PlateCarree())
-            ax.text(plons, plat, pname, transform = ccrs.PlateCarree())
+            ax.text(plon, plat, pname, transform = ccrs.PlateCarree())
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
@@ -524,7 +524,7 @@ def plot_sat(sa_obj,var,**kwargs):
             scp = ax.scatter(plon,plat,s=20, c='b',
                 marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
                 transform = ccrs.PlateCarree())
-            ax.text(plons, plat, pname, transform = ccrs.PlateCarree())
+            ax.text(plon, plat, pname, transform = ccrs.PlateCarree())
 
     # - plot polygon
     if sa_obj.region in region_dict['poly']:
