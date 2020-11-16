@@ -163,8 +163,7 @@ def validate(results_dict,boot=None):
         validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,
-path=None,**kwargs):
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
     # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -340,15 +339,17 @@ path=None,**kwargs):
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=fs)
     # - save figure
-    if path != None:
-        plt.savefig(path + '/' + model + '_test_' 
+    if ('savepath' in kwargs.keys() and savepath != None):
+        plt.savefig(path + '/' + model + '_' 
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
                 + 'T' 
                 + results_dict['valid_date'][0].strftime("%H") 
                 + 'Z.png', format = 'png', dpi=200)
-    plt.show()
+    # - show figure
+    if ('showfig' in kwargs.keys() and showfig == True):
+        plt.show()
 
-def plot_sat(sa_obj,var,path=None,**kwargs):
+def plot_sat(sa_obj,var,**kwargs):
     # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -557,7 +558,7 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
             ,fontsize=fs)
 
     # - save figure
-    if path != None:
+    if ('savepath' in kwargs.keys() and savepath != None):
         plt.savefig(path + '/' + sa_obj.sat + '_coverage_from_'
             + sa_obj.sdate.strftime("%Y%m%d")
             + 'T'
@@ -569,7 +570,8 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
             + sa_obj.edate.strftime("%H")
             + 'Z'
             + '.png', format = 'png', dpi=300)
-    plt.show()
+    if ('showfig' in kwargs.keys() and showfig == True):
+        plt.show()
 
 def ts_fig(results_dict):
     import numpy as np
