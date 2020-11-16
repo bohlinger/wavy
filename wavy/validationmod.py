@@ -281,8 +281,8 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
     im = ax.contourf(Mlons, Mlats, mhs, levels = levels, 
                     transform = ccrs.PlateCarree(), 
                     cmap = cmocean.cm.amp, norm = norm)
-    scl = quicklook_dict[sa_obj.region][scl]
-    icl = quicklook_dict[sa_obj.region][icl]
+    scl = quicklook_dict[sa_obj.region]['scl']
+    icl = quicklook_dict[sa_obj.region]['icl']
     imc = ax.contour(Mlons, Mlats, mhs, levels = levels[scl::icl],
                     transform = ccrs.PlateCarree(), 
                     colors='w', linewidths = 0.3)
