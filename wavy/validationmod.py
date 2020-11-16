@@ -336,7 +336,7 @@ def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
     # - save figure
     if ('savepath' in kwargs.keys() and kwargs['savepath'] != None):
         plt.savefig( kwargs['savepath'] + '/' + model 
-                + '_vs_' + sa_obj.sat + '_'
+                + '_vs_satellite_'
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
                 + 'T' 
                 + results_dict['valid_date'][0].strftime("%H") 
