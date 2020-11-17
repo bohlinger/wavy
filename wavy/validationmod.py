@@ -465,7 +465,8 @@ def plot_sat(sa_obj,var,**kwargs):
     cmap = cmocean.cm.amp
     levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
                 3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-    if (sa_obj.region in quicklook_dict 
+    if (quicklook_dict is not None 
+    and sa_obj.region in quicklook_dict 
     and 'cm_levels' in quicklook_dict[sa_obj.region]
     and quicklook_dict[sa_obj.region]['cm_levels'] is not None):
         levels = quicklook_dict[sa_obj.region]['cm_levels']
@@ -515,7 +516,8 @@ def plot_sat(sa_obj,var,**kwargs):
                 transform = ccrs.PlateCarree())
 
     # - point of interests depending on region
-    if (sa_obj.region in quicklook_dict
+    if (quicklook_dict is not None 
+    and sa_obj.region in quicklook_dict
     and 'poi' in quicklook_dict[sa_obj.region]):
         for poi in quicklook_dict[sa_obj.region]['poi']:
             pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
