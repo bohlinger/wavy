@@ -130,6 +130,22 @@ cd ~/wavy/wavy
 cd ~/wavy/wavy
 ./check_sat.py -sat s3a -reg NorwegianSea -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
+### Customizing quicklook figures and save figure
+The quicklook figures created with check_sat.py can be customized to some degree. The range of the colorbar can be adjusted as well as the levels of the contour lines. Point of interests can be introduced to navigate more easily. These settings can be introduced/altered in a config file called quicklook_specs.yaml in the config directory. So let's have a look there first:
+´´´
+cd ~/wavy/config
+vim quicklook_specs.yaml
+´´´
+This file is organized such that all settings are tied to a region which in this example is the model domain swan_vietnam. As can be seen two point of interests (poi) are introduced, different colorbar levels, the index where the contour lines start, and the increment to specify for which values contour lines shall be drawn. The following line illustrates the introduced changes:
+´´´
+./check_sat.py -sat all -reg swan_vietnam -mod swan_vietnam -sd 2020110212 -lt 0 -twin 60 -dist 6 --col --show
+´´´
+Note that the contour lines start at Hs = 2m because this is the 9th index in the custom colormap levels (cm_levels) that we introduced into the config file.
+
+Now do the same but save the figure to a defined location/directory:
+´´´
+./check_sat.py -sat all -reg swan_vietnam -mod swan_vietnam -sd 2020110212 -lt 0 -twin 60 -dist 6 --col --show -save /home/patrikb/tmp_pics
+´´´
 ### Setup of operational usage: examples
 1. Collocation and systematically dump to netcdf-file:
 ```

@@ -3,8 +3,8 @@
 # rectangular on lat lon, or bounded by lat
 
 swan_vietnam:
-    poi: 
-        HSI:
+    poi: # abbreviation for point of interest
+        HSI: # abbreviation for your poi
             name: Hoang Sa Islands
             lat: 16.33
             lon: 111.6
