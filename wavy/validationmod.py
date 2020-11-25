@@ -163,10 +163,8 @@ def validate(results_dict,boot=None):
         validation_dict = {'rmsd':RMSD,'mad':MSD,'bias':BIAS,'corr':CORR}
     return validation_dict
 
-def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,
-path=None,**kwargs):
+def comp_fig(model,sa_obj,MHs,Mlons,Mlats,results_dict,var,mode=None,**kwargs):
 
-    # imports
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -344,14 +342,19 @@ path=None,**kwargs):
             + results_dict['date_matches'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )            + ' to '
             + results_dict['date_matches'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
             ,fontsize=fs)
+
     # - save figure
-    if path != None:
-        plt.savefig(path + '/' + model + '_test_' 
+    if ('savepath' in kwargs.keys() and kwargs['savepath'] != None):
+        plt.savefig( kwargs['savepath'] + '/' + model
+                + '_vs_satellite_'
                 + results_dict['valid_date'][0].strftime("%Y%m%d")
-                + 'T' 
-                + results_dict['valid_date'][0].strftime("%H") 
+                + 'T'
+                + results_dict['valid_date'][0].strftime("%H")
                 + 'Z.png', format = 'png', dpi=200)
-    plt.show()
+
+    # - show figure
+    if ('showfig' in kwargs.keys() and kwargs['showfig'] == True):
+        plt.show()
 
 def comp_wind(model,var,Mlons,Mlats,date,region,mode=None):
 
@@ -622,7 +625,7 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
     #plt.show()
 
 
-def plot_sat(sa_obj,var,path=None,**kwargs):
+def plot_sat(sa_obj,var,**kwargs):
     
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -832,19 +835,24 @@ def plot_sat(sa_obj,var,path=None,**kwargs):
             ,fontsize=fs)
 
     # - save figure
-    if path != None:
-        plt.savefig(path + '/' + sa_obj.sat + '_coverage_from_'
+    if ('savepath' in kwargs.keys() and kwargs['savepath'] != None):
+        plt.savefig( kwargs['savepath'] + '/'
+            + 'satellite_coverage_for_'
+            + sa_obj.region + '_from_'
             + sa_obj.sdate.strftime("%Y%m%d")
             + 'T'
             + sa_obj.sdate.strftime("%H")
             + 'Z'
             + '_to_'
             + sa_obj.edate.strftime("%Y%m%d")
-            + 'T' 
+            + 'T'
             + sa_obj.edate.strftime("%H")
             + 'Z'
             + '.png', format = 'png', dpi=300)
-    plt.show()
+
+    # - show figure
+    if ('showfig' in kwargs.keys() and kwargs['showfig'] == True):
+        plt.show()
 
 def ts_fig(results_dict):
     import numpy as np

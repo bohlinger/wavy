@@ -58,6 +58,8 @@ parser.add_argument("--col",metavar="collocation",
     help="collocation",action='store_const',const=True)
 parser.add_argument("--show",
     help="show figure",action='store_const',const=True)
+parser.add_argument("-savep", metavar="savepath",
+    help="save figure to path")
 parser.add_argument("-dump", metavar="outpath",
     help="dump data to .nc-file")
 
@@ -159,38 +161,40 @@ else:
                 region=args.reg,varlst=varlst)
 
 # plot
-if bool(args.show)==True:
-    if args.mod is None:
-        plot_sat(sa_obj,shortcuts_dict[varlst[0]])
-    elif (args.mod is not None and args.col is True):
-        # get model collocated values
-        init_date = edate - timedelta(hours=args.lt)
-        model_var_dict = get_model(model=args.mod,fc_date=edate,
-                                leadtime=args.lt,init_date=init_date)
-        #collocation
-        results_dict = collocate(args.mod,model_var_dict['model_var'],
-            model_var_dict['model_lats'],model_var_dict['model_lons'],
-            model_var_dict['model_time_dt'],sa_obj,
-            shortcuts_dict[varlst[0]],edate,distlim=dist)
-        valid_dict=validate(results_dict)
-        disp_validation(valid_dict)
-        comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
-                model_var_dict['model_lons'],model_var_dict['model_lats'],
-                results_dict,shortcuts_dict[varlst[0]])
-    else:
-        # get model collocated values
-        init_date = edate - timedelta(hours=args.lt)
-        model_var_dict = get_model(model=args.mod,fc_date=edate,
-                                leadtime=args.lt,init_date=init_date)
-        results_dict = {'valid_date':[edate],
-                        'date_matches':[edate-timedelta(minutes=timewin),
-                                        edate+timedelta(minutes=timewin)],
-                        'model_lons_matches':sa_obj.vars['longitude'],
-                        'model_lats_matches':sa_obj.vars['latitude'],
-                        'sat_matches':sa_obj.vars[shortcuts_dict[varlst[0]]]}
-        comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
-                model_var_dict['model_lons'],model_var_dict['model_lats'],
-                results_dict,shortcuts_dict[varlst[0]])
+if args.mod is None:
+    plot_sat(sa_obj,shortcuts_dict[varlst[0]],
+            savepath=args.savep,showfig=args.show)
+elif (args.mod is not None and args.col is True):
+    # get model collocated values
+    init_date = edate - timedelta(hours=args.lt)
+    model_var_dict = get_model(model=args.mod,fc_date=edate,
+                            leadtime=args.lt,init_date=init_date)
+    #collocation
+    results_dict = collocate(args.mod,model_var_dict['model_var'],
+        model_var_dict['model_lats'],model_var_dict['model_lons'],
+        model_var_dict['model_time_dt'],sa_obj,
+        shortcuts_dict[varlst[0]],edate,distlim=dist)
+    valid_dict=validate(results_dict)
+    disp_validation(valid_dict)
+    comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
+            model_var_dict['model_lons'],model_var_dict['model_lats'],
+            results_dict,shortcuts_dict[varlst[0]],
+            savepath=args.savep,showfig=args.show)
+else:
+    # get model collocated values
+    init_date = edate - timedelta(hours=args.lt)
+    model_var_dict = get_model(model=args.mod,fc_date=edate,
+                            leadtime=args.lt,init_date=init_date)
+    results_dict = {'valid_date':[edate],
+                    'date_matches':[edate-timedelta(minutes=timewin),
+                                    edate+timedelta(minutes=timewin)],
+                    'model_lons_matches':sa_obj.vars['longitude'],
+                    'model_lats_matches':sa_obj.vars['latitude'],
+                    'sat_matches':sa_obj.vars[shortcuts_dict[varlst[0]]]}
+    comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
+            model_var_dict['model_lons'],model_var_dict['model_lats'],
+            results_dict,shortcuts_dict[varlst[0]],
+            savepath=args.savep,showfig=args.show)
 
 # dump to .ncfile
 if args.dump is not None:
