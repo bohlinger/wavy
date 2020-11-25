@@ -4,6 +4,9 @@ download satellite data from Copernicus
 """
 # --- imports -------------------------------------------------------- #
 # standard linrary imports
+import sys
+sys.path.append('../../wavy')
+
 import os
 import time
 from datetime import datetime, timedelta

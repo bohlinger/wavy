@@ -2,6 +2,8 @@
 
 # import libraries
 import sys
+sys.path.append('../../wavy')
+
 import numpy as np
 from datetime import datetime, timedelta
 from satmod import satellite_class as sa
