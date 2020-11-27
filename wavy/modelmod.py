@@ -137,8 +137,8 @@ def get_model(model=None,sdate=None,edate=None,
                                             fc_date=fc_date,
                                             init_date=init_date,
                                             leadtime=leadtime)
-    filename = make_model_filename(model=model,
-                        fc_date=fc_date,leadtime=leadtime)
+    filename = make_model_filename(model=model,fc_date=fc_date,
+                                    leadtime=leadtime)
     model_var, \
     model_lats, \
     model_lons, \
@@ -154,7 +154,7 @@ def get_model(model=None,sdate=None,edate=None,
                     'model_time_dt':model_time_dt,
                     'model_time_unit':model_time_unit,
                     }
-    return model_var_dict
+    return model_var_dict, fc_date, init_date, leadtime
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -176,15 +176,25 @@ class model_class():
         print ('# ----- ')
         print (" ### Initializing modelmod instance ###")
         print ('# ----- ')
-        if edate is None:
+        if fc_date is not None:
+            print ("Requested time: ", str(fc_date))
+        elif (edate is None and fc_date is None):
             fc_date=sdate
-            print ("Requested time: ", str(sdate))
+            print ("Requested time: ", str(fc_date))
         else:
+            # time frame function to access a temporal subset
+            # --> not yet in use
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
-        model_var_dict = get_model(model=None,sdate=None,edate=None,
-                                    fc_date=None,init_date=None,
-                                    leadtime=0,varname='Hs')
+
+        model_var_dict, \
+        fc_date, init_date, \
+        leadtime = get_model(model=model,sdate=sdate,edate=edate,
+                            fc_date=fc_date,init_date=init_date,
+                            leadtime=leadtime,varname=varname)
+
+        self.fc_date = fc_date
+        self.init_date = init_date
         self.sdate = sdate
         self.edate = edate
         self.model = model

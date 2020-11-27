@@ -11,8 +11,10 @@ ARCMFC3:
     coords:
         lons: lon
         lats: lat
-    path_template: "/lustre/storeA/project/copernicus/sea/\
-                    mywavewam3/arctic/%Y/%m/"
+    #path_template: "/lustre/storeA/project/copernicus/sea/\
+    #                mywavewam3/arctic/%Y/%m/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    cmems/mywavewam3km_files/%Y/%m/"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
