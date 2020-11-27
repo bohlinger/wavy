@@ -50,43 +50,6 @@ from stationmod import matchtime
 """
 definition of some global functions
 """
-# currently None
-# ---------------------------------------------------------------------#
-
-# read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
-                        '..', 'config/model_specs.yaml'))
-with open(moddir,'r') as stream:
-    model_dict=yaml.safe_load(stream)
-
-class model_class():
-    '''
-    class to read and process model data 
-    model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
-    This class should communicate with the satellite, model, and 
-    station classes.
-    '''
-
-    def __init__(self,model=None,sdate=None,edate=None,fc_date=None,
-                init_date=None,leadtime=0,varname='Hs'):
-        print ('# ----- ')
-        print (" ### Initializing modelmod instance ###")
-        print ('# ----- ')
-        if edate is None:
-            fc_date=sdate
-            print ("Requested time: ", str(sdate))
-        else:
-            print ("Requested time frame: " +
-                str(sdate) + " - " + str(edate))
-        model_var_dict = get_model(model=None,sdate=None,edate=None,
-                                    fc_date=None,init_date=None,
-                                    leadtime=0,varname='Hs')
-        self.sdate = sdate
-        self.edate = edate
-        self.model = model
-        self.model_var_dict = model_var_dict
-
-
 def get_model_filedate(model,fc_date,leadtime):
     '''
     get init_date for latest model output file and checks if available
@@ -99,7 +62,7 @@ def get_model_filedate(model,fc_date,leadtime):
         h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
         h = int(init_times[h_idx[0][0]])
         return datetime(date.year,date.month,date.day,h)
-    else: 
+    else:
         raise ValueError('!!! leadtime not available !!!')
 
 def make_model_filename(model=None,fc_date=None,leadtime=None):
@@ -117,7 +80,7 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
                                         model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
                 tmpstr = tmpstr.replace('filedate',replacestr,1)
-            filename = (filedate.strftime(model_dict[model]['path_template']) 
+            filename = (filedate.strftime(model_dict[model]['path_template'])
                         + tmpstr)
         else:
             filedate = get_model_filedate(model,fc_date,leadtime)
@@ -125,7 +88,7 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
                 filedate.strftime(model_dict[model]['path_template'])
                 + filedate.strftime(model_dict[model]['file_template'])
                 )
-    else: 
+    else:
         raise ValueError("chosen model is not specified in model_specs.yaml")
     return filename
 
@@ -164,7 +127,6 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     elif (leadtime is None):
         leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
     return fc_date, init_date, leadtime
-    
 
 def get_model(model=None,sdate=None,edate=None,
     fc_date=None,init_date=None,leadtime=0,varname='Hs'):
@@ -193,3 +155,37 @@ def get_model(model=None,sdate=None,edate=None,
                     'model_time_unit':model_time_unit,
                     }
     return model_var_dict
+# ---------------------------------------------------------------------#
+
+# read yaml config files:
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/model_specs.yaml'))
+with open(moddir,'r') as stream:
+    model_dict=yaml.safe_load(stream)
+
+class model_class():
+    '''
+    class to read and process model data 
+    model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
+    This class should communicate with the satellite, model, and 
+    station classes.
+    '''
+
+    def __init__(self,model=None,sdate=None,edate=None,fc_date=None,
+                init_date=None,leadtime=0,varname='Hs'):
+        print ('# ----- ')
+        print (" ### Initializing modelmod instance ###")
+        print ('# ----- ')
+        if edate is None:
+            fc_date=sdate
+            print ("Requested time: ", str(sdate))
+        else:
+            print ("Requested time frame: " +
+                str(sdate) + " - " + str(edate))
+        model_var_dict = get_model(model=None,sdate=None,edate=None,
+                                    fc_date=None,init_date=None,
+                                    leadtime=0,varname='Hs')
+        self.sdate = sdate
+        self.edate = edate
+        self.model = model
+        self.model_var_dict = model_var_dict
