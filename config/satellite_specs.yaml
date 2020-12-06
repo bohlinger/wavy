@@ -19,7 +19,7 @@ altimeter:
         misc:
     cmems:
         level: 3
-        satellite: s3a, s3b, c2, al, j3, h2b, cfo
+        satellite: s3a,s3b,c2,al,j3,h2b,cfo # do not use space
         local:
             path:
         remote: 

@@ -123,7 +123,7 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
         leadtime = 0
         init_date = fc_date
     elif (init_date is None):
-        init_date = fc_date - timedelta(hours=leadtime)
+        init_date = fc_date - timedelta(hours = leadtime)
     elif (leadtime is None):
         leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
     return fc_date, init_date, leadtime
@@ -171,22 +171,25 @@ class model_class():
     station classes.
     '''
 
-    def __init__(self,model=None,sdate=None,edate=None,fc_date=None,
+    def __init__(self,model='mwam4',sdate=None,edate=None,fc_date=None,
                 init_date=None,leadtime=0,varname='Hs'):
         print ('# ----- ')
         print (" ### Initializing modelmod instance ###")
         print ('# ----- ')
         if fc_date is not None:
             print ("Requested time: ", str(fc_date))
-        elif (edate is None and fc_date is None):
-            fc_date=sdate
+        elif (edate is None and fc_date is None and sdate is not None):
+            fc_date = sdate
+            print ("Requested time: ", str(fc_date))
+        elif (sdate is None and edate is None and fc_date is None):
+            now = datetime.now()
+            fc_date = datetime(now.year,now.month,now.day,now.hour)
             print ("Requested time: ", str(fc_date))
         else:
             # time frame function to access a temporal subset
             # --> not yet in use
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
-
         model_var_dict, \
         fc_date, init_date, \
         leadtime = get_model(model=model,sdate=sdate,edate=edate,

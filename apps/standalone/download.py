@@ -20,7 +20,8 @@ from satmod import get_remote_files
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/satellite_specs.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '../../', 'config/satellite_specs.yaml'))
 with open(moddir,'r') as stream:
     satellite_dict=yaml.safe_load(stream)
 
@@ -46,7 +47,8 @@ parser.add_argument("-sat", metavar='satellite',
         \nc2 - Cryosat-2\
         \nal - SARAL/AltiKa\
         \ncfo - CFOSAT\
-        \nh2b - HaiYang-2B")
+        \nh2b - HaiYang-2B\
+        \nall - all availabe satellites")
 parser.add_argument("-path", metavar='path',
     help="destination for downloaded data")
 parser.add_argument("-nproc", metavar='nproc',
@@ -60,9 +62,14 @@ provider = 'cmems'
 
 now = datetime.now()
 if args.sat is None:
-    sat = 's3a'
+    satlst = ['s3a']
+elif args.sat == 'all':
+    tmp = satellite_dict['altimeter']['cmems']['satellite']
+    satlst = tmp.split(',')
+    del tmp
 else:
-    sat = args.sat
+    satlst = [args.sat]
+
 if args.sd is None:
     sdate = datetime(now.year,now.month,now.day,now.hour)-timedelta(hours=12)
 else:
@@ -85,23 +92,30 @@ if args.nproc is None:
 else:
     nproc = args.nproc
 
-satpath = satellite_dict[instr][provider]['remote']['path'] + sat
-destination = targetpath + '/' + sat
-print('destination: ' + destination)
-# check if destination exists
-if os.path.isdir(destination) == False:
-    print ( 'Your destination path does not exist')
-    print ( destination + ' will now be created')
-    cmd = 'mkdir -p ' + destination
-    os.system(cmd)
-start_time = time.time()
-sa_obj = get_remote_files(satpath, destination,
-                        sdate,edate,timewin=30,
-                        corenum=nproc,download=True,
-                        instr=instr,provider=provider)
-time1 = time.time() - start_time
-print("Time used for collecting data: ", time1, " seconds")
-print("Data is being sorted into subdirectories year and month ...")
-from utils import sort_files
-filelst = np.sort(os.listdir(destination))
-sort_files(destination,filelst)
+for sat in satlst:
+    try:
+        print("Attempting to download data for:", sat)
+        satpath = satellite_dict[instr][provider]['remote']['path'] + sat
+        destination = targetpath + '/' + sat
+        print('destination: ' + destination)
+        # check if destination exists
+        if os.path.isdir(destination) == False:
+            print ( 'Your destination path does not exist')
+            print ( destination + ' will now be created')
+            cmd = 'mkdir -p ' + destination
+            os.system(cmd)
+        start_time = time.time()
+        sa_obj = get_remote_files(satpath, destination,
+                            sdate,edate,timewin=30,
+                            corenum=nproc,download=True,
+                            instr=instr,provider=provider)
+        time1 = time.time() - start_time
+        print("Time used for collecting data: ", time1, " seconds")
+        print("Data is being sorted into subdirectories year and month ...")
+        from utils import sort_files
+        filelst = np.sort(os.listdir(destination))
+        sort_files(destination,filelst)
+    except Exception as e:
+        print('Experienced error when downloading data for',sat,
+            '\nwith the error:',e,
+            '\nSkip and continue ...')
