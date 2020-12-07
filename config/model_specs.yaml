@@ -107,7 +107,7 @@ mwam4:
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
     init_step: 6
-    leadtimes: [0, 6, 12, 18, 24, 36, 48, 60]
+    leadtimes: [0,6,12,18,24,36,48,60]
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00

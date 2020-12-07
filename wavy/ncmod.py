@@ -899,3 +899,46 @@ def ncdump(nc_fid, verb=True):
                 print_ncattr(var)
     return nc_attrs, nc_dims, nc_vars
 
+def ncdumpMeta(pathtofile):
+    '''
+    Returns dict of netcdf-file content
+    Input: str pointing to netcdf-file
+    Output: dict of attributes
+    '''
+    # init netCDF4 instance
+    nc = netCDF4.Dataset(pathtofile,mode='r')
+    # init empty dict
+    ncdict = {}
+    # retrieve variable attributes
+    for var in nc.variables:
+        ncattrs = nc.variables[var].ncattrs()
+        ncdict[var] = {}
+        for ncattr in ncattrs:
+            ncdict[var][ncattr] = nc.variables[var].getncattr(ncattr)
+    # retrieve global attributes
+    ncdict['global'] = {}
+    nc_attrs = nc.ncattrs()
+    for nc_attr in nc_attrs:
+        ncdict['global'][nc_attr] = nc.getncattr(nc_attr)
+    return ncdict
+
+def find_attr_in_nc(pathtofile,attrstr,subattrstr=None):
+    """
+    fct to find a specific attribute with its value in a netcdf-file
+    when only a fraction of attribute name is given, can also search 
+    in a deeper layer of attribute hierarchy.
+    input:  path to the nc-file
+            string of desired attribute
+            string of desired sub-attribute
+    output: dict
+    """
+    # get content of netcdf-file
+    ncdict = ncdumpMeta(pathtofile)
+    # browse for str using list comprehension
+    res1 = [i for i in ncdict.keys() if attrstr in i]
+    if subattrstr is None:
+        return ncdict[res1[0]]
+    else:
+        res2 = [i for i in ncdict[res1[0]] if subattrstr in i]
+        return ncdict[res1[0]][res2[0]]
+    
