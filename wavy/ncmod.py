@@ -922,18 +922,19 @@ def ncdumpMeta(pathtofile):
         ncdict['global'][nc_attr] = nc.getncattr(nc_attr)
     return ncdict
 
-def find_attr_in_nc(pathtofile,attrstr,subattrstr=None):
+def find_attr_in_nc(attrstr,pathtofile=None,ncdict=None,subattrstr=None):
     """
     fct to find a specific attribute with its value in a netcdf-file
     when only a fraction of attribute name is given, can also search 
     in a deeper layer of attribute hierarchy.
-    input:  path to the nc-file
+    input:  path to the nc-file or ncdict
             string of desired attribute
-            string of desired sub-attribute
+            string of desired sub-attribute (optional)
     output: dict
     """
-    # get content of netcdf-file
-    ncdict = ncdumpMeta(pathtofile)
+    if pathtofile is not None and ncdict is None:
+        # get content of netcdf-file
+        ncdict = ncdumpMeta(pathtofile)
     # browse for str using list comprehension
     res1 = [i for i in ncdict.keys() if attrstr in i]
     if subattrstr is None:
@@ -941,4 +942,3 @@ def find_attr_in_nc(pathtofile,attrstr,subattrstr=None):
     else:
         res2 = [i for i in ncdict[res1[0]] if subattrstr in i]
         return ncdict[res1[0]][res2[0]]
-    

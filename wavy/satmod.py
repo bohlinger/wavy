@@ -496,12 +496,15 @@ class satellite_class():
             poly = Polygon(list(zip(region['lons'],
                 region['lats'])), closed=True)
         elif (isinstance(region,str)==True and region in model_dict):
-            from modelmod import get_model
+            #from modelmod import get_model
+            from modelmod import model_class as mc
             import pyproj
             try:
                 print('Use date for retrieving grid: ', grid_date)
-                model_var_dict = \
-                    get_model(model=region, fc_date=grid_date)
+                #model_var_dict = \
+                #    get_model(model=region, fc_date=grid_date)
+                mc_obj = mc(model=region,fc_date=grid_date)
+                model_var_dict = mc_obj.model_var_dict
             except (KeyError,IOError,ValueError) as e:
                 print(e)
                 if 'grid_date' in model_dict[region]:
@@ -513,8 +516,10 @@ class satellite_class():
                                         datetime.now().month,
                                         datetime.now().day
                                         )
-                model_var_dict = \
-                    get_model(model=region, fc_date=grid_date)
+                #model_var_dict = \
+                #    get_model(model=region, fc_date=grid_date)
+                mc_obj = mc(model=region,fc_date=grid_date)
+                model_var_dict = mc_obj.model_var_dict
             if (len(model_var_dict['model_lats'].shape)==1):
                 model_lons, model_lats = np.meshgrid(
                                         model_var_dict['model_lons'], 
@@ -522,11 +527,18 @@ class satellite_class():
                                         )
             else:
                 model_lons = model_var_dict['model_lons']
-                model_lats = model_var_dict['model_lats']
+                oodel_lats = model_var_dict['model_lats']
             if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:
-                proj4 = model_dict[region]['proj4']
+                ncdict = mc_obj.model_var_dict['model_meta']
+                try:
+                    proj4 = find_attr_in_nc('proj',ncdict=ncdict,
+                                            subattrstr='proj4')
+                except IndexError:
+                    print('proj4 not defined in netcdf-file')
+                    print('Using proj4 from model config file')
+                    proj4 = model_dict[region]['proj4']
                 proj_model = pyproj.Proj(proj4)
                 Mx, My = proj_model(model_lons,model_lats,inverse=False)
                 Vx, Vy = proj_model(LONS,LATS,inverse=False)

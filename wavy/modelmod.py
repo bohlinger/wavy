@@ -40,6 +40,9 @@ import time
 # matchtime fct
 from stationmod import matchtime
 
+# netcdf specific
+from ncmod import ncdumpMeta
+
 # 1: get_model for given time period
 # 2: dumptonc based on model (e.g. MWAM4, ARCMFC, ARCMFCnew)
 # 3: choose create or append based on the existence of the file
@@ -59,7 +62,8 @@ def get_model_filedate(model,fc_date,leadtime):
     if date.hour in init_times:
         init_diffs = date.hour - init_times
         init_diffs[init_diffs<0] = np.nan
-        h_idx = np.where(init_diffs==np.min(init_diffs[~np.isnan(init_diffs)]))
+        h_idx = np.where(init_diffs==\
+                        np.min(init_diffs[~np.isnan(init_diffs)]))
         h = int(init_times[h_idx[0][0]])
         return datetime(date.year,date.month,date.day,h)
     else:
@@ -98,6 +102,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
     """
     print ("Get model data according to selected date ....")
     print(filestr)
+    model_meta = ncdumpMeta(filestr)
     f = netCDF4.Dataset(filestr,'r')
     model_lons = f.variables[model_dict[model]['coords']['lons']][:]
     model_lats = f.variables[model_dict[model]['coords']['lats']][:]
@@ -116,7 +121,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
         model_var_valid = model_var_link[:,:].squeeze()
     f.close()
     return model_var_valid, model_lats, model_lons, model_time_valid,\
-         model_time_dt_valid, model_time_unit
+         model_time_dt_valid, model_time_unit, model_meta
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     if (init_date is None and leadtime is None):
@@ -137,14 +142,15 @@ def get_model(model=None,sdate=None,edate=None,
                                             fc_date=fc_date,
                                             init_date=init_date,
                                             leadtime=leadtime)
-    filename = make_model_filename(model=model,fc_date=fc_date,
+    filestr = make_model_filename(model=model,fc_date=fc_date,
                                     leadtime=leadtime)
     model_var, \
     model_lats, \
     model_lons, \
     model_time, \
     model_time_dt, \
-    model_time_unit = get_model_fc_mode(filestr=filename,model=model,
+    model_time_unit, \
+    model_meta = get_model_fc_mode(filestr=filestr,model=model,
                     fc_date=fc_date,leadtime=leadtime,varname=varname)
     model_var_dict = {
                     'model_var':model_var,
@@ -153,8 +159,9 @@ def get_model(model=None,sdate=None,edate=None,
                     'model_time':model_time,
                     'model_time_dt':model_time_dt,
                     'model_time_unit':model_time_unit,
+                    'model_meta':model_meta,
                     }
-    return model_var_dict, fc_date, init_date, leadtime
+    return model_var_dict, fc_date, init_date, leadtime, filestr
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -192,7 +199,7 @@ class model_class():
                 str(sdate) + " - " + str(edate))
         model_var_dict, \
         fc_date, init_date, \
-        leadtime = get_model(model=model,sdate=sdate,edate=edate,
+        leadtime, filestr = get_model(model=model,sdate=sdate,edate=edate,
                             fc_date=fc_date,init_date=init_date,
                             leadtime=leadtime,varname=varname)
 
@@ -202,3 +209,4 @@ class model_class():
         self.edate = edate
         self.model = model
         self.model_var_dict = model_var_dict
+        self.filestr = filestr
