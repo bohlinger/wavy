@@ -1,5 +1,23 @@
 --- # wave model specifications
 
+########################################################################
+# define model after the following example:
+# modelname:
+#     vars:
+#         Hs: variable abbreviation in your model
+#     coords:
+#     path_template:
+#     file_template:
+#     xtra_h:
+#     nr_filedates:
+#     filedate_formats:
+#     init_times:
+#     init_step:
+#     leadtimes:
+#     grid_date:
+#     proj4:
+########################################################################
+
 ARCMFC3: 
     vars:
         Hs: VHM0
@@ -44,8 +62,6 @@ ARCMFC3_hc:
     path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
                     hindcastmywave3km_files/%Y/%m/"
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
-    proj4: "+proj=stere +lon_0=-45 +lat_0=90 +k=1 +R=6371000 +no_defs"
-    init_times:
     grid_date: 2018-01-01 00:00:00
 
 mwam3force:
@@ -59,7 +75,11 @@ mwam3force:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    file_template: "W3km_force_%Y%m%dT%HZ.nc"
+    file_template: "W3km_force_filedate.nc"
+    xtra_h: [6] # h adjustment according to position in filename
+    nr_filedates: 1
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%dT%HZ']
     init_times: [0,12]
     init_step: 12
     leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
@@ -77,12 +97,14 @@ mwam3:
     path_template: "/lustre/storeB/immutable/\
             archive/projects/metproduction/\
             DNMI_WAVE/%Y/%m/%d/"
-    file_template: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
+    file_template: "MyWave_wam3_WAVE_filedate.nc"
+    xtra_h: [6] # h adjustment according to position in filename
+    nr_filedates: 1
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%dT%HZ']
     init_times: [0,12]
     init_step: 12
     leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
-            +o_lat_p=25 +R=6.371e+06 +no_defs"
     grid_date: 2020-02-01 00:00:00
 
 mwam4:

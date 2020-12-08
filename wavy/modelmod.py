@@ -57,7 +57,14 @@ def get_model_filedate(model,fc_date,leadtime):
     '''
     get init_date for latest model output file and checks if available
     '''
-    init_times = np.array(model_dict[model]['init_times']).astype('float')
+    if ('init_times' in model_dict[model].keys() and 
+    model_dict[model]['init_times'] is not None):
+        init_times = \
+            np.array(model_dict[model]['init_times']).astype('float')
+    else:
+        print('init_times for chosen model not specified in config file')
+        print('Assuming continuous simulation with hourly values')
+        init_times = np.array(range(25)).astype('float')
     date = fc_date - timedelta(hours=leadtime)
     if date.hour in init_times:
         init_diffs = date.hour - init_times
@@ -134,7 +141,7 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     return fc_date, init_date, leadtime
 
 def get_model(model=None,sdate=None,edate=None,
-    fc_date=None,init_date=None,leadtime=0,varname='Hs'):
+    fc_date=None,init_date=None,leadtime=None,varname=None):
     """ 
     toplevel function to get model data
     """
@@ -179,7 +186,7 @@ class model_class():
     '''
 
     def __init__(self,model='mwam4',sdate=None,edate=None,fc_date=None,
-                init_date=None,leadtime=0,varname='Hs'):
+                init_date=None,leadtime=None,varname='Hs'):
         print ('# ----- ')
         print (" ### Initializing modelmod instance ###")
         print ('# ----- ')
