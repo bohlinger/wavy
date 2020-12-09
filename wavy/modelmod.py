@@ -111,6 +111,9 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
     print(filestr)
     model_meta = ncdumpMeta(filestr)
     f = netCDF4.Dataset(filestr,'r')
+    #
+    # introduce cf convention like use of standard_name
+    #
     model_lons = f.variables[model_dict[model]['coords']['lons']][:]
     model_lats = f.variables[model_dict[model]['coords']['lats']][:]
     model_time = f.variables[model_dict[model]['vars']['time']]

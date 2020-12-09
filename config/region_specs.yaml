@@ -7,12 +7,6 @@ rect:
         llcrnrlat: -90.
         urcrnrlon: 180.
         urcrnrlat: 90.
-    ARCMFC:
-        boundinglat: 50.
-    ARCMFC3: 
-        boundinglat: 50.
-    Arctic:
-        boundinglat: 66.
     Moskenes:
         llcrnrlon: 11.5
         llcrnrlat: 67.
