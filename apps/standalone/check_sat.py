@@ -11,7 +11,7 @@ from validationmod import plot_sat
 import argparse
 from argparse import RawTextHelpFormatter
 import os
-from modelmod import get_model
+from modelmod import model_class as mc
 from validationmod import comp_fig, validate, disp_validation
 from collocmod import collocate
 from ncmod import dumptonc_sat
@@ -21,6 +21,11 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../../', 'config/variable_shortcuts.yaml'))
 with open(moddir,'r') as stream:
     shortcuts_dict=yaml.safe_load(stream)
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '../../', 'config/model_specs.yaml'))
+with open(moddir,'r') as stream:
+    model_dict=yaml.safe_load(stream)
 
 # parser
 parser = argparse.ArgumentParser(
@@ -164,14 +169,19 @@ else:
                 region=args.reg,varlst=varlst)
 
 # plot
-if args.mod is None:
+if (args.mod is None and sa_obj.region not in model_dict):
     plot_sat(sa_obj,shortcuts_dict[varlst[0]],
+            savepath=args.savep,showfig=args.show)
+elif (args.mod is None and sa_obj.region in model_dict):
+    print('Chosen region is a specified model domain')
+    mc_obj = mc(model=sa_obj.region,
+                fc_date=model_dict[sa_obj.region]['grid_date'])
+    plot_sat(sa_obj,shortcuts_dict[varlst[0]],mc_obj=mc_obj,
             savepath=args.savep,showfig=args.show)
 elif (args.mod is not None and args.col is True):
     # get model collocated values
-    init_date = edate - timedelta(hours=args.lt)
-    model_var_dict = get_model(model=args.mod,fc_date=edate,
-                            leadtime=args.lt,init_date=init_date)
+    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt)
+    model_var_dict = mc_obj.model_var_dict
     #collocation
     results_dict = collocate(args.mod,model_var_dict['model_var'],
         model_var_dict['model_lats'],model_var_dict['model_lons'],
@@ -185,9 +195,8 @@ elif (args.mod is not None and args.col is True):
             savepath=args.savep,showfig=args.show)
 else:
     # get model collocated values
-    init_date = edate - timedelta(hours=args.lt)
-    model_var_dict = get_model(model=args.mod,fc_date=edate,
-                            leadtime=args.lt,init_date=init_date)
+    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt)
+    model_var_dict = mc_obj.model_var_dict
     results_dict = {'valid_date':[edate],
                     'date_matches':[edate-timedelta(minutes=timewin),
                                     edate+timedelta(minutes=timewin)],

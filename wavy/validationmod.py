@@ -639,11 +639,9 @@ def plot_sat(sa_obj,var,**kwargs):
 
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
-    if sa_obj.region in model_dict:
-        from modelmod import get_model
+    if (sa_obj.region in model_dict and 'mc_obj' in kwargs.keys()):
         grid_date = model_dict[sa_obj.region]['grid_date']
-        model_var_dict = \
-                get_model(model=sa_obj.region, fc_date=grid_date)
+        model_var_dict = kwargs['mc_obj'].model_var_dict
     # check region and determine projection
     if (sa_obj.region == 'global' 
         or (sa_obj.region in region_dict['rect'] 

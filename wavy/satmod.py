@@ -496,13 +496,11 @@ class satellite_class():
             poly = Polygon(list(zip(region['lons'],
                 region['lats'])), closed=True)
         elif (isinstance(region,str)==True and region in model_dict):
-            #from modelmod import get_model
             from modelmod import model_class as mc
+            from ncmod import find_attr_in_nc
             import pyproj
             try:
                 print('Use date for retrieving grid: ', grid_date)
-                #model_var_dict = \
-                #    get_model(model=region, fc_date=grid_date)
                 mc_obj = mc(model=region,fc_date=grid_date)
                 model_var_dict = mc_obj.model_var_dict
             except (KeyError,IOError,ValueError) as e:
@@ -516,8 +514,6 @@ class satellite_class():
                                         datetime.now().month,
                                         datetime.now().day
                                         )
-                #model_var_dict = \
-                #    get_model(model=region, fc_date=grid_date)
                 mc_obj = mc(model=region,fc_date=grid_date)
                 model_var_dict = mc_obj.model_var_dict
             if (len(model_var_dict['model_lats'].shape)==1):
@@ -527,7 +523,7 @@ class satellite_class():
                                         )
             else:
                 model_lons = model_var_dict['model_lons']
-                oodel_lats = model_var_dict['model_lats']
+                model_lats = model_var_dict['model_lats']
             if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:
