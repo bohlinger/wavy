@@ -116,17 +116,17 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
     #
     # get coordinates and time
     lonsname = get_filevarname(model,'lons',shortcuts_dict,
-                                model_dict,filestr,model_meta)
+                                model_dict,model_meta)
     latsname = get_filevarname(model,'lats',shortcuts_dict,
-                                model_dict,filestr,model_meta)
+                                model_dict,model_meta)
     timename = get_filevarname(model,'time',shortcuts_dict,
-                                model_dict,filestr,model_meta)
+                                model_dict,model_meta)
     model_lons = f.variables[lonsname][:]
     model_lats = f.variables[latsname][:]
     model_time = f.variables[timename]
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varname,shortcuts_dict,
-                                model_dict,filestr,model_meta)
+                                model_dict,model_meta)
     model_var_link = f.variables[filevarname]
     model_time_dt = list( netCDF4.num2date(model_time[:],
                                            units = model_time.units) )
@@ -152,9 +152,8 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
         leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
     return fc_date, init_date, leadtime
 
-def get_filevarname(model,varname,shortcuts_dict,model_dict,filestr,ncdict):
+def get_filevarname(model,varname,shortcuts_dict,model_dict,ncdict):
     stdname = shortcuts_dict[varname]
-    ncdict = ncdumpMeta(filestr)
     filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
     if len(filevarname) > 1:
         print('!!! standard_name: ',stdname,' is not unique !!!',
