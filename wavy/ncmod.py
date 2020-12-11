@@ -942,3 +942,12 @@ def find_attr_in_nc(attrstr,pathtofile=None,ncdict=None,subattrstr=None):
     else:
         res2 = [i for i in ncdict[res1[0]] if subattrstr in i]
         return ncdict[res1[0]][res2[0]]
+
+def get_varname_for_cf_stdname_in_ncfile(ncdict,stdname):
+    lst = [i for i in ncdict.keys() \
+            if ('standard_name' in ncdict[i].keys() \
+            and stdname in ncdict[i]['standard_name']) \
+            ]
+    if len(lst) >= 1:
+        return lst
+    else: return None

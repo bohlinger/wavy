@@ -41,7 +41,7 @@ import time
 from stationmod import matchtime
 
 # netcdf specific
-from ncmod import ncdumpMeta
+from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 
 # 1: get_model for given time period
 # 2: dumptonc based on model (e.g. MWAM4, ARCMFC, ARCMFCnew)
@@ -114,17 +114,26 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
     #
     # introduce cf convention like use of standard_name
     #
-    model_lons = f.variables[model_dict[model]['coords']['lons']][:]
-    model_lats = f.variables[model_dict[model]['coords']['lats']][:]
-    model_time = f.variables[model_dict[model]['vars']['time']]
-    # Hs [time,lat,lon]
-    model_var_link = f.variables[model_dict[model]['vars'][varname]]
-    model_time_dt = list(netCDF4.num2date(model_time[:],
-                                          units = model_time.units) )
+    # get coordinates and time
+    lonsname = get_filevarname(model,'lons',shortcuts_dict,
+                                model_dict,filestr,model_meta)
+    latsname = get_filevarname(model,'lats',shortcuts_dict,
+                                model_dict,filestr,model_meta)
+    timename = get_filevarname(model,'time',shortcuts_dict,
+                                model_dict,filestr,model_meta)
+    model_lons = f.variables[lonsname][:]
+    model_lats = f.variables[latsname][:]
+    model_time = f.variables[timename]
+    # get other variables e.g. Hs [time,lat,lon]
+    filevarname = get_filevarname(model,varname,shortcuts_dict,
+                                model_dict,filestr,model_meta)
+    model_var_link = f.variables[filevarname]
+    model_time_dt = list( netCDF4.num2date(model_time[:],
+                                           units = model_time.units) )
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
     model_time_unit = model_time.units
-    if len(model_var_link.shape)>2: # for mulitple time steps
+    if len(model_var_link.shape)>2: # for multiple time steps
         model_var_valid = \
             model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
     else:# if only one time step
@@ -142,6 +151,26 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     elif (leadtime is None):
         leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
     return fc_date, init_date, leadtime
+
+def get_filevarname(model,varname,shortcuts_dict,model_dict,filestr,ncdict):
+    stdname = shortcuts_dict[varname]
+    ncdict = ncdumpMeta(filestr)
+    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
+    if len(filevarname) > 1:
+        print('!!! standard_name: ',stdname,' is not unique !!!',
+            '\nThe following variables have the same standard_name:\n',
+            filevarname)
+        print('Searching model_specs.yaml config file for definition')
+        filevarname = None
+    if filevarname is not None:
+        return filevarname[0]
+    if (filevarname is None 
+    and varname in model_dict[model]['vars'].keys()):
+        filevarname = model_dict[model]['vars'][varname]
+        return filevarname
+    else:
+        raise ValueError('!!! variable not defined or '
+                        + 'available in model output file !!!')
 
 def get_model(model=None,sdate=None,edate=None,
     fc_date=None,init_date=None,leadtime=None,varname=None):
@@ -180,6 +209,12 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
+                        '..', 'config/variable_shortcuts.yaml'))
+with open(moddir,'r') as stream:
+    shortcuts_dict=yaml.safe_load(stream)
+
+
 class model_class():
     '''
     class to read and process model data 
@@ -191,7 +226,7 @@ class model_class():
     def __init__(self,model='mwam4',sdate=None,edate=None,fc_date=None,
                 init_date=None,leadtime=None,varname='Hs'):
         print ('# ----- ')
-        print (" ### Initializing modelmod instance ###")
+        print (" ### Initializing model_class instance ###")
         print ('# ----- ')
         if fc_date is not None:
             print ("Requested time: ", str(fc_date))
@@ -212,11 +247,13 @@ class model_class():
         leadtime, filestr = get_model(model=model,sdate=sdate,edate=edate,
                             fc_date=fc_date,init_date=init_date,
                             leadtime=leadtime,varname=varname)
-
+        stdname = shortcuts_dict[varname]
         self.fc_date = fc_date
         self.init_date = init_date
         self.sdate = sdate
         self.edate = edate
         self.model = model
+        self.varname = varname
+        self.stdvarname = stdname
         self.model_var_dict = model_var_dict
         self.filestr = filestr
