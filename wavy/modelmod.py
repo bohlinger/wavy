@@ -103,7 +103,7 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
         raise ValueError("chosen model is not specified in model_specs.yaml")
     return filename
 
-def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
+def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     """ 
     fct to retrieve model data for correct time
     """
@@ -111,21 +111,18 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varname=None):
     print(filestr)
     model_meta = ncdumpMeta(filestr)
     f = netCDF4.Dataset(filestr,'r')
-    #
-    # introduce cf convention like use of standard_name
-    #
     # get coordinates and time
-    lonsname = get_filevarname(model,'lons',shortcuts_dict,
+    lonsname = get_filevarname(model,'lons',variable_info,
                                 model_dict,model_meta)
-    latsname = get_filevarname(model,'lats',shortcuts_dict,
+    latsname = get_filevarname(model,'lats',variable_info,
                                 model_dict,model_meta)
-    timename = get_filevarname(model,'time',shortcuts_dict,
+    timename = get_filevarname(model,'time',variable_info,
                                 model_dict,model_meta)
     model_lons = f.variables[lonsname][:]
     model_lats = f.variables[latsname][:]
     model_time = f.variables[timename]
     # get other variables e.g. Hs [time,lat,lon]
-    filevarname = get_filevarname(model,varname,shortcuts_dict,
+    filevarname = get_filevarname(model,varalias,variable_info,
                                 model_dict,model_meta)
     model_var_link = f.variables[filevarname]
     model_time_dt = list( netCDF4.num2date(model_time[:],
@@ -152,8 +149,8 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
         leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
     return fc_date, init_date, leadtime
 
-def get_filevarname(model,varname,shortcuts_dict,model_dict,ncdict):
-    stdname = shortcuts_dict[varname]
+def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
+    stdname = variable_info[varalias]['standard_name']
     filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
     if len(filevarname) > 1:
         print('!!! standard_name: ',stdname,' is not unique !!!',
@@ -164,15 +161,17 @@ def get_filevarname(model,varname,shortcuts_dict,model_dict,ncdict):
     if filevarname is not None:
         return filevarname[0]
     if (filevarname is None 
-    and varname in model_dict[model]['vars'].keys()):
-        filevarname = model_dict[model]['vars'][varname]
+    and varalias in model_dict[model]['vars'].keys()):
+        filevarname = model_dict[model]['vars'][varalias]
+        print('Variable defined in model_specs.yaml is:')
+        print(varalias, '=', filevarname)
         return filevarname
     else:
         raise ValueError('!!! variable not defined or '
                         + 'available in model output file !!!')
 
 def get_model(model=None,sdate=None,edate=None,
-    fc_date=None,init_date=None,leadtime=None,varname=None):
+    fc_date=None,init_date=None,leadtime=None,varalias=None):
     """ 
     toplevel function to get model data
     """
@@ -189,7 +188,7 @@ def get_model(model=None,sdate=None,edate=None,
     model_time_dt, \
     model_time_unit, \
     model_meta = get_model_fc_mode(filestr=filestr,model=model,
-                    fc_date=fc_date,leadtime=leadtime,varname=varname)
+                    fc_date=fc_date,leadtime=leadtime,varalias=varalias)
     model_var_dict = {
                     'model_var':model_var,
                     'model_lats':model_lats,
@@ -209,9 +208,9 @@ with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '..', 'config/variable_shortcuts.yaml'))
+                        '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
-    shortcuts_dict=yaml.safe_load(stream)
+    variable_info=yaml.safe_load(stream)
 
 
 class model_class():
@@ -223,7 +222,7 @@ class model_class():
     '''
 
     def __init__(self,model='mwam4',sdate=None,edate=None,fc_date=None,
-                init_date=None,leadtime=None,varname='Hs'):
+                init_date=None,leadtime=None,varalias='Hs'):
         print ('# ----- ')
         print (" ### Initializing model_class instance ###")
         print ('# ----- ')
@@ -245,13 +244,15 @@ class model_class():
         fc_date, init_date, \
         leadtime, filestr = get_model(model=model,sdate=sdate,edate=edate,
                             fc_date=fc_date,init_date=init_date,
-                            leadtime=leadtime,varname=varname)
-        stdname = shortcuts_dict[varname]
+                            leadtime=leadtime,varalias=varalias)
+        stdname = variable_info[varalias]['standard_name']
+        varname = model_dict[model]['vars'][varalias]
         self.fc_date = fc_date
         self.init_date = init_date
         self.sdate = sdate
         self.edate = edate
         self.model = model
+        self.varalias = varalias
         self.varname = varname
         self.stdvarname = stdname
         self.model_var_dict = model_var_dict

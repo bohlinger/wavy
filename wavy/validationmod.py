@@ -9,9 +9,9 @@ import os
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/region_specs.yaml'))
 with open(moddir,'r') as stream:
     region_dict=yaml.safe_load(stream)
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_shortcuts.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
-    shortcuts_dict=yaml.safe_load(stream)
+    variable_info=yaml.safe_load(stream)
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)

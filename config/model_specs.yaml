@@ -197,3 +197,21 @@ NORA10:
     file_template: "wam10_%Y.nc"
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
                 +o_lat_p=22 +a=6367470 +e=0"
+
+Erin1way:
+    vars:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    #path_template: "/lustre/storeB/project/nwp/nansenlegacyrf4/\
+    #               Wave_AA_Coupling/Dec2019_UnCoup/"
+    path_template: "/home/patrikb/tmp_model/"
+    file_template: "Dec2019_UnCoup_WW3_2020010112.nc"
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12]
+    grid_date: 2020-01-01 12:00:00
+    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25 
+            +lat_1=77.5 +lat_2=77.5 
+            +no_defs +R=6.371e+06"

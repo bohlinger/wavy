@@ -14,9 +14,9 @@ with open("../../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '../..', 'config/variable_shortcuts.yaml'))
+                        '../..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
-    shortcuts_dict=yaml.safe_load(stream)
+    variable_info=yaml.safe_load(stream)
 
 from satmod import satellite_class as sa
 from modelmod import get_model
@@ -145,7 +145,9 @@ for sat in args.sat:
                                             model_var_dict['model_lats'],
                                             model_var_dict['model_lons'],
                                             model_var_dict['model_time_dt'],
-                                            sa_obj,shortcuts_dict[varlst[0]],
+                                            sa_obj,
+                                            variable_info[varlst[0]]\
+                                            ['standard_name'],
                                             fc_date,distlim=args.dist,
                                             idx_valid=results_dict['idx_valid'])
                         results_dict['model_matches']=\
@@ -156,7 +158,9 @@ for sat in args.sat:
                                             model_var_dict['model_lats'],
                                             model_var_dict['model_lons'],
                                             model_var_dict['model_time_dt'],
-                                            sa_obj,shortcuts_dict[varlst[0]],
+                                            sa_obj,
+                                            variable_info[varlst[0]]\
+                                            ['standard_name'],
                                             fc_date,distlim=args.dist)
                     dumptonc_ts(outpath + fc_date.strftime('%Y/%m/'), \
                                 filename_ts,title_ts,\

@@ -65,9 +65,9 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config
 with open(moddir,'r') as stream:
     satellite_dict=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_shortcuts.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
-    shortcuts_dict=yaml.safe_load(stream)
+    variable_info=yaml.safe_load(stream)
 
 # --- global functions ------------------------------------------------#
 
@@ -315,7 +315,7 @@ class satellite_class():
         varlst = varlst + ['lons','lats','time']
         varlst_cf = []
         for var in varlst:
-            varlst_cf.append(shortcuts_dict[var])
+            varlst_cf.append(variable_info[var]['standard_name'])
         count = 0
         print ("Processing " + str(int(len(pathlst))) + " files")
         print (pathlst[0])
@@ -369,10 +369,12 @@ class satellite_class():
         time_unique,indices=np.unique(vardict['time'],return_index=True)
         for key in vardict:
             vardict[key]=list(np.array(vardict[key])[indices])
-        if (f.variables[shortcuts_dict['lons']].getncattr('valid_min') == 0):
+        if (f.variables[variable_info['lons']\
+        ['standard_name']].getncattr('valid_min') == 0):
             # transform to -180 to 180 degrees
-            tmp = np.array(vardict[shortcuts_dict['lons']])
-            vardict[shortcuts_dict['lons']] = list(((tmp - 180) % 360) - 180)
+            tmp = np.array(vardict[variable_info['lons']['standard_name']])
+            vardict[variable_info['lons']['standard_name']] \
+                = list(((tmp - 180) % 360) - 180)
         # add reference time from netcdf
         vardict['time_unit'] = f.variables['time'].units
         # close nc-file
