@@ -30,3 +30,4 @@ altimeter:
         misc:
             vardef: # stdname: abbreviation
                 sea_surface_wave_significant_height: VAVH
+                wind_speed: WIND_SPEED
