@@ -53,19 +53,23 @@ from datetime import datetime
 import scipy as sp
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/buoy_specs.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/buoy_specs.yaml'))
 with open(moddir,'r') as stream:
     buoy_dict=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/stationlist.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/stationlist.yaml'))
 with open(moddir,'r') as stream:
     locations=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/station_specs.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/station_specs.yaml'))
 with open(moddir,'r') as stream:
     station_dict=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/pathfinder.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/pathfinder.yaml'))
 with open(moddir,'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
