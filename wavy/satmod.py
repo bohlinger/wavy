@@ -216,11 +216,12 @@ class satellite_class():
         if edate is None:
             print ("Requested time: ", str(sdate))
             edate = sdate
-            if timewin is None:
-                timewin = int(30)
         else:
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
+        if timewin is None:
+            timewin = int(30)
+        print('Chose time window is:', timewin, 'min')
         # make satpaths
         path_local = satellite_dict[instr][provider]['local']['path']\
                         + '/' + sat + '/'
