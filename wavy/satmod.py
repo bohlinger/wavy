@@ -207,7 +207,7 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,timewin=None,download=False,region=None,
-        corenum=1,varlst=None
+        corenum=1,varlst=['Hs']
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -308,7 +308,7 @@ class satellite_class():
             print(e)
         return pathlst,filelst
 
-    def read_local_files(self,pathlst,provider,varlst=['Hs']):
+    def read_local_files(self,pathlst,provider,varlst):
         '''
         read and concatenate all data to one timeseries for each variable
         '''
