@@ -137,7 +137,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
         model_var_valid = model_var_link[:,:].squeeze()
     f.close()
     return model_var_valid, model_lats, model_lons, model_time_valid,\
-         model_time_dt_valid, model_time_unit, model_meta
+         model_time_dt_valid, model_time_unit, model_meta, filevarname
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     if (init_date is None and leadtime is None):
@@ -187,7 +187,8 @@ def get_model(model=None,sdate=None,edate=None,
     model_time, \
     model_time_dt, \
     model_time_unit, \
-    model_meta = get_model_fc_mode(filestr=filestr,model=model,
+    model_meta, \
+    filevarname = get_model_fc_mode(filestr=filestr,model=model,
                     fc_date=fc_date,leadtime=leadtime,varalias=varalias)
     model_var_dict = {
                     'model_var':model_var,
@@ -198,7 +199,7 @@ def get_model(model=None,sdate=None,edate=None,
                     'model_time_unit':model_time_unit,
                     'model_meta':model_meta,
                     }
-    return model_var_dict, fc_date, init_date, leadtime, filestr
+    return model_var_dict, fc_date, init_date, leadtime, filestr, filevarname
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -242,11 +243,12 @@ class model_class():
                 str(sdate) + " - " + str(edate))
         model_var_dict, \
         fc_date, init_date, \
-        leadtime, filestr = get_model(model=model,sdate=sdate,edate=edate,
+        leadtime, filestr, \
+        filevarname = get_model(model=model,sdate=sdate,edate=edate,
                             fc_date=fc_date,init_date=init_date,
                             leadtime=leadtime,varalias=varalias)
         stdname = variable_info[varalias]['standard_name']
-        varname = model_dict[model]['vars'][varalias]
+        varname = filevarname
         self.fc_date = fc_date
         self.init_date = init_date
         self.sdate = sdate
