@@ -31,9 +31,9 @@ with open(moddir,'r') as stream:
 parser = argparse.ArgumentParser(
     description="""
 Check availability of satellite SWH data. Example:
-./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020100112 -lt 0 -twin 30 --col --show
-./check_sat.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 --show
-./check_sat.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 -dump outpath/
+./wavyQuick.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020100112 -lt 0 -twin 30 --col --show
+./wavyQuick.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 --show
+./wavyQuick.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 -dump outpath/
     """,
     formatter_class = RawTextHelpFormatter
     )
