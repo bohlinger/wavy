@@ -226,7 +226,7 @@ class satellite_class():
         path_local = satellite_dict[instr][provider]['local']['path']\
                         + '/' + sat + '/'
         path_remote = satellite_dict[instr][provider]['remote']['path']\
-                        + '/' + sat + '/'
+                        + sat + '/'
         self.path_local = path_local
         self.path_remote = path_remote
         # retrieve files

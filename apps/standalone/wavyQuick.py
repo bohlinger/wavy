@@ -56,6 +56,8 @@ parser.add_argument("-ed", metavar='enddate',
     help="end date of time period to check")
 parser.add_argument("-mod", metavar='model',
     help="chosen wave model")
+parser.add_argument("-var", metavar='varalias',
+    help="alias for chosen variable")
 parser.add_argument("-lt", metavar='lead time', type=int,
     help="lead time from initialization")
 parser.add_argument("-twin", metavar='time window', type=int,
@@ -77,7 +79,11 @@ print ("Parsed arguments: ",args)
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 # setup
-varlst = ['Hs']
+if args.var is None:
+    varlst = ['Hs']
+    args.var = 'Hs'
+else:
+    varlst = [args.var]
 
 sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
@@ -108,6 +114,7 @@ if args.sat == 'all':
     var = []
     time = []
     sats = []
+    satnamelst = []
     for sat in satlist:
         try:
             sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
@@ -121,6 +128,7 @@ if args.sat == 'all':
                                             ['standard_name']])
                 time.append(sa_obj.vars['time'])
                 sats.append(sat)
+                satnamelst.append([sat]*len(sa_obj.vars['time']))
         except:
             print(sat + ' not available')
             pass
@@ -128,12 +136,14 @@ if args.sat == 'all':
     lons = flatten(lons)
     var = flatten(var)
     time = flatten(time)
+    satnames = flatten(satnamelst)
     sa_obj.vars['latitude'] = np.array(lats)
     sa_obj.vars['longitude'] = np.array(lons)
     sa_obj.vars[variable_info[varlst[0]]['standard_name']] = np.array(var)
     sa_obj.vars['time'] = time
     sa_obj.region = args.reg
     sa_obj.sat = str(sats)
+    sa_obj.satname_ts = satnames
 elif args.sat == 'multi':
     satlist = args.l.split(',')
     lats = []
@@ -141,6 +151,7 @@ elif args.sat == 'multi':
     var = []
     time = []
     sats = []
+    satnamelst = []
     for sat in satlist:
         try:
             sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
@@ -154,6 +165,7 @@ elif args.sat == 'multi':
                                             ['standard_name']])
                 time.append(sa_obj.vars['time'])
                 sats.append(sat)
+                satnamelst.append([sat]*len(sa_obj.vars['time']))
         except:
             pass
     lats = flatten(lats)
@@ -166,6 +178,7 @@ elif args.sat == 'multi':
     sa_obj.vars[variable_info[varlst[0]]['standard_name']] = np.array(var)
     sa_obj.region = args.reg
     sa_obj.sat = str(sats)
+    sa_obj.satname_ts = satnames
 else:
     sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,
                 region=args.reg,varlst=varlst)
@@ -177,12 +190,14 @@ if (args.mod is None and sa_obj.region not in model_dict):
 elif (args.mod is None and sa_obj.region in model_dict):
     print('Chosen region is a specified model domain')
     mc_obj = mc(model=sa_obj.region,
-                fc_date=model_dict[sa_obj.region]['grid_date'])
-    plot_sat(sa_obj,variable_info[varlst[0]]['standard_name'],mc_obj=mc_obj,
-            savepath=args.savep,showfig=args.show)
+                fc_date=model_dict[sa_obj.region]['grid_date'],
+                varalias=args.var)
+    plot_sat(sa_obj,variable_info[varlst[0]]['standard_name'],
+            mc_obj=mc_obj,savepath=args.savep,showfig=args.show)
 elif (args.mod is not None and args.col is True):
     # get model collocated values
-    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt)
+    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
+                varalias=args.var)
     model_var_dict = mc_obj.model_var_dict
     #collocation
     results_dict = collocate(args.mod,model_var_dict['model_var'],
@@ -197,7 +212,8 @@ elif (args.mod is not None and args.col is True):
             savepath=args.savep,showfig=args.show)
 else:
     # get model collocated values
-    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt)
+    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
+                varalias=args.var)
     model_var_dict = mc_obj.model_var_dict
     results_dict = {'valid_date':[edate],
                     'date_matches':[edate-timedelta(minutes=timewin),
