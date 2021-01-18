@@ -390,14 +390,6 @@ class satellite_class():
         f.close()
         return vardict
 
-    def bintime(self,binframe=None):
-        '''
-        fct to return frequency of occurrence per chose time interval
-        e.g. days, weeks, months, years ...
-        currently only daily bins
-        '''
-        return freqlst,datelst
-
     def matchtime(self,sdate,edate,time,reftime,timewin=None):
         '''
         fct to obtain the index of the time step closest to the 
@@ -513,7 +505,6 @@ class satellite_class():
             try:
                 print('Use date for retrieving grid: ', grid_date)
                 mc_obj = mc(model=region,fc_date=grid_date)
-                model_var_dict = mc_obj.model_var_dict
             except (KeyError,IOError,ValueError) as e:
                 print(e)
                 if 'grid_date' in model_dict[region]:
@@ -526,19 +517,18 @@ class satellite_class():
                                         datetime.now().day
                                         )
                 mc_obj = mc(model=region,fc_date=grid_date)
-                model_var_dict = mc_obj.model_var_dict
-            if (len(model_var_dict['model_lats'].shape)==1):
+            if (len(mc_obj.vars['latitude'].shape)==1):
                 model_lons, model_lats = np.meshgrid(
-                                        model_var_dict['model_lons'], 
-                                        model_var_dict['model_lats']
+                                        mc_obj.vars['longitude'], 
+                                        mc_obj.vars['latitude']
                                         )
             else:
-                model_lons = model_var_dict['model_lons']
-                model_lats = model_var_dict['model_lats']
+                model_lons = mc_obj.vars['longitude']
+                model_lats = mc_obj.vars['latitude']
             if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:
-                ncdict = mc_obj.model_var_dict['model_meta']
+                ncdict = mc_obj.vars['model_meta']
                 try:
                     proj4 = find_attr_in_nc('proj',ncdict=ncdict,
                                             subattrstr='proj4')

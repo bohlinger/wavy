@@ -195,23 +195,23 @@ elif (args.mod is not None and args.col is True):
     # get model collocated values
     mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
                 varalias=args.var)
-    model_var_dict = mc_obj.model_var_dict
     #collocation
-    results_dict = collocate(args.mod,model_var_dict['model_var'],
-        model_var_dict['model_lats'],model_var_dict['model_lons'],
-        model_var_dict['model_time_dt'],sa_obj,
+    results_dict = collocate(args.mod,
+        mc_obj.vars[variable_info[args.var]['standard_name']],
+        mc_obj.vars['latitude'],mc_obj.vars['longitude'],
+        mc_obj.vars['datetime'],sa_obj,
         variable_info[args.var]['standard_name'],edate,distlim=dist)
     valid_dict=validate(results_dict)
     disp_validation(valid_dict)
-    comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
-            model_var_dict['model_lons'],model_var_dict['model_lats'],
+    comp_fig(args.mod,sa_obj,
+            mc_obj.vars[variable_info[args.var]['standard_name']],
+            mc_obj.vars['longitude'],mc_obj.vars['latitude'],
             results_dict,variable_info[args.var]['standard_name'],
             savepath=args.savep,showfig=args.show)
 else:
     # get model collocated values
     mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
                 varalias=args.var)
-    model_var_dict = mc_obj.model_var_dict
     results_dict = {'valid_date':[edate],
                     'date_matches':[edate-timedelta(minutes=timewin),
                                     edate+timedelta(minutes=timewin)],
@@ -219,8 +219,9 @@ else:
                     'model_lats_matches':sa_obj.vars['latitude'],
                     'sat_matches':sa_obj.vars[variable_info[args.var]\
                                                     ['standard_name']]}
-    comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
-            model_var_dict['model_lons'],model_var_dict['model_lats'],
+    comp_fig(args.mod,sa_obj,
+            mc_obj.vars[variable_info[args.var]['standard_name']],
+            mc_obj.vars['longitude'],mc_obj.vars['latitude'],
             results_dict,variable_info[args.var]['standard_name'],
             savepath=args.savep,showfig=args.show)
 

@@ -107,6 +107,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     """ 
     fct to retrieve model data for correct time
     """
+    vardict = {}
     print ("Get model data according to selected date ....")
     print(filestr)
     model_meta = ncdumpMeta(filestr)
@@ -119,7 +120,9 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     timename = get_filevarname(model,'time',variable_info,
                                 model_dict,model_meta)
     model_lons = f.variables[lonsname][:]
+    vardict[variable_info['lons']['standard_name']]=model_lons
     model_lats = f.variables[latsname][:]
+    vardict[variable_info['lats']['standard_name']]=model_lats
     model_time = f.variables[timename]
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varalias,variable_info,
@@ -130,14 +133,23 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
     model_time_valid = [model_time[model_time_dt.index(fc_date)]]
     model_time_unit = model_time.units
+    vardict[variable_info['time']['standard_name']]=model_time_valid
+    vardict['datetime']=model_time_dt_valid
+    vardict['time_unit']=model_time_unit
     if len(model_var_link.shape)>2: # for multiple time steps
         model_var_valid = \
             model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
+        vardict[variable_info[varalias]['standard_name']] = \
+                                                        model_var_valid
     else:# if only one time step
         model_var_valid = model_var_link[:,:].squeeze()
+        vardict[variable_info[varalias]['standard_name']] = \
+                                                        model_var_valid
     f.close()
-    return model_var_valid, model_lats, model_lons, model_time_valid,\
-         model_time_dt_valid, model_time_unit, model_meta, filevarname
+    vardict['model_meta'] = model_meta
+    return vardict, filevarname
+#    return model_var_valid, model_lats, model_lons, model_time_valid,\
+#         model_time_dt_valid, model_time_unit, model_meta, filevarname
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     if (init_date is None and leadtime is None):
@@ -181,25 +193,27 @@ def get_model(model=None,sdate=None,edate=None,
                                             leadtime=leadtime)
     filestr = make_model_filename(model=model,fc_date=fc_date,
                                     leadtime=leadtime)
-    model_var, \
-    model_lats, \
-    model_lons, \
-    model_time, \
-    model_time_dt, \
-    model_time_unit, \
-    model_meta, \
+#    model_var, \
+#    model_lats, \
+#    model_lons, \
+#    model_time, \
+#    model_time_dt, \
+#    model_time_unit, \
+#    model_meta, \
+#    filevarname 
+    vardict, \
     filevarname = get_model_fc_mode(filestr=filestr,model=model,
                     fc_date=fc_date,leadtime=leadtime,varalias=varalias)
-    model_var_dict = {
-                    'model_var':model_var,
-                    'model_lats':model_lats,
-                    'model_lons':model_lons,
-                    'model_time':model_time,
-                    'model_time_dt':model_time_dt,
-                    'model_time_unit':model_time_unit,
-                    'model_meta':model_meta,
-                    }
-    return model_var_dict, fc_date, init_date, leadtime, filestr, filevarname
+#    model_var_dict = {
+#                    'model_var':model_var,
+#                    'model_lats':model_lats,
+#                    'model_lons':model_lons,
+#                    'model_time':model_time,
+#                    'model_time_dt':model_time_dt,
+#                    'model_time_unit':model_time_unit,
+#                    'model_meta':model_meta,
+#                    }
+    return vardict, fc_date, init_date, leadtime, filestr, filevarname
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -241,7 +255,7 @@ class model_class():
             # --> not yet in use
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
-        model_var_dict, \
+        vardict, \
         fc_date, init_date, \
         leadtime, filestr, \
         filevarname = get_model(model=model,sdate=sdate,edate=edate,
@@ -258,5 +272,5 @@ class model_class():
         self.varalias = varalias
         self.varname = varname
         self.stdvarname = stdname
-        self.model_var_dict = model_var_dict
+        self.vars = vardict
         self.filestr = filestr

@@ -214,3 +214,25 @@ def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
     else:
         results_dict = {'model_matches':model_rval[idx_valid]}
     return results_dict
+
+
+class collocation_class():
+    '''
+    draft of envisioned collocation class object
+    '''
+
+    def __init__(self,model_obj,sa_obj=None,st_obj=None):
+        print ('# ----- ')
+        print (" ### Initializing collocation_class instance ###")
+        print ('# ----- ')
+        stdname = variable_info[varalias]['standard_name']
+        # define class variables
+        self.fc_date = fc_date
+        self.init_date = init_date
+        self.sdate = sdate
+        self.edate = edate
+        self.model = model
+        self.obs = obs
+        self.varalias = varalias
+        self.stdvarname = stdname
+        self.vars = vardict # divided into model and obs
