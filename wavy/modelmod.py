@@ -249,6 +249,7 @@ class model_class():
                             leadtime=leadtime,varalias=varalias)
         stdname = variable_info[varalias]['standard_name']
         varname = filevarname
+        # define class variables
         self.fc_date = fc_date
         self.init_date = init_date
         self.sdate = sdate

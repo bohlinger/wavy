@@ -38,6 +38,7 @@ from ftplib import FTP
 
 # read_altim
 import netCDF4 as netCDF4
+from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 
 # create_file
 import calendar
@@ -207,7 +208,7 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,timewin=None,download=False,region=None,
-        corenum=1,varlst=['Hs']
+        corenum=1,varalias='Hs'
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -237,7 +238,7 @@ class satellite_class():
                                 sdate,edate,timewin,region
                                 )
         if len(pathlst) > 0:
-            vardict = self.read_local_files(pathlst,provider,varlst)
+            vardict = self.read_local_files(pathlst,provider,varalias)
             print('Total: ', len(vardict['time']), ' footprints found')
             # find values for give time constraint
             cidx,dtimelst = self.matchtime(
@@ -266,10 +267,17 @@ class satellite_class():
             del cvardict
             print('For chosen region and time: ', len(rvardict['time']), 
                 ' footprints found')
+            # find variable name as defined in file
+            stdname = variable_info[varalias]['standard_name']
+            ncdict = ncdumpMeta(pathlst[0])
+            filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
             # define class variables
             self.edate = edate
             self.sdate = sdate
             self.vars = rvardict
+            self.varalias = varalias
+            self.varname = filevarname
+            self.stdvarname = stdname
             self.timewin = timewin
             self.region = region
             self.sat = sat
@@ -308,12 +316,12 @@ class satellite_class():
             print(e)
         return pathlst,filelst
 
-    def read_local_files(self,pathlst,provider,varlst):
+    def read_local_files(self,pathlst,provider,varalias):
         '''
         read and concatenate all data to one timeseries for each variable
         '''
         # --- open file and read variables --- #
-        varlst = varlst + ['lons','lats','time']
+        varlst = [varalias] + ['lons','lats','time']
         varlst_cf = []
         for var in varlst:
             varlst_cf.append(variable_info[var]['standard_name'])

@@ -80,10 +80,7 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 # setup
 if args.var is None:
-    varlst = ['Hs']
     args.var = 'Hs'
-else:
-    varlst = [args.var]
 
 sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
@@ -118,13 +115,13 @@ if args.sat == 'all':
     for sat in satlist:
         try:
             sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
-                            region=args.reg,varlst=varlst)
+                            region=args.reg,varalias=args.var)
             if ('vars' in vars(sa_obj_tmp).keys()
             and len(sa_obj_tmp.vars['time'])>0):
                 sa_obj = sa_obj_tmp
                 lats.append(sa_obj.vars['latitude'])
                 lons.append(sa_obj.vars['longitude'])
-                var.append(sa_obj.vars[variable_info[varlst[0]]\
+                var.append(sa_obj.vars[variable_info[varalias]\
                                             ['standard_name']])
                 time.append(sa_obj.vars['time'])
                 sats.append(sat)
@@ -139,7 +136,7 @@ if args.sat == 'all':
     satnames = flatten(satnamelst)
     sa_obj.vars['latitude'] = np.array(lats)
     sa_obj.vars['longitude'] = np.array(lons)
-    sa_obj.vars[variable_info[varlst[0]]['standard_name']] = np.array(var)
+    sa_obj.vars[variable_info[args.var]['standard_name']] = np.array(var)
     sa_obj.vars['time'] = time
     sa_obj.region = args.reg
     sa_obj.sat = str(sats)
@@ -155,13 +152,13 @@ elif args.sat == 'multi':
     for sat in satlist:
         try:
             sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
-                            region=args.reg,varlst=varlst)
+                            region=args.reg,varalias=args.var)
             if ('vars' in vars(sa_obj_tmp).keys()
             and len(sa_obj_tmp.vars['time'])>0):
                 sa_obj = sa_obj_tmp
                 lats.append(sa_obj.vars['latitude'])
                 lons.append(sa_obj.vars['longitude'])
-                var.append(sa_obj.vars[variable_info[varlst[0]]\
+                var.append(sa_obj.vars[variable_info[args.var]\
                                             ['standard_name']])
                 time.append(sa_obj.vars['time'])
                 sats.append(sat)
@@ -175,24 +172,24 @@ elif args.sat == 'multi':
     sa_obj.vars['time'] = time
     sa_obj.vars['latitude'] = np.array(lats)
     sa_obj.vars['longitude'] = np.array(lons)
-    sa_obj.vars[variable_info[varlst[0]]['standard_name']] = np.array(var)
+    sa_obj.vars[variable_info[args.var]['standard_name']] = np.array(var)
     sa_obj.region = args.reg
     sa_obj.sat = str(sats)
     sa_obj.satname_ts = satnames
 else:
     sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,
-                region=args.reg,varlst=varlst)
+                region=args.reg,varalias=args.var)
 
 # plot
 if (args.mod is None and sa_obj.region not in model_dict):
-    plot_sat(sa_obj,variable_info[varlst[0]['standard_name']],
+    plot_sat(sa_obj,variable_info[args.var]['standard_name'],
             savepath=args.savep,showfig=args.show)
 elif (args.mod is None and sa_obj.region in model_dict):
     print('Chosen region is a specified model domain')
     mc_obj = mc(model=sa_obj.region,
                 fc_date=model_dict[sa_obj.region]['grid_date'],
                 varalias=args.var)
-    plot_sat(sa_obj,variable_info[varlst[0]]['standard_name'],
+    plot_sat(sa_obj,variable_info[args.var]['standard_name'],
             mc_obj=mc_obj,savepath=args.savep,showfig=args.show)
 elif (args.mod is not None and args.col is True):
     # get model collocated values
@@ -203,12 +200,12 @@ elif (args.mod is not None and args.col is True):
     results_dict = collocate(args.mod,model_var_dict['model_var'],
         model_var_dict['model_lats'],model_var_dict['model_lons'],
         model_var_dict['model_time_dt'],sa_obj,
-        variable_info[varlst[0]]['standard_name'],edate,distlim=dist)
+        variable_info[args.var]['standard_name'],edate,distlim=dist)
     valid_dict=validate(results_dict)
     disp_validation(valid_dict)
     comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
             model_var_dict['model_lons'],model_var_dict['model_lats'],
-            results_dict,variable_info[varlst[0]]['standard_name'],
+            results_dict,variable_info[args.var]['standard_name'],
             savepath=args.savep,showfig=args.show)
 else:
     # get model collocated values
@@ -220,11 +217,11 @@ else:
                                     edate+timedelta(minutes=timewin)],
                     'model_lons_matches':sa_obj.vars['longitude'],
                     'model_lats_matches':sa_obj.vars['latitude'],
-                    'sat_matches':sa_obj.vars[variable_info[varlst[0]]\
+                    'sat_matches':sa_obj.vars[variable_info[args.var]\
                                                     ['standard_name']]}
     comp_fig(args.mod,sa_obj,model_var_dict['model_var'],
             model_var_dict['model_lons'],model_var_dict['model_lats'],
-            results_dict,variable_info[varlst[0]]['standard_name'],
+            results_dict,variable_info[args.var]['standard_name'],
             savepath=args.savep,showfig=args.show)
 
 # dump to .ncfile
