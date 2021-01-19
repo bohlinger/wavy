@@ -266,8 +266,8 @@ class model_class():
         # define class variables
         self.fc_date = fc_date
         self.init_date = init_date
-        self.sdate = sdate
-        self.edate = edate
+        self.sdate = sdate # not yet in use
+        self.edate = edate # not yet in use
         self.model = model
         self.varalias = varalias
         self.varname = varname
