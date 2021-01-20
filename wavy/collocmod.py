@@ -55,83 +55,80 @@ def matchtime(sdate,edate,dtime,timewin=None):
 
 def collocation_loop(
     j,obs_time_dt,model_time_dt_valid,distlim,model,
-    sat_rlats,sat_rlons,sat_rval,
-    model_rlats,model_rlons,model_rval,
+    obs_lats,obs_lons,obs_val,model_lats,model_lons,model_val,
     moving_win):
     from utils import haversine
     lat_win = 0.1
     if model in model_dict:
-        sat_rlat=sat_rlats[j]
-        sat_rlon=sat_rlons[j]
+        obs_lat=obs_lats[j]
+        obs_lon=obs_lons[j]
         # constraints to reduce workload
-        model_rlats_new=model_rlats[
-                    (model_rlats>=sat_rlat-lat_win)
+        model_lats_new=model_lats[
+                    (model_lats>=obs_lat-lat_win)
                     &
-                    (model_rlats<=sat_rlat+lat_win)
+                    (model_lats<=obs_lat+lat_win)
                     &
-                    (model_rlons>=sat_rlon-moving_win)
+                    (model_lons>=obs_lon-moving_win)
                     &
-                    (model_rlons<=sat_rlon+moving_win)
+                    (model_lons<=obs_lon+moving_win)
                     ]
-        model_rlons_new=model_rlons[
-                    (model_rlats>=sat_rlat-lat_win)
+        model_lons_new=model_lons[
+                    (model_lats>=obs_lat-lat_win)
                     &
-                    (model_rlats<=sat_rlat+lat_win)
+                    (model_lats<=obs_lat+lat_win)
                     &
-                    (model_rlons>=sat_rlon-moving_win)
+                    (model_lons>=obs_lon-moving_win)
                     &
-                    (model_rlons<=sat_rlon+moving_win)
+                    (model_lons<=obs_lon+moving_win)
                     ]
-        tmp=range(len(model_rlats))
+        tmp=range(len(model_lats))
         tmp_idx=np.array(tmp)[
-                    (model_rlats>=sat_rlat-lat_win)
+                    (model_lats>=obs_lat-lat_win)
                     &
-                    (model_rlats<=sat_rlat+lat_win)
+                    (model_lats<=obs_lat+lat_win)
                     &
-                    (model_rlons>=sat_rlon-moving_win)
+                    (model_lons>=obs_lon-moving_win)
                     &
-                    (model_rlons<=sat_rlon+moving_win)
+                    (model_lons<=obs_lon+moving_win)
                     ]
         # compute distances
         if sys.version_info <= (3, 0):
             distlst=map(
                         haversine,
-                        [sat_rlon]*len(model_rlons_new),
-                        [sat_rlat]*len(model_rlons_new),
-                        model_rlons_new,model_rlats_new
+                        [obs_lon]*len(model_lons_new),
+                        [obs_lat]*len(model_lons_new),
+                        model_lons_new,model_lats_new
                         )
         else:
             distlst=list(map(
                         haversine,
-                        [sat_rlon]*len(model_rlons_new),
-                        [sat_rlat]*len(model_rlons_new),
-                        model_rlons_new,model_rlats_new
+                        [obs_lon]*len(model_lons_new),
+                        [obs_lat]*len(model_lons_new),
+                        model_lons_new,model_lats_new
                         ))
         tmp_idx2 = distlst.index(np.min(distlst))
-        idx_valid = tmp_idx[tmp_idx2]
-        if (distlst[tmp_idx2]<=distlim and model_rval[idx_valid]>=0):
+        collocation_idx = tmp_idx[tmp_idx2]
+        if (distlst[tmp_idx2]<=distlim and model_val[collocation_idx]>=0):
             nearest_all_dist_matches=distlst[tmp_idx2]
             nearest_all_date_matches=obs_time_dt[j]
             nearest_all_model_matches=\
-                           model_rval[idx_valid]
-            nearest_all_sat_matches=sat_rval[j]
-            nearest_all_sat_lons_matches=sat_rlon
-            nearest_all_sat_lats_matches=sat_rlat
+                           model_val[collocation_idx]
+            nearest_all_obs_matches=obs_val[j]
+            nearest_all_obs_lons_matches=obs_lon
+            nearest_all_obs_lats_matches=obs_lat
             nearest_all_model_lons_matches=\
-                            model_rlons[idx_valid]
+                            model_lons[collocation_idx]
             nearest_all_model_lats_matches=\
-                            model_rlats[idx_valid]
+                            model_lats[collocation_idx]
             return nearest_all_date_matches,nearest_all_dist_matches,\
-                nearest_all_model_matches,nearest_all_sat_matches,\
-                nearest_all_sat_lons_matches, nearest_all_sat_lats_matches,\
+                nearest_all_model_matches,nearest_all_obs_matches,\
+                nearest_all_obs_lons_matches, nearest_all_obs_lats_matches,\
                 nearest_all_model_lons_matches, \
-                nearest_all_model_lats_matches, idx_valid
+                nearest_all_model_lats_matches, collocation_idx
         else:
            return
 
-#def collocate(model,model_val,model_lats,model_lons,model_time_dt,\
-#    sa_obj,var,datein,distlim=6,idx_valid=None):
-def collocate(mc_obj,sa_obj=None,st_obj=None,idx_valid=None,
+def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
             distlim=None):
     """
     get obs value for model value for given 
@@ -169,7 +166,7 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,idx_valid=None,
     nearest_all_obs_lats_matches=[]
     nearest_all_model_lons_matches=[]
     nearest_all_model_lats_matches=[]
-    idx_valid_lst=[]
+    collocation_idx_lst=[]
     # create local variables before loop
     obs_lats = np.array(sa_obj.vars['latitude'])[cidx]
     obs_lons = np.array(sa_obj.vars['longitude'])[cidx]
@@ -178,9 +175,6 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,idx_valid=None,
     model_lats = mc_obj.vars['latitude'].flatten()
     model_lons = mc_obj.vars['longitude'].flatten()
     model_val = mc_obj.vars[mc_obj.stdvarname].flatten()
-    #model_rval = model_val.squeeze().flatten()
-    #model_rlons = model_lons.flatten()
-    #model_rlats = model_lats.flatten()
     # moving window compensating for increasing latitudes
     try:
         moving_win = round(
@@ -197,11 +191,11 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,idx_valid=None,
         moving_win = .6
     print ("Searching for matches with moving window of degree:",\
             moving_win)
-    if idx_valid is None:
+    if collocation_idx is None:
         for j in range(len(obs_time_dt)):
             progress(j,str(int(len(obs_time_dt))),'')
-            try:
-#            for i in range(1):
+#            try:
+            for i in range(1):
                 resultlst = collocation_loop(\
                     j,obs_time_dt,datein,distlim,
                     mc_obj.model,\
@@ -216,25 +210,24 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,idx_valid=None,
                 nearest_all_obs_lats_matches.append(resultlst[5])
                 nearest_all_model_lons_matches.append(resultlst[6])
                 nearest_all_model_lats_matches.append(resultlst[7])
-                idx_valid_lst.append(resultlst[8])
-            except:
-                print ("Collocation error -> no collocation:", 
-                        sys.exc_info()[0])
-#                pass
+                collocation_idx_lst.append(resultlst[8])
+#            except:
+#                print ("Collocation error -> no collocation:", 
+#                        sys.exc_info()[0])
         results_dict = {
                 'valid_date':np.array(datein),
-                'date_matches':np.array(nearest_all_date_matches),
-                'dist_matches':np.array(nearest_all_dist_matches),
-                'model_matches':np.array(nearest_all_model_matches),
-                'obs_matches':np.array(nearest_all_obs_matches),
-                'obs_lons_matches':np.array(nearest_all_obs_lons_matches),
-                'obs_lats_matches':np.array(nearest_all_obs_lats_matches),
-                'model_lons_matches':np.array(nearest_all_model_lons_matches),
-                'model_lats_matches':np.array(nearest_all_model_lats_matches),
-                'idx_valid':np.array(idx_valid_lst)
+                'time':np.array(nearest_all_date_matches),
+                'distance':np.array(nearest_all_dist_matches),
+                'model_values':np.array(nearest_all_model_matches),
+                'model_lons':np.array(nearest_all_model_lons_matches),
+                'model_lats':np.array(nearest_all_model_lats_matches),
+                'obs_values':np.array(nearest_all_obs_matches),
+                'obs_lons':np.array(nearest_all_obs_lons_matches),
+                'obs_lats':np.array(nearest_all_obs_lats_matches),
+                'collocation_idx':np.array(collocation_idx_lst)
                 }
     else:
-        results_dict = {'model_matches':model_rval[idx_valid]}
+        results_dict = {'model_values':model_val[collocation_idx]}
     return results_dict
 
 
@@ -243,7 +236,7 @@ class collocation_class():
     draft of envisioned collocation class object
     '''
 
-    def __init__(self,mc_obj,sa_obj=None,st_obj=None,idx_valid=None,
+    def __init__(self,mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
     distlim=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class instance ###")
@@ -251,10 +244,8 @@ class collocation_class():
         results_dict = collocate(mc_obj,
                                 sa_obj=sa_obj,
                                 st_obj=st_obj,
-                                idx_valid=idx_valid,
+                                collocation_idx=collocation_idx,
                                 distlim=distlim)
-#                    model,model_val,model_lats,model_lons,model_time_dt
-#                    sa_obj,var,datein,distlim=6,idx_valid=None)
         if sa_obj is not None:
             obs = sa_obj.sat
         if st_obj is not None:

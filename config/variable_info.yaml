@@ -54,15 +54,15 @@ Mdir:
     units: degree
     valid_range: [0.,360.]
     convention: oceanographic
-Ux:
+ux:
     standard_name: x_wind
     alias: grid_eastward_wind
-U: 
+ua: 
     standard_name: eastward_wind
-Vy: 
+vy: 
     standard_name: y_wind 
     alias: grid_northward_wind
-V: 
+va: 
     standard_name: northward_wind
-W: 
+U: 
     standard_name: wind_speed
