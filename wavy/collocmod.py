@@ -54,7 +54,7 @@ def matchtime(sdate,edate,dtime,timewin=None):
     return ctime, cidx
 
 def collocation_loop(
-    j,obs_time_dt,model_time_dt_valid,distlim,model,
+    j,obs_time,obs_time_dt,model_time_dt_valid,distlim,model,
     obs_lats,obs_lons,obs_val,model_lats,model_lons,model_val,
     moving_win):
     from utils import haversine
@@ -111,6 +111,7 @@ def collocation_loop(
         if (distlst[tmp_idx2]<=distlim and model_val[collocation_idx]>=0):
             nearest_all_dist_matches=distlst[tmp_idx2]
             nearest_all_date_matches=obs_time_dt[j]
+            nearest_all_time_matches=obs_time[j]
             nearest_all_model_matches=\
                            model_val[collocation_idx]
             nearest_all_obs_matches=obs_val[j]
@@ -124,7 +125,8 @@ def collocation_loop(
                 nearest_all_model_matches,nearest_all_obs_matches,\
                 nearest_all_obs_lons_matches, nearest_all_obs_lats_matches,\
                 nearest_all_model_lons_matches, \
-                nearest_all_model_lats_matches, collocation_idx
+                nearest_all_model_lats_matches, collocation_idx,\
+                nearest_all_time_matches
         else:
            return
 
@@ -150,6 +152,8 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
     datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
     ctime, cidx = matchtime(datein,datein,dtime,timewin=sa_obj.timewin)
     obs_time_dt = dtime[cidx]
+    obs_time = np.array(sa_obj.vars['time'])[cidx]
+    obs_time_unit = sa_obj.vars['time_unit']
 
     #model_time_idx = model_time_dt.index(datein)
     #model_time_dt_valid = [model_time_dt[model_time_idx]]
@@ -159,6 +163,7 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
     # Compare wave heights of satellite with model with 
     # constraint on distance and time frame
     nearest_all_date_matches=[]
+    nearest_all_time_matches=[]
     nearest_all_dist_matches=[]
     nearest_all_model_matches=[]
     nearest_all_obs_matches=[]
@@ -197,7 +202,7 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
 #            try:
             for i in range(1):
                 resultlst = collocation_loop(\
-                    j,obs_time_dt,datein,distlim,
+                    j,obs_time,obs_time_dt,datein,distlim,
                     mc_obj.model,\
                     obs_lats,obs_lons,obs_val,\
                     model_lats,model_lons,model_val,\
@@ -211,12 +216,15 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
                 nearest_all_model_lons_matches.append(resultlst[6])
                 nearest_all_model_lats_matches.append(resultlst[7])
                 collocation_idx_lst.append(resultlst[8])
+                nearest_all_time_matches.append(resultlst[9])
 #            except:
 #                print ("Collocation error -> no collocation:", 
 #                        sys.exc_info()[0])
         results_dict = {
                 'valid_date':np.array(datein),
-                'time':np.array(nearest_all_date_matches),
+                'time':np.array(nearest_all_time_matches),
+                'time_unit':obs_time_unit,
+                'datetime':np.array(nearest_all_date_matches),
                 'distance':np.array(nearest_all_dist_matches),
                 'model_values':np.array(nearest_all_model_matches),
                 'model_lons':np.array(nearest_all_model_lons_matches),

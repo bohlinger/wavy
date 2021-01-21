@@ -148,8 +148,6 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     f.close()
     vardict['model_meta'] = model_meta
     return vardict, filevarname
-#    return model_var_valid, model_lats, model_lons, model_time_valid,\
-#         model_time_dt_valid, model_time_unit, model_meta, filevarname
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
     if (init_date is None and leadtime is None):
@@ -193,26 +191,9 @@ def get_model(model=None,sdate=None,edate=None,
                                             leadtime=leadtime)
     filestr = make_model_filename(model=model,fc_date=fc_date,
                                     leadtime=leadtime)
-#    model_var, \
-#    model_lats, \
-#    model_lons, \
-#    model_time, \
-#    model_time_dt, \
-#    model_time_unit, \
-#    model_meta, \
-#    filevarname 
     vardict, \
     filevarname = get_model_fc_mode(filestr=filestr,model=model,
                     fc_date=fc_date,leadtime=leadtime,varalias=varalias)
-#    model_var_dict = {
-#                    'model_var':model_var,
-#                    'model_lats':model_lats,
-#                    'model_lons':model_lons,
-#                    'model_time':model_time,
-#                    'model_time_dt':model_time_dt,
-#                    'model_time_unit':model_time_unit,
-#                    'model_meta':model_meta,
-#                    }
     return vardict, fc_date, init_date, leadtime, filestr, filevarname
 # ---------------------------------------------------------------------#
 
