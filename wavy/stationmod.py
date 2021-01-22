@@ -99,16 +99,12 @@ class station_class():
     '''
     basedate = datetime(1970,1,1)
     def __init__(self,statname,sdate,edate,
-                mode=None,deltat=None,sensorname=None,varname=None):
+                mode='d22',deltat=None,sensorname=None,varname='Hs_10min'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         print ('# ----- ')
-        if mode is None:
-            mode = 'nc' # mode: 'nc', 'd22'
-        if varname is None:
-            varname = 'Hs_10min'
         var, time, timedt = self.get_station(
                                     statname,
                                     sdate,edate,
@@ -129,8 +125,6 @@ class station_class():
 
     def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varname):
         if mode == 'nc':
-            if varname is None:
-                varname = 'Hs_10min'
             basedate = self.basedate
             tmpdate = sdate
             var = []
