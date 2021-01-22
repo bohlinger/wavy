@@ -98,8 +98,8 @@ class station_class():
     Class to handle platform based time series.
     '''
     basedate = datetime(1970,1,1)
-    def __init__(self,statname,sdate,edate,
-                mode='d22',deltat=None,sensorname=None,varname='Hs_10min'):
+    def __init__(self,statname,sensorname,sdate,edate,
+                mode='d22',deltat=10,varname='Hs_10min'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))

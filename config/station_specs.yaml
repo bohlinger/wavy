@@ -223,15 +223,15 @@ platform:
             lat: 60.77
             lon: 3.5
         operator: Equinor_Energy
-    #ula:
-    #   sensor:
-    #       NA_1: 0 # python indexing
-    #   manufactor:
-    #       NA_1: NA
-    #   coord:
-    #       lat: 57.10
-    #       lon:  2.85
-    #   operator: Aker_BP
+#    ula:
+#       sensor:
+#           NA_1: 0 # python indexing
+#       manufactor:
+#           NA_1: NA
+#       coord:
+#           lat: 57.10
+#           lon:  2.85
+#       operator: Aker_BP
     valhall:
         sensor:
             SAABWaveRadar_1: 0 # python indexing
