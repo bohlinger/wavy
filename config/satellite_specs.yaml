@@ -10,7 +10,7 @@
 altimeter:
     eumetsat:
         level: 2
-        satellite: s3a, s3b
+        satellite: s3a,s3b
         local:
             path:
         remote:
