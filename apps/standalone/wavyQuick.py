@@ -203,7 +203,7 @@ elif (args.mod is not None and args.col is True):
 #        mc_obj.vars['latitude'],mc_obj.vars['longitude'],
 #        mc_obj.vars['datetime'],sa_obj,
 #        variable_info[args.var]['standard_name'],edate,distlim=args.dist)
-    valid_dict=validate(coll_obj.results_dict)
+    valid_dict=validate(coll_obj.vars)
     disp_validation(valid_dict)
     comp_fig(args.mod,sa_obj,
             mc_obj.vars[variable_info[args.var]['standard_name']],
