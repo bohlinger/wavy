@@ -14,6 +14,7 @@ import os
 from modelmod import model_class as mc
 from validationmod import comp_fig, validate, disp_validation
 from collocmod import collocate
+from collocmod import collocation_class as coll
 from ncmod import dumptonc_sat
 import yaml
 
@@ -90,9 +91,7 @@ if args.twin is None:
 else:
     timewin = args.twin
 if args.dist is None:
-    dist = 10
-else:
-    dist = args.dist
+    args.dist = int(10)
 
 if args.ed is None:
     edate = sdate
@@ -196,12 +195,15 @@ elif (args.mod is not None and args.col is True):
     mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
                 varalias=args.var)
     #collocation
-    results_dict = collocate(args.mod,
-        mc_obj.vars[variable_info[args.var]['standard_name']],
-        mc_obj.vars['latitude'],mc_obj.vars['longitude'],
-        mc_obj.vars['datetime'],sa_obj,
-        variable_info[args.var]['standard_name'],edate,distlim=dist)
-    valid_dict=validate(results_dict)
+    coll_obj = coll(mc_obj, 
+                    sa_obj=sa_obj,
+                    distlim=args.dist )
+#    results_dict = collocate(   mc_obj, 
+#        mc_obj.vars[variable_info[args.var]['standard_name']],
+#        mc_obj.vars['latitude'],mc_obj.vars['longitude'],
+#        mc_obj.vars['datetime'],sa_obj,
+#        variable_info[args.var]['standard_name'],edate,distlim=args.dist)
+    valid_dict=validate(coll_obj.results_dict)
     disp_validation(valid_dict)
     comp_fig(args.mod,sa_obj,
             mc_obj.vars[variable_info[args.var]['standard_name']],
