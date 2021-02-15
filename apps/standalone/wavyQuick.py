@@ -120,7 +120,7 @@ if args.sat == 'all':
                 sa_obj = sa_obj_tmp
                 lats.append(sa_obj.vars['latitude'])
                 lons.append(sa_obj.vars['longitude'])
-                var.append(sa_obj.vars[variable_info[varalias]\
+                var.append(sa_obj.vars[variable_info[args.var]\
                                             ['standard_name']])
                 time.append(sa_obj.vars['time'])
                 sats.append(sat)
@@ -198,18 +198,9 @@ elif (args.mod is not None and args.col is True):
     coll_obj = coll(mc_obj, 
                     sa_obj=sa_obj,
                     distlim=args.dist )
-#    results_dict = collocate(   mc_obj, 
-#        mc_obj.vars[variable_info[args.var]['standard_name']],
-#        mc_obj.vars['latitude'],mc_obj.vars['longitude'],
-#        mc_obj.vars['datetime'],sa_obj,
-#        variable_info[args.var]['standard_name'],edate,distlim=args.dist)
     valid_dict=validate(coll_obj.vars)
     disp_validation(valid_dict)
-    comp_fig(args.mod,sa_obj,
-            mc_obj.vars[variable_info[args.var]['standard_name']],
-            mc_obj.vars['longitude'],mc_obj.vars['latitude'],
-            results_dict,variable_info[args.var]['standard_name'],
-            savepath=args.savep,showfig=args.show)
+    comp_fig(sa_obj,mc_obj,coll_obj,savepath=args.savep,showfig=args.show)
 else:
     # get model collocated values
     mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,

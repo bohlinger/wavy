@@ -57,12 +57,17 @@ Mdir:
 ux:
     standard_name: x_wind
     alias: grid_eastward_wind
+    units: m/s
 ua: 
     standard_name: eastward_wind
+    units: m/s
 vy: 
     standard_name: y_wind 
     alias: grid_northward_wind
+    units: m/s
 va: 
     standard_name: northward_wind
+    units: m/s
 U: 
     standard_name: wind_speed
+    units: m/s
