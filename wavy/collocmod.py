@@ -199,8 +199,8 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
     if collocation_idx is None:
         for j in range(len(obs_time_dt)):
             progress(j,str(int(len(obs_time_dt))),'')
-#            try:
-            for i in range(1):
+            try:
+#            for i in range(1):
                 resultlst = collocation_loop(\
                     j,obs_time,obs_time_dt,datein,distlim,
                     mc_obj.model,\
@@ -217,9 +217,9 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
                 nearest_all_model_lats_matches.append(resultlst[7])
                 collocation_idx_lst.append(resultlst[8])
                 nearest_all_time_matches.append(resultlst[9])
-#            except:
-#                print ("Collocation error -> no collocation:", 
-#                        sys.exc_info()[0])
+            except:
+                print ("Collocation error -> no collocation:", 
+                        sys.exc_info()[0])
         results_dict = {
                 'valid_date':np.array(datein),
                 'time':np.array(nearest_all_time_matches),
