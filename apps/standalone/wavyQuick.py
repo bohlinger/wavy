@@ -192,7 +192,7 @@ elif (args.mod is None and sa_obj.region in model_dict):
             mc_obj=mc_obj,savepath=args.savep,showfig=args.show)
 elif (args.mod is not None and args.col is True):
     # get model collocated values
-    mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
+    mc_obj = mc(model=args.mod,fc_date=edate,leadtime=args.lt,
                 varalias=args.var)
     #collocation
     coll_obj = coll(mc_obj, 
