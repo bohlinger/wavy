@@ -104,7 +104,6 @@ class station_class():
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
-        print ('# ----- ')
         var, time, timedt = self.get_station(
                                     statname,
                                     sdate,edate,
@@ -122,6 +121,7 @@ class station_class():
         self.sensorname = sensorname
         self.statname = statname
         print (" ### station_class object initialized ###")
+        print ('# ----- ')
 
     def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varname):
         if mode == 'nc':
@@ -152,6 +152,8 @@ class station_class():
             edatetmp = edate + timedelta(days=1)
             sl = parse_d22(statname,sdatetmp,edatetmp)
             sensor_lst, dates = extract_d22(sl)
+            print('type(sensor_lst[0]):',type(sensor_lst[0]))
+            print('sensor_lst[0].keys():',sensor_lst[0].keys())
             tmpdate = sdate
             var = []
             var_obs = []
@@ -159,10 +161,14 @@ class station_class():
             timedt = []
             while (tmpdate <= edate):
                 ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
-                                        timewin=2)
+                                          timewin=2)
+                print('len of idxtmp:', len(idxtmp))
+                print('ctime:',ctime)
                 try:
                     tmp = sensor_lst[station_dict[statname]['sensor']
-                                            [sensorname]][varname][idxtmp][0]
+                                        [sensorname]][varname][idxtmp][0]
+                    #print(station_dict[statname]['sensor'][sensorname])
+                    print(tmp)
                     time.append((tmpdate-self.basedate).total_seconds())
                     var.append(np.real(tmp))
                     timedt.append(tmpdate)
@@ -181,14 +187,14 @@ def parse_d22(statname,sdate,edate):
                         + "/d22/" + YY + "/" + dy + ".d22")
         ifile_opdata = (station_d22_opdate + statname 
                         + "/d22/" + dy + ".d22")
+        print(ifile_starc)
+        print(ifile_opdata)
         if os.path.isfile(ifile_opdata):
             f = open(ifile_opdata, "r")
             searchlines = searchlines + f.readlines()
-            f.close()
         elif os.path.isfile(ifile_starc):
             f = open(ifile_starc, "r")
             searchlines = searchlines + f.readlines()
-            f.close()
         f.close()
     return searchlines
 
@@ -304,11 +310,12 @@ def extract_d22(searchlines):
     del dat
     return sensor_lst, dates
 
-def matchtime(sdate,edate,time,time_unit,timewin=None):
+def matchtime(sdate,edate,time,time_unit=None,timewin=None):
     '''
     fct to obtain the index of the time step closest to the 
     requested time including the respective time stamp(s). 
     Similarily, indices are chosen for the time and defined region.
+    time_win is in [minutes]
     '''
     if timewin is None:
         timewin = 0

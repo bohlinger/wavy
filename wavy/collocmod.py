@@ -247,8 +247,8 @@ class collocation_class():
     def __init__(self,mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
     distlim=None):
         print ('# ----- ')
-        print (" ### Initializing collocation_class instance ###")
-        print ('# ----- ')
+        print (" ### Initializing collocation_class object ###")
+        print (" Please wait ...")
         results_dict = collocate(mc_obj,
                                 sa_obj=sa_obj,
                                 st_obj=st_obj,
@@ -269,3 +269,5 @@ class collocation_class():
         self.stdvarname = mc_obj.stdvarname
         #self.vars = vardict # divided into model and obs
         self.vars = results_dict
+        print (" ### Collocation_class object initialized ###")
+        print ('# ----- ')
