@@ -212,7 +212,6 @@ class satellite_class():
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
-        print ('# ----- ')
         # check settings
         if edate is None:
             print ("Requested time: ", str(sdate))
@@ -222,7 +221,8 @@ class satellite_class():
                 str(sdate) + " - " + str(edate))
         if timewin is None:
             timewin = int(30)
-        print('Chose time window is:', timewin, 'min')
+        print('Please wait ...')
+        print('Chosen time window is:', timewin, 'min')
         # make satpaths
         path_local = satellite_dict[instr][provider]['local']['path']\
                         + '/' + sat + '/'
@@ -248,7 +248,9 @@ class satellite_class():
             cvardict = {}
             for element in vardict:
                 if element != 'time_unit':
-                    cvardict[element] = list(np.array(vardict[element])[cidx])
+                    cvardict[element] = list(np.array(
+                                            vardict[element]
+                                            )[cidx])
                 else:
                     cvardict[element] = vardict[element]
             del vardict
@@ -261,10 +263,14 @@ class satellite_class():
             rvardict = {}
             for element in cvardict:
                 if element != 'time_unit':
-                    rvardict[element] = list(np.array(cvardict[element])[ridx])
+                    rvardict[element] = list(np.array(
+                                            cvardict[element]
+                                            )[ridx])
                 else:
                     rvardict[element] = cvardict[element]
             del cvardict
+            rvardict['datetime'] = netCDF4.num2date(rvardict['time'],
+                                                    rvardict['time_unit'])
             print('For chosen region and time: ', len(rvardict['time']), 
                 ' footprints found')
             # find variable name as defined in file
@@ -283,8 +289,11 @@ class satellite_class():
             self.sat = sat
             print ("Satellite object initialized including " 
                 + str(len(self.vars['time'])) + " footprints.")
+            print (" ### satellite_class object initialized ###")
+            print ('# ----- ')
         else:
             print('No satellite_class object initialized')
+            print ('# ----- ')
 
     def get_local_filelst(self,sdate,edate,timewin,region):
         print ("Time window: ", timewin)

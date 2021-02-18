@@ -220,8 +220,7 @@ class model_class():
     def __init__(self,model='mwam4',sdate=None,edate=None,fc_date=None,
                 init_date=None,leadtime=None,varalias='Hs'):
         print ('# ----- ')
-        print (" ### Initializing model_class instance ###")
-        print ('# ----- ')
+        print (" ### Initializing model_class object ###")
         if fc_date is not None:
             print ("Requested time: ", str(fc_date))
         elif (edate is None and fc_date is None and sdate is not None):
@@ -236,6 +235,7 @@ class model_class():
             # --> not yet in use
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
+        print('Please wait ...')
         vardict, \
         fc_date, init_date, \
         leadtime, filestr, \
@@ -255,3 +255,5 @@ class model_class():
         self.stdvarname = stdname
         self.vars = vardict
         self.filestr = filestr
+        print (" ### model_class object initialized ###")
+        print ('# ----- ')

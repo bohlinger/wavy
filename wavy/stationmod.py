@@ -152,8 +152,6 @@ class station_class():
             edatetmp = edate + timedelta(days=1)
             sl = parse_d22(statname,sdatetmp,edatetmp)
             sensor_lst, dates = extract_d22(sl)
-            print('type(sensor_lst[0]):',type(sensor_lst[0]))
-            print('sensor_lst[0].keys():',sensor_lst[0].keys())
             tmpdate = sdate
             var = []
             var_obs = []
@@ -162,13 +160,10 @@ class station_class():
             while (tmpdate <= edate):
                 ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
                                           timewin=2)
-                print('len of idxtmp:', len(idxtmp))
-                print('ctime:',ctime)
                 try:
-                    tmp = sensor_lst[station_dict[statname]['sensor']
-                                        [sensorname]][varname][idxtmp][0]
-                    #print(station_dict[statname]['sensor'][sensorname])
-                    print(tmp)
+                    tmp = sensor_lst[station_dict['platform'][statname]\
+                                        ['sensor'][sensorname]]\
+                                        [varname][idxtmp][0]
                     time.append((tmpdate-self.basedate).total_seconds())
                     var.append(np.real(tmp))
                     timedt.append(tmpdate)
@@ -187,8 +182,6 @@ def parse_d22(statname,sdate,edate):
                         + "/d22/" + YY + "/" + dy + ".d22")
         ifile_opdata = (station_d22_opdate + statname 
                         + "/d22/" + dy + ".d22")
-        print(ifile_starc)
-        print(ifile_opdata)
         if os.path.isfile(ifile_opdata):
             f = open(ifile_opdata, "r")
             searchlines = searchlines + f.readlines()
