@@ -99,7 +99,7 @@ class station_class():
     '''
     basedate = datetime(1970,1,1)
     def __init__(self,statname,sensorname,sdate,edate,
-                mode='d22',deltat=10,varname='Hs_10min'):
+                mode='d22',deltat=10,varalias='Hs_10min'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
@@ -109,13 +109,17 @@ class station_class():
                                     sdate,edate,
                                     mode,deltat,
                                     sensorname,
-                                    varname
+                                    varalias
                                 )
         self.var = var
-        self.varname = varname
+        #self.varname = varname # if d22: Hs_10m; if nc: variable name
+        #self.stdvarname = stdvarname
+        self.varalias = varalias
         self.time = time
-        self.timedt = timedt
+        self.datetime = timedt
         self.basedate = self.basedate
+        self.sdate = sdate
+        self.edate = edate
         self.lat = locations[statname][0]
         self.lon = locations[statname][1]
         self.sensorname = sensorname
@@ -123,7 +127,7 @@ class station_class():
         print (" ### station_class object initialized ###")
         print ('# ----- ')
 
-    def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varname):
+    def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varalias):
         if mode == 'nc':
             basedate = self.basedate
             tmpdate = sdate
@@ -163,7 +167,7 @@ class station_class():
                 try:
                     tmp = sensor_lst[station_dict['platform'][statname]\
                                         ['sensor'][sensorname]]\
-                                        [varname][idxtmp][0]
+                                        [varalias][idxtmp][0]
                     time.append((tmpdate-self.basedate).total_seconds())
                     var.append(np.real(tmp))
                     timedt.append(tmpdate)
