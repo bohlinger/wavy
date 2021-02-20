@@ -130,16 +130,16 @@ def collocation_loop(
         else:
            return
 
-def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
+def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
             distlim=None):
     """
     get obs value for model value for given 
         temporal and spatial constraints
     """
-    if len(sa_obj.vars[sa_obj.stdvarname]) < 1:
+    if (len(obs_obj.vars[obs_obj.stdvarname]) < 1):
         raise Exception ( '\n###\n'
                         + 'Collocation not possible, '
-                        + 'no satellite values for collocation!'
+                        + 'no observation values for collocation!'
                         + '\n###'
                         )
     if len(mc_obj.vars[mc_obj.stdvarname]) < 1:
@@ -148,17 +148,12 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
                         + 'no model values available for collocation!'
                         + '\n###'
                         )
-    dtime = netCDF4.num2date(sa_obj.vars['time'],sa_obj.vars['time_unit'])
+    dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
     datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
-    ctime, cidx = matchtime(datein,datein,dtime,timewin=sa_obj.timewin)
+    ctime, cidx = matchtime(datein,datein,dtime,timewin=obs_obj.timewin)
     obs_time_dt = dtime[cidx]
-    obs_time = np.array(sa_obj.vars['time'])[cidx]
-    obs_time_unit = sa_obj.vars['time_unit']
-
-    #model_time_idx = model_time_dt.index(datein)
-    #model_time_dt_valid = [model_time_dt[model_time_idx]]
-    #print ("date matches found:")
-    #print (model_time_dt_valid)
+    obs_time = np.array(obs_obj.vars['time'])[cidx]
+    obs_time_unit = obs_obj.vars['time_unit']
 
     # Compare wave heights of satellite with model with 
     # constraint on distance and time frame
@@ -173,9 +168,9 @@ def collocate(mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
     nearest_all_model_lats_matches=[]
     collocation_idx_lst=[]
     # create local variables before loop
-    obs_lats = np.array(sa_obj.vars['latitude'])[cidx]
-    obs_lons = np.array(sa_obj.vars['longitude'])[cidx]
-    obs_val = np.array(sa_obj.vars[sa_obj.stdvarname])[cidx]
+    obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
+    obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
+    obs_val = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
     # flatten numpy arrays
     model_lats = mc_obj.vars['latitude'].flatten()
     model_lons = mc_obj.vars['longitude'].flatten()
@@ -244,27 +239,31 @@ class collocation_class():
     draft of envisioned collocation class object
     '''
 
-    def __init__(self,mc_obj,sa_obj=None,st_obj=None,collocation_idx=None,
-    distlim=None):
+    def __init__(self,mc_obj,sa_obj=None,st_obj=None,col_obj=None,
+    collocation_idx=None,distlim=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
+        if sa_obj is not None:
+            obs_obj = sa_obj
+            obs_obj.timewin = sa_obj.timewin
+            obsname = sa_obj.sat
+        if st_obj is not None:
+            obs_obj = st_obj
+            obs_obj.timewin = None
+            obsname = st_obj.statname + '_' +  st_obj.sensorname
         results_dict = collocate(mc_obj,
-                                sa_obj=sa_obj,
-                                st_obj=st_obj,
+                                obs_obj=obs_obj,
+                                col_obj=col_obj,
                                 collocation_idx=collocation_idx,
                                 distlim=distlim)
-        if sa_obj is not None:
-            obs = sa_obj.sat
-        if st_obj is not None:
-            obs = sa_obj.stat
         # define class variables
         self.fc_date = mc_obj.fc_date
         self.init_date = mc_obj.init_date
-        self.sdate = sa_obj.sdate
-        self.edate = sa_obj.edate
+        self.sdate = obs_obj.sdate
+        self.edate = obs_obj.edate
         self.model = mc_obj.model
-        self.obs = obs
+        self.obsname = obsname
         self.varalias = mc_obj.varalias
         self.stdvarname = mc_obj.stdvarname
         #self.vars = vardict # divided into model and obs

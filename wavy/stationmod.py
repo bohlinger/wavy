@@ -73,6 +73,11 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir,'r') as stream:
     pathfinder=yaml.safe_load(stream)
 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
+                        '..', 'config/d22_var_dicts.yaml'))
+with open(moddir, 'r') as stream:
+    d22_var_dicts=yaml.safe_load(stream)
+
 station_d22_starc = pathfinder['station_d22_starc']
 station_d22_opdate = pathfinder['station_d22_opdate']
 stationpath_lustre_om = pathfinder['stationpath_lustre_om']
@@ -98,26 +103,36 @@ class station_class():
     Class to handle platform based time series.
     '''
     basedate = datetime(1970,1,1)
+    time_unit = 'seconds since 1970-01-01 00:00:00.0'
     def __init__(self,statname,sensorname,sdate,edate,
                 mode='d22',deltat=10,varalias='Hs_10min'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
+        stdvarname = d22_var_dicts['standard_name'][varalias]
         var, time, timedt = self.get_station(
-                                    statname,
+                                    statname, # change to stdvarname in future
                                     sdate,edate,
                                     mode,deltat,
                                     sensorname,
-                                    varalias
-                                )
-        self.var = var
+                                    varalias)
+        vardict = {
+                    stdvarname:var,
+                    'time':time,
+                    'datetime':timedt,
+                    'time_unit':self.time_unit,
+                    'longitude':[locations[statname][1]]*len(var),
+                    'latitude':[locations[statname][0]]*len(var)
+                    }
+        # in future coordinates need to be properly 
+        # defined with names longitude and latitude 
+        # in yaml file not as it is now in stationlist.yaml
+        self.vars = vardict
         #self.varname = varname # if d22: Hs_10m; if nc: variable name
-        #self.stdvarname = stdvarname
+        self.stdvarname = d22_var_dicts['standard_name'][varalias]
+        self.varname = varalias
         self.varalias = varalias
-        self.time = time
-        self.datetime = timedt
-        self.basedate = self.basedate
         self.sdate = sdate
         self.edate = edate
         self.lat = locations[statname][0]
