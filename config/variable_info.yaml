@@ -71,3 +71,6 @@ va:
 U: 
     standard_name: wind_speed
     units: m/s
+    aliases_of_vector_components: 
+        alt1: [ua,va] 
+        alt2: [ux,vy]

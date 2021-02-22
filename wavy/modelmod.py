@@ -112,6 +112,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     print(filestr)
     model_meta = ncdumpMeta(filestr)
     f = netCDF4.Dataset(filestr,'r')
+    stdvarname = variable_info[varalias]['standard_name']
     # get coordinates and time
     lonsname = get_filevarname(model,'lons',variable_info,
                                 model_dict,model_meta)
@@ -126,25 +127,71 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     model_time = f.variables[timename]
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varalias,variable_info,
-                                model_dict,model_meta)
-    model_var_link = f.variables[filevarname]
-    model_time_dt = list( netCDF4.num2date(model_time[:],
+                                    model_dict,model_meta)
+    if (type(filevarname) is dict):
+        print('Target variable can be computed from vector \n' 
+              'components with the following aliases: ', filevarname)
+        model_time_dt = list( netCDF4.num2date(model_time[:],
                                            units = model_time.units) )
-    model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
-    model_time_valid = [model_time[model_time_dt.index(fc_date)]]
-    model_time_unit = model_time.units
-    vardict[variable_info['time']['standard_name']]=model_time_valid
-    vardict['datetime']=model_time_dt_valid
-    vardict['time_unit']=model_time_unit
-    if len(model_var_link.shape)>2: # for multiple time steps
-        model_var_valid = \
-            model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
+        model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
+        model_time_valid = [model_time[model_time_dt.index(fc_date)]]
+        model_time_unit = model_time.units
+        vardict[variable_info['time']['standard_name']]=model_time_valid
+        vardict['datetime']=model_time_dt_valid
+        vardict['time_unit']=model_time_unit
+        for key in filevarname.keys():
+            filevarname_dummy = get_filevarname(model,
+                                    filevarname[key][0],
+                                    variable_info,
+                                    model_dict,model_meta)
+            if filevarname_dummy is not None:
+                print(filevarname[key][0], 'exists')
+                break
+        print('Use aliases:',filevarname[key])
+        model_var_dummy = f.variables[filevarname_dummy]
+        if len(model_var_dummy.shape)>2: # for multiple time steps
+            model_var_valid_tmp = \
+                model_var_dummy[model_time_dt.index(fc_date),:,:].squeeze()**2
+            for i in range(1,len(filevarname[key])):
+                filevarname_dummy = get_filevarname(model,
+                                                    filevarname[key][i],
+                                                    variable_info,
+                                                    model_dict,
+                                                    model_meta)
+                model_var_valid_tmp += \
+                    f.variables[filevarname_dummy][
+                        model_time_dt.index(fc_date),:,:
+                        ].squeeze()**2
+            model_var_valid = np.sqrt(model_var_valid_tmp)
+        else:# if only one time step
+            model_var_valid_tmp = model_var_dummy[:,:].squeeze()**2
+            for i in range(1,len(filevarname[key])):
+                filevarname_dummy = get_filevarname(model,
+                                                    filevarname[key][i],
+                                                    variable_info,
+                                                    model_dict,
+                                                    model_meta)
+                model_var_valid_tmp += \
+                    f.variables[filevarname_dummy][:,:].squeeze()**2
+            model_var_valid = np.sqrt(model_var_valid_tmp)
+        vardict[stdvarname] = model_var_valid
+    else:
+        model_time_dt = list( netCDF4.num2date(model_time[:],
+                                           units = model_time.units) )
+        model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
+        model_time_valid = [model_time[model_time_dt.index(fc_date)]]
+        model_time_unit = model_time.units
+        vardict[variable_info['time']['standard_name']]=model_time_valid
+        vardict['datetime']=model_time_dt_valid
+        vardict['time_unit']=model_time_unit
+        model_var_link = f.variables[filevarname]
+        if len(model_var_link.shape)>2: # for multiple time steps
+            model_var_valid = \
+                model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
+        else:# if only one time step
+            model_var_valid = model_var_link[:,:].squeeze()
         vardict[variable_info[varalias]['standard_name']] = \
-                                                        model_var_valid
-    else:# if only one time step
-        model_var_valid = model_var_link[:,:].squeeze()
-        vardict[variable_info[varalias]['standard_name']] = \
-                                                        model_var_valid
+                                                    model_var_valid
     f.close()
     vardict['model_meta'] = model_meta
     return vardict, filevarname
@@ -161,8 +208,15 @@ def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
 
 def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
     stdname = variable_info[varalias]['standard_name']
+    print('Get filevarname for \n' +
+          'stdvarname:',stdname,'\n' + 
+          'varalias:',varalias)
     filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
-    if len(filevarname) > 1:
+    print(filevarname)
+    if (filevarname is None and 'alias' in variable_info[varalias]):
+        filevarname = get_varname_for_cf_stdname_in_ncfile(
+                        ncdict,variable_info[varalias]['alias'])
+    if (filevarname is not None and len(filevarname) > 1):
         print('!!! standard_name: ',stdname,' is not unique !!!',
             '\nThe following variables have the same standard_name:\n',
             filevarname)
@@ -176,9 +230,16 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
         print('Variable defined in model_specs.yaml is:')
         print(varalias, '=', filevarname)
         return filevarname
+    elif (filevarname is None
+    and varalias not in model_dict[model]['vars'].keys()
+    and 'aliases_of_vector_components' in variable_info[varalias]):
+        print('Checking variable_info if variable can be ' + 
+        'computed from vector components')
+        filevarname = variable_info[varalias]['aliases_of_vector_components']
+        return filevarname
     else:
-        raise ValueError('!!! variable not defined or '
-                        + 'available in model output file !!!')
+        print('!!! variable not defined or '
+            + 'available in model output file !!!')
 
 def get_model(model=None,sdate=None,edate=None,
     fc_date=None,init_date=None,leadtime=None,varalias=None):

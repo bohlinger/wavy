@@ -63,8 +63,8 @@ ARCMFC3_hc:
 
 mwam3force:
     vars:
-        U: Uwind
-        V: Vwind
+        ux: Uwind
+        vy: Vwind
         time: time
         lons: lon
         lats: lat
@@ -127,8 +127,8 @@ mwam4:
 
 mwam4force: 
     vars:
-        u10: Uwind
-        v10: Vwind
+        ux: Uwind
+        vy: Vwind
         time: time
         lons: lon
         lats: lat
