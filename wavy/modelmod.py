@@ -110,7 +110,10 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     vardict = {}
     print ("Get model data according to selected date ....")
     print(filestr)
+    t0=time.time()
     model_meta = ncdumpMeta(filestr)
+    t1=time.time()
+    print('------- TIMER t1-t0: ',t1-t0,'----------')
     f = netCDF4.Dataset(filestr,'r')
     stdvarname = variable_info[varalias]['standard_name']
     # get coordinates and time
@@ -120,14 +123,24 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
                                 model_dict,model_meta)
     timename = get_filevarname(model,'time',variable_info,
                                 model_dict,model_meta)
+    t2=time.time()
+    print('------- TIMER t2-t1: ',t2-t1,'----------')
     model_lons = f.variables[lonsname][:]
+    t3=time.time()
+    print('------- TIMER t3-t2: ',t3-t2,'----------')
     vardict[variable_info['lons']['standard_name']]=model_lons
+    t4=time.time()
+    print('------- TIMER t4-t3: ',t4-t3,'----------')
     model_lats = f.variables[latsname][:]
     vardict[variable_info['lats']['standard_name']]=model_lats
     model_time = f.variables[timename]
+    t5=time.time()
+    print('------- TIMER t5-t4: ',t5-t4,'----------')
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varalias,variable_info,
                                     model_dict,model_meta)
+    t6=time.time()
+    print('------- TIMER t6-t5: ',t6-t5,'----------')
     if (type(filevarname) is dict):
         print('Target variable can be computed from vector \n' 
               'components with the following aliases: ', filevarname)
@@ -194,6 +207,8 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
                                                     model_var_valid
     f.close()
     vardict['model_meta'] = model_meta
+    t7=time.time()
+    print('------- TIMER t7-t6: ',t7-t6,'----------')
     return vardict, filevarname
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
@@ -271,6 +286,7 @@ with open(moddir,'r') as stream:
 
 
 class model_class():
+
     '''
     class to read and process model data 
     model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
@@ -296,13 +312,16 @@ class model_class():
             # --> not yet in use
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
+
         print('Please wait ...')
+
         vardict, \
         fc_date, init_date, \
         leadtime, filestr, \
         filevarname = get_model(model=model,sdate=sdate,edate=edate,
                             fc_date=fc_date,init_date=init_date,
                             leadtime=leadtime,varalias=varalias)
+
         stdname = variable_info[varalias]['standard_name']
         varname = filevarname
         # define class variables
