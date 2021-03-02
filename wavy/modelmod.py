@@ -209,6 +209,7 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     vardict['model_meta'] = model_meta
     t7=time.time()
     print('------- TIMER t7-t6: ',t7-t6,'----------')
+    print('------- TIMER t7-t0: ',t7-t0,'----------')
     return vardict, filevarname
 
 def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
