@@ -277,6 +277,12 @@ class satellite_class():
             stdname = variable_info[varalias]['standard_name']
             ncdict = ncdumpMeta(pathlst[0])
             filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
+            if len(filevarname) > 1:
+                filevarname = satellite_dict[instr][provider]\
+                            ['misc']['vardef'][stdname]
+            else:
+                filevarname = get_varname_for_cf_stdname_in_ncfile(
+                                                    ncdict,stdname)[0]
             # define class variables
             self.edate = edate
             self.sdate = sdate
