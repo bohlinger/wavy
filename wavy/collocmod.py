@@ -230,7 +230,9 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                 'collocation_idx':np.array(collocation_idx_lst)
                 }
     else:
-        results_dict = {'model_values':model_val[collocation_idx]}
+        results_dict = col_obj.vars
+        results_dict['model_values'] = model_val[collocation_idx]
+        #results_dict = {'model_values':model_val[collocation_idx]}
     return results_dict
 
 
