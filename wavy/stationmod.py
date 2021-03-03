@@ -190,6 +190,20 @@ class station_class():
                     print(e)
                 tmpdate = tmpdate + timedelta(minutes=deltat)
         return var, time, timedt
+    
+def superob(st_obj,smoother='running_mean',**kwargs):
+    """
+    Applies a smoothing filter to create a super-observed ts
+    **kwargs includes method specific input for chosen smoother
+    Smoother on wish list are:
+            block-average
+            running mean using convolution
+            GP
+    Caution:    for some smoothers much more of time series has 
+                to be included.
+    """
+    print('under construction')
+    pass
 
 def parse_d22(statname,sdate,edate):
     # Read all lines in file and append to searchlines
