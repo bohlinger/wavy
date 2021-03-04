@@ -189,9 +189,10 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
             raise ValueError
     except (ValueError):
         moving_win = .6
-    print ("Searching for matches with moving window of degree:",\
+    if (collocation_idx is None and col_obj is None):
+        print ("No collocation idx available")
+        print ("Searching for matches with moving window of degree:",\
             moving_win)
-    if collocation_idx is None:
         for j in range(len(obs_time_dt)):
             progress(j,str(int(len(obs_time_dt))),'')
             try:
@@ -229,8 +230,12 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                 'obs_lats':np.array(nearest_all_obs_lats_matches),
                 'collocation_idx':np.array(collocation_idx_lst)
                 }
-    else:
+    elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
+        print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
+        results_dict['model_values'] = model_val[collocation_idx]
+    elif collocation_idx is not None:
+        print("Collocation idx given")
         results_dict['model_values'] = model_val[collocation_idx]
     return results_dict
 
