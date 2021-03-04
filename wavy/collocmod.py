@@ -11,6 +11,7 @@ import yaml
 import netCDF4
 from datetime import datetime, timedelta
 import os
+import time
 # own imports
 from utils import haversine
 
@@ -53,82 +54,53 @@ def matchtime(sdate,edate,dtime,timewin=None):
             idx=idx+1
     return ctime, cidx
 
-def collocation_loop(
-    j,obs_time,obs_time_dt,model_time_dt_valid,distlim,model,
-    obs_lats,obs_lons,obs_val,model_lats,model_lons,model_val,
-    moving_win):
-    from utils import haversine
-    lat_win = 0.1
-    if model in model_dict:
-        obs_lat=obs_lats[j]
-        obs_lon=obs_lons[j]
-        # constraints to reduce workload
-        model_lats_new=model_lats[
+def collocation_loop(j,distlim,obs_lats,obs_lons,model_lats,
+model_lons,model_vals,lon_win,lat_win):
+    obs_lat=obs_lats[j]
+    obs_lon=obs_lons[j]
+    # constraints to reduce workload
+    model_lats_new=model_lats[
                     (model_lats>=obs_lat-lat_win)
                     &
                     (model_lats<=obs_lat+lat_win)
                     &
-                    (model_lons>=obs_lon-moving_win)
+                    (model_lons>=obs_lon-lon_win)
                     &
-                    (model_lons<=obs_lon+moving_win)
+                    (model_lons<=obs_lon+lon_win)
                     ]
-        model_lons_new=model_lons[
+    model_lons_new=model_lons[
                     (model_lats>=obs_lat-lat_win)
                     &
                     (model_lats<=obs_lat+lat_win)
                     &
-                    (model_lons>=obs_lon-moving_win)
+                    (model_lons>=obs_lon-lon_win)
                     &
-                    (model_lons<=obs_lon+moving_win)
+                    (model_lons<=obs_lon+lon_win)
                     ]
-        tmp=range(len(model_lats))
-        tmp_idx=np.array(tmp)[
+    tmp=range(len(model_lats))
+    tmp_idx=np.array(tmp)[
                     (model_lats>=obs_lat-lat_win)
                     &
                     (model_lats<=obs_lat+lat_win)
                     &
-                    (model_lons>=obs_lon-moving_win)
+                    (model_lons>=obs_lon-lon_win)
                     &
-                    (model_lons<=obs_lon+moving_win)
+                    (model_lons<=obs_lon+lon_win)
                     ]
-        # compute distances
-        if sys.version_info <= (3, 0):
-            distlst=map(
-                        haversine,
-                        [obs_lon]*len(model_lons_new),
-                        [obs_lat]*len(model_lons_new),
-                        model_lons_new,model_lats_new
-                        )
-        else:
-            distlst=list(map(
-                        haversine,
-                        [obs_lon]*len(model_lons_new),
-                        [obs_lat]*len(model_lons_new),
-                        model_lons_new,model_lats_new
-                        ))
-        tmp_idx2 = distlst.index(np.min(distlst))
-        collocation_idx = tmp_idx[tmp_idx2]
-        if (distlst[tmp_idx2]<=distlim and model_val[collocation_idx]>=0):
-            nearest_all_dist_matches=distlst[tmp_idx2]
-            nearest_all_date_matches=obs_time_dt[j]
-            nearest_all_time_matches=obs_time[j]
-            nearest_all_model_matches=\
-                           model_val[collocation_idx]
-            nearest_all_obs_matches=obs_val[j]
-            nearest_all_obs_lons_matches=obs_lon
-            nearest_all_obs_lats_matches=obs_lat
-            nearest_all_model_lons_matches=\
-                            model_lons[collocation_idx]
-            nearest_all_model_lats_matches=\
-                            model_lats[collocation_idx]
-            return nearest_all_date_matches,nearest_all_dist_matches,\
-                nearest_all_model_matches,nearest_all_obs_matches,\
-                nearest_all_obs_lons_matches, nearest_all_obs_lats_matches,\
-                nearest_all_model_lons_matches, \
-                nearest_all_model_lats_matches, collocation_idx,\
-                nearest_all_time_matches
-        else:
-           return
+    # compute distances
+    distlst=list(map(
+                    haversine,
+                    [obs_lon]*len(model_lons_new),
+                    [obs_lat]*len(model_lons_new),
+                    model_lons_new,model_lats_new
+                    ))
+    tmp_idx2 = distlst.index(np.min(distlst))
+    collocation_idx = tmp_idx[tmp_idx2]
+    dist = distlst[tmp_idx2]
+    if (distlst[tmp_idx2]<=distlim and model_vals[collocation_idx]>=0):
+        return collocation_idx,distlst[tmp_idx2]
+    else:
+        return
 
 def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
             distlim=None):
@@ -157,27 +129,20 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
 
     # Compare wave heights of satellite with model with 
     # constraint on distance and time frame
-    nearest_all_date_matches=[]
-    nearest_all_time_matches=[]
-    nearest_all_dist_matches=[]
-    nearest_all_model_matches=[]
-    nearest_all_obs_matches=[]
-    nearest_all_obs_lons_matches=[]
-    nearest_all_obs_lats_matches=[]
-    nearest_all_model_lons_matches=[]
-    nearest_all_model_lats_matches=[]
     collocation_idx_lst=[]
+    dist_lst=[]
+    time_idx_lst=[]
     # create local variables before loop
     obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
     obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
-    obs_val = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
+    obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
     # flatten numpy arrays
     model_lats = mc_obj.vars['latitude'].flatten()
     model_lons = mc_obj.vars['longitude'].flatten()
-    model_val = mc_obj.vars[mc_obj.stdvarname].flatten()
+    model_vals = mc_obj.vars[mc_obj.stdvarname].flatten()
     # moving window compensating for increasing latitudes
     try:
-        moving_win = round(
+        lon_win = round(
                 (distlim /
                  haversine(0,
                     np.max(np.abs(obs_lats)),
@@ -185,58 +150,51 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                     np.max(np.abs(obs_lats)))
                 ),
                 2)
-        if moving_win == 0.0:
+        if lon_win == 0.0:
             raise ValueError
     except (ValueError):
-        moving_win = .6
+        lon_win = .6
+    lat_win = round(haversine(model_lats[0],model_lons[0],
+                        model_lats[1],model_lons[1])/111,2)
     if (collocation_idx is None and col_obj is None):
         print ("No collocation idx available")
-        print ("Searching for matches with moving window of degree:",\
-            moving_win)
+        print ("Perform collocation with moving window of degree:\n",\
+            "lon:",lon_win,"lat:",lat_win)
         for j in range(len(obs_time_dt)):
             progress(j,str(int(len(obs_time_dt))),'')
             try:
 #            for i in range(1):
-                resultlst = collocation_loop(\
-                    j,obs_time,obs_time_dt,datein,distlim,
-                    mc_obj.model,\
-                    obs_lats,obs_lons,obs_val,\
-                    model_lats,model_lons,model_val,\
-                    moving_win)
-                nearest_all_date_matches.append(resultlst[0])
-                nearest_all_dist_matches.append(resultlst[1])
-                nearest_all_model_matches.append(resultlst[2])
-                nearest_all_obs_matches.append(resultlst[3])
-                nearest_all_obs_lons_matches.append(resultlst[4])
-                nearest_all_obs_lats_matches.append(resultlst[5])
-                nearest_all_model_lons_matches.append(resultlst[6])
-                nearest_all_model_lats_matches.append(resultlst[7])
-                collocation_idx_lst.append(resultlst[8])
-                nearest_all_time_matches.append(resultlst[9])
+                collocation_idx,dist = collocation_loop(\
+                    j,distlim,obs_lats,obs_lons,\
+                    model_lats,model_lons,model_vals,\
+                    lon_win,lat_win)
+                collocation_idx_lst.append(collocation_idx)
+                dist_lst.append(dist)
+                time_idx_lst.append(j)
             except:
                 print ("Collocation error -> no collocation:", 
                         sys.exc_info()[0])
         results_dict = {
                 'valid_date':np.array(datein),
-                'time':np.array(nearest_all_time_matches),
+                'time':np.array(obs_time[time_idx_lst]),
                 'time_unit':obs_time_unit,
-                'datetime':np.array(nearest_all_date_matches),
-                'distance':np.array(nearest_all_dist_matches),
-                'model_values':np.array(nearest_all_model_matches),
-                'model_lons':np.array(nearest_all_model_lons_matches),
-                'model_lats':np.array(nearest_all_model_lats_matches),
-                'obs_values':np.array(nearest_all_obs_matches),
-                'obs_lons':np.array(nearest_all_obs_lons_matches),
-                'obs_lats':np.array(nearest_all_obs_lats_matches),
+                'datetime':np.array(obs_time_dt[time_idx_lst]),
+                'distance':np.array(dist_lst),
+                'model_values':model_vals[collocation_idx_lst],
+                'model_lons':model_lons[collocation_idx_lst],
+                'model_lats':model_lats[collocation_idx_lst],
+                'obs_values':obs_vals[time_idx_lst],
+                'obs_lons':obs_lons[time_idx_lst],
+                'obs_lats':obs_lats[time_idx_lst],
                 'collocation_idx':np.array(collocation_idx_lst)
                 }
     elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
-        results_dict['model_values'] = model_val[collocation_idx]
+        results_dict['model_values'] = model_vals[collocation_idx]
     elif collocation_idx is not None:
         print("Collocation idx given")
-        results_dict['model_values'] = model_val[collocation_idx]
+        results_dict['model_values'] = model_vals[collocation_idx]
     return results_dict
 
 
@@ -258,11 +216,14 @@ class collocation_class():
             obs_obj = st_obj
             obs_obj.timewin = None
             obsname = st_obj.statname + '_' +  st_obj.sensorname
+        t0=time.time()
         results_dict = collocate(mc_obj,
                                 obs_obj=obs_obj,
                                 col_obj=col_obj,
                                 collocation_idx=collocation_idx,
                                 distlim=distlim)
+        t1=time.time()
+        print("time used for collocation:",round(t1-t0,2),"seconds")
         # define class variables
         self.fc_date = mc_obj.fc_date
         self.init_date = mc_obj.init_date
@@ -274,5 +235,6 @@ class collocation_class():
         self.stdvarname = mc_obj.stdvarname
         #self.vars = vardict # divided into model and obs
         self.vars = results_dict
+        print(len(self.vars['time'])," values collocated")
         print (" ### Collocation_class object initialized ###")
         print ('# ----- ')
