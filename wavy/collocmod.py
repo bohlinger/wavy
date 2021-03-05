@@ -141,19 +141,16 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
     model_lons = mc_obj.vars['longitude'].flatten()
     model_vals = mc_obj.vars[mc_obj.stdvarname].flatten()
     # moving window compensating for increasing latitudes
-    try:
-        lon_win = round(
+    if distlim == None:
+        distlim = 6
+    lon_win = round(
                 (distlim /
                  haversine(0,
                     np.max(np.abs(obs_lats)),
                     1,
                     np.max(np.abs(obs_lats)))
-                ),
+                ) + 0.01,
                 2)
-        if lon_win == 0.0:
-            raise ValueError
-    except (ValueError):
-        lon_win = .6
     lat_win = round(distlim/111.+0.01,2)
     if (collocation_idx is None and col_obj is None):
         print ("No collocation idx available")
