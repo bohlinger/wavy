@@ -99,14 +99,11 @@ def tmploop_get_remote_files(i,matching,user,pw,
         sys.exit()
 
 def get_remote_files(path_remote,path_local,sdate,edate,timewin,
-                    corenum,download,instr,provider):
+                    corenum,instr,provider):
     '''
     Download swath files and store them at defined location
     time stamps in file name stand for: from, to, creation
     '''
-    if download is False:
-        print ("No download initialized, checking local files")
-        return
     # credentials
     user, pw = get_credentials()
     tmpdate = deepcopy(sdate)
@@ -151,7 +148,6 @@ def get_remote_files(path_remote,path_local,sdate,edate,timewin,
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=timewin)
         matching = tmplst
-        print ("Download initiated")
         # Download and gunzip matching files
         print ('Downloading ' + str(len(matching)) + ' files: .... \n')
         print ("Used number of cores " + str(corenum) + "!")
@@ -231,12 +227,15 @@ class satellite_class():
         self.path_local = path_local
         self.path_remote = path_remote
         # retrieve files
-        get_remote_files(path_remote,path_local,
-                        sdate,edate,timewin,corenum,download,
+        if download is False:
+            print ("No download initialized, checking local files")
+        else:
+            print ("Downloading necessary files ...")
+            get_remote_files(path_remote,path_local,
+                        sdate,edate,timewin,corenum,
                         instr,provider)
         pathlst, filelst = self.get_local_filelst(
-                                sdate,edate,timewin,region
-                                )
+                            sdate,edate,timewin,region)
         if len(pathlst) > 0:
             vardict = self.read_local_files(pathlst,provider,varalias)
             print('Total: ', len(vardict['time']), ' footprints found')
@@ -385,8 +384,9 @@ class satellite_class():
                             tmp = list(f.variables[ncvar][:])
                             vardict[stdname] = tmp
                         stdname_lst.append(stdname)
-            except (IOError):
+            except (IOError) as e:
                 print ("No such file or directory")
+                print (e)
             count = count + 1
         print ('\n')
         # remove redundant entries

@@ -192,9 +192,6 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
         results_dict['model_values'] = model_vals[collocation_idx]
-    elif collocation_idx is not None:
-        print("Collocation idx given")
-        results_dict['model_values'] = model_vals[collocation_idx]
     return results_dict
 
 
@@ -204,7 +201,7 @@ class collocation_class():
     '''
 
     def __init__(self,mc_obj,sa_obj=None,st_obj=None,col_obj=None,
-    collocation_idx=None,distlim=None):
+    distlim=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
@@ -220,7 +217,6 @@ class collocation_class():
         results_dict = collocate(mc_obj,
                                 obs_obj=obs_obj,
                                 col_obj=col_obj,
-                                collocation_idx=collocation_idx,
                                 distlim=distlim)
         t1=time.time()
         print("time used for collocation:",round(t1-t0,2),"seconds")
