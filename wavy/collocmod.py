@@ -154,11 +154,10 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
             raise ValueError
     except (ValueError):
         lon_win = .6
-    lat_win = round(haversine(model_lats[0],model_lons[0],
-                        model_lats[1],model_lons[1])/111,2)
+    lat_win = round(distlim/111.+0.01,2)
     if (collocation_idx is None and col_obj is None):
         print ("No collocation idx available")
-        print ("Perform collocation with moving window of degree:\n",\
+        print ("Perform collocation with moving window of degree\n",\
             "lon:",lon_win,"lat:",lat_win)
         for j in range(len(obs_time_dt)):
             progress(j,str(int(len(obs_time_dt))),'')
