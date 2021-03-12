@@ -228,7 +228,6 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
           'stdvarname:',stdname,'\n' + 
           'varalias:',varalias)
     filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
-    print(filevarname)
     if (filevarname is None and 'alias' in variable_info[varalias]):
         filevarname = get_varname_for_cf_stdname_in_ncfile(
                         ncdict,variable_info[varalias]['alias'])

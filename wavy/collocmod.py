@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import os
 import time
 # own imports
-from utils import haversine
+from utils import haversine, haversine_new
 
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
@@ -24,6 +24,7 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config
 with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
+flatten = lambda l: [item for sublist in l for item in sublist]
 
 def matchtime(sdate,edate,dtime,timewin=None):
     '''
@@ -56,10 +57,10 @@ def matchtime(sdate,edate,dtime,timewin=None):
 
 def collocation_loop(j,distlim,obs_lats,obs_lons,model_lats,
 model_lons,model_vals,lon_win,lat_win):
-    obs_lat=obs_lats[j]
-    obs_lon=obs_lons[j]
+    obs_lat = obs_lats[j]
+    obs_lon = obs_lons[j]
     # constraints to reduce workload
-    model_lats_new=model_lats[
+    model_lats_new = model_lats[
                     (model_lats>=obs_lat-lat_win)
                     &
                     (model_lats<=obs_lat+lat_win)
@@ -68,7 +69,7 @@ model_lons,model_vals,lon_win,lat_win):
                     &
                     (model_lons<=obs_lon+lon_win)
                     ]
-    model_lons_new=model_lons[
+    model_lons_new = model_lons[
                     (model_lats>=obs_lat-lat_win)
                     &
                     (model_lats<=obs_lat+lat_win)
@@ -77,8 +78,8 @@ model_lons,model_vals,lon_win,lat_win):
                     &
                     (model_lons<=obs_lon+lon_win)
                     ]
-    tmp=range(len(model_lats))
-    tmp_idx=np.array(tmp)[
+    tmp = range(len(model_lats))
+    tmp_idx = np.array(tmp)[
                     (model_lats>=obs_lat-lat_win)
                     &
                     (model_lats<=obs_lat+lat_win)
@@ -88,12 +89,15 @@ model_lons,model_vals,lon_win,lat_win):
                     (model_lons<=obs_lon+lon_win)
                     ]
     # compute distances
-    distlst=list(map(
+    distlst = list(map(
                     haversine,
                     [obs_lon]*len(model_lons_new),
                     [obs_lat]*len(model_lons_new),
                     model_lons_new,model_lats_new
                     ))
+    #distlst = haversine_new([obs_lon]*len(model_lons_new),
+    #                        [obs_lat]*len(model_lons_new),
+    #                        model_lons_new,model_lats_new)
     tmp_idx2 = distlst.index(np.min(distlst))
     collocation_idx = tmp_idx[tmp_idx2]
     dist = distlst[tmp_idx2]
@@ -158,8 +162,8 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
             "lon:",lon_win,"lat:",lat_win)
         for j in range(len(obs_time_dt)):
             progress(j,str(int(len(obs_time_dt))),'')
-            try:
-#            for i in range(1):
+#            try:
+            for i in range(1):
                 collocation_idx,dist = collocation_loop(\
                     j,distlim,obs_lats,obs_lons,\
                     model_lats,model_lons,model_vals,\
@@ -167,9 +171,9 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                 collocation_idx_lst.append(collocation_idx)
                 dist_lst.append(dist)
                 time_idx_lst.append(j)
-            except:
-                print ("Collocation error -> no collocation:", 
-                        sys.exc_info()[0])
+#            except:
+#                print ("Collocation error -> no collocation:", 
+#                        sys.exc_info()[0])
         results_dict = {
                 'valid_date':np.array(datein),
                 'time':np.array(obs_time[time_idx_lst]),

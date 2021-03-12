@@ -184,6 +184,32 @@ def haversine(lon1, lat1, lon2, lat2):
     km = 6367 * c
     return km
 
+def haversine_new(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    Note: lon1,lat1,lon2, and lat2 can be lists
+    """
+    # convert decimal degrees to radians 
+    rads = np.deg2rad(np.array([lon1,lat1,lon2,lat2]))
+    # haversine formula 
+    if isinstance(lon1,list):
+        dlon = rads[2,:] - rads[0,:]
+        dlat = rads[3,:] - rads[1,:]
+        a = np.sin(dlat/2)**2 \
+            + np.cos(rads[1,:]) * np.cos(rads[3,:]) * np.sin(dlon/2)**2
+        c = 2 * np.arcsin(np.sqrt(a))
+        km = 6367 * c
+        return list(km)
+    else:
+        dlon = rads[2] - rads[0]
+        dlat = rads[3] - rads[1]
+        a = np.sin(dlat/2)**2 \
+            + np.cos(rads[1]) * np.cos(rads[3]) * np.sin(dlon/2)**2
+        c = 2 * np.arcsin(np.sqrt(a))
+        km = 6367 * c
+        return [km]
+
 def runmean(vec,win,mode=None):
     """
     input:  vec = vector of values to me smoothed
