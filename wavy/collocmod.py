@@ -94,15 +94,15 @@ model_lons,model_vals,lon_win,lat_win):
                     (model_lons<=obs_lon+lon_win)
                     ]
     # compute distances
-    distlst = list(map(
-                    haversine,
-                    [obs_lon]*len(model_lons_new),
-                    [obs_lat]*len(model_lons_new),
-                    model_lons_new,model_lats_new
-                    ))
-    #distlst = haversine_new([obs_lon]*len(model_lons_new),
-    #                        [obs_lat]*len(model_lons_new),
-    #                        model_lons_new,model_lats_new)
+    #distlst = list(map(
+    #                haversine,
+    #                [obs_lon]*len(model_lons_new),
+    #                [obs_lat]*len(model_lons_new),
+    #                model_lons_new,model_lats_new
+    #                ))
+    distlst = haversine_new([obs_lon]*len(model_lons_new),
+                            [obs_lat]*len(model_lons_new),
+                            model_lons_new,model_lats_new)
     collocation_idx,tmp_idx2 = get_collocation_idx(distlst,tmp_idx)
     dist = distlst[tmp_idx2]
     if dist <= distlim:
