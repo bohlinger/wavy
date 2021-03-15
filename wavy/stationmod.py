@@ -258,34 +258,37 @@ def extract_d22(searchlines):
                 for var in WM.keys():
                     if var != 'name':
                         WM[var].append(sp.nan)
+        # WM wave related stuff
         for WM in [WM1,WM2,WM3]:  
             if str(WM['name']) in line:
                 for l in searchlines[i+2:i+3]:
-                    WM['Hs_10min'][-1]=floater(l.strip())
+                    WM['Hs'][-1]=floater(l.strip())
                 for l in searchlines[i+5:i+6]:
-                    WM['Tp_10min'][-1]=floater(l.strip())  
+                    WM['Tp'][-1]=floater(l.strip())  
                 for l in searchlines[i+11:i+12]:
-                    WM['Tm02_10min'][-1]=floater(l.strip())
+                    WM['Tm02'][-1]=floater(l.strip())
                 for l in searchlines[i+12:i+13]:
-                    WM['Tm01_10min'][-1]=floater(l.strip())
+                    WM['Tm01'][-1]=floater(l.strip())
                 for l in searchlines[i+9:i+10]:
-                    WM['Tm10_10min'][-1]=floater(l.strip())
+                    WM['Tm10'][-1]=floater(l.strip())
                 for l in searchlines[i+17:i+18]:
-                    WM['Mdir_10min'][-1]=floater(l.strip())
+                    WM['Mdir'][-1]=floater(l.strip())
                 for l in searchlines[i+16:i+17]:
-                    WM['Pdir_10min'][-1]=floater(l.strip())
-        for WI in [WIA,WIB,WIC]:
-            if str(WI['name']) in line:
-                for l in searchlines[i+10:i+11]:
-                    WI['FF_10min_10m'][-1]=floater(l.strip())
-                for l in searchlines[i+16:i+17]:
-                    WI['FF_10min_sensor'][-1]=floater(l.strip())
-                for l in searchlines[i+13:i+14]:
-                    WI['DD_10min_sensor'][-1]=floater(l.strip()) 
-        for WL in [WL1,WL2,WL3]:
-            if str(WL['name']) in line:
-                for l in searchlines[i+2:i+3]:
-                    WL['Hlat'][-1]=floater(l.strip())
+                    WM['Pdir'][-1]=floater(l.strip())
+        # WI for wind related stuff
+        #for WI in [WIA,WIB,WIC]:
+        #    if str(WI['name']) in line:
+        #        for l in searchlines[i+10:i+11]:
+        #            WI['FF_10min_10m'][-1]=floater(l.strip())
+        #        for l in searchlines[i+16:i+17]:
+        #            WI['FF_10min_sensor'][-1]=floater(l.strip())
+        #        for l in searchlines[i+13:i+14]:
+        #            WI['DD_10min_sensor'][-1]=floater(l.strip()) 
+        # WL for water level related stuff
+        #for WL in [WL1,WL2,WL3]:
+        #    if str(WL['name']) in line:
+        #        for l in searchlines[i+2:i+3]:
+        #            WL['Hlat'][-1]=floater(l.strip())
     N = len(dat['10min'])
     #Convert data to arrays
     dat['10min']=sp.array(dat['10min'])
@@ -296,40 +299,6 @@ def extract_d22(searchlines):
                 if len(sp.array(WM[var]))!=N:
                     WM[var] = np.empty(len(dat['10min']))
                     WM[var][:] = sp.nan
-                    os.system("pause")  
-                #Create 1 hour averages
-                if var == 'Hs_10min':
-                    WINDOW = 3
-                    wmt = sp.power(WM[var],2)
-                    weights = sp.ones((WINDOW))/WINDOW
-                    wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
-                    wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
-                    wmt[[0,1,-2,-1]]= sp.nan
-                    WM['Hs_1hr'] = sp.sqrt(wmt)
-                if var == 'Tm02_10min':
-                    WINDOW = 3
-                    wmt = sp.power(WM[var],2)
-                    weights = sp.ones((WINDOW))/WINDOW
-                    wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
-                    wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
-                    wmt[[0,1,-2,-1]]= sp.nan
-                    WM['Tm02_1hr'] = sp.sqrt(wmt)
-                if var == 'Tm01_10min':
-                    WINDOW = 3
-                    wmt = sp.power(WM[var],2)
-                    weights = sp.ones((WINDOW))/WINDOW
-                    wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
-                    wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
-                    wmt[[0,1,-2,-1]]= sp.nan
-                    WM['Tm01_1hr'] = sp.sqrt(wmt)
-                if var == 'Tm10_10min':
-                    WINDOW = 3
-                    wmt = sp.power(WM[var],2)
-                    weights = sp.ones((WINDOW))/WINDOW
-                    wmt[2:-2:2] = np.convolve(wmt[0::2], weights,mode='valid')
-                    wmt[3:-2:2] = np.convolve(wmt[1::2], weights,mode='valid')
-                    wmt[[0,1,-2,-1]]= sp.nan
-                    WM['Tm10_1hr'] = sp.sqrt(wmt)
     # CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
     sensor_lst = [WM1,WM2,WM3]
     dates = deepcopy(dat)
@@ -379,20 +348,22 @@ def matchtime(sdate,edate,time,time_unit=None,timewin=None):
             idx=idx+1
     return ctime, cidx
 
-def get_loc_idx(init_lats,init_lons,target_lat,target_lon,mask=None):
-    from utils import haversine
-    distM = np.zeros(init_lats.shape)*np.nan
-    for i in range(init_lats.shape[0]):
-        for j in range(init_lats.shape[1]):
-            if mask is None:
-                distM[i,j] = haversine(init_lons[i,j],init_lats[i,j],
-                                    target_lon,target_lat)
-            else:
-                if isinstance(mask[i,j],(np.float32)):
-                    distM[i,j] = haversine(init_lons[i,j],init_lats[i,j],
-                                    target_lon,target_lat)
-    idx,idy = np.where(distM==np.nanmin(distM))
-    return idx, idy, distM, init_lats[idx,idy], init_lons[idx,idy]
+#def get_loc_idx(init_lats,init_lons,target_lat,target_lon,mask=None):
+#    from utils import haversine
+#    distM = np.zeros(init_lats.shape)*np.nan
+#    for i in range(init_lats.shape[0]):
+#        for j in range(init_lats.shape[1]):
+#            if mask is None:
+#                distM[i,j] = haversine(init_lons[i,j],init_lats[i,j],
+#                                    target_lon,target_lat)
+#            else:
+#                if isinstance(mask[i,j],(np.float32)):
+#                    distM[i,j] = haversine(init_lons[i,j],init_lats[i,j],
+#                                    target_lon,target_lat)
+#    idx,idy = np.where(distM==np.nanmin(distM))
+#    return idx, idy, distM, init_lats[idx,idy], init_lons[idx,idy]
+
+# --> get_loc_idx is to be deleted once dependencies are corrected
 
 # --- help ------------------------------------------------------------#
 if __name__ == '__main__':
