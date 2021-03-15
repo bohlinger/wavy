@@ -17,14 +17,10 @@ import os
 import sys
 import netCDF4
 
-# ignore irrelevant warnings from matplotlib for stdout
-#import warnings
-#warnings.filterwarnings("ignore")
-
 # all class
 import numpy as np
 from datetime import datetime, timedelta
-import datetime as dt
+import datetime
 import argparse
 from argparse import RawTextHelpFormatter
 import yaml
@@ -170,25 +166,11 @@ class station_class():
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
             sl = parse_d22(statname,sdatetmp,edatetmp)
-            sensor_lst, dates = extract_d22(sl)
-            tmpdate = sdate
-            var = []
-            var_obs = []
-            time = []
-            timedt = []
-            while (tmpdate <= edate):
-                ctime, idxtmp = matchtime(tmpdate,tmpdate,dates['10min'],
-                                          timewin=2)
-                try:
-                    tmp = sensor_lst[station_dict['platform'][statname]\
-                                        ['sensor'][sensorname]]\
-                                        [varalias][idxtmp][0]
-                    time.append((tmpdate-self.basedate).total_seconds())
-                    var.append(np.real(tmp))
-                    timedt.append(tmpdate)
-                except Exception as e:
-                    print(e)
-                tmpdate = tmpdate + timedelta(minutes=deltat)
+            var, timedt = extract_d22(sl,varalias,statname,sensorname)
+            ctime, idxtmp = matchtime(sdate,edate,timedt,timewin=1)
+            time = [(t-self.basedate).total_seconds() for t in timedt]
+            var = np.real(var[idxtmp])
+            timedt = timedt[idxtmp]
         return var, time, timedt
     
 def superob(st_obj,smoother='running_mean',**kwargs):
@@ -206,8 +188,10 @@ def superob(st_obj,smoother='running_mean',**kwargs):
     pass
 
 def parse_d22(statname,sdate,edate):
-    # Read all lines in file and append to searchlines
-    searchlines=[]
+    """
+    Read all lines in file and append to sl
+    """
+    sl=[]
     for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
         dy = pl.num2date(d).strftime("%Y%m%d")
         YY = pl.num2date(d).strftime("%Y")
@@ -217,95 +201,90 @@ def parse_d22(statname,sdate,edate):
                         + "/d22/" + dy + ".d22")
         if os.path.isfile(ifile_opdata):
             f = open(ifile_opdata, "r")
-            searchlines = searchlines + f.readlines()
+            sl = sl + f.readlines()
         elif os.path.isfile(ifile_starc):
             f = open(ifile_starc, "r")
-            searchlines = searchlines + f.readlines()
+            sl = sl + f.readlines()
         f.close()
-    return searchlines
+    return sl
 
-# Function that converts 's' to float32 or nan if floater throws exception 
 def floater(s):
+    """
+    Function that converts 's' to float32 or nan if floater throws exception 
+    """
     try:
         x = np.float32(s)
     except:
         x = np.nan
     return x
 
-def extract_d22(searchlines):
-    #Extract data of choice - reading searchlines
-    with open("../config/d22_var_dicts.yaml", 'r') as stream:
-        d22_var_dicts=yaml.safe_load(stream)
-    dat=d22_var_dicts['dat']
-    WM1=d22_var_dicts['WM1']
-    WM2=d22_var_dicts['WM2']
-    WM3=d22_var_dicts['WM3']
-    WL1=d22_var_dicts['WL1']
-    WL2=d22_var_dicts['WL2']
-    WL3=d22_var_dicts['WL3']
-    WIA=d22_var_dicts['WIA']
-    WIB=d22_var_dicts['WIB']
-    WIC=d22_var_dicts['WIC']
-    tseries=[]
-    for i, line in enumerate(searchlines):
-        if "!!!!" in line: 
-            tseriesl = [l.strip() for l in searchlines[i+3:i+5]]
-            tseries.append(' '.join(tseriesl))
-            date_object = datetime.strptime(' '.join(tseriesl),'%d-%m-%Y %H:%M')
-            dat['10min'].append(date_object)
-            # nan for all variables
-            for WM in [WM1,WM2,WM3,WIA,WIB,WIC,WL1,WL2,WL3]:
-                for var in WM.keys():
-                    if var != 'name':
-                        WM[var].append(sp.nan)
-        # WM wave related stuff
-        for WM in [WM1,WM2,WM3]:  
-            if str(WM['name']) in line:
-                for l in searchlines[i+2:i+3]:
-                    WM['Hs'][-1]=floater(l.strip())
-                for l in searchlines[i+5:i+6]:
-                    WM['Tp'][-1]=floater(l.strip())  
-                for l in searchlines[i+11:i+12]:
-                    WM['Tm02'][-1]=floater(l.strip())
-                for l in searchlines[i+12:i+13]:
-                    WM['Tm01'][-1]=floater(l.strip())
-                for l in searchlines[i+9:i+10]:
-                    WM['Tm10'][-1]=floater(l.strip())
-                for l in searchlines[i+17:i+18]:
-                    WM['Mdir'][-1]=floater(l.strip())
-                for l in searchlines[i+16:i+17]:
-                    WM['Pdir'][-1]=floater(l.strip())
-        # WI for wind related stuff
-        #for WI in [WIA,WIB,WIC]:
-        #    if str(WI['name']) in line:
-        #        for l in searchlines[i+10:i+11]:
-        #            WI['FF_10min_10m'][-1]=floater(l.strip())
-        #        for l in searchlines[i+16:i+17]:
-        #            WI['FF_10min_sensor'][-1]=floater(l.strip())
-        #        for l in searchlines[i+13:i+14]:
-        #            WI['DD_10min_sensor'][-1]=floater(l.strip()) 
-        # WL for water level related stuff
-        #for WL in [WL1,WL2,WL3]:
-        #    if str(WL['name']) in line:
-        #        for l in searchlines[i+2:i+3]:
-        #            WL['Hlat'][-1]=floater(l.strip())
-    N = len(dat['10min'])
-    #Convert data to arrays
-    dat['10min']=sp.array(dat['10min'])
-    for WM in [WM1,WM2,WM3,WIA,WIB,WIC,WL1,WL2,WL3]:
-        for var in WM.keys():
-            if var != 'name':
-                WM[var] = sp.array(WM[var])
-                if len(sp.array(WM[var]))!=N:
-                    WM[var] = np.empty(len(dat['10min']))
-                    WM[var][:] = sp.nan
-    # CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
-    sensor_lst = [WM1,WM2,WM3]
-    dates = deepcopy(dat)
-    del dat
-    return sensor_lst, dates
+def find_category_for_variable(varalias):
+    lst = [i for i in d22_var_dicts['categories'].keys() \
+            if (varalias in d22_var_dicts['categories'][i]['vars']) \
+            ]
+    if len(lst) == 1:
+        return lst[0]
+    else: return None
 
-def matchtime(sdate,edate,time,time_unit=None,timewin=None):
+def get_revised_categories(sl,category):
+    """
+    finds number of occurences of string (category) to determine
+    revised_categories (type: list)
+    """
+    revised_categories = []
+    count = 1
+    newsl = sl[1:(sl[1:-1].index('!!!!\n'))]
+    for element in newsl: 
+        if category in element:
+            revised_categories.append(category+str(count))
+            count+=1
+    return revised_categories
+
+def extract_d22(sl,varalias,statname,sensorname):
+    """
+    Extracting data of choice - reading sl from parse_d22
+    CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
+    Returns values of chosen variable (ts) and corresponding datetimes (dt)
+    as type: np.array
+    """
+    category = find_category_for_variable(varalias)
+    revised_categories = get_revised_categories(sl,category)
+    ts = []
+    dt = []
+    for i, line in enumerate(sl):
+        # get ts for date and time
+        if "!!!!" in line:
+            datestr = sl[  i
+                         + d22_var_dicts['categories']['datetime']\
+                                        ['vars']['date']
+                        ].strip()
+            timestr = sl[  i
+                         + d22_var_dicts['categories']['datetime']\
+                                        ['vars']['time']
+                        ].strip()
+            date_object = datetime.strptime(datestr 
+                                            + ' ' 
+                                            + timestr,
+                                            '%d-%m-%Y %H:%M')
+            dt.append(date_object)
+        # get ts for variable of interest
+        revised_category_for_sensor = revised_categories[
+                                        station_dict['platform']\
+                                            [statname]['sensor']\
+                                            [sensorname]
+                                        ]
+        if revised_category_for_sensor in line:
+            value = sl[  i
+                       + d22_var_dicts['categories'][category]\
+                        ['vars'][varalias]
+                        ].strip()
+            ts.append(floater(value))
+    #Convert data to arrays
+    dt = np.array(dt)
+    ts = np.array(ts)
+    return ts, dt
+
+def matchtime(sdate,edate,time,time_unit=None,timewin=None,basetime=None):
     '''
     fct to obtain the index of the time step closest to the 
     requested time including the respective time stamp(s). 

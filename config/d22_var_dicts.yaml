@@ -1,82 +1,32 @@
 --- # d22 formatting specifications
 
-# Based on OJ's plotd22v5.py and v8 see email
+# 10min is the basic report frequency
 
-dat:
-    10min: [] # this is the basic report frequency
-WM1: 
-    name: WM1
-    Hs: []
-    Hmax: []
-    EMC: []
-    HEC: []
-    Tp: []
-    Tm02: []
-    Tm10: []
-    Tm01: []
-    Mdir: []
-    Pdir: []
-WM2: 
-    name: WM2
-    Hs: []
-    Hmax: []
-    EMC: []
-    HEC: []
-    Tp: []
-    Tm02: []
-    Tm10: []
-    Tm01: []
-    Mdir: []
-    Pdir: []
-
-WM3: 
-    name: WM3
-    Hs: []
-    Hmax: []
-    EMC: []
-    HEC: []
-    Tp: []
-    Tm02: []
-    Tm10: []
-    Tm01: []
-    Mdir: []
-    Pdir: []
-
-WL1: 
-    name: WL1
-    Hlat: []
-
-WL2: 
-    name: WL2
-    Hlat: []
-
-WL3: 
-    name: WL3
-    Hlat: []
-
-WIA: 
-    name: WIA
-    FF_10min_10m: []
-    FF_10min_sensor: []
-    DD_10min_sensor: []
-    FF_2min: []
-    DD_2min: []
-
-WIB: 
-    name: WIB
-    FF_10min_10m: []
-    FF_10min_sensor: []
-    DD_10min_sensor: []
-    FF_2min: []
-    DD_2min: []
-
-WIC: 
-    name: WIC 
-    FF_10min_10m: []
-    FF_10min_sensor: []
-    DD_10min_sensor: []
-    FF_2min: []
-    DD_2min: []
+# define indices for listed variables
+categories: 
+    datetime:
+        vars: 
+            date: 3
+            time: 4
+    WM: # wave related
+        vars: 
+            Hs: 2
+            Tp: 5
+            Tm10: 9
+            Tm02: 11
+            Tm01: 12
+            Pdir: 16
+            Mdir: 17
+    WL: # water level related
+        vars: 
+            Hlat:
+    WI: # wind related
+        vars: 
+            FF_10min_10m:
+            FF_10min_sensor:
+            DD_10min_sensor:
+            FF_2min:
+            DD_2min:
 
 standard_name: 
     Hs: 'sea_surface_wave_significant_height'                       
