@@ -74,8 +74,6 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir, 'r') as stream:
     d22_var_dicts=yaml.safe_load(stream)
 
-station_d22_starc = pathfinder['station_d22_starc']
-station_d22_opdate = pathfinder['station_d22_opdate']
 stationpath_lustre_om = pathfinder['stationpath_lustre_om']
 stationpath_lustre_hi = pathfinder['stationpath_lustre_hi']
 
@@ -101,7 +99,7 @@ class station_class():
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
     def __init__(self,statname,sensorname,sdate,edate,
-                mode='d22',deltat=10,varalias='Hs_10min'):
+                mode='d22',deltat=10,varalias='Hs'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
@@ -157,7 +155,7 @@ class station_class():
                 tmp = nc.variables['time'][:]
                 time.append(tmp)
                 for s in tmp:
-                    timedt.append(basedate + timedelta(seconds=s))
+                    timedt.append(self.basedate + timedelta(seconds=s))
                 nc.close()
                 tmpdate = tmpdate + relativedelta(months = +1)
             var = flatten(var)
@@ -165,7 +163,9 @@ class station_class():
         elif mode == 'd22':
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
-            sl = parse_d22(statname,sdatetmp,edatetmp)
+            pathlst = station_dict['path']['platform']['local']\
+                                  [mode]['template']
+            sl = parse_d22(statname,sdatetmp,edatetmp,pathlst,mode)
             var, timedt = extract_d22(sl,varalias,statname,sensorname)
             ctime, idxtmp = matchtime(sdate,edate,timedt,timewin=1)
             time = [(t-self.basedate).total_seconds() for t in timedt]
@@ -187,24 +187,22 @@ def superob(st_obj,smoother='running_mean',**kwargs):
     print('under construction')
     pass
 
-def parse_d22(statname,sdate,edate):
+def parse_d22(statname,sdate,edate,pathlst,mode):
     """
     Read all lines in file and append to sl
     """
     sl=[]
     for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
-        dy = pl.num2date(d).strftime("%Y%m%d")
-        YY = pl.num2date(d).strftime("%Y")
-        ifile_starc = (station_d22_starc + statname 
-                        + "/d22/" + YY + "/" + dy + ".d22")
-        ifile_opdata = (station_d22_opdate + statname 
-                        + "/d22/" + dy + ".d22")
-        if os.path.isfile(ifile_opdata):
-            f = open(ifile_opdata, "r")
-            sl = sl + f.readlines()
-        elif os.path.isfile(ifile_starc):
-            f = open(ifile_starc, "r")
-            sl = sl + f.readlines()
+        i = 0
+        pathtofile = pl.num2date(d).strftime(pathlst[i])
+        strsub = station_dict['path']['platform']['local'][mode]['strsub']
+        pathtofile = pathtofile.replace(strsub[i],statname)
+        while os.path.isfile(pathtofile) is False:
+            i += 1
+            pathtofile = pl.num2date(d).strftime(pathlst[i])
+            pathtofile = pathtofile.replace(strsub[i],statname,1)
+        f = open(pathtofile, "r")
+        sl = sl + f.readlines()
         f.close()
     return sl
 

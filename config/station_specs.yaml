@@ -3,11 +3,15 @@
 path:
     platform:
         local: 
-            d22: ["/lustre/storeB/immutable/archive/projects/\
-            metproduction/DNMI_OFFSHORE/", # +rig+"/d22/"+YY+"/"+dy+".d22
-            "/opdata/offshore/"] # +rig+'/d22/'+dy+'.d22'
-            nc: "/lustre/storeB/project/fou/om/waveverification/obs/\
-                stations/%Y/%m/"
+            d22: 
+                template: ["/lustre/storeB/immutable/archive/projects/\
+                            metproduction/DNMI_OFFSHORE/platform/d22\
+                            /%Y/%Y%m%d.d22",
+                           "/opdata/offshore/platform/d22/%Y%m%d.d22"]
+                strsub: ['platform','platform']
+            nc: 
+                template: ["/lustre/storeB/project/fou/om/waveverification\
+                            /obs/stations/%Y/%m/"]
         remote:
 platform:
     asgardb:

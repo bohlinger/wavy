@@ -100,7 +100,7 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
                 + filedate.strftime(model_dict[model]['file_template'])
                 )
     else:
-        raise ValueError("chosen model is not specified in model_specs.yaml")
+        raise ValueError("Chosen model is not specified in model_specs.yaml")
     return filename
 
 def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
