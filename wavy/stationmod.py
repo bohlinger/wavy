@@ -77,6 +77,10 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir, 'r') as stream:
     d22_var_dicts=yaml.safe_load(stream)
 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
+with open(moddir,'r') as stream:
+    variable_info=yaml.safe_load(stream)
+
 stationpath_lustre_om = pathfinder['stationpath_lustre_om']
 stationpath_lustre_hi = pathfinder['stationpath_lustre_hi']
 
@@ -107,7 +111,7 @@ class station_class():
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
-        stdvarname = d22_var_dicts['standard_name'][varalias]
+        stdvarname = variable_info[varalias]['standard_name']
         var, time, timedt = self.get_station(
                                     platform, # change to stdvarname in future
                                     sdate,edate,
@@ -126,7 +130,7 @@ class station_class():
         # defined with names longitude and latitude 
         # in yaml file not as it is now in stationlist.yaml
         self.vars = vardict
-        self.stdvarname = d22_var_dicts['standard_name'][varalias]
+        self.stdvarname = stdvarname
         if mode == 'd22':
             self.varname = varalias
         elif mode == 'nc':
@@ -142,7 +146,7 @@ class station_class():
         print ('# ----- ')
 
     def get_station(self,platform,sdate,edate,mode,deltat,sensor,varalias):
-        stdvarname = d22_var_dicts['standard_name'][varalias]
+        stdvarname = variable_info[varalias]['standard_name']
         pathlst = station_dict['path']['platform']['local'][mode]['template']
         strsublst = station_dict['path']['platform']['local'][mode]['strsub']
         if mode == 'nc':

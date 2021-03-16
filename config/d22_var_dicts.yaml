@@ -29,17 +29,9 @@ categories:
             DD_2min:
 
 standard_name: 
-    Hs: 'sea_surface_wave_significant_height'                       
     Mdir: 'sea_surface_wave_from_direction'
     Pdir: "sea_surface_wave_from_direction\
         _at_variance_spectral_density_maximum"
-    Tm02: "sea_surface_wave_mean_period\
-        _from_variance_spectral_density_second_frequency_moment"
-    Tm01: "sea_surface_wave_mean_period\
-        _from_variance_spectral_density_first_frequency_moment"
-    Tm10: "sea_surface_wave_mean_period\
-        _from_variance_spectral_density_inverse_frequency_moment"
-    Tp: 'sea_surface_wave_period_at_variance_spectral_density_maximum'
     FF_10min_10m: 'wind_speed'
     FF_10min_sensor: 'wind_speed'
     DD_10min_sensor: 'wind_from_direction'
