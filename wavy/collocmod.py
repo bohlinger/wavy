@@ -220,7 +220,7 @@ class collocation_class():
         if st_obj is not None:
             obs_obj = st_obj
             obs_obj.timewin = None
-            obsname = st_obj.statname + '_' +  st_obj.sensorname
+            obsname = st_obj.platform + '_' +  st_obj.sensor
         t0=time.time()
         results_dict = collocate(mc_obj,
                                 obs_obj=obs_obj,

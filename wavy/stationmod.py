@@ -48,6 +48,9 @@ import pylab as pl
 from datetime import datetime
 import scipy as sp
 
+# netcdf related
+from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
                         '..', 'config/buoy_specs.yaml'))
@@ -98,7 +101,7 @@ class station_class():
     '''
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
-    def __init__(self,statname,sensorname,sdate,edate,
+    def __init__(self,platform,sensor,sdate,edate,
                 mode='d22',deltat=10,varalias='Hs'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
@@ -106,74 +109,99 @@ class station_class():
         print (" Please wait ...")
         stdvarname = d22_var_dicts['standard_name'][varalias]
         var, time, timedt = self.get_station(
-                                    statname, # change to stdvarname in future
+                                    platform, # change to stdvarname in future
                                     sdate,edate,
                                     mode,deltat,
-                                    sensorname,
+                                    sensor,
                                     varalias)
         vardict = {
                     stdvarname:var,
                     'time':time,
                     'datetime':timedt,
                     'time_unit':self.time_unit,
-                    'longitude':[locations[statname][1]]*len(var),
-                    'latitude':[locations[statname][0]]*len(var)
+                    'longitude':[locations[platform][1]]*len(var),
+                    'latitude':[locations[platform][0]]*len(var)
                     }
         # in future coordinates need to be properly 
         # defined with names longitude and latitude 
         # in yaml file not as it is now in stationlist.yaml
         self.vars = vardict
-        #self.varname = varname # if d22: Hs_10m; if nc: variable name
         self.stdvarname = d22_var_dicts['standard_name'][varalias]
-        self.varname = varalias
+        if mode == 'd22':
+            self.varname = varalias
+        elif mode == 'nc':
+            self.varname = varalias # varalias to be replaced by ncfile varname
         self.varalias = varalias
         self.sdate = sdate
         self.edate = edate
-        self.lat = locations[statname][0]
-        self.lon = locations[statname][1]
-        self.sensorname = sensorname
-        self.statname = statname
+        self.lat = locations[platform][0]
+        self.lon = locations[platform][1]
+        self.platform = sensor
+        self.sensor = platform
         print (" ### station_class object initialized ###")
         print ('# ----- ')
 
-    def get_station(self,statname,sdate,edate,mode,deltat,sensorname,varalias):
+    def get_station(self,platform,sdate,edate,mode,deltat,sensor,varalias):
+        stdvarname = d22_var_dicts['standard_name'][varalias]
+        pathlst = station_dict['path']['platform']['local'][mode]['template']
+        strsublst = station_dict['path']['platform']['local'][mode]['strsub']
         if mode == 'nc':
-            basedate = self.basedate
             tmpdate = sdate
             var = []
-            var_obs = []
             time = []
             timedt = []
             while (tmpdate <= edate):
-                filepath = stationpath_lustre_hi + statname + \
-                    tmpdate.strftime('_%Y%m') + '.nc'
-                nc = netCDF4.Dataset(filepath,'r')
-                Hs_OBS = nc.variables[varname][:]
-                tmp = np.nanmean(Hs_OBS,axis=0)
-                var.append(tmp)
-                var_obs.append(Hs_OBS)
-                tmp = nc.variables['time'][:]
-                time.append(tmp)
-                for s in tmp:
-                    timedt.append(self.basedate + timedelta(seconds=s))
+                pathtofile = make_pathtofile(platform,sensor,varalias,
+                                             pathlst,strsublst,tmpdate)
+                ncdict = ncdumpMeta(pathtofile)
+                varname = get_varname_for_cf_stdname_in_ncfile(ncdict,
+                                                               stdvarname)
+                if len(varname) > 1:
+                    # overwrite like for satellite altimetry files
+                    varname = station_dict['platform']['misc']\
+                                          ['vardef'][stdvarname]
+                else:
+                    varname = varname[0]
+                nc = netCDF4.Dataset(pathtofile,'r')
+                var.append(nc.variables[varname][:])
+                timeobj = nc.variables['time']
+                time.append(nc.variables['time'][:])
+                timedt.append(netCDF4.num2date(timeobj[:],timeobj.units))
                 nc.close()
                 tmpdate = tmpdate + relativedelta(months = +1)
-            var = flatten(var)
-            time = flatten(time)
+            var = np.array(var).flatten()
+            time = np.array(time).flatten()
+            timedt = np.array(timedt).flatten()
         elif mode == 'd22':
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
-            pathlst = station_dict['path']['platform']['local']\
-                                  [mode]['template']
-            sl = parse_d22(statname,sdatetmp,edatetmp,pathlst,mode)
-            var, timedt = extract_d22(sl,varalias,statname,sensorname)
+            sl = parse_d22(platform,sensor,varalias,sdatetmp,edatetmp,
+                          pathlst,strsublst,mode)
+            var, timedt = extract_d22(sl,varalias,platform,sensor)
+            time = np.array(
+                    [(t-self.basedate).total_seconds() for t in timedt]
+                    )
             ctime, idxtmp = matchtime(sdate,edate,timedt,timewin=1)
-            time = [(t-self.basedate).total_seconds() for t in timedt]
-            var = np.real(var[idxtmp])
-            timedt = timedt[idxtmp]
+        ctime, idxtmp = matchtime(sdate,edate,timedt,timewin=1)
+        # convert to list for consistency with other classes
+        var = list(np.real(var[idxtmp]))
+        time = list(time[idxtmp])
+        timedt = list(timedt[idxtmp])
         return var, time, timedt
-    
-def superob(st_obj,smoother='running_mean',**kwargs):
+
+def make_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
+    i = 0
+    pathtofile = date.strftime(pathlst[i])
+    for strsub in strsublst:
+        pathtofile = pathtofile.replace(strsub,locals()[strsub])
+    while os.path.isfile(pathtofile) is False:
+        i += 1
+        pathtofile = date.strftime(pathlst[i])
+        for strsub in strsublst:
+            pathtofile = pathtofile.replace(strsub,locals()[strsub])
+    return pathtofile
+
+def compute_superobs(st_obj,smoother='running_mean',**kwargs):
     """
     Applies a smoothing filter to create a super-observed ts
     **kwargs includes method specific input for chosen smoother
@@ -181,26 +209,23 @@ def superob(st_obj,smoother='running_mean',**kwargs):
             block-average
             running mean using convolution
             GP
+            GAM
+            ...
     Caution:    for some smoothers much more of time series has 
                 to be included.
     """
     print('under construction')
-    pass
+    return
 
-def parse_d22(statname,sdate,edate,pathlst,mode):
+def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst,mode):
     """
     Read all lines in file and append to sl
     """
     sl=[]
     for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
         i = 0
-        pathtofile = pl.num2date(d).strftime(pathlst[i])
-        strsub = station_dict['path']['platform']['local'][mode]['strsub']
-        pathtofile = pathtofile.replace(strsub[i],statname)
-        while os.path.isfile(pathtofile) is False:
-            i += 1
-            pathtofile = pl.num2date(d).strftime(pathlst[i])
-            pathtofile = pathtofile.replace(strsub[i],statname,1)
+        pathtofile = make_pathtofile(platform,sensor,varalias,\
+                                    pathlst,strsublst,pl.num2date(d))
         f = open(pathtofile, "r")
         sl = sl + f.readlines()
         f.close()
@@ -238,7 +263,7 @@ def get_revised_categories(sl,category):
             count+=1
     return revised_categories
 
-def extract_d22(sl,varalias,statname,sensorname):
+def extract_d22(sl,varalias,platform,sensor):
     """
     Extracting data of choice - reading sl from parse_d22
     CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
@@ -268,8 +293,8 @@ def extract_d22(sl,varalias,statname,sensorname):
         # get ts for variable of interest
         revised_category_for_sensor = revised_categories[
                                         station_dict['platform']\
-                                            [statname]['sensor']\
-                                            [sensorname]
+                                            [platform]['sensor']\
+                                            [sensor]
                                         ]
         if revised_category_for_sensor in line:
             value = sl[  i
@@ -352,7 +377,7 @@ Usage:
 from stationmod import station_class as sc
 from datetime import datetime, timedelta
 sc_obj = sc('ekofiskL',sdate,edate)
-        """,
-        formatter_class = RawTextHelpFormatter
-        )
+    """,
+    formatter_class = RawTextHelpFormatter
+    )
     args = parser.parse_args()

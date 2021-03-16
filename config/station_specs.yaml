@@ -8,11 +8,16 @@ path:
                             metproduction/DNMI_OFFSHORE/platform/d22\
                             /%Y/%Y%m%d.d22",
                            "/opdata/offshore/platform/d22/%Y%m%d.d22"]
-                strsub: ['platform','platform']
+                strsub: ['platform'] # part of string to be substituted
             nc: 
-                template: ["/lustre/storeB/project/fou/om/waveverification\
-                            /obs/stations/%Y/%m/"]
+                template: ["/lustre/storeB/project/fou/om/waveverification/\
+                            obs/stations/%Y/%m/\
+                            varalias_10min_platform_sensor_%Y%m.nc"]
+                strsub: ['varalias','platform','sensor']
         remote:
+        misc:
+            vardef: # stdname: abbreviation
+                #sea_surface_wave_significant_height: Hs_10min
 platform:
     asgardb:
         sensor:
