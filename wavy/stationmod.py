@@ -246,9 +246,8 @@ def floater(s):
     return x
 
 def find_category_for_variable(varalias):
-    lst = [i for i in d22_var_dicts['categories'].keys() \
-            if (varalias in d22_var_dicts['categories'][i]['vars']) \
-            ]
+    lst = [ i for i in d22_var_dicts.keys() \
+            if (varalias in d22_var_dicts[i]) ]
     if len(lst) == 1:
         return lst[0]
     else: return None
@@ -282,12 +281,10 @@ def extract_d22(sl,varalias,platform,sensor):
         # get ts for date and time
         if "!!!!" in line:
             datestr = sl[  i
-                         + d22_var_dicts['categories']['datetime']\
-                                        ['vars']['date']
+                         + d22_var_dicts['datetime']['date']['idx']
                         ].strip()
             timestr = sl[  i
-                         + d22_var_dicts['categories']['datetime']\
-                                        ['vars']['time']
+                         + d22_var_dicts['datetime']['time']['idx']
                         ].strip()
             date_object = datetime.strptime(datestr 
                                             + ' ' 
@@ -297,14 +294,12 @@ def extract_d22(sl,varalias,platform,sensor):
         # get ts for variable of interest
         revised_category_for_sensor = revised_categories[
                                         station_dict['platform']\
-                                            [platform]['sensor']\
-                                            [sensor]
-                                        ]
+                                        [platform]['sensor']\
+                                        [sensor] ]
         if revised_category_for_sensor in line:
             value = sl[  i
-                       + d22_var_dicts['categories'][category]\
-                        ['vars'][varalias]
-                        ].strip()
+                       + d22_var_dicts[category][varalias]['idx']
+                       ].strip()
             ts.append(floater(value))
     #Convert data to arrays
     dt = np.array(dt)

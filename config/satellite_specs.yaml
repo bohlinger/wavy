@@ -1,11 +1,27 @@
 --- # specifications for satellite missions
 
+########################################################################
 # """
-# structure local files: 
-#        + instrument type (altimeter/scatterometer) 
-#        + provider (eumetsat/cmems)
-#        + specs
+# general structure: 
+#   + instrument type (altimeter/scatterometer) 
+#       + provider (eumetsat/cmems)
+#           + specs
 # """
+
+# define source after the following example encompassing all options:
+#instrument type:
+#    provider:
+#        level: # processing level e.g. 3
+#        satellite: # mission name abbreviations
+#        local:
+#            path:
+#        remote:
+#            path:
+#            server:
+#        misc:
+#            vardef: # stdname: ncfile varname
+#                stdvarname of interest: ncfile varname
+########################################################################
 
 altimeter:
     eumetsat:

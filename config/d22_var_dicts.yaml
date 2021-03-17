@@ -1,103 +1,58 @@
 --- # d22 formatting specifications
 
+########################################################################
+# """
+# general structure: 
+#   + categories
+#       + variables
+#           + specs
+# """
+
 # 10min is the basic report frequency
 
-# define indices for listed variables
-categories: 
-    datetime:
-        vars: 
-            date: 3
-            time: 4
-    WM: # wave related
-        vars: 
-            Hs: 2
-            Tp: 5
-            Tm10: 9
-            Tm02: 11
-            Tm01: 12
-            Pdir: 16
-            Mdir: 17
-    WL: # water level related
-        vars: 
-            Hlat:
-    WI: # wind related
-        vars: 
-            FF_10min_10m:
-            FF_10min_sensor:
-            DD_10min_sensor:
-            FF_2min:
-            DD_2min:
+# define varaliases and their indices for listed variables
+# attention: idx uses python counting
+########################################################################
 
-standard_name: 
-    Mdir: 'sea_surface_wave_from_direction'
-    Pdir: "sea_surface_wave_from_direction\
-        _at_variance_spectral_density_maximum"
-    FF_10min_10m: 'wind_speed'
-    FF_10min_sensor: 'wind_speed'
-    DD_10min_sensor: 'wind_from_direction'
-
-long_name: 
-    Hs: "Significant wave height retrieved \
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    Mdir: "Mean wave direction \
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    Pdir: "Mean wave direction \
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    Tp: "Peak wave period \
-            at variance spectral density maximum \
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    Tm02: "Mean wave period \
-            from variance spectral density second frequency moment\
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    Tm01: "Mean wave period \ 
-            from variance spectral density first frequency moment\
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    Tm10: "Mean wave period \
-            from variance spectral density inverse frequency moment \
-            at an imposed sampling interval of 10 min, \
-            estimation method depends on instrument"
-    FF_10min_10m: "10 min wind speed at 10m artificially reduced"
-    FF_10min_sensor: "10 min wind speed at sensor height"
-    DD_10min_sensor: "10 min wind direction at sensor height"
-
-units:
-    Hs: 'm'
-    Mdir: 'degree'
-    Pdir: 'degree'
-    Tm02: 's'
-    Tm01: 's'
-    Tm10: 's'
-    Tp: 's'
-    FF_10min_10m: 'm s-1'
-    FF_10min_sensor: 'm s-1'
-    DD_10min_sensor: 'degree'
-
-convention:
-    Hs: 'NA'
-    Mdir: 'meteorologic'
-    Pdir: 'meteorologic'
-    Tm02: 'NA'
-    Tm01: 'NA'
-    Tm10: 'NA'
-    Tp: 'NA'
-    FF_10min_10m: 'NA'
-    FF_10min_sensor: 'NA'
-    DD_10min_sensor: 'meteorologic'
-
-valid_range:
-    Hs: [0., 25.]
-    Mdir: [0., 360.]
-    Pdir: [0., 360.]
-    Tm02: [0., 30.]
-    Tm01: [0., 30.]
-    Tm10: [0., 30.]
-    Tp: [0., 30.]
-    FF_10min_10m: [0.,150.]
-    FF_10min_sensor: [0.,150.]
-    DD_10min_sensor: [0., 360.]
+datetime: # date and time related
+    date: 
+        idx: 3
+    time: 
+        idx: 4
+WM: # wave related
+    Hs: 
+        idx: 2
+    Tp: 
+        idx: 5
+    Tm10: 
+        idx: 9
+    Tm02: 
+        idx: 11
+    Tm01: 
+        idx: 12
+    Pdir: 
+        idx: 16
+        convention: meteorologic
+    Mdir: 
+        idx: 17
+        convention: meteorologic
+WL: # water level related
+    Hlat:
+WI: # wind related
+    FF_10min_10m:
+        comment: 'artificially reduced to 10m'
+        sampling_frequency_in_min: 10
+    FF_10min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 10
+    DD_10min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 10
+        convention: meteorologic
+    FF_2min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 2
+    DD_2min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 2
+        convention: meteorologic

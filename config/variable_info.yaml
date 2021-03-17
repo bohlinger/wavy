@@ -25,27 +25,32 @@ Hs:
     valid_range: [0., 30.]
     convention:
 Tp:
-    standard_name: sea_surface_wave_period_at_variance_spectral_density_maximum
+    standard_name: "sea_surface_wave_period_at_variance_spectral_\
+                    density_maximum"
     units: s
     valid_range: [0., 30.]
     convention:
 Tm01:
-    standard_name: sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment
+    standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
+                    _density_first_frequency_moment"
     units: s
     valid_range: [0., 30.]
     convention:
 Tm02:
-    standard_name: sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment
+    standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
+                    _density_second_frequency_moment"
     units: s
     valid_range: [0., 30.]
     convention:
 Tm10:
-    standard_name: sea_surface_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment
+    standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
+                    _density_inverse_frequency_moment"
     units: s
     valid_range: [0., 30.]
     convention:
 Pdir:
-    standard_name: sea_surface_wave_to_direction_at_variance_spectral_density_maximum
+    standard_name: "sea_surface_wave_to_direction_at_variance_spectral\
+                    _density_maximum"
     units: degree
     valid_range: [0.,360.]
     convention: oceanographic
@@ -57,20 +62,20 @@ Mdir:
 ux:
     standard_name: x_wind
     alias: grid_eastward_wind
-    units: m/s
+    units: m s-1
 ua: 
     standard_name: eastward_wind
-    units: m/s
+    units: m s-1
 vy: 
     standard_name: y_wind 
     alias: grid_northward_wind
-    units: m/s
+    units: m s-1
 va: 
     standard_name: northward_wind
-    units: m/s
+    units: m s-1
 U: 
     standard_name: wind_speed
-    units: m/s
+    units: m s-1
     aliases_of_vector_components: 
         alt1: [ua,va] 
         alt2: [ux,vy]

@@ -1,20 +1,31 @@
 --- # wave model specifications
 
 ########################################################################
+# """
+# general structure: 
+#   + model 
+#       + specs
+#           + subspecs
+#                + subsubspecs
+# """
+
 # define model after the following example:
 # modelname:
-#     vars:
-#         Hs: variable abbreviation in your model
-#     path_template:
-#     file_template:
-#     xtra_h:
-#     nr_filedates:
-#     filedate_formats:
-#     init_times:
-#     init_step:
-#     leadtimes:
-#     grid_date:
-#     proj4:
+#    vars:
+#        Hs: # varname in your model output file
+#        Mdir: 
+#            convention: # e.g. oceanographic
+#        ...       
+#    path_template: 
+#    file_template:
+#    xtra_h: # h adjustment according to position in filename
+#    nr_filedates: # how many dates are introduced in the filename
+#    filedate_formats: # time string format e.g. %Y%m%d
+#    init_times: # UTC hours of model initialization
+#    init_step: # hours between model initialization
+#    leadtimes: 
+#    grid_date: # date and time of a model run you know exists
+#    proj4: # proj string to be read if not available in model output
 ########################################################################
 
 ARCMFC3: 
