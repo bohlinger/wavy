@@ -37,8 +37,12 @@ from copy import deepcopy
 
 import time
 
+# collocation
+from collocmod import collocation_class
+
 # matchtime fct
 from stationmod import matchtime
+from utils import collocate_times
 
 # netcdf specific
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
@@ -76,9 +80,9 @@ def get_model_filedate(model,fc_date,leadtime):
     else:
         raise ValueError('!!! leadtime not available !!!')
 
-def make_model_filename(model=None,fc_date=None,leadtime=None):
+def make_model_filename(model,fc_date,leadtime):
     """
-    creates/returns filename based on fc_date,init_date,leadtime
+    creates/returns filename based on fc_date,leadtime
     """
     if model in model_dict:
         if 'xtra_h' in model_dict[model]:
@@ -103,7 +107,24 @@ def make_model_filename(model=None,fc_date=None,leadtime=None):
         raise ValueError("Chosen model is not specified in model_specs.yaml")
     return filename
 
-def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
+def make_model_filename_wrapper(model,fc_date,leadtime):
+    if leadtime is None:
+        leadtime = 'best'
+    if (isinstance(fc_date,datetime) and leadtime != 'best'):
+        filename = make_model_filename(model,fc_date,leadtime)
+    elif (isinstance(fc_date,datetime) and leadtime == 'best'):
+        leadtime = generate_bestguess_leadtime(model,fc_date)
+        filename = make_model_filename(model,fc_date,leadtime)
+    elif (isinstance(fc_date,list) and isinstance(leadtime,int)):
+        filename = [make_model_filename(model,date,leadtime) \
+                    for date in fc_date]
+    elif (isinstance(fc_date,list) and leadtime == 'best'):
+        leadtime = generate_bestguess_leadtime(model,fc_date)
+        filename = [make_model_filename(model,fc_date[i],leadtime[i]) \
+                    for i in range(len(fc_date))]
+    return filename
+
+def get_model_fc_mode(filestr,model,fc_date,varalias=None):
     """ 
     fct to retrieve model data for correct time
     """
@@ -135,6 +156,8 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     vardict[variable_info['lats']['standard_name']]=model_lats
     model_time = f.variables[timename]
     t5=time.time()
+    model_time_dt = list( netCDF4.num2date(model_time[:],
+                        units = model_time.units) )
     print('------- TIMER t5-t4: ',t5-t4,'----------')
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varalias,variable_info,
@@ -144,14 +167,12 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     if (type(filevarname) is dict):
         print('Target variable can be computed from vector \n' 
               'components with the following aliases: ', filevarname)
-        model_time_dt = list( netCDF4.num2date(model_time[:],
-                                           units = model_time.units) )
-        model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
-        model_time_valid = [model_time[model_time_dt.index(fc_date)]]
+        model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
+        model_time_valid = float(model_time[model_time_dt.index(fc_date)])
         model_time_unit = model_time.units
-        vardict[variable_info['time']['standard_name']]=model_time_valid
-        vardict['datetime']=model_time_dt_valid
-        vardict['time_unit']=model_time_unit
+        vardict[variable_info['time']['standard_name']] = model_time_valid
+        vardict['datetime'] = model_time_dt_valid
+        vardict['time_unit'] = model_time_unit
         for key in filevarname.keys():
             filevarname_dummy = get_filevarname(model,
                                     filevarname[key][0],
@@ -189,14 +210,12 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
             model_var_valid = np.sqrt(model_var_valid_tmp)
         vardict[stdvarname] = model_var_valid
     else:
-        model_time_dt = list( netCDF4.num2date(model_time[:],
-                                           units = model_time.units) )
-        model_time_dt_valid = [model_time_dt[model_time_dt.index(fc_date)]]
-        model_time_valid = [model_time[model_time_dt.index(fc_date)]]
+        model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
+        model_time_valid = float(model_time[model_time_dt.index(fc_date)])
         model_time_unit = model_time.units
-        vardict[variable_info['time']['standard_name']]=model_time_valid
-        vardict['datetime']=model_time_dt_valid
-        vardict['time_unit']=model_time_unit
+        vardict[variable_info['time']['standard_name']] = model_time_valid
+        vardict['datetime'] = model_time_dt_valid
+        vardict['time_unit'] = model_time_unit
         model_var_link = f.variables[filevarname]
         if len(model_var_link.shape)>2: # for multiple time steps
             model_var_valid = \
@@ -212,15 +231,21 @@ def get_model_fc_mode(filestr,model,fc_date,leadtime=None,varalias=None):
     print('------- TIMER t7-t0: ',t7-t0,'----------')
     return vardict, filevarname
 
-def make_dates_and_lt(fc_date,init_date=None,leadtime=None):
-    if (init_date is None and leadtime is None):
-        leadtime = 0
-        init_date = fc_date
-    elif (init_date is None):
-        init_date = fc_date - timedelta(hours = leadtime)
-    elif (leadtime is None):
-        leadtime = int(np.abs(((fc_date - init_date).total_seconds()))/60/60)
-    return fc_date, init_date, leadtime
+def generate_bestguess_leadtime(model,fc_date):
+    """
+    fct to return leadtimes for bestguess
+    """
+    if isinstance(fc_date,list):
+        leadtime = \
+            [generate_bestguess_leadtime(model,date) for date in fc_date]
+    else:
+        init_times = \
+            np.array(model_dict[model]['init_times']).astype('float')
+        init_step = \
+            np.array(model_dict[model]['init_step']).astype('int')
+        diffs = fc_date.hour - np.array(init_times)
+        leadtime = int(np.min(diffs[diffs>=0]))
+    return leadtime
 
 def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
     stdname = variable_info[varalias]['standard_name']
@@ -256,21 +281,87 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
         print('!!! variable not defined or '
             + 'available in model output file !!!')
 
-def get_model(model=None,sdate=None,edate=None,
-    fc_date=None,init_date=None,leadtime=None,varalias=None):
+def make_fc_dates(sdate,edate,date_incr):
+    fc_dates = []
+    while sdate <= edate:
+        fc_dates.append(sdate)
+        sdate += timedelta(hours=date_incr)
+    return fc_dates
+
+def get_model(model=None,sdate=None,edate=None,date_incr=None,
+    fc_date=None,leadtime=None,varalias=None,
+    st_obj=None,distlim=None):
     """ 
     toplevel function to get model data
     """
-    fc_date, init_date, leadtime = make_dates_and_lt(
-                                            fc_date=fc_date,
-                                            init_date=init_date,
-                                            leadtime=leadtime)
-    filestr = make_model_filename(model=model,fc_date=fc_date,
-                                    leadtime=leadtime)
-    vardict, \
-    filevarname = get_model_fc_mode(filestr=filestr,model=model,
-                    fc_date=fc_date,leadtime=leadtime,varalias=varalias)
-    return vardict, fc_date, init_date, leadtime, filestr, filevarname
+    if st_obj is not None:
+        sdate = st_obj.sdate
+        edate = st_obj.edate
+        varalias = st_obj.varalias
+    if (sdate is not None and edate is not None 
+    and date_incr is not None):
+        fc_date = make_fc_dates(sdate,edate,date_incr)
+    
+    filestr = make_model_filename_wrapper(model=model,
+                                          fc_date=fc_date,
+                                          leadtime=leadtime)
+    
+    if (isinstance(filestr,list) and st_obj is not None):
+        mc_obj = model_class(model=model,fc_date=fc_date[0],
+                            leadtime=leadtime,
+                            varalias=varalias)
+        col_obj = collocation_class(mc_obj,st_obj=st_obj,distlim=distlim)
+        vardict, \
+        filevarname = get_model_fc_mode(filestr=filestr[0],model=model,
+                                    fc_date=fc_date[0],varalias=varalias)
+        vardict[variable_info[varalias]['standard_name']]=\
+                    [ vardict\
+                        [variable_info[varalias]['standard_name']].flatten()\
+                      [col_obj.vars['collocation_idx']] ]
+        vardict['time'] = [vardict['time']]
+        vardict['datetime'] = [vardict['datetime']]
+        for i in range(1,len(filestr)):
+            tmpdict, \
+            filevarname = get_model_fc_mode(filestr=filestr[i],model=model,
+                                    fc_date=fc_date[i],varalias=varalias)
+            vardict[variable_info[varalias]['standard_name']].append(
+                    tmpdict[variable_info[varalias]['standard_name']].\
+                    flatten()[col_obj.vars['collocation_idx']]
+                    )
+            vardict['time'].append(tmpdict['time'])
+            vardict['datetime'].append(tmpdict['datetime'])
+        vardict[variable_info[varalias]['standard_name']]=\
+            np.array( vardict[variable_info[varalias]['standard_name']]\
+                    ).flatten()
+        vardict['longitude'] = list(col_obj.vars['model_lons'])*\
+                                            len(vardict['time'])
+        vardict['latitude'] = list(col_obj.vars['model_lats'])*\
+                                            len(vardict['time'])
+    elif (isinstance(filestr,list) and st_obj is None):
+        vardict, \
+        filevarname = get_model_fc_mode(filestr=filestr[0],model=model,
+                                    fc_date=fc_date[0],varalias=varalias)
+        vardict[variable_info[varalias]['standard_name']]=\
+                    [vardict[variable_info[varalias]['standard_name']]]
+        vardict['time'] = [vardict['time']]
+        vardict['datetime'] = [vardict['datetime']]
+        for i in range(1,len(filestr)):
+            tmpdict, \
+            filevarname = get_model_fc_mode(filestr=filestr[i],model=model,
+                                    fc_date=fc_date[i],varalias=varalias)
+            vardict[variable_info[varalias]['standard_name']].append(
+                    tmpdict[variable_info[varalias]['standard_name']])
+            vardict['time'].append(tmpdict['time'])
+            vardict['datetime'].append(tmpdict['datetime'])
+        vardict[variable_info[varalias]['standard_name']]=\
+            np.array(vardict[variable_info[varalias]['standard_name']])
+    else:
+        vardict, \
+        filevarname = get_model_fc_mode(filestr=filestr,model=model,
+                                    fc_date=fc_date,varalias=varalias)
+        vardict['time'] = [vardict['time']]
+        vardict['datetime'] = [vardict['datetime']]
+    return vardict, fc_date, leadtime, filestr, filevarname
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -294,10 +385,14 @@ class model_class():
     station classes.
     '''
 
-    def __init__(self,model='mwam4',sdate=None,edate=None,fc_date=None,
-                init_date=None,leadtime=None,varalias='Hs'):
+    def __init__(self,model='mwam4',sdate=None,edate=None,date_incr=1,
+    fc_date=None,leadtime=None,varalias='Hs',st_obj=None,distlim=6):
         print ('# ----- ')
         print (" ### Initializing model_class object ###")
+        if st_obj is not None:
+            sdate = st_obj.sdate
+            edate = st_obj.edate
+            varalias = st_obj.varalias
         if fc_date is not None:
             print ("Requested time: ", str(fc_date))
         elif (edate is None and fc_date is None and sdate is not None):
@@ -307,7 +402,8 @@ class model_class():
             now = datetime.now()
             fc_date = datetime(now.year,now.month,now.day,now.hour)
             print ("Requested time: ", str(fc_date))
-        else:
+        elif (sdate is not None and edate is not None 
+        and date_incr is not None):
             # time frame function to access a temporal subset
             # --> not yet in use
             print ("Requested time frame: " +
@@ -316,19 +412,19 @@ class model_class():
         print('Please wait ...')
 
         vardict, \
-        fc_date, init_date, \
-        leadtime, filestr, \
+        fc_date, leadtime, \
+        filestr, \
         filevarname = get_model(model=model,sdate=sdate,edate=edate,
-                            fc_date=fc_date,init_date=init_date,
-                            leadtime=leadtime,varalias=varalias)
+                            date_incr=date_incr,fc_date=fc_date,
+                            leadtime=leadtime,varalias=varalias,
+                            st_obj=st_obj)
 
         stdname = variable_info[varalias]['standard_name']
         varname = filevarname
         # define class variables
         self.fc_date = fc_date
-        self.init_date = init_date
-        self.sdate = sdate # not yet in use
-        self.edate = edate # not yet in use
+        self.sdate = sdate
+        self.edate = edate
         self.model = model
         self.varalias = varalias
         self.varname = varname

@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import os
 import time
 # own imports
-from utils import haversine, haversine_new
+from utils import haversine, haversine_new, collocate_times
 
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
@@ -132,58 +132,80 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                         + 'no model values available for collocation!'
                         + '\n###'
                         )
-    dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
-    datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
-    ctime, cidx = matchtime(datein,datein,dtime,timewin=obs_obj.timewin)
-    obs_time_dt = dtime[cidx]
-    obs_time = np.array(obs_obj.vars['time'])[cidx]
-    obs_time_unit = obs_obj.vars['time_unit']
-
-    # Compare wave heights of satellite with model with 
-    # constraint on distance and time frame
-    collocation_idx_lst=[]
-    dist_lst=[]
-    time_idx_lst=[]
-    # create local variables before loop
-    obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
-    obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
-    obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
-    # flatten numpy arrays
-    model_lats = mc_obj.vars['latitude'].flatten()
-    model_lons = mc_obj.vars['longitude'].flatten()
-    model_vals = mc_obj.vars[mc_obj.stdvarname].flatten()
-    # moving window compensating for increasing latitudes
-    if distlim == None:
-        distlim = 6
-    lon_win = round(
-                (distlim /
-                 haversine(0,
-                    np.max(np.abs(obs_lats)),
-                    1,
-                    np.max(np.abs(obs_lats)))
-                ) + 0.01,
-                2)
-    lat_win = round(distlim/111.+0.01,2)
-    if (collocation_idx is None and col_obj is None):
-        print ("No collocation idx available")
-        print ("Perform collocation with moving window of degree\n",\
-            "lon:",lon_win,"lat:",lat_win)
-        for j in range(len(obs_time_dt)):
-            progress(j,str(int(len(obs_time_dt))),'')
-            try:
-#            for i in range(1):
-                collocation_idx,dist = collocation_loop(\
-                    j,distlim,obs_lats,obs_lons,\
-                    model_lats,model_lons,model_vals,\
-                    lon_win,lat_win)
-                collocation_idx_lst.append(collocation_idx)
-                dist_lst.append(dist)
-                time_idx_lst.append(j)
-            except:
-                print ("Collocation error -> no collocation:", 
-                        sys.exc_info()[0])
+    if (len(mc_obj.vars['time'])>1 and len(obs_obj.vars['time'])>1): 
+        # time collocation
+        idx = collocate_times(  mc_obj.vars['datetime'],
+                                obs_obj.vars['datetime'] )
+        dist = haversine_new( mc_obj.vars['longitude'][0],
+                              mc_obj.vars['latitude'][0],
+                              obs_obj.lon,obs_obj.lat )
         results_dict = {
-                'valid_date':np.array(datein),
+                #'valid_date':np.array(datein),
+                'time':mc_obj.vars['time'],
+                'time_unit':mc_obj.vars['time_unit'],
+                'datetime':list(np.array(obs_obj.vars['datetime'])[idx]),
+                'distance':dist*len(mc_obj.vars['time']),
+                'model_values':mc_obj.vars[mc_obj.stdvarname],
+                'model_lons':mc_obj.vars['longitude'],
+                'model_lats':mc_obj.vars['latitude'],
+                'obs_values':list(np.array(obs_obj.vars[
+                                            obs_obj.stdvarname])[idx]),
+                'obs_lons':obs_obj.vars['longitude'],
+                'obs_lats':obs_obj.vars['latitude'],
+                'collocation_idx':None
+                }
+        
+    else: # space collocation
+        dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
+        datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
+        ctime, cidx = matchtime(datein,datein,dtime,timewin=obs_obj.timewin)
+        obs_time_dt = dtime[cidx]
+        obs_time = np.array(obs_obj.vars['time'])[cidx]
+        obs_time_unit = obs_obj.vars['time_unit']
+        # Compare wave heights of satellite with model with 
+        # constraint on distance and time frame
+        collocation_idx_lst = []
+        dist_lst = []
+        time_idx_lst = []
+        # create local variables before loop
+        obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
+        obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
+        obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
+        # flatten numpy arrays
+        model_lats = mc_obj.vars['latitude'].flatten()
+        model_lons = mc_obj.vars['longitude'].flatten()
+        model_vals = mc_obj.vars[mc_obj.stdvarname].flatten()
+        # moving window compensating for increasing latitudes
+        if distlim == None:
+            distlim = 6
+        lon_win = round(
+                    (distlim /
+                     haversine(0,
+                        np.max(np.abs(obs_lats)),
+                        1,
+                        np.max(np.abs(obs_lats))) ) 
+                    + 0.01, 2)
+        lat_win = round(distlim/111.+0.01,2)
+        if (collocation_idx is None and col_obj is None):
+            print ("No collocation idx available")
+            print ("Perform collocation with moving window of degree\n",\
+                "lon:",lon_win,"lat:",lat_win)
+            for j in range(len(obs_time_dt)):
+                progress(j,str(int(len(obs_time_dt))),'')
+                try:
+#                for i in range(1):
+                    collocation_idx,dist = collocation_loop(\
+                        j,distlim,obs_lats,obs_lons,\
+                        model_lats,model_lons,model_vals,\
+                        lon_win,lat_win)
+                    collocation_idx_lst.append(collocation_idx)
+                    dist_lst.append(dist)
+                    time_idx_lst.append(j)
+                except:
+                    print ("Collocation error -> no collocation:", 
+                            sys.exc_info()[0])
+            results_dict = {
+                #'valid_date':np.array(datein),
                 'time':np.array(obs_time[time_idx_lst]),
                 'time_unit':obs_time_unit,
                 'datetime':np.array(obs_time_dt[time_idx_lst]),
@@ -196,10 +218,10 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                 'obs_lats':obs_lats[time_idx_lst],
                 'collocation_idx':np.array(collocation_idx_lst)
                 }
-    elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
-        print("Collocation idx given through collocation_class object")
-        results_dict = col_obj.vars
-        results_dict['model_values'] = model_vals[collocation_idx]
+        elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
+            print("Collocation idx given through collocation_class object")
+            results_dict = col_obj.vars
+            results_dict['model_values'] = model_vals[collocation_idx]
     return results_dict
 
 
@@ -230,7 +252,6 @@ class collocation_class():
         print("time used for collocation:",round(t1-t0,2),"seconds")
         # define class variables
         self.fc_date = mc_obj.fc_date
-        self.init_date = mc_obj.init_date
         self.sdate = obs_obj.sdate
         self.edate = obs_obj.edate
         self.model = mc_obj.model

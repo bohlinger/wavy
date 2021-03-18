@@ -341,6 +341,7 @@ def matchtime(sdate,edate,time,time_unit=None,timewin=None,basetime=None):
             else:
                 tmp = netCDF4.num2date(element,time_unit)
             timelst.append(tmp)
+            # choose closest match within window of win[minutes]
             if (tmp >= sdate-timedelta(minutes=timewin)
             and tmp < edate+timedelta(minutes=timewin)):
                 ctime.append(tmp)
