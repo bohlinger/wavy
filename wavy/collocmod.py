@@ -19,6 +19,7 @@ import time
 # own imports
 from utils import haversine, haversine_new, collocate_times
 from utils import progress
+from modelmod import model_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -91,8 +92,8 @@ model_lons,model_vals,lon_win,lat_win):
     else:
         return
 
-def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
-            distlim=None):
+def collocate(mc_obj=None,obs_obj=None,col_obj=None,
+    model=None,obs=None,distlim=None,leadtime=None,date_incr=None):
     """
     get obs value for model value for given 
         temporal and spatial constraints
@@ -109,36 +110,43 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                         + 'no model values available for collocation!'
                         + '\n###'
                         )
-    if (len(mc_obj.vars['time'])>1 and len(obs_obj.vars['time'])>1): 
-        # time collocation
-        idx = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
-                                target_t = mc_obj.vars['datetime'] )
-        dist = haversine_new( mc_obj.vars['longitude'][0],
-                              mc_obj.vars['latitude'][0],
-                              obs_obj.lon,obs_obj.lat )
-        results_dict = {
-                'time':mc_obj.vars['time'],
-                'time_unit':mc_obj.vars['time_unit'],
-                'datetime':list(np.array(obs_obj.vars['datetime'])[idx]),
-                'distance':dist*len(mc_obj.vars['time']),
-                'model_values':mc_obj.vars[mc_obj.stdvarname],
-                'model_lons':mc_obj.vars['longitude'],
-                'model_lats':mc_obj.vars['latitude'],
-                'obs_values':list(np.array(obs_obj.vars[
-                                            obs_obj.stdvarname])[idx]),
-                'obs_lons':obs_obj.vars['longitude'],
-                'obs_lats':obs_obj.vars['latitude'],
-                'collocation_idx':None
-                }
-        
-    else: # space collocation
+    if (mc_obj is None and model is not None and obs_obj is not None):
+        fc_date = make_fc_dates(sdate,edate,date_incr)
+        mc_obj = model_class( model=model,
+                              #sdate=obs_obj.sdate,
+                              #edate=obs_obj.edate,
+                              fc_date=fc_date,
+                              leadtime=leadtime,
+                              varalias=obs_obj.varalias)
+    #if (len(mc_obj.vars['time'])>1 and len(obs_obj.vars['time'])>1): 
+    #    # time collocation
+    #    idx = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
+    #                            target_t = mc_obj.vars['datetime'] )
+    #    dist = haversine_new( mc_obj.vars['longitude'][0],
+    #                          mc_obj.vars['latitude'][0],
+    #                          obs_obj.lon,obs_obj.lat )
+    #    results_dict = {
+    #            'time':mc_obj.vars['time'],
+    #            'time_unit':mc_obj.vars['time_unit'],
+    #            'datetime':list(np.array(obs_obj.vars['datetime'])[idx]),
+    #            'distance':dist*len(mc_obj.vars['time']),
+    #            'model_values':mc_obj.vars[mc_obj.stdvarname],
+    #            'model_lons':mc_obj.vars['longitude'],
+    #            'model_lats':mc_obj.vars['latitude'],
+    #            'obs_values':list(np.array(obs_obj.vars[
+    #                                        obs_obj.stdvarname])[idx]),
+    #            'obs_lons':obs_obj.vars['longitude'],
+    #            'obs_lats':obs_obj.vars['latitude'],
+    #            'collocation_idx':None
+    #            }
+    else:
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
         datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
         if isinstance(dtime,np.ndarray):
             dtime = list(dtime)
         if isinstance(datein,np.ndarray):
             datein = list(datein)
-        cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.timewin)
+        cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.twin)
         obs_time_dt = np.array(dtime)[cidx]
         obs_time = np.array(obs_obj.vars['time'])[cidx]
         obs_time_unit = obs_obj.vars['time_unit']
@@ -166,7 +174,7 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                         np.max(np.abs(obs_lats))) ) 
                     + 0.01, 2)
         lat_win = round(distlim/111.+0.01,2)
-        if (collocation_idx is None and col_obj is None):
+        if (col_obj is None):
             print ("No collocation idx available")
             print ("Perform collocation with moving window of degree\n",\
                 "lon:",lon_win,"lat:",lat_win)
@@ -211,22 +219,24 @@ class collocation_class():
     '''
 
     def __init__(self,mc_obj,sa_obj=None,st_obj=None,col_obj=None,
-    distlim=None):
+        model=None,obs=None,distlim=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
         if sa_obj is not None:
             obs_obj = sa_obj
-            obs_obj.timewin = sa_obj.timewin
+            obs_obj.twin = sa_obj.twin
             obsname = sa_obj.sat
         if st_obj is not None:
             obs_obj = st_obj
-            obs_obj.timewin = None
+            obs_obj.twin = None
             obsname = st_obj.platform + '_' +  st_obj.sensor
         t0=time.time()
         results_dict = collocate(mc_obj,
                                 obs_obj=obs_obj,
                                 col_obj=col_obj,
+                                model=model,
+                                obs=obs,
                                 distlim=distlim)
         t1=time.time()
         print("time used for collocation:",round(t1-t0,2),"seconds")

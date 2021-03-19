@@ -81,7 +81,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         print ('Exit program')
         sys.exit()
 
-def get_remote_files(path_remote,path_local,sdate,edate,timewin,
+def get_remote_files(path_remote,path_local,sdate,edate,twin,
                     corenum,instr,provider):
     '''
     Download swath files and store them at defined location
@@ -115,8 +115,8 @@ def get_remote_files(path_remote,path_local,sdate,edate,timewin,
         content=FTP.nlst(ftp)
         #choose files according to verification date
         tmplst=[]
-        tmpdate_new=tmpdate-timedelta(minutes=timewin)
-        tmpend=edate+timedelta(minutes=timewin)
+        tmpdate_new=tmpdate-timedelta(minutes=twin)
+        tmpend=edate+timedelta(minutes=twin)
         while (tmpdate_new.strftime("%Y%m%dT%H")
             <= tmpend.strftime("%Y%m%dT%H")):
             matchingtmp = [s for s in content
@@ -129,7 +129,7 @@ def get_remote_files(path_remote,path_local,sdate,edate,timewin,
                             in s
                             ]
             tmplst = tmplst + matchingtmp
-            tmpdate_new = tmpdate_new + timedelta(minutes=timewin)
+            tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = tmplst
         # Download and gunzip matching files
         print ('Downloading ' + str(len(matching)) + ' files: .... \n')
@@ -186,7 +186,7 @@ class satellite_class():
 
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
-        edate=None,timewin=None,download=False,region=None,
+        edate=None,twin=None,download=False,region=None,
         corenum=1,varalias='Hs'
         ):
         print ('# ----- ')
@@ -198,10 +198,10 @@ class satellite_class():
         else:
             print ("Requested time frame: " + 
                 str(sdate) + " - " + str(edate))
-        if timewin is None:
-            timewin = int(30)
+        if twin is None:
+            twin = int(30)
         print('Please wait ...')
-        print('Chosen time window is:', timewin, 'min')
+        print('Chosen time window is:', twin, 'min')
         # make satpaths
         path_local = satellite_dict[instr][provider]['local']['path']\
                         + '/' + sat + '/'
@@ -215,17 +215,17 @@ class satellite_class():
         else:
             print ("Downloading necessary files ...")
             get_remote_files(path_remote,path_local,
-                        sdate,edate,timewin,corenum,
+                        sdate,edate,twin,corenum,
                         instr,provider)
         pathlst, filelst = self.get_local_filelst(
-                            sdate,edate,timewin,region)
+                            sdate,edate,twin,region)
         if len(pathlst) > 0:
             vardict = self.read_local_files(pathlst,provider,varalias)
             print('Total: ', len(vardict['time']), ' footprints found')
             # find values for give time constraint
             dtime = list( netCDF4.num2date(vardict['time'],
                                            vardict['time_unit']) )
-            cidx = collocate_times(dtime,sdate=sdate,edate=edate,twin=timewin)
+            cidx = collocate_times(dtime,sdate=sdate,edate=edate,twin=twin)
             cvardict = {}
             for element in vardict:
                 if element != 'time_unit':
@@ -264,6 +264,7 @@ class satellite_class():
             else:
                 filevarname = get_varname_for_cf_stdname_in_ncfile(
                                                     ncdict,stdname)[0]
+            rvardict['model_meta'] = ncdict
             # define class variables
             self.edate = edate
             self.sdate = sdate
@@ -271,7 +272,7 @@ class satellite_class():
             self.varalias = varalias
             self.varname = filevarname
             self.stdvarname = stdname
-            self.timewin = timewin
+            self.twin = twin
             self.region = region
             self.sat = sat
             print ("Satellite object initialized including " 
@@ -282,13 +283,13 @@ class satellite_class():
             print('No satellite_class object initialized')
             print ('# ----- ')
 
-    def get_local_filelst(self,sdate,edate,timewin,region):
-        print ("Time window: ", timewin)
-        tmpdate=deepcopy(sdate-timedelta(minutes=timewin))
+    def get_local_filelst(self,sdate,edate,twin,region):
+        print ("Time window: ", twin)
+        tmpdate=deepcopy(sdate-timedelta(minutes=twin))
         pathlst = []
         filelst = []
         try:
-            while (tmpdate <= edate + timedelta(minutes=timewin)):
+            while (tmpdate <= edate + timedelta(minutes=twin)):
                 tmpdatestr=(self.path_local
                         + str(tmpdate.year)
                         + '/' + tmpdate.strftime('%m')
@@ -302,8 +303,8 @@ class satellite_class():
                     tmpdate = tmpdate + relativedelta(months=+1)
             filelst=np.sort(flatten(filelst))
             pathlst=np.sort(flatten(pathlst))
-            idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=timewin))
-            tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=timewin))
+            idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=twin))
+            tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=twin))
             del tmp
             pathlst = np.unique(pathlst[idx_start:idx_end+1])
             filelst = np.unique(filelst[idx_start:idx_end+1])

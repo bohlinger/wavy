@@ -131,7 +131,7 @@ class graphics_class():
     '''
     class to handle graphical applications
     '''
-    def __init__(self,sdate,edate=None,timewin=None,download=None,region=None,
+    def __init__(self,sdate,edate=None,twin=None,download=None,region=None,
                 corenum=None,mode=None):
         print ('# ----- ')
         print (" ### Initializing graphics_class instance ###")

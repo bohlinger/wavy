@@ -97,12 +97,12 @@ class station_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        var, time, timedt = self.get_station(
-                                    platform, # change to stdvarname in future
-                                    sdate,edate,
-                                    mode,deltat,
-                                    sensor,
-                                    varalias)
+        var, time, timedt, \
+        pathtofile = self.get_station( platform,
+                                       sdate,edate,
+                                       mode,deltat,
+                                       sensor,
+                                       varalias )
         vardict = {
                     stdvarname:var,
                     'time':time,
@@ -119,7 +119,10 @@ class station_class():
         if mode == 'd22':
             self.varname = varalias
         elif mode == 'nc':
-            self.varname = varalias # varalias to be replaced by ncfile varname
+            model_meta = ncdumpMeta(pathtofile)
+            self.vars['model_meta'] = model_meta
+            self.varname = get_varname_for_cf_stdname_in_ncfile( model_meta,
+                                                                 stdvarname )
         self.varalias = varalias
         self.sdate = sdate
         self.edate = edate
@@ -134,6 +137,7 @@ class station_class():
         stdvarname = variable_info[varalias]['standard_name']
         pathlst = station_dict['path']['platform']['local'][mode]['template']
         strsublst = station_dict['path']['platform']['local'][mode]['strsub']
+        pathtofile = None
         if mode == 'nc':
             tmpdate = sdate
             var = []
@@ -176,7 +180,7 @@ class station_class():
         var = list(np.real(var[idxtmp]))
         time = list(time[idxtmp])
         timedt = list(timedt[idxtmp])
-        return var, time, timedt
+        return var, time, timedt, pathtofile
 
 def make_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
     i = 0
