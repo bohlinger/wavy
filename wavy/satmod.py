@@ -8,26 +8,17 @@ convention for python code style. Constructive comments on style and
 effecient programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
-'''
-List of libraries needed for this class. Sorted in categories to serve
-effortless orientation. May be combined at some point.
-'''
+# standard library imports
 import sys
-
-# progress bar
-from utils import progress, sort_files
-
-# all class
 import numpy as np
 from datetime import datetime, timedelta
 import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
 import os
+from copy import deepcopy
 import yaml
 import time
-
-# get_altim
 if sys.version_info <= (3, 0):
     from urllib import urlretrieve, urlcleanup # python2
 else:
@@ -35,23 +26,15 @@ else:
 import gzip
 import ftplib
 from ftplib import FTP
-
-# read_altim
 import netCDF4 as netCDF4
-from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-
-# create_file
 import calendar
-
-# libraries for parallel computing
-from joblib import Parallel, delayed
-
-# get_remote
 from dateutil.relativedelta import relativedelta
-from copy import deepcopy
-
-# credentials
+from joblib import Parallel, delayed
+# own imports
+from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from utils import progress, sort_files, collocate_times
 from credentials import get_credentials
+# ---------------------------------------------------------------------#
 
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/region_specs.yaml'))
@@ -240,10 +223,9 @@ class satellite_class():
             vardict = self.read_local_files(pathlst,provider,varalias)
             print('Total: ', len(vardict['time']), ' footprints found')
             # find values for give time constraint
-            cidx,dtimelst = self.matchtime(
-                                sdate,edate,vardict['time'],
-                                vardict['time_unit'],timewin
-                                )
+            dtime = list( netCDF4.num2date(vardict['time'],
+                                           vardict['time_unit']) )
+            cidx = collocate_times(dtime,sdate=sdate,edate=edate,twin=timewin)
             cvardict = {}
             for element in vardict:
                 if element != 'time_unit':
@@ -406,40 +388,6 @@ class satellite_class():
         # close nc-file
         f.close()
         return vardict
-
-    def matchtime(self,sdate,edate,time,reftime,timewin=None):
-        '''
-        fct to obtain the index of the time step closest to the 
-        requested time step from buoy and forecast including the 
-        respective time stamp(s).
-        '''
-        if timewin is None:
-            timewin = 0
-        # create list of datetime instances
-        dtimelst=[]
-        cidx=[]
-        idx=0
-        print ('Time window is: ', timewin)
-        if (edate is None or sdate==edate):
-            for element in time:
-                tmp = netCDF4.num2date(element,reftime)
-                dtimelst.append(tmp)
-                # choose closest match within window of win[minutes]
-                if (tmp >= sdate-timedelta(minutes=timewin) 
-                and tmp < sdate+timedelta(minutes=timewin)):
-                    cidx.append(idx)
-                del tmp
-                idx=idx+1
-        if (edate is not None and edate!=sdate):
-            for element in time:
-                tmp = netCDF4.num2date(element,reftime)
-                dtimelst.append(tmp)
-                if (tmp >= sdate-timedelta(minutes=timewin)
-                and tmp < edate+timedelta(minutes=timewin)):
-                    cidx.append(idx)
-                del tmp
-                idx=idx+1
-        return cidx, list(np.array(dtimelst)[cidx])
 
     def matchregion(self,LATS,LONS,region,grid_date):
         # region in region_dict[poly]:

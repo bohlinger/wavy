@@ -8,16 +8,10 @@ convention for python code style. Constructive comments on style and
 effecient programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
-'''
-List of libraries needed for this class. Sorted in categories to serve
-effortless orientation. May be combined at some point.
-'''
-# read_altim
+# standard library imports
 import os
 import sys
 import netCDF4
-
-# all class
 import numpy as np
 from datetime import datetime, timedelta
 import datetime
@@ -25,31 +19,22 @@ import argparse
 from argparse import RawTextHelpFormatter
 import yaml
 import os
-
-# get_altim
 import urllib
 import gzip
 import ftplib
 from ftplib import FTP
-
-# create_file
 import calendar
-
 import sys
-
-# get_remote
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
-
 import time
-
-# get d22 files
 import pylab as pl
 from datetime import datetime
 import scipy as sp
-
-# netcdf related
+# own imports
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from utils import collocate_times
+# ---------------------------------------------------------------------#
 
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
@@ -185,8 +170,8 @@ class station_class():
             time = np.array(
                     [(t-self.basedate).total_seconds() for t in timedt]
                     )
-            ctime, idxtmp = matchtime(sdate,edate,timedt,timewin=1)
-        ctime, idxtmp = matchtime(sdate,edate,timedt,timewin=1)
+        idxtmp = collocate_times(unfiltered_t=timedt,
+                                sdate=sdate,edate=edate,twin=1)
         # convert to list for consistency with other classes
         var = list(np.real(var[idxtmp]))
         time = list(time[idxtmp])
@@ -305,50 +290,6 @@ def extract_d22(sl,varalias,platform,sensor):
     dt = np.array(dt)
     ts = np.array(ts)
     return ts, dt
-
-def matchtime(sdate,edate,time,time_unit=None,timewin=None,basetime=None):
-    '''
-    fct to obtain the index of the time step closest to the 
-    requested time including the respective time stamp(s). 
-    Similarily, indices are chosen for the time and defined region.
-    time_win is in [minutes]
-    '''
-    if timewin is None:
-        timewin = 0
-    # create list of datetime instances
-    timelst=[]
-    ctime=[]
-    cidx=[]
-    idx=0
-    if (edate is None or sdate==edate):
-        for element in time:
-            if time_unit is None:
-                tmp = element
-            else:
-                tmp = netCDF4.num2date(element,time_unit)
-            timelst.append(tmp)
-            # choose closest match within window of win[minutes]
-            if (tmp >= sdate-timedelta(minutes=timewin)
-            and tmp <= sdate+timedelta(minutes=timewin)):
-                ctime.append(tmp)
-                cidx.append(idx)
-            del tmp
-            idx=idx+1
-    if (edate is not None and edate!=sdate):
-        for element in time:
-            if basetime is None:
-                tmp = element
-            else:
-                tmp = netCDF4.num2date(element,time_unit)
-            timelst.append(tmp)
-            # choose closest match within window of win[minutes]
-            if (tmp >= sdate-timedelta(minutes=timewin)
-            and tmp < edate+timedelta(minutes=timewin)):
-                ctime.append(tmp)
-                cidx.append(idx)
-            del tmp
-            idx=idx+1
-    return ctime, cidx
 
 #def get_loc_idx(init_lats,init_lons,target_lat,target_lon,mask=None):
 #    from utils import haversine

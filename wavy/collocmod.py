@@ -1,19 +1,25 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------#
 """
 - Module that should take care of collocation of points or swaths
 - Needs input from modules that retrieve from observational platforms
   and models
 """
-# standard library import
+# --- import libraries ------------------------------------------------#
+# standard library imports
 import sys
 import numpy as np
-from utils import progress
 import yaml
 import netCDF4
 from datetime import datetime, timedelta
 import os
 import time
+
 # own imports
 from utils import haversine, haversine_new, collocate_times
+from utils import progress
+# ---------------------------------------------------------------------#
 
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
@@ -25,35 +31,6 @@ with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
 flatten = lambda l: [item for sublist in l for item in sublist]
-
-def matchtime(sdate,edate,dtime,timewin=None):
-    '''
-    fct to obtain the index of the time step closest to the 
-    requested time including the respective time stamp(s). 
-    Similarily, indices are chosen for the time and defined region.
-    '''
-    if timewin is None:
-        timewin = 0
-    # create list of datetime instances
-    ctime=[]
-    cidx=[]
-    idx=0
-    if (edate is None or sdate==edate):
-        for element in dtime:
-            # choose closest match within window of win[minutes]
-            if (element >= sdate-timedelta(minutes=timewin)
-            and element <= sdate+timedelta(minutes=timewin)):
-                ctime.append(element)
-                cidx.append(idx)
-            idx=idx+1
-    if (edate is not None and edate!=sdate):
-        for element in dtime:
-            if (element >= sdate-timedelta(minutes=timewin)
-            and element < edate+timedelta(minutes=timewin)):
-                ctime.append(element)
-                cidx.append(idx)
-            idx=idx+1
-    return ctime, cidx
 
 def get_collocation_idx(distlst,tmp_idx):
     tmp_idx2 = distlst.index(np.nanmin(distlst))
@@ -134,13 +111,12 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                         )
     if (len(mc_obj.vars['time'])>1 and len(obs_obj.vars['time'])>1): 
         # time collocation
-        idx = collocate_times(  mc_obj.vars['datetime'],
-                                obs_obj.vars['datetime'] )
+        idx = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
+                                target_t = mc_obj.vars['datetime'] )
         dist = haversine_new( mc_obj.vars['longitude'][0],
                               mc_obj.vars['latitude'][0],
                               obs_obj.lon,obs_obj.lat )
         results_dict = {
-                #'valid_date':np.array(datein),
                 'time':mc_obj.vars['time'],
                 'time_unit':mc_obj.vars['time_unit'],
                 'datetime':list(np.array(obs_obj.vars['datetime'])[idx]),
@@ -158,8 +134,12 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
     else: # space collocation
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
         datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
-        ctime, cidx = matchtime(datein,datein,dtime,timewin=obs_obj.timewin)
-        obs_time_dt = dtime[cidx]
+        if isinstance(dtime,np.ndarray):
+            dtime = list(dtime)
+        if isinstance(datein,np.ndarray):
+            datein = list(datein)
+        cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.timewin)
+        obs_time_dt = np.array(dtime)[cidx]
         obs_time = np.array(obs_obj.vars['time'])[cidx]
         obs_time_unit = obs_obj.vars['time_unit']
         # Compare wave heights of satellite with model with 
@@ -206,17 +186,17 @@ def collocate(mc_obj,obs_obj=None,col_obj=None,collocation_idx=None,
                             sys.exc_info()[0])
             results_dict = {
                 #'valid_date':np.array(datein),
-                'time':np.array(obs_time[time_idx_lst]),
+                'time':list(np.array(obs_time[time_idx_lst])),
                 'time_unit':obs_time_unit,
-                'datetime':np.array(obs_time_dt[time_idx_lst]),
-                'distance':np.array(dist_lst),
-                'model_values':model_vals[collocation_idx_lst],
-                'model_lons':model_lons[collocation_idx_lst],
-                'model_lats':model_lats[collocation_idx_lst],
-                'obs_values':obs_vals[time_idx_lst],
-                'obs_lons':obs_lons[time_idx_lst],
-                'obs_lats':obs_lats[time_idx_lst],
-                'collocation_idx':np.array(collocation_idx_lst)
+                'datetime':list(np.array(obs_time_dt[time_idx_lst])),
+                'distance':dist_lst,
+                'model_values':list(model_vals[collocation_idx_lst]),
+                'model_lons':list(model_lons[collocation_idx_lst]),
+                'model_lats':list(model_lats[collocation_idx_lst]),
+                'obs_values':list(obs_vals[time_idx_lst]),
+                'obs_lons':list(obs_lons[time_idx_lst]),
+                'obs_lats':list(obs_lats[time_idx_lst]),
+                'collocation_idx':collocation_idx_lst
                 }
         elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
             print("Collocation idx given through collocation_class object")

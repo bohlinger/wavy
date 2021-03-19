@@ -348,37 +348,44 @@ def get_size(obj, seen=None):
         size += sum([get_size(i, seen) for i in obj])
     return size
 
-def find_included_times(target_t,unfiltered_t,twin):
+def find_included_times(unfiltered_t,target_t=None,
+    sdate=None,edate=None,twin=None):
     """
     find index/indices of unfiltered time series that fall 
     within a tolearance time window around the target time
+    or within a time window specified by sdate and edate
     """
-    if timewin is None:
-        timewin = 0
-    # create list of datetime instances
-    cidx=[]
-    idx=0
-    for element in unfiltered_t:
-        # choose closest match within window of win[minutes]
-        if (element >= target_t-timedelta(minutes=timewin)
-        and element <= target_t+timedelta(minutes=timewin)):
-            cidx.append(idx)
-        idx=idx+1
+    if (sdate is None and edate is None): # [interval]
+        cidx = [ i for i in range(len(unfiltered_t))
+             if (unfiltered_t[i] >= target_t-timedelta(minutes=twin)
+             and unfiltered_t[i] <= target_t+timedelta(minutes=twin)) ]
+    else: # ]interval[
+        cidx = [ i for i in range(len(unfiltered_t))
+             if (unfiltered_t[i] > sdate-timedelta(minutes=twin)\
+             and unfiltered_t[i] < edate+timedelta(minutes=twin)) ]
     return cidx
 
-def collocate_times(target_t,unfiltered_t,twin=None):
+def collocate_times(unfiltered_t,target_t=None,
+    sdate=None,edate=None,twin=None):
     """
     fct for collocating times within a given twin as tolerance
-    target_t and unfiltered_t need to be datetime objects
+    target_t and unfiltered_t need to be lists of datetime objects
     twin is in minutes
     returns idx
     """
+    if twin is None:
+        twin = 0
     if (twin is None or twin == 0):
-        idx = [unfiltered_t.index(time) for time in target_t]
+        idx = [unfiltered_t.index(t) for t in target_t]
     else:
-        idx = [ find_included_times(t,unfiltered_t,twin) \
+        if (sdate is None and edate is None):
+            idx = [ find_included_times(unfiltered_t,target_t=t,
+                                    sdate=sdate,edate=edate,twin=twin) \
                 for t in target_t ]
-        idx = flatten(idx)
+            idx = flatten(idx)
+        else:
+            idx = find_included_times(unfiltered_t,sdate=sdate,
+                                        edate=edate,twin=twin)
     return idx
 
 # flatten all lists before returning them

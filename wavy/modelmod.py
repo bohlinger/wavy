@@ -8,50 +8,25 @@ python code style. Constructive comments on style and effecient
 programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
-'''
-List of libraries needed for this class. Sorted in categories to serve
-effortless orientation. May be combined at some point.
-'''
+# standard library imports
 import sys
 import yaml
 import os
-
-# read files
 import netCDF4
-
-# all class
 import numpy as np
 from datetime import datetime, timedelta
 import datetime as dt
 import argparse
 from argparse import RawTextHelpFormatter
-#import os
 import math
-
-# progress bar
-from utils import progress, hour_rounder
-
-# get_remote
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
-
 import time
 
-# collocation
+# own imports
+from utils import progress, hour_rounder, collocate_times
 from collocmod import collocation_class
-
-# matchtime fct
-from stationmod import matchtime
-from utils import collocate_times
-
-# netcdf specific
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-
-# 1: get_model for given time period
-# 2: dumptonc based on model (e.g. MWAM4, ARCMFC, ARCMFCnew)
-# 3: choose create or append based on the existence of the file
-# Must have one unlimited dimension (time), and two spatial dimensions
-#   (latitude, longitude, which depend on rlat,rlon)
 
 # --- global functions ------------------------------------------------#
 """
