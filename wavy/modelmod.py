@@ -25,6 +25,7 @@ import time
 
 # own imports
 from utils import progress, hour_rounder, collocate_times
+from utils import make_fc_dates
 #from collocmod import collocation_class
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 
@@ -256,13 +257,6 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
         print('!!! variable not defined or '
             + 'available in model output file !!!')
 
-def make_fc_dates(sdate,edate,date_incr):
-    fc_dates = []
-    while sdate <= edate:
-        fc_dates.append(sdate)
-        sdate += timedelta(hours=date_incr)
-    return fc_dates
-
 def get_model(model=None,sdate=None,edate=None,date_incr=None,
     fc_date=None,leadtime=None,varalias=None,
     st_obj=None,distlim=None):
@@ -281,37 +275,6 @@ def get_model(model=None,sdate=None,edate=None,date_incr=None,
                                           fc_date=fc_date,
                                           leadtime=leadtime)
     
-    #if (isinstance(filestr,list) and st_obj is not None):
-    #    mc_obj = model_class(model=model,fc_date=fc_date[0],
-    #                        leadtime=leadtime,
-    #                        varalias=varalias)
-    #    col_obj = collocation_class(mc_obj,st_obj=st_obj,distlim=distlim)
-    #    vardict, \
-    #    filevarname = get_model_fc_mode(filestr=filestr[0],model=model,
-    #                                fc_date=fc_date[0],varalias=varalias)
-    #    vardict[variable_info[varalias]['standard_name']]=\
-    #                [ vardict\
-    #                    [variable_info[varalias]['standard_name']].flatten()\
-    #                  [col_obj.vars['collocation_idx']] ]
-    #    vardict['time'] = [vardict['time']]
-    #    vardict['datetime'] = [vardict['datetime']]
-    #    for i in range(1,len(filestr)):
-    #        tmpdict, \
-    #        filevarname = get_model_fc_mode(filestr=filestr[i],model=model,
-    #                                fc_date=fc_date[i],varalias=varalias)
-    #        vardict[variable_info[varalias]['standard_name']].append(
-    #                tmpdict[variable_info[varalias]['standard_name']].\
-    #                flatten()[col_obj.vars['collocation_idx']]
-    #                )
-    #        vardict['time'].append(tmpdict['time'])
-    #        vardict['datetime'].append(tmpdict['datetime'])
-    #    vardict[variable_info[varalias]['standard_name']]=\
-    #        np.array( vardict[variable_info[varalias]['standard_name']]\
-    #                ).flatten()
-    #    vardict['longitude'] = list(col_obj.vars['model_lons'])*\
-    #                                        len(vardict['time'])
-    #    vardict['latitude'] = list(col_obj.vars['model_lats'])*\
-    #                                        len(vardict['time'])
     if (isinstance(filestr,list) and st_obj is None):
         vardict, \
         filevarname = get_model_fc_mode(filestr=filestr[0],model=model,

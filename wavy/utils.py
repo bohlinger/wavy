@@ -398,3 +398,10 @@ for item in sublist:
 flat_list.append(item)
 '''
 flatten = lambda l: [item for sublist in l for item in sublist]
+
+def make_fc_dates(sdate,edate,date_incr):
+    fc_dates = []
+    while sdate <= edate:
+        fc_dates.append(sdate)
+        sdate += timedelta(hours=date_incr)
+    return fc_dates

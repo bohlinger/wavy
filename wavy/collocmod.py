@@ -18,7 +18,7 @@ import time
 
 # own imports
 from utils import haversine, haversine_new, collocate_times
-from utils import progress
+from utils import progress, make_fc_dates
 from modelmod import model_class
 # ---------------------------------------------------------------------#
 
@@ -104,41 +104,49 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                         + 'no observation values for collocation!'
                         + '\n###'
                         )
-    if len(mc_obj.vars[mc_obj.stdvarname]) < 1:
+    if ((mc_obj is None or len(mc_obj.vars[mc_obj.stdvarname]) < 1) 
+    and model is None):
         raise Exception ( '\n###\n'
                         + 'Collocation not possible, '
                         + 'no model values available for collocation!'
                         + '\n###'
                         )
     if (mc_obj is None and model is not None and obs_obj is not None):
-        fc_date = make_fc_dates(sdate,edate,date_incr)
+        fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
+        idx = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
+                                target_t = fc_date )
         mc_obj = model_class( model=model,
-                              #sdate=obs_obj.sdate,
-                              #edate=obs_obj.edate,
-                              fc_date=fc_date,
+                              fc_date=fc_date[0],
                               leadtime=leadtime,
                               varalias=obs_obj.varalias)
-    #if (len(mc_obj.vars['time'])>1 and len(obs_obj.vars['time'])>1): 
-    #    # time collocation
-    #    idx = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
-    #                            target_t = mc_obj.vars['datetime'] )
-    #    dist = haversine_new( mc_obj.vars['longitude'][0],
-    #                          mc_obj.vars['latitude'][0],
-    #                          obs_obj.lon,obs_obj.lat )
-    #    results_dict = {
-    #            'time':mc_obj.vars['time'],
-    #            'time_unit':mc_obj.vars['time_unit'],
-    #            'datetime':list(np.array(obs_obj.vars['datetime'])[idx]),
-    #            'distance':dist*len(mc_obj.vars['time']),
-    #            'model_values':mc_obj.vars[mc_obj.stdvarname],
-    #            'model_lons':mc_obj.vars['longitude'],
-    #            'model_lats':mc_obj.vars['latitude'],
-    #            'obs_values':list(np.array(obs_obj.vars[
-    #                                        obs_obj.stdvarname])[idx]),
-    #            'obs_lons':obs_obj.vars['longitude'],
-    #            'obs_lats':obs_obj.vars['latitude'],
-    #            'collocation_idx':None
-    #            }
+        col_obj = collocation_class( mc_obj=mc_obj,
+                                     st_obj=obs_obj,
+                                     distlim=distlim )
+        model_vals = [col_obj.vars['model_values'][0]]
+        model_time = [col_obj.vars['time'][0]]
+        model_datetime = [datetime(col_obj.vars['datetime'][0].year,
+                                   col_obj.vars['datetime'][0].month,
+                                   col_obj.vars['datetime'][0].day,
+                                   col_obj.vars['datetime'][0].hour) ]
+        for i in range(1,len(fc_date)):
+            mc_obj = model_class( model=model,
+                                  fc_date=fc_date[i],
+                                  leadtime=leadtime,
+                                  varalias=obs_obj.varalias )
+            model_vals.append(list(mc_obj.vars[mc_obj.stdvarname].flatten()\
+                                        [col_obj.vars['collocation_idx']])[0])
+            model_time.append(mc_obj.vars['time'][0])
+            model_datetime.append( datetime(mc_obj.vars['datetime'][0].year,
+                                            mc_obj.vars['datetime'][0].month,
+                                            mc_obj.vars['datetime'][0].day,
+                                            mc_obj.vars['datetime'][0].hour) )
+        col_obj.vars['model_values'] = model_vals
+        col_obj.vars['obs_values'] = list( np.array(\
+                                           obs_obj.vars[obs_obj.stdvarname])\
+                                          [idx] )
+        col_obj.vars['time'] = model_time
+        col_obj.vars['datetime'] = model_datetime
+        results_dict = col_obj.vars
     else:
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
         datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
@@ -218,8 +226,8 @@ class collocation_class():
     draft of envisioned collocation class object
     '''
 
-    def __init__(self,mc_obj,sa_obj=None,st_obj=None,col_obj=None,
-        model=None,obs=None,distlim=None):
+    def __init__(self,mc_obj=None,sa_obj=None,st_obj=None,col_obj=None,
+        model=None,obs=None,distlim=None,date_incr=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
@@ -231,25 +239,28 @@ class collocation_class():
             obs_obj = st_obj
             obs_obj.twin = None
             obsname = st_obj.platform + '_' +  st_obj.sensor
+        if mc_obj is not None:
+            model = mc_obj.model
         t0=time.time()
-        results_dict = collocate(mc_obj,
+        results_dict = collocate(mc_obj=mc_obj,
                                 obs_obj=obs_obj,
                                 col_obj=col_obj,
                                 model=model,
                                 obs=obs,
-                                distlim=distlim)
+                                distlim=distlim,
+                                date_incr=date_incr)
         t1=time.time()
         print("time used for collocation:",round(t1-t0,2),"seconds")
         # define class variables
-        self.fc_date = mc_obj.fc_date
         self.sdate = obs_obj.sdate
         self.edate = obs_obj.edate
-        self.model = mc_obj.model
+        self.model = model
         self.obsname = obsname
-        self.varalias = mc_obj.varalias
-        self.stdvarname = mc_obj.stdvarname
+        self.varalias = obs_obj.varalias
+        self.stdvarname = obs_obj.stdvarname
         #self.vars = vardict # divided into model and obs
         self.vars = results_dict
+        self.fc_date = results_dict['datetime']
         print(len(self.vars['time'])," values collocated")
         print (" ### Collocation_class object initialized ###")
         print ('# ----- ')
