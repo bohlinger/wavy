@@ -128,31 +128,37 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                    col_obj.vars['datetime'][0].month,
                                    col_obj.vars['datetime'][0].day,
                                    col_obj.vars['datetime'][0].hour) ]
-        for i in range(1,len(fc_date)):
-            mc_obj = model_class( model=model,
+        for i in range(1,len(fc_date)): 
+            try:
+                mc_obj = model_class( model=model,
                                   fc_date=fc_date[i],
                                   leadtime=leadtime,
                                   varalias=obs_obj.varalias )
-            model_vals.append(list(mc_obj.vars[mc_obj.stdvarname].flatten()\
-                                        [col_obj.vars['collocation_idx']])[0])
-            model_time.append(mc_obj.vars['time'][0])
-            model_datetime.append( datetime(mc_obj.vars['datetime'][0].year,
-                                            mc_obj.vars['datetime'][0].month,
-                                            mc_obj.vars['datetime'][0].day,
-                                            mc_obj.vars['datetime'][0].hour) )
+                model_vals.append(list(mc_obj.vars[\
+                                            mc_obj.stdvarname ].flatten()\
+                                        [ col_obj.vars['collocation_idx']\
+                                        ] )[0])
+                model_time.append(mc_obj.vars['time'][0])
+                model_datetime.append( datetime(\
+                                        mc_obj.vars['datetime'][0].year,
+                                        mc_obj.vars['datetime'][0].month,
+                                        mc_obj.vars['datetime'][0].day,
+                                        mc_obj.vars['datetime'][0].hour ) )
+            except:
+                pass
         # potentially there are different number of values for obs and model
         # double check and use only coherent datetimes
-        col_obj.vars['obs_values'] = list( np.array(\
-                                           obs_obj.vars[obs_obj.stdvarname])\
-                                          [idx1] )
-        del idx1
-        # potentially there are different number of values for obs and model
-        # double check and use only coherent datetimes
-        idx2 = collocate_times(  model_datetime,
+        idx2 = collocate_times( model_datetime,
                                 target_t=obs_obj.vars['datetime'] )
         col_obj.vars['model_values'] = list(np.array(model_vals)[idx2])
         col_obj.vars['time'] = list(np.array(model_time)[idx2])
         col_obj.vars['datetime'] = list(np.array(model_datetime)[idx2])
+        idx3 = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
+                                target_t = col_obj.vars['datetime'] )
+        col_obj.vars['obs_values'] = list(np.array(
+                                            obs_obj.vars[
+                                                obs_obj.stdvarname
+                                                        ])[idx3])
         results_dict = col_obj.vars
     else:
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
@@ -234,7 +240,7 @@ class collocation_class():
     '''
 
     def __init__(self,mc_obj=None,sa_obj=None,st_obj=None,col_obj=None,
-        model=None,obs=None,distlim=None,date_incr=None):
+        model=None,obs=None,distlim=None,leadtime=None,date_incr=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
@@ -255,6 +261,7 @@ class collocation_class():
                                 model=model,
                                 obs=obs,
                                 distlim=distlim,
+                                leadtime=leadtime,
                                 date_incr=date_incr)
         t1=time.time()
         print("time used for collocation:",round(t1-t0,2),"seconds")
