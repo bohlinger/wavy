@@ -113,7 +113,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                         )
     if (mc_obj is None and model is not None and obs_obj is not None):
         fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
-        idx = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
+        idx1 = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
                                 target_t = fc_date )
         mc_obj = model_class( model=model,
                               fc_date=fc_date[0],
@@ -140,12 +140,19 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                             mc_obj.vars['datetime'][0].month,
                                             mc_obj.vars['datetime'][0].day,
                                             mc_obj.vars['datetime'][0].hour) )
-        col_obj.vars['model_values'] = model_vals
+        # potentially there are different number of values for obs and model
+        # double check and use only coherent datetimes
         col_obj.vars['obs_values'] = list( np.array(\
                                            obs_obj.vars[obs_obj.stdvarname])\
-                                          [idx] )
-        col_obj.vars['time'] = model_time
-        col_obj.vars['datetime'] = model_datetime
+                                          [idx1] )
+        del idx1
+        # potentially there are different number of values for obs and model
+        # double check and use only coherent datetimes
+        idx2 = collocate_times(  model_datetime,
+                                target_t=obs_obj.vars['datetime'] )
+        col_obj.vars['model_values'] = list(np.array(model_vals)[idx2])
+        col_obj.vars['time'] = list(np.array(model_time)[idx2])
+        col_obj.vars['datetime'] = list(np.array(model_datetime)[idx2])
         results_dict = col_obj.vars
     else:
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
