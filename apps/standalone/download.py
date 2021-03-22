@@ -106,7 +106,7 @@ for sat in satlst:
             os.system(cmd)
         start_time = time.time()
         sa_obj = get_remote_files(satpath, destination,
-                            sdate,edate,timewin=30,
+                            sdate,edate,twin=30,
                             corenum=nproc,download=True,
                             instr=instr,provider=provider)
         time1 = time.time() - start_time
