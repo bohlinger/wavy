@@ -118,8 +118,10 @@ def validate(results_dict,boot=None):
     scatter index --> SI
     """
     #date_matches = results_dict['datetime']
-    model_matches = results_dict['model_values']
-    obs_matches = results_dict['obs_values']
+    if isinstance(results_dict['model_values'],list):
+        model_matches = np.array(results_dict['model_values'])
+    if isinstance(results_dict['obs_values'],list):
+        obs_matches = np.array(results_dict['obs_values'])
     if (boot is None or boot ==  False):
         mop = np.nanmean(model_matches)
         mor = np.nanmean(obs_matches)

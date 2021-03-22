@@ -87,9 +87,9 @@ sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 
 if args.twin is None:
-    timewin = 30
+    twin = 30
 else:
-    timewin = args.twin
+    twin = args.twin
 if args.dist is None:
     args.dist = int(10)
 
@@ -98,7 +98,7 @@ if args.ed is None:
 else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                     int(args.ed[6:8]),int(args.ed[8:10]))
-    timewin = 0
+    twin = 0
 if args.twin is None:
     args.lt = 0
 
@@ -113,7 +113,7 @@ if args.sat == 'all':
     satnamelst = []
     for sat in satlist:
         try:
-            sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+            sa_obj_tmp = sa(sdate,sat=sat,edate=edate,twin=twin,
                             region=args.reg,varalias=args.var)
             if ('vars' in vars(sa_obj_tmp).keys()
             and len(sa_obj_tmp.vars['time'])>0):
@@ -150,7 +150,7 @@ elif args.sat == 'multi':
     satnamelst = []
     for sat in satlist:
         try:
-            sa_obj_tmp = sa(sdate,sat=sat,edate=edate,timewin=timewin,
+            sa_obj_tmp = sa(sdate,sat=sat,edate=edate,twin=twin,
                             region=args.reg,varalias=args.var)
             if ('vars' in vars(sa_obj_tmp).keys()
             and len(sa_obj_tmp.vars['time'])>0):
@@ -176,7 +176,7 @@ elif args.sat == 'multi':
     sa_obj.sat = str(sats)
     sa_obj.satname_ts = satnames
 else:
-    sa_obj = sa(sdate,sat=args.sat,edate=edate,timewin=timewin,
+    sa_obj = sa(sdate,sat=args.sat,edate=edate,twin=twin,
                 region=args.reg,varalias=args.var)
 
 # plot
@@ -206,8 +206,8 @@ else:
     mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
                 varalias=args.var)
     results_dict = {'valid_date':[edate],
-                    'date_matches':[edate-timedelta(minutes=timewin),
-                                    edate+timedelta(minutes=timewin)],
+                    'date_matches':[edate-timedelta(minutes=twin),
+                                    edate+timedelta(minutes=twin)],
                     'model_lons_matches':sa_obj.vars['longitude'],
                     'model_lats_matches':sa_obj.vars['latitude'],
                     'sat_matches':sa_obj.vars[variable_info[args.var]\

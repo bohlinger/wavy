@@ -159,6 +159,8 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                             obs_obj.vars[
                                                 obs_obj.stdvarname
                                                         ])[idx3])
+        # valid_date is meaningless for ts application and set to None
+        col_obj.vars['valid_date'] = None
         results_dict = col_obj.vars
     else:
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
@@ -214,7 +216,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                     print ("Collocation error -> no collocation:", 
                             sys.exc_info()[0])
             results_dict = {
-                #'valid_date':np.array(datein),
+                'valid_date':np.array(datein),
                 'time':list(np.array(obs_time[time_idx_lst])),
                 'time_unit':obs_time_unit,
                 'datetime':list(np.array(obs_time_dt[time_idx_lst])),
