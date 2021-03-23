@@ -128,8 +128,8 @@ class station_class():
         self.edate = edate
         self.lat = locations[platform][0]
         self.lon = locations[platform][1]
-        self.platform = sensor
-        self.sensor = platform
+        self.platform = platform
+        self.sensor = sensor
         print (" ### station_class object initialized ###")
         print ('# ----- ')
 
@@ -294,23 +294,6 @@ def extract_d22(sl,varalias,platform,sensor):
     dt = np.array(dt)
     ts = np.array(ts)
     return ts, dt
-
-#def get_loc_idx(init_lats,init_lons,target_lat,target_lon,mask=None):
-#    from utils import haversine
-#    distM = np.zeros(init_lats.shape)*np.nan
-#    for i in range(init_lats.shape[0]):
-#        for j in range(init_lats.shape[1]):
-#            if mask is None:
-#                distM[i,j] = haversine(init_lons[i,j],init_lats[i,j],
-#                                    target_lon,target_lat)
-#            else:
-#                if isinstance(mask[i,j],(np.float32)):
-#                    distM[i,j] = haversine(init_lons[i,j],init_lats[i,j],
-#                                    target_lon,target_lat)
-#    idx,idy = np.where(distM==np.nanmin(distM))
-#    return idx, idy, distM, init_lats[idx,idy], init_lons[idx,idy]
-
-# --> get_loc_idx is to be deleted once dependencies are corrected
 
 # --- help ------------------------------------------------------------#
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ with open(moddir,'r') as stream:
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
-    var_dict=yaml.safe_load(stream)
+    variable_info=yaml.safe_load(stream)
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/d22_var_dicts.yaml'))
 with open(moddir,'r') as stream:
@@ -326,16 +326,18 @@ def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
         ncdists[:] = dists
     nc.close()
 
-def dumptonc_ts_station(outpath,filename,title,\
-                        sc_obj,statname,sensorname):
+def dumptonc_ts_station(outpath,filename,title,st_obj):
     """
     1. check if nc file already exists
     2. - if so use append mode
-       - if not create file
+       - if not create file and folder structure
     """
-    time = sc_obj.time[0:-1]
-    var = sc_obj.var[0:-1]
-    fullpath = outpath + filename
+    stdvarname = variable_info[st_obj.varalias]['standard_name']
+    time = st_obj.vars['time']
+    lon = st_obj.vars['longitude']
+    lat = st_obj.vars['latitude']
+    var = st_obj.vars[stdvarname]
+    fullpath = outpath + '/' + filename
     print ('Dump data to file: ' + fullpath)
     if os.path.isfile(fullpath):
         nc = netCDF4.Dataset(
@@ -346,30 +348,33 @@ def dumptonc_ts_station(outpath,filename,title,\
         startidx = len(nc['time'])
         endidx = len(nc['time'])+len(time)
         nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables[sc_obj.varname][startidx:endidx] = var[:]
+        nc.variables[st_obj.varname][startidx:endidx] = var[:]
     else:
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
                         )
         # global attributes
-        nc.title = title
-        nc.station_name = sc_obj.statname
-        nc.instrument_type = sc_obj.sensorname
-        nc.instrument_specs = "?"
-        print(sc_obj.statname,sc_obj.sensorname)
-        nc.instrument_manufacturer = station_dict[sc_obj.statname]\
-                                    ['manufacturer'][sc_obj.sensorname]
-        nc.netcdf_version = "4"
-        nc.data_owner = "?"
-        nc.licence = "?"
-        nc.processing_level = "No imputation for missing or erroneous values."
-        nc.static_position_station =  ("Latitude: "
-                            + str(station_dict[sc_obj.statname]
-                                            ['coords']['lat'])
-                            + ", Longitude: "
-                            + str(station_dict[sc_obj.statname]
-                                            ['coords']['lon']))
+        #nc.title = title
+        #nc.station_name = st_obj.platform
+        #nc.instrument_type = st_obj.sensor
+        #nc.instrument_specs = "?"
+        #print(st_obj.platform,st_obj.sensor)
+        #nc.instrument_manufacturer = station_dict['platform']\
+        #                            [st_obj.platform]\
+        #                            ['manufacturer'][st_obj.sensor]
+        #nc.netcdf_version = "4"
+        #nc.data_owner = "?"
+        #nc.licence = "?"
+        #nc.processing_level = "No imputation for missing or erroneous values."
+        #nc.static_position_station =  ("Latitude: "
+        #                    + str(station_dict['platform']\
+        #                                    [st_obj.platform]\
+        #                                    ['coords']['lat'])
+        #                    + ", Longitude: "
+        #                    + str(station_dict['platform']\
+        #                                    [st_obj.platform]\
+        #                                    ['coords']['lon']))
         # dimensions
         dimsize = None
         dimtime = nc.createDimension(
@@ -377,32 +382,72 @@ def dumptonc_ts_station(outpath,filename,title,\
                                 size=dimsize
                                 )
         # variables
+        nclon = nc.createVariable(
+                               'longitude',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        nclat = nc.createVariable(
+                               'latitude',
+                               np.float64,
+                               dimensions=('time')
+                               )
         nctime = nc.createVariable(
                                'time',
                                np.float64,
                                dimensions=('time')
                                )
         ncvar = nc.createVariable(
-                               sc_obj.varname,
+                               st_obj.varname,
                                np.float64,
                                dimensions=('time'),
                                )
         # generate time for netcdf file
         # time
-        nctime.standard_name = 'time'
-        nctime.long_name = 'Time of measurement'
-        nctime.units = 'seconds since ' + str(sc_obj.basedate)
-        nctime.delta_t = '10 min'
         nctime[:] = time
-        # Hs_stat_10min
-        ncvar.standard_name = d22_dict['standard_name'][sc_obj.varname]
-        ncvar.long_name = d22_dict['long_name'][sc_obj.varname]
-        ncvar.units = d22_dict['units'][sc_obj.varname]
-        ncvar.convention = d22_dict['convention'][sc_obj.varname]
-        ncvar.valid_range = d22_dict['valid_range'][sc_obj.varname][0], \
-                            d22_dict['valid_range'][sc_obj.varname][1]
-        ncvar[:] = sc_obj.varname
-    nc.close()
+        nctime.setncatts(variable_info['time'])
+        nctime.units = str(st_obj.vars['time_unit'])
+        # longitude
+        nclon[:] = lon
+        nclon.setncatts(variable_info['lons'])
+        # latitude
+        nclat[:] = lat
+        nclat.setncatts(variable_info['lats'])
+        # var
+        ncvar[:] = var
+        ncvar.setncatts(variable_info[st_obj.varalias])
+        # coordinate system info
+        nc_crs = nc.createVariable('latlon',np.int32)
+        nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
+        nc_crs.grid_mapping_name = 'latitude_longitude'
+        # close file
+        nc.close()
+        #add global attributes
+        nc = netCDF4.Dataset(fullpath,mode='r+')
+        nowstr = datetime.utcnow().isoformat()
+        globalAttribs = {}
+        globalAttribs['title'] = title
+        globalAttribs['Conventions'] = "CF-1.6"
+        globalAttribs['institution'] = \
+                                "Norwegian Meteorological Institute"
+        globalAttribs['history'] = nowstr + ". Created."
+        globalAttribs['netcdf_version'] = "NETCDF4"
+        globalAttribs['processing_level'] = \
+                                "No post-processing performed"
+        globalAttribs['static_position_station'] =  ("Latitude: "
+                            + str(station_dict['platform']\
+                                            [st_obj.platform]\
+                                            ['coords']['lat'])
+                            + ", Longitude: "
+                            + str(station_dict['platform']\
+                                            [st_obj.platform]\
+                                            ['coords']['lon']))
+        globalAttribs['platform_operator'] = station_dict['platform']\
+                                           [st_obj.platform]\
+                                           ['operator']
+        nc.setncatts(globalAttribs)
+        nc.sync()
+        nc.close()
 
 def dumptonc_stats(outpath,filename,title,time_dt,time_unit,valid_dict):
     """
@@ -802,14 +847,14 @@ def dumptonc_ts_pos(outpath,filename,title,coll_dict):
                             np.float64,dimensions=('time'))
                 # add variable attributes
                 varAttribs = {}
-                varAttribs['standard_name'] = var_dict[varname]\
+                varAttribs['standard_name'] = variable_info[varname]\
                                                 ['standard_name']
-                varAttribs['units'] = var_dict[varname]['units']
-                varAttribs['valid_range'] = var_dict[varname]\
+                varAttribs['units'] = variable_info[varname]['units']
+                varAttribs['valid_range'] = variable_info[varname]\
                                                 ['valid_range'][0], \
-                                            var_dict[varname]\
+                                            variable_info[varname]\
                                                 ['valid_range'][1]
-                varAttribs['convention'] = var_dict[varname]\
+                varAttribs['convention'] = variable_info[varname]\
                                                     ['convention']
                 ncvar.setncatts(varAttribs)
                 ncvar[:] = coll_dict[varstr][:]

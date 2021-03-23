@@ -7,7 +7,6 @@
 #time
 time:
     standard_name: time
-    units: seconds since
 
 # coordinates
 lons: 
@@ -21,33 +20,27 @@ lats:
 Hs:
     standard_name: sea_surface_wave_significant_height
     units: m
-    long_name:
     valid_range: [0., 30.]
-    convention:
 Tp:
     standard_name: "sea_surface_wave_period_at_variance_spectral_\
                     density_maximum"
     units: s
     valid_range: [0., 30.]
-    convention:
 Tm01:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_first_frequency_moment"
     units: s
     valid_range: [0., 30.]
-    convention:
 Tm02:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_second_frequency_moment"
     units: s
     valid_range: [0., 30.]
-    convention:
 Tm10:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_inverse_frequency_moment"
     units: s
     valid_range: [0., 30.]
-    convention:
 Pdir:
     standard_name: "sea_surface_wave_to_direction_at_variance_spectral\
                     _density_maximum"
