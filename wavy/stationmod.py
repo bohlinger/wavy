@@ -33,6 +33,7 @@ from datetime import datetime
 import scipy as sp
 # own imports
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from ncmod import dumptonc_ts_station
 from utils import collocate_times
 # ---------------------------------------------------------------------#
 
@@ -91,7 +92,7 @@ class station_class():
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
     def __init__(self,platform,sensor,sdate,edate,
-                mode='d22',deltat=10,varalias='Hs'):
+                mode='d22',varalias='Hs'):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
@@ -100,7 +101,7 @@ class station_class():
         var, time, timedt, \
         pathtofile = self.get_station( platform,
                                        sdate,edate,
-                                       mode,deltat,
+                                       mode,
                                        sensor,
                                        varalias )
         vardict = {
@@ -133,9 +134,13 @@ class station_class():
         print (" ### station_class object initialized ###")
         print ('# ----- ')
 
-    def get_station(self,platform,sdate,edate,mode,deltat,sensor,varalias):
+    def get_station(self,platform,sdate,edate,mode,sensor,varalias):
         stdvarname = variable_info[varalias]['standard_name']
-        pathlst = station_dict['path']['platform']['local'][mode]['template']
+        path_template = station_dict['path']['platform']['local']\
+                                    [mode]['path_template']
+        file_template = station_dict['path']['platform']['local']\
+                                    [mode]['file_template']
+        pathlst = [p + file_template for p in path_template]
         strsublst = station_dict['path']['platform']['local'][mode]['strsub']
         pathtofile = None
         if mode == 'nc':
@@ -181,6 +186,18 @@ class station_class():
         time = list(time[idxtmp])
         timedt = list(timedt[idxtmp])
         return var, time, timedt, pathtofile
+    
+    def write_to_monthly_nc(self,path=None,filename=None):
+        if path is None:
+            path_template = station_dict['path'][self.platform]\
+                                                ['local'][mode]\
+                                                ['path_template'][0]
+        if filename is None:
+            file_template = station_dict['path'][self.platform]\
+                                                ['local'][mode]\
+                                                ['file_template']
+        
+        return
 
 def make_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
     i = 0

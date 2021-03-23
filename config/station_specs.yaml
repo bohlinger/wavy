@@ -4,15 +4,15 @@ path:
     platform:
         local: 
             d22: 
-                template: ["/lustre/storeB/immutable/archive/projects/\
+                path_template: ["/lustre/storeB/immutable/archive/projects/\
                             metproduction/DNMI_OFFSHORE/platform/d22\
-                            /%Y/%Y%m%d.d22",
-                           "/opdata/offshore/platform/d22/%Y%m%d.d22"]
+                            /%Y/", "/opdata/offshore/platform/d22/"]
+                file_template: '%Y%m%d.d22'
                 strsub: ['platform'] # part of string to be substituted
             nc: 
-                template: ["/lustre/storeB/project/fou/om/waveverification/\
-                            obs/stations/%Y/%m/\
-                            varalias_10min_platform_sensor_%Y%m.nc"]
+                path_template: ["/lustre/storeB/project/fou/om/\
+                                 waveverification/obs/stations/%Y/%m/"]
+                file_template: 'varalias_10min_platform_sensor_%Y%m.nc'
                 strsub: ['varalias','platform','sensor']
         remote:
         misc:

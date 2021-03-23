@@ -344,37 +344,27 @@ def dumptonc_ts_station(outpath,filename,title,st_obj):
                         fullpath,mode='a',
                         clobber=False
                         )
-        # variables
-        startidx = len(nc['time'])
-        endidx = len(nc['time'])+len(time)
+        # compare existing times in input time and existing time
+        startin = time[0]
+        timeex = list(nc.variables['time'][:])
+        if startin in timeex:
+            print('Time already detected in ncfile')
+            print('Find correct index to start from there')
+            print('Overwrite double time stamps')
+            startidx = timeex.index(startin)
+        else:
+            startidx = len(nc['time'])
+        endidx = startidx+len(time)
         nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['longitude'][startidx:endidx] = lon[:]
+        nc.variables['latitude'][startidx:endidx] = lat[:]
         nc.variables[st_obj.varname][startidx:endidx] = var[:]
+        nc.close()
     else:
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
                         fullpath,mode='w',
                         )
-        # global attributes
-        #nc.title = title
-        #nc.station_name = st_obj.platform
-        #nc.instrument_type = st_obj.sensor
-        #nc.instrument_specs = "?"
-        #print(st_obj.platform,st_obj.sensor)
-        #nc.instrument_manufacturer = station_dict['platform']\
-        #                            [st_obj.platform]\
-        #                            ['manufacturer'][st_obj.sensor]
-        #nc.netcdf_version = "4"
-        #nc.data_owner = "?"
-        #nc.licence = "?"
-        #nc.processing_level = "No imputation for missing or erroneous values."
-        #nc.static_position_station =  ("Latitude: "
-        #                    + str(station_dict['platform']\
-        #                                    [st_obj.platform]\
-        #                                    ['coords']['lat'])
-        #                    + ", Longitude: "
-        #                    + str(station_dict['platform']\
-        #                                    [st_obj.platform]\
-        #                                    ['coords']['lon']))
         # dimensions
         dimsize = None
         dimtime = nc.createDimension(
