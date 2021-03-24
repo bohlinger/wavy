@@ -5,8 +5,8 @@ path:
         local: 
             d22: 
                 path_template: ["/lustre/storeB/immutable/archive/projects/\
-                            metproduction/DNMI_OFFSHORE/platform/d22\
-                            /%Y/", "/opdata/offshore/platform/d22/"]
+                                metproduction/DNMI_OFFSHORE/platform/d22/%Y/", 
+                                "/vol/gorgon/offshore/platform/d22/"]
                 file_template: '%Y%m%d.d22'
                 strsub: ['platform'] # part of string to be substituted
             nc: 
@@ -91,14 +91,6 @@ platform:
 #        manufacturer:
 #        coords:
 #        operator: Equinor_Energy
-    heimdal:
-        sensor:
-            MKIIIradar: 0 # python indexing
-        manufacturer:
-            MKIIIradar: Miros
-        coords:
-            lat: 59.57
-            lon: 2.23
     oseberg:
         sensor:
             MKIIIradar: 0 # python indexing
@@ -107,6 +99,7 @@ platform:
         coords:
             lat: 60.5
             lon: 2.8
+        operator: NA
     gullfaksc:
         sensor: 
             MKIIIradar: 0 # python indexing
@@ -129,9 +122,9 @@ platform:
         operator: Equinor_Energy
     heimdal:
         sensor:
-            NA: 0 # python indexing
+            MKIIIradar: 0 # python indexing
         manufacturer:
-            NA: NA
+            MKIIIradar: Miros
         coords:
             lat: 59.57
             lon: 2.23

@@ -98,40 +98,46 @@ class station_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        var, time, timedt, \
-        pathtofile = self.get_station( platform,
-                                       sdate,edate,
-                                       mode,
-                                       sensor,
-                                       varalias )
-        vardict = {
+        try:
+            var, time, timedt, \
+            pathtofile = self.get_station( platform,
+                                           sdate,edate,
+                                           mode,
+                                           sensor,
+                                           varalias )
+            vardict = {
                     stdvarname:var,
                     'time':time,
                     'datetime':timedt,
                     'time_unit':self.time_unit,
-                    'longitude':[locations[platform][1]]*len(var),
-                    'latitude':[locations[platform][0]]*len(var)
+                    'longitude':[ station_dict['platform'][platform]\
+                                  ['coords']['lon'] ]*len(var),
+                    'latitude':[ station_dict['platform'][platform]\
+                                 ['coords']['lat'] ]*len(var)
                     }
-        # in future coordinates need to be properly 
-        # defined with names longitude and latitude 
-        # in yaml file not as it is now in stationlist.yaml
-        self.vars = vardict
-        self.stdvarname = stdvarname
-        if mode == 'd22':
-            self.varname = varalias
-        elif mode == 'nc':
-            model_meta = ncdumpMeta(pathtofile)
-            self.vars['model_meta'] = model_meta
-            self.varname = get_varname_for_cf_stdname_in_ncfile( model_meta,
-                                                                 stdvarname )
-        self.varalias = varalias
-        self.sdate = sdate
-        self.edate = edate
-        self.lat = locations[platform][0]
-        self.lon = locations[platform][1]
-        self.platform = platform
-        self.sensor = sensor
-        print (" ### station_class object initialized ###")
+            self.vars = vardict
+            self.stdvarname = stdvarname
+            if mode == 'd22':
+                self.varname = varalias
+            elif mode == 'nc':
+                model_meta = ncdumpMeta(pathtofile)
+                self.vars['model_meta'] = model_meta
+                self.varname = get_varname_for_cf_stdname_in_ncfile( 
+                                model_meta,stdvarname)
+            self.varalias = varalias
+            self.sdate = sdate
+            self.edate = edate
+            self.lat = station_dict['platform'][platform]\
+                                   ['coords']['lat']
+            self.lon = station_dict['platform'][platform]\
+                                   ['coords']['lon']
+            self.platform = platform
+            self.sensor = sensor
+            print (" ### station_class object initialized ###")
+        except Exception as e:
+            print(e)
+            self.error = True
+            print ("! no station_class object initialized !")
         print ('# ----- ')
 
     def get_station(self,platform,sdate,edate,mode,sensor,varalias):
@@ -189,10 +195,14 @@ class station_class():
     
     def write_to_monthly_nc(self,path=None,filename=None):
         # divide time into months by loop over months from sdate to edate
-        tmpdate = self.sdate
-        edate = self.edate
-        while tmpdate <= edate:
-            idxtmp = collocate_times(unfiltered_t=self.vars['datetime'],
+        if 'error' in vars(self):
+            print('Erroneous station_class file detected')
+            print('--> dump to netCDF not possible !')
+        else:
+            tmpdate = self.sdate
+            edate = self.edate
+            while tmpdate <= edate:
+                idxtmp = collocate_times(unfiltered_t=self.vars['datetime'],
                                      sdate = datetime(tmpdate.year,
                                                       tmpdate.month,1),
                                      edate = datetime(tmpdate.year,
@@ -201,28 +211,28 @@ class station_class():
                                                         tmpdate.year,
                                                         tmpdate.month)[1],
                                                         23,59) )
-            if (path is not None and filename is not None):
-                pathtofile = path + '/' + filename
-            else:
-                if path is None:
-                    path_template = station_dict['path']['platform']\
-                                                ['local']['nc']\
-                                                ['path_template'][0]
-                if filename is None:
-                    file_template = station_dict['path']['platform']\
-                                                ['local']['nc']\
-                                                ['file_template']
-                strsublst = station_dict['path']['platform']\
-                                                ['local']['nc']\
-                                                ['strsub']
-                tmppath = path_template + '/' + file_template
-                pathtofile = make_pathtofile(self.platform,self.sensor,
+                if (path is not None and filename is not None):
+                    pathtofile = path + '/' + filename
+                else:
+                    if path is None:
+                        path_template = station_dict['path']['platform']\
+                                                    ['local']['nc']\
+                                                    ['path_template'][0]
+                    if filename is None:
+                        file_template = station_dict['path']['platform']\
+                                                    ['local']['nc']\
+                                                    ['file_template']
+                    strsublst = station_dict['path']['platform']\
+                                                    ['local']['nc']\
+                                                    ['strsub']
+                    tmppath = path_template + '/' + file_template
+                    pathtofile = make_pathtofile(self.platform,self.sensor,
                                           self.varalias,tmppath,strsublst,
                                           tmpdate)
-            title = ( self.varname + ' observations from ' 
-                    + self.platform + ' ' + self.sensor )
-            dumptonc_ts_station(self,pathtofile,title)
-            tmpdate = tmpdate + relativedelta(months = +1)
+                title = ( self.varname + ' observations from ' 
+                        + self.platform + ' ' + self.sensor )
+                dumptonc_ts_station(self,pathtofile,title)
+                tmpdate = tmpdate + relativedelta(months = +1)
         return
 
 def get_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
@@ -264,8 +274,7 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst,mode):
     Read all lines in file and append to sl
     """
     sl=[]
-    for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
-        i = 0
+    for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))): 
         pathtofile = get_pathtofile(platform,sensor,varalias,\
                                     pathlst,strsublst,pl.num2date(d))
         print('Parsing:', pathtofile)

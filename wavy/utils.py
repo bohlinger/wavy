@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from math import radians, cos, sin, asin, sqrt, floor
 import sys
+import subprocess
 import os
 from sklearn import gaussian_process
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel
@@ -406,3 +407,7 @@ def make_fc_dates(sdate,edate,date_incr):
         fc_dates.append(sdate)
         sdate += timedelta(hours=date_incr)
     return fc_dates
+
+def system_call(command):
+    p = subprocess.Popen([command], stdout=subprocess.PIPE, shell=True)
+    return p.stdout.read()
