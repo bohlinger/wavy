@@ -140,7 +140,7 @@ class station_class():
                                     [mode]['path_template']
         file_template = station_dict['path']['platform']['local']\
                                     [mode]['file_template']
-        pathlst = [p + file_template for p in path_template]
+        pathlst = [p + ('/' + file_template) for p in path_template]
         strsublst = station_dict['path']['platform']['local'][mode]['strsub']
         pathtofile = None
         if mode == 'nc':
@@ -149,8 +149,8 @@ class station_class():
             time = []
             timedt = []
             while (tmpdate <= edate):
-                pathtofile = make_pathtofile(platform,sensor,varalias,
-                                             pathlst,strsublst,tmpdate)
+                pathtofile = get_pathtofile( platform,sensor,varalias,
+                                             pathlst,strsublst,tmpdate )
                 ncdict = ncdumpMeta(pathtofile)
                 varname = get_varname_for_cf_stdname_in_ncfile(ncdict,
                                                                stdvarname)
@@ -188,18 +188,44 @@ class station_class():
         return var, time, timedt, pathtofile
     
     def write_to_monthly_nc(self,path=None,filename=None):
-        if path is None:
-            path_template = station_dict['path'][self.platform]\
-                                                ['local'][mode]\
+        # divide time into months by loop over months from sdate to edate
+        tmpdate = self.sdate
+        edate = self.edate
+        while tmpdate <= edate:
+            idxtmp = collocate_times(unfiltered_t=self.vars['datetime'],
+                                     sdate = datetime(tmpdate.year,
+                                                      tmpdate.month,1),
+                                     edate = datetime(tmpdate.year,
+                                                      tmpdate.month,
+                                                      calendar.monthrange(
+                                                        tmpdate.year,
+                                                        tmpdate.month)[1],
+                                                        23,59) )
+            if (path is not None and filename is not None):
+                pathtofile = path + '/' + filename
+            else:
+                if path is None:
+                    path_template = station_dict['path']['platform']\
+                                                ['local']['nc']\
                                                 ['path_template'][0]
-        if filename is None:
-            file_template = station_dict['path'][self.platform]\
-                                                ['local'][mode]\
+                if filename is None:
+                    file_template = station_dict['path']['platform']\
+                                                ['local']['nc']\
                                                 ['file_template']
-        
+                strsublst = station_dict['path']['platform']\
+                                                ['local']['nc']\
+                                                ['strsub']
+                tmppath = path_template + '/' + file_template
+                pathtofile = make_pathtofile(self.platform,self.sensor,
+                                          self.varalias,tmppath,strsublst,
+                                          tmpdate)
+            title = ( self.varname + ' observations from ' 
+                    + self.platform + ' ' + self.sensor )
+            dumptonc_ts_station(self,pathtofile,title)
+            tmpdate = tmpdate + relativedelta(months = +1)
         return
 
-def make_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
+def get_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
     i = 0
     pathtofile = date.strftime(pathlst[i])
     for strsub in strsublst:
@@ -209,6 +235,12 @@ def make_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
         pathtofile = date.strftime(pathlst[i])
         for strsub in strsublst:
             pathtofile = pathtofile.replace(strsub,locals()[strsub])
+    return pathtofile
+
+def make_pathtofile(platform,sensor,varalias,tmppath,strsublst,date):
+    pathtofile = date.strftime(tmppath)
+    for strsub in strsublst:
+        pathtofile = pathtofile.replace(strsub,locals()[strsub])
     return pathtofile
 
 def compute_superobs(st_obj,smoother='running_mean',**kwargs):
@@ -234,8 +266,9 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst,mode):
     sl=[]
     for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
         i = 0
-        pathtofile = make_pathtofile(platform,sensor,varalias,\
+        pathtofile = get_pathtofile(platform,sensor,varalias,\
                                     pathlst,strsublst,pl.num2date(d))
+        print('Parsing:', pathtofile)
         f = open(pathtofile, "r")
         sl = sl + f.readlines()
         f.close()
@@ -279,6 +312,7 @@ def extract_d22(sl,varalias,platform,sensor):
     Returns values of chosen variable (ts) and corresponding datetimes (dt)
     as type: np.array
     """
+    print('Extracting data from parsed .d22-files')
     category = find_category_for_variable(varalias)
     revised_categories = get_revised_categories(sl,category)
     ts = []

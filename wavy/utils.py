@@ -42,7 +42,8 @@ def identify_outliers_GP(x,y,mag):
     # if len(y)<11 flag all
     idx = []
     if len(y)<3:
-        print ("block too short with length " + str(int(len(y))) + ", values flagged")
+        print (  "block too short with length " 
+                + str(int(len(y))) + ", values flagged")
         x_pred = []
         y_pred = []
         sigma = []
@@ -375,7 +376,7 @@ def collocate_times(unfiltered_t,target_t=None,
     """
     if twin is None:
         twin = 0
-    if (twin is None or twin == 0):
+    if ((twin is None or twin == 0) and (sdate is None and edate is None)):
         idx = [unfiltered_t.index(t) for t in target_t if (t in unfiltered_t)]
     else:
         if (sdate is None and edate is None):

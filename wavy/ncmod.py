@@ -326,22 +326,25 @@ def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
         ncdists[:] = dists
     nc.close()
 
-def dumptonc_ts_station(outpath,filename,title,st_obj):
+def dumptonc_ts_station(st_obj,pathtofile,title):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file and folder structure
     """
-    stdvarname = variable_info[st_obj.varalias]['standard_name']
+    print('Dump data to netCDF4 file')
+    stdvarname = st_obj.stdvarname
     time = st_obj.vars['time']
     lon = st_obj.vars['longitude']
     lat = st_obj.vars['latitude']
-    var = st_obj.vars[stdvarname]
-    fullpath = outpath + '/' + filename
-    print ('Dump data to file: ' + fullpath)
-    if os.path.isfile(fullpath):
+    var = np.array(st_obj.vars[stdvarname])
+    var[var<0] = -999.
+    var[var>30] = -999.
+    var = list(var)
+    print ('Dump data to file: ' + pathtofile)
+    if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
-                        fullpath,mode='a',
+                        pathtofile,mode='a',
                         clobber=False
                         )
         # compare existing times in input time and existing time
@@ -361,9 +364,10 @@ def dumptonc_ts_station(outpath,filename,title,st_obj):
         nc.variables[st_obj.varname][startidx:endidx] = var[:]
         nc.close()
     else:
+        outpath = os.path.dirname(pathtofile)
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
-                        fullpath,mode='w',
+                        pathtofile,mode='w',
                         )
         # dimensions
         dimsize = None
@@ -391,12 +395,13 @@ def dumptonc_ts_station(outpath,filename,title,st_obj):
                                st_obj.varname,
                                np.float64,
                                dimensions=('time'),
+                               fill_value=-999.
                                )
         # generate time for netcdf file
         # time
         nctime[:] = time
-        nctime.setncatts(variable_info['time'])
         nctime.units = str(st_obj.vars['time_unit'])
+        nctime.setncatts(variable_info['time'])
         # longitude
         nclon[:] = lon
         nclon.setncatts(variable_info['lons'])
@@ -413,7 +418,7 @@ def dumptonc_ts_station(outpath,filename,title,st_obj):
         # close file
         nc.close()
         #add global attributes
-        nc = netCDF4.Dataset(fullpath,mode='r+')
+        nc = netCDF4.Dataset(pathtofile,mode='r+')
         nowstr = datetime.utcnow().isoformat()
         globalAttribs = {}
         globalAttribs['title'] = title
