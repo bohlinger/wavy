@@ -161,6 +161,18 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                                         ])[idx3])
         # valid_date is meaningless for ts application and set to None
         col_obj.vars['valid_date'] = None
+        col_obj.vars['distance'] = col_obj.vars['distance']*\
+                                    len(col_obj.vars['datetime'])
+        col_obj.vars['obs_lats'] = col_obj.vars['obs_lats']*\
+                                    len(col_obj.vars['datetime'])
+        col_obj.vars['obs_lons'] = col_obj.vars['obs_lons']*\
+                                    len(col_obj.vars['datetime'])
+        col_obj.vars['collocation_idx'] = col_obj.vars['collocation_idx']*\
+                                            len(col_obj.vars['datetime'])
+        col_obj.vars['model_lats'] = col_obj.vars['model_lats']*\
+                                    len(col_obj.vars['datetime'])
+        col_obj.vars['model_lons'] = col_obj.vars['model_lons']*\
+                                    len(col_obj.vars['datetime'])
         results_dict = col_obj.vars
     else:
         dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
@@ -277,6 +289,7 @@ class collocation_class():
         #self.vars = vardict # divided into model and obs
         self.vars = results_dict
         self.fc_date = results_dict['datetime']
+        self.leadtime = leadtime
         print(len(self.vars['time'])," values collocated")
         print (" ### Collocation_class object initialized ###")
         print ('# ----- ')

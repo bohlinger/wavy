@@ -338,8 +338,8 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
     lon = st_obj.vars['longitude']
     lat = st_obj.vars['latitude']
     var = np.array(st_obj.vars[stdvarname])
-    var[var<0] = -999.
-    var[var>30] = -999.
+    var[var<variable_info[st_obj.varalias]['valid_range'][0]] = -999.
+    var[var>variable_info[st_obj.varalias]['valid_range'][1]] = -999.
     var = list(var)
     print ('Dump data to file: ' + pathtofile)
     if os.path.isfile(pathtofile):
@@ -440,6 +440,172 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         globalAttribs['platform_operator'] = station_dict['platform']\
                                            [st_obj.platform]\
                                            ['operator']
+        nc.setncatts(globalAttribs)
+        nc.sync()
+        nc.close()
+
+def dumptonc_ts_collocation(col_obj,pathtofile,title):
+    """
+    1. check if nc file already exists
+    2. - if so use append mode
+       - if not create file and folder structure
+    """
+    print('Dump data to netCDF4 file')
+    stdvarname = col_obj.stdvarname
+    time = col_obj.vars['time']
+    modlon = col_obj.vars['model_lons']
+    modlat = col_obj.vars['model_lats']
+    obslon = col_obj.vars['obs_lons']
+    obslat = col_obj.vars['obs_lats']
+    colidx = col_obj.vars['collocation_idx']
+    leadtime = col_obj.leadtime
+    varobs = np.array(col_obj.vars['obs_values'])
+    varobs[varobs<variable_info[col_obj.varalias]['valid_range'][0]] = -999.
+    varobs[varobs>variable_info[col_obj.varalias]['valid_range'][1]] = -999.
+    varobs = list(varobs)
+    varmod = np.array(col_obj.vars['model_values'])
+    varmod[varmod<variable_info[col_obj.varalias]['valid_range'][0]] = -999.
+    varmod[varmod>variable_info[col_obj.varalias]['valid_range'][1]] = -999.
+    varmod = list(varmod)
+    dists = np.array(col_obj.vars['distance'])*1000 # from km to m
+    print ('Dump data to file: ' + pathtofile)
+    if os.path.isfile(pathtofile):
+        nc = netCDF4.Dataset(
+                        pathtofile,mode='a',
+                        clobber=False
+                        )
+        # compare existing times in input time and existing time
+        startin = time[0]
+        timeex = list(nc.variables['time'][:])
+        if startin in timeex:
+            print('Time already detected in ncfile')
+            print('Find correct index to start from there')
+            print('Overwrite double time stamps')
+            startidx = timeex.index(startin)
+        else:
+            startidx = len(nc['time'])
+        endidx = startidx+len(time)
+        nc.variables['time'][startidx:endidx] = time[:]
+        nc.variables['model_lons'][startidx:endidx] = modlon[:]
+        nc.variables['model_lats'][startidx:endidx] = modlat[:]
+        nc.variables['model_values'][startidx:endidx] = varmod[:]
+        nc.variables['obs_lons'][startidx:endidx] = obslon[:]
+        nc.variables['obs_lats'][startidx:endidx] = obslat[:]
+        nc.variables['obs_values'][startidx:endidx] = varobs[:]
+        nc.variables['dist'][startidx:endidx] = dists[:]
+        nc.variables['colidx'][startidx:endidx] = colidx[:]
+        nc.close()
+    else:
+        outpath = os.path.dirname(pathtofile)
+        os.system('mkdir -p ' + outpath)
+        nc = netCDF4.Dataset(
+                        pathtofile,mode='w',
+                        )
+        # dimensions
+        dimsize = None
+        dimtime = nc.createDimension(
+                                'time',
+                                size=dimsize
+                                )
+        # variables
+        ncmodlon = nc.createVariable(
+                               'model_lons',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncmodlat = nc.createVariable(
+                               'model_lats',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncobslon = nc.createVariable(
+                               'obs_lons',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncobslat = nc.createVariable(
+                               'obs_lats',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        nccolidx = nc.createVariable(
+                               'colidx',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        nctime = nc.createVariable(
+                               'time',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        ncvarobs = nc.createVariable(
+                               'obs_values',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=-999.
+                               )
+        ncvarmod = nc.createVariable(
+                               'model_values',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=-999.
+                               )
+        ncdist = nc.createVariable(
+                               'dist',
+                               np.float64,
+                               dimensions=('time'),
+                               fill_value=-999.
+                               )
+        # generate time for netcdf file
+        # time
+        nctime[:] = time
+        nctime.units = str(col_obj.vars['time_unit'])
+        nctime.setncatts(variable_info['time'])
+        # observation longitude
+        ncobslon[:] = obslon
+        ncobslon.setncatts(variable_info['lons'])
+        # observation latitude
+        ncobslat[:] = obslat
+        ncobslat.setncatts(variable_info['lats'])
+        # model longitude
+        ncmodlon[:] = modlon
+        ncmodlon.setncatts(variable_info['lons'])
+        # model latitude
+        ncmodlat[:] = modlat
+        ncmodlat.setncatts(variable_info['lats'])
+        # varobs
+        ncvarobs[:] = varobs
+        ncvarobs.setncatts(variable_info[col_obj.varalias])
+        ncvarobs.observation_name = col_obj.obsname
+        # varmod
+        ncvarmod[:] = varmod
+        ncvarmod.setncatts(variable_info[col_obj.varalias])
+        ncvarmod.model_name = col_obj.model
+        # dists
+        ncdist[:] = dists
+        ncdist.setncatts(variable_info['dist'])
+        # colidx
+        nccolidx[:] = colidx
+        nccolidx.setncatts(variable_info['colidx'])
+        # coordinate system info
+        nc_crs = nc.createVariable('latlon',np.int32)
+        nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
+        nc_crs.grid_mapping_name = 'latitude_longitude'
+        # close file
+        nc.close()
+        #add global attributes
+        nc = netCDF4.Dataset(pathtofile,mode='r+')
+        nowstr = datetime.utcnow().isoformat()
+        globalAttribs = {}
+        globalAttribs['title'] = title
+        globalAttribs['Conventions'] = "CF-1.6"
+        globalAttribs['institution'] = \
+                                "Norwegian Meteorological Institute"
+        globalAttribs['history'] = nowstr + ". Created."
+        globalAttribs['netcdf_version'] = "NETCDF4"
+        globalAttribs['processing_level'] = \
+                                "No post-processing performed"
+        globalAttribs['leadtime'] = str(leadtime) + 'h'
         nc.setncatts(globalAttribs)
         nc.sync()
         nc.close()
