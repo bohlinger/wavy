@@ -15,17 +15,25 @@ import netCDF4
 from datetime import datetime, timedelta
 import os
 import time
+import calendar
+from dateutil.relativedelta import relativedelta
 
 # own imports
 from utils import haversine, haversine_new, collocate_times
 from utils import progress, make_fc_dates
+from utils import make_pathtofile
 from modelmod import model_class
+from ncmod import dumptonc_ts_collocation
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
+
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/collocation_specs.yaml'))
+with open(moddir,'r') as stream:
+    collocation_dict=yaml.safe_load(stream)
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
@@ -261,35 +269,110 @@ class collocation_class():
         if sa_obj is not None:
             obs_obj = sa_obj
             obs_obj.twin = sa_obj.twin
-            obsname = sa_obj.sat
+            self.obsname = sa_obj.sat
+            self.sat = sa_obj.sat
+            self.obstype = "satellite_altimeter"
         if st_obj is not None:
             obs_obj = st_obj
             obs_obj.twin = None
-            obsname = st_obj.platform + '_' +  st_obj.sensor
+            self.obsname = st_obj.platform + '_' +  st_obj.sensor
+            self.obstype = 'platform'
+            self.platform = st_obj.platform
+            self.sensor = st_obj.sensor
         if mc_obj is not None:
             model = mc_obj.model
-        t0=time.time()
-        results_dict = collocate(mc_obj=mc_obj,
-                                obs_obj=obs_obj,
-                                col_obj=col_obj,
-                                model=model,
-                                obs=obs,
-                                distlim=distlim,
-                                leadtime=leadtime,
-                                date_incr=date_incr)
-        t1=time.time()
-        print("time used for collocation:",round(t1-t0,2),"seconds")
         # define class variables
         self.sdate = obs_obj.sdate
         self.edate = obs_obj.edate
         self.model = model
-        self.obsname = obsname
         self.varalias = obs_obj.varalias
         self.stdvarname = obs_obj.stdvarname
-        #self.vars = vardict # divided into model and obs
-        self.vars = results_dict
-        self.fc_date = results_dict['datetime']
         self.leadtime = leadtime
-        print(len(self.vars['time'])," values collocated")
-        print (" ### Collocation_class object initialized ###")
+        if leadtime is None:
+            self.leadtime = 'best'
+        # get vars dictionary
+        try:
+            t0=time.time()
+            results_dict = collocate(mc_obj=mc_obj,
+                                    obs_obj=obs_obj,
+                                    col_obj=col_obj,
+                                    model=model,
+                                    obs=obs,
+                                    distlim=distlim,
+                                    leadtime=leadtime,
+                                    date_incr=date_incr)
+            t1=time.time()
+            print("time used for collocation:",round(t1-t0,2),"seconds")
+            self.vars = results_dict
+            self.fc_date = results_dict['datetime']
+            print(len(self.vars['time'])," values collocated")
+            print (" ### Collocation_class object initialized ###")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No collocation_class object initialized !")
         print ('# ----- ')
+
+    def write_to_monthly_nc(self,path=None,filename=None):
+        # divide time into months by loop over months from sdate to edate
+        if 'error' in vars(self):
+            print('Erroneous station_class file detected')
+            print('--> dump to netCDF not possible !')
+        else:
+            tmpdate = self.sdate
+            edate = self.edate
+            while tmpdate <= edate:
+                idxtmp = collocate_times(unfiltered_t=self.vars['datetime'],
+                                     sdate = datetime(tmpdate.year,
+                                                      tmpdate.month,1),
+                                     edate = datetime(tmpdate.year,
+                                                      tmpdate.month,
+                                                      calendar.monthrange(
+                                                        tmpdate.year,
+                                                        tmpdate.month)[1],
+                                                        23,59) )
+                if (path is not None and filename is not None):
+                    pathtofile = path + '/' + filename
+                else:
+                    if path is None:
+                        path_template = collocation_dict['path']\
+                                                    [self.obstype]\
+                                                    ['local']['nc']\
+                                                    ['path_template'][0]
+                    if filename is None:
+                        file_template = collocation_dict['path'][self.obstype]\
+                                                    ['local']['nc']\
+                                                    ['file_template']
+                    strsublst = collocation_dict['path'][self.obstype]\
+                                                    ['local']['nc']\
+                                                    ['strsub']
+                    tmppath = path_template + '/' + file_template
+                    if isinstance(self.leadtime,str):
+                        leadtimestr=self.leadtime
+                    else:
+                        leadtimestr="{:0>3d}h".format(self.leadtime)
+                    if self.obstype=='platform':
+                        pathtofile = make_pathtofile(tmppath,strsublst,
+                                            tmpdate,
+                                            varalias=self.varalias,
+                                            model=self.model,
+                                            platform=self.platform,
+                                            sensor=self.sensor,
+                                            leadtime=leadtimestr)
+                        title = ( 'Collocation of ' + self.stdvarname
+                                + ' observations from '
+                                + self.platform + ' ' + self.sensor
+                                + ' vs ' + self.model)
+                    elif self.obstype=='satellite_altimeter':
+                        pathtofile = make_pathtofile(tmppath,strsublst,
+                                                tmpdate,
+                                                varalias=self.varalias,
+                                                model=self.model,
+                                                satellite=self.sat,
+                                                leadtime=leadtimestr)
+                        title = ( 'Collocation of ' + self.stdvarname 
+                                + ' observations from ' + self.sat
+                                + ' vs ' + self.model)
+                dumptonc_ts_collocation(self,pathtofile,title)
+                tmpdate = tmpdate + relativedelta(months = +1)
+        return

@@ -35,6 +35,7 @@ import scipy as sp
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from ncmod import dumptonc_ts_station
 from utils import collocate_times
+from utils import make_pathtofile, get_pathtofile
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -98,7 +99,8 @@ class station_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        try:
+#        try:
+        for i in range(1):
             var, time, timedt, \
             pathtofile = self.get_station( platform,
                                            sdate,edate,
@@ -134,10 +136,10 @@ class station_class():
             self.platform = platform
             self.sensor = sensor
             print (" ### station_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = True
-            print ("! no station_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No station_class object initialized !")
         print ('# ----- ')
 
     def get_station(self,platform,sdate,edate,mode,sensor,varalias):
@@ -155,8 +157,10 @@ class station_class():
             time = []
             timedt = []
             while (tmpdate <= edate):
-                pathtofile = get_pathtofile( platform,sensor,varalias,
-                                             pathlst,strsublst,tmpdate )
+                pathtofile = get_pathtofile(pathlst,strsublst,tmpdate,
+                                            platform=platform, 
+                                            sensor=sensor,
+                                            varalias=varalias)
                 ncdict = ncdumpMeta(pathtofile)
                 varname = get_varname_for_cf_stdname_in_ncfile(ncdict,
                                                                stdvarname)
@@ -226,32 +230,17 @@ class station_class():
                                                     ['local']['nc']\
                                                     ['strsub']
                     tmppath = path_template + '/' + file_template
-                    pathtofile = make_pathtofile(self.platform,self.sensor,
-                                          self.varalias,tmppath,strsublst,
-                                          tmpdate)
+                    pathtofile = make_pathtofile(tmppath,strsublst,
+                                                tmpdate,
+                                                platform=self.platform,
+                                                sensor=self.sensor,
+                                                varalias=self.varalias)
                 title = ( self.varname + ' observations from ' 
                         + self.platform + ' ' + self.sensor )
                 dumptonc_ts_station(self,pathtofile,title)
                 tmpdate = tmpdate + relativedelta(months = +1)
         return
 
-def get_pathtofile(platform,sensor,varalias,pathlst,strsublst,date):
-    i = 0
-    pathtofile = date.strftime(pathlst[i])
-    for strsub in strsublst:
-        pathtofile = pathtofile.replace(strsub,locals()[strsub])
-    while os.path.isfile(pathtofile) is False:
-        i += 1
-        pathtofile = date.strftime(pathlst[i])
-        for strsub in strsublst:
-            pathtofile = pathtofile.replace(strsub,locals()[strsub])
-    return pathtofile
-
-def make_pathtofile(platform,sensor,varalias,tmppath,strsublst,date):
-    pathtofile = date.strftime(tmppath)
-    for strsub in strsublst:
-        pathtofile = pathtofile.replace(strsub,locals()[strsub])
-    return pathtofile
 
 def compute_superobs(st_obj,smoother='running_mean',**kwargs):
     """
@@ -275,8 +264,9 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst,mode):
     """
     sl=[]
     for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))): 
-        pathtofile = get_pathtofile(platform,sensor,varalias,\
-                                    pathlst,strsublst,pl.num2date(d))
+        pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
+                                    platform=platform,sensor=sensor,
+                                    varalias=varalias)
         print('Parsing:', pathtofile)
         f = open(pathtofile, "r")
         sl = sl + f.readlines()

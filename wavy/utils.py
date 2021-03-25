@@ -411,3 +411,21 @@ def make_fc_dates(sdate,edate,date_incr):
 def system_call(command):
     p = subprocess.Popen([command], stdout=subprocess.PIPE, shell=True)
     return p.stdout.read()
+
+def get_pathtofile(pathlst,strsublst,date,**kwargs):
+    i = 0
+    pathtofile = date.strftime(pathlst[i])
+    for strsub in strsublst:
+        pathtofile = pathtofile.replace(strsub,kwargs[strsub])
+    while os.path.isfile(pathtofile) is False:
+        i += 1
+        pathtofile = date.strftime(pathlst[i])
+        for strsub in strsublst:
+            pathtofile = pathtofile.replace(strsub,kwargs[strsub])
+    return pathtofile
+
+def make_pathtofile(tmppath,strsublst,date,**kwargs):
+    pathtofile = date.strftime(tmppath)
+    for strsub in strsublst:
+        pathtofile = pathtofile.replace(strsub,kwargs[strsub])
+    return pathtofile
