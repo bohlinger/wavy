@@ -219,6 +219,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
         lat_win = round(distlim/111.+0.01,2)
         if (col_obj is None):
             print ("No collocation idx available")
+            print (len(obs_time_dt),"footprints to be collocated")
             print ("Perform collocation with moving window of degree\n",\
                 "lon:",lon_win,"lat:",lat_win)
             for j in range(len(obs_time_dt)):

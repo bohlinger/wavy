@@ -99,8 +99,6 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                     int(args.ed[6:8]),int(args.ed[8:10]))
     twin = 0
-if args.twin is None:
-    args.lt = 0
 
 # get data
 if args.sat == 'all':

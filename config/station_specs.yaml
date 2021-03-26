@@ -20,15 +20,15 @@ path:
             vardef: # stdname: abbreviation
                 #sea_surface_wave_significant_height: Hs_10min
 platform:
-    asgardb:
-        sensor:
-            MKIIIradar: 0 # python indexing
-        manufacturer:
-            MKIIIradar: Miros
-        coords:
-            lat: 65.11
-            lon: 6.79
-        operator: Equinor_Energy
+#    asgardb:
+#        sensor:
+#            MKIIIradar: 0 # python indexing
+#        manufacturer:
+#            MKIIIradar: Miros
+#        coords:
+#            lat: 65.11
+#            lon: 6.79
+#        operator: Equinor_Energy
 #    aastahansteen:
 #        sensor:
 #        manufacturer:

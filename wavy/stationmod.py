@@ -184,7 +184,7 @@ class station_class():
             sdatetmp = sdate - timedelta(days=1)
             edatetmp = edate + timedelta(days=1)
             sl = parse_d22(platform,sensor,varalias,sdatetmp,edatetmp,
-                          pathlst,strsublst,mode)
+                          pathlst,strsublst)
             var, timedt = extract_d22(sl,varalias,platform,sensor)
             time = np.array(
                     [(t-self.basedate).total_seconds() for t in timedt]
@@ -258,7 +258,7 @@ def compute_superobs(st_obj,smoother='running_mean',**kwargs):
     print('under construction')
     return
 
-def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst,mode):
+def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
     """
     Read all lines in file and append to sl
     """

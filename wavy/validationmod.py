@@ -33,6 +33,24 @@ def calc_rmsd(a,b):
     rmsd = np.sqrt(msd)
     return msd, rmsd
 
+def calc_drmsd(a,b):
+    '''
+    root mean square deviation
+    if nans exist the prinziple of marginalization is applied
+    '''
+    a,b = np.array(a),np.array(b)
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    n = len(a1)
+    diff2 = (a1-b1)**2
+    msd = diff2.sum()/n
+    dmsd = msd - calc_bias(a,b)**2
+    rmsd = np.sqrt(msd)
+    drmsd = np.sqrt(dmsd)
+    return dmsd, drmsd
+
 def calc_scatter_index(obs,model):
     msd,rmsd = calc_rmsd(obs,model)
     stddiff = np.nanstd(obs-model)
@@ -86,9 +104,11 @@ def disp_validation(valid_dict):
     print('# ---')
     print('Correlation Coefficient: '
             + '{:0.2f}'.format(valid_dict['corr']))
+    print('Mean Absolute Difference: ' + '{:0.2f}'.format(valid_dict['mad']))
     print('Root Mean Squared Difference: '
             + '{:0.2f}'.format(valid_dict['rmsd']))
-    print('Mean Absolute Difference: ' + '{:0.2f}'.format(valid_dict['mad']))
+    print('Debiased Root Mean Squared Difference: '
+            + '{:0.2f}'.format(valid_dict['drmsd']))
     print('Bias: ' + '{:0.2f}'.format(valid_dict['bias']))
     print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
     print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
@@ -126,6 +146,7 @@ def validate(results_dict,boot=None):
         mop = np.nanmean(model_matches)
         mor = np.nanmean(obs_matches)
         msd, rmsd = calc_rmsd(model_matches,obs_matches)
+        dmsd, drmsd = calc_drmsd(model_matches,obs_matches)
         nov = len(obs_matches)
         mad = calc_mad(model_matches,obs_matches)
         corr = calc_corrcoef(model_matches,obs_matches)
@@ -137,6 +158,7 @@ def validate(results_dict,boot=None):
             'msd':msd,
             'nov':nov,
             'rmsd':rmsd,
+            'drmsd':drmsd,
             'corr':corr,
             'mad':mad,
             'bias':bias,
@@ -177,6 +199,8 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
     import cmocean
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
     import matplotlib.ticker as mticker
+    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+    from cartopy.mpl.ticker import LatitudeLocator, LongitudeLocator
 
     # sort out data/coordinates for plotting
     sat = "NA"
@@ -320,10 +344,13 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
                 linestyle = '-')
     gl.top_labels = False
     gl.right_labels = False
-    gl.xformatter = LONGITUDE_FORMATTER
-    gl.yformatter = LATITUDE_FORMATTER
     gl.xlabel_style = {'size': fs, 'color': gridcolor}
     gl.ylabel_style = {'size': fs, 'color': gridcolor}
+    #gl.xlocator = mticker.FixedLocator([-180, -45, 0, 45, 180])
+    gl.xlocator = LongitudeLocator()
+    gl.ylocator = LatitudeLocator()
+    gl.xformatter = LongitudeFormatter()
+    gl.yformatter = LatitudeFormatter()
 
     # - model contours
     im = ax.contourf(mlons, mlats, mvar, levels = levels, 
