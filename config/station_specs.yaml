@@ -158,6 +158,7 @@ platform:
             lat: 66.02
             lon: 8.08
         operator: Equinor_Energy
+        twin: 1
 #    ormenlange:
 #        sensor:
 #        manufacturer:
@@ -238,10 +239,8 @@ platform:
     valhall:
         sensor:
             SAABWaveRadar_1: 0 # python indexing
-            SAABWaveRadar_2: 1
         manufacturer:
             SAABWaveRadar_1: Rosemount
-            SAABWaveRadar_2: Rosemount
         coords:
             lat: 56.28
             lon: 3.39

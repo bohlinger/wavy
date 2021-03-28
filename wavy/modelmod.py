@@ -54,7 +54,9 @@ def get_model_filedate(model,fc_date,leadtime):
         h = int(init_times[h_idx[0][0]])
         return datetime(date.year,date.month,date.day,h)
     else:
-        raise ValueError('!!! leadtime not available !!!')
+        print('Leadtime', leadtime , \
+              'not available for date' ,fc_date, '!')
+        return False
 
 def make_model_filename(model,fc_date,leadtime):
     """

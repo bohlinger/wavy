@@ -181,8 +181,8 @@ class station_class():
             time = np.array(time).flatten()
             timedt = np.array(timedt).flatten()
         elif mode == 'd22':
-            sdatetmp = sdate - timedelta(days=1)
-            edatetmp = edate + timedelta(days=1)
+            sdatetmp = sdate
+            edatetmp = edate
             sl = parse_d22(platform,sensor,varalias,sdatetmp,edatetmp,
                           pathlst,strsublst)
             var, timedt = extract_d22(sl,varalias,platform,sensor)
@@ -192,9 +192,10 @@ class station_class():
         idxtmp = collocate_times(unfiltered_t=timedt,
                                 sdate=sdate,edate=edate,twin=1)
         # convert to list for consistency with other classes
-        var = list(np.real(var[idxtmp]))
-        time = list(time[idxtmp])
-        timedt = list(timedt[idxtmp])
+        # and make sure that only steps with existing obs are included
+        time = [time[i] for i in idxtmp if i < len(var)]
+        timedt = [timedt[i] for i in idxtmp if i < len(var)]
+        var = [np.real(var[i]) for i in idxtmp if i < len(var)]
         return var, time, timedt, pathtofile
     
     def write_to_monthly_nc(self,path=None,filename=None):
@@ -242,28 +243,12 @@ class station_class():
         return
 
 
-def compute_superobs(st_obj,smoother='running_mean',**kwargs):
-    """
-    Applies a smoothing filter to create a super-observed ts
-    **kwargs includes method specific input for chosen smoother
-    Smoother on wish list are:
-            block-average
-            running mean using convolution
-            GP
-            GAM
-            ...
-    Caution:    for some smoothers much more of time series has 
-                to be included.
-    """
-    print('under construction')
-    return
-
 def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
     """
     Read all lines in file and append to sl
     """
     sl=[]
-    for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))): 
+    for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
         pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
                                     platform=platform,sensor=sensor,
                                     varalias=varalias)
@@ -297,12 +282,20 @@ def get_revised_categories(sl,category):
     """
     revised_categories = []
     count = 1
-    newsl = sl[1:(sl[1:-1].index('!!!!\n'))]
-    for element in newsl: 
-        if category in element:
-            revised_categories.append(category+str(count))
-            count+=1
+    searching = True
+    while searching is True:
+        revised_category = category+str(count)
+        if find_category(sl,revised_category) is True:
+            revised_categories.append(revised_category)
+            count += 1
+        else:
+            searching = False
     return revised_categories
+
+def find_category(sl,category):
+    for element in sl:
+        if category in element:
+            return True
 
 def extract_d22(sl,varalias,platform,sensor):
     """
@@ -314,6 +307,16 @@ def extract_d22(sl,varalias,platform,sensor):
     print('Extracting data from parsed .d22-files')
     category = find_category_for_variable(varalias)
     revised_categories = get_revised_categories(sl,category)
+    print( 'Consitency check: \n'
+           ' --> compare found #sensors against defined in station_specs.yaml')
+    sensornr = len(station_dict['platform'][platform]['sensor'].keys())
+    if len(revised_categories) == sensornr:
+        print('Consistency check: OK!')
+    else:
+        print('Consistency check: Failed!')
+        print(  '!!! Caution:\n' + 
+                'found #sensors is not equal to defined ' +
+                '#sensors in station_specs.yaml')
     ts = []
     dt = []
     for i, line in enumerate(sl):
