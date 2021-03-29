@@ -125,6 +125,16 @@ def check_if_file_is_valid(fc_date,model,leadtime):
         print('Desired date is not in',fname)
         return False
 
+def get_closest_date(overdetermined_lst,target_lst):
+    idx = []
+    for i in range(len(target_lst)):
+        diffs=np.abs( [ ( target_lst[i]
+                        - overdetermined_lst[j] ).total_seconds()
+                        for j in range(len(overdetermined_lst)) ] )
+        mindiff= np.min(diffs)
+        idx.append(list(diffs).index(mindiff))
+    return idx
+
 def collocate(mc_obj=None,obs_obj=None,col_obj=None,
     model=None,obs=None,distlim=None,leadtime=None,date_incr=None):
     """
@@ -147,10 +157,22 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
     if (mc_obj is None and model is not None and obs_obj is not None):
         fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
         # get coinciding date between fc_date and dates in obs_obj
-        idx1 = collocate_times(  unfiltered_t = obs_obj.vars['datetime'],
+        idx1 = collocate_times( unfiltered_t = obs_obj.vars['datetime'],
                                 target_t = fc_date, twin = obs_obj.twin )
         # find valid/coinciding fc_dates
-        fc_date = list(np.array(obs_obj.vars['datetime'])[idx1])
+        if len(idx1) > len(fc_date):
+            print('Muliple assignments within given time window')
+            print('--> only closest to time stamp is chosen')
+            idx_closest = get_closest_date(\
+                        list(np.array(obs_obj.vars['datetime'])[idx1]),\
+                        fc_date)
+            idx1 = list(np.array(idx1)[idx_closest])
+        # adjust obs_obj according to valid dates
+        for key in obs_obj.vars.keys():
+            if key != 'time_unit':
+                obs_obj.vars[key] = list(np.array(obs_obj.vars[key])[idx1])
+        # adjust again assumed fc_dates
+        fc_date = obs_obj.vars['datetime']
         # find valid dates for given leadtime and model
         fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                                         fc_date,model,leadtime)
@@ -167,10 +189,11 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                              st_obj=obs_obj,
                                              distlim=distlim )
                 model_vals = [col_obj.vars['model_values'][0]]
-                model_datetime = [datetime(col_obj.vars['datetime'][0].year,
-                                   col_obj.vars['datetime'][0].month,
-                                   col_obj.vars['datetime'][0].day,
-                                   col_obj.vars['datetime'][0].hour) ]
+                tmpdate = hour_rounder(col_obj.vars['datetime'][0])
+                model_datetime = [ datetime(tmpdate.year,
+                                            tmpdate.month,
+                                            tmpdate.day,
+                                            tmpdate.hour) ]
                 model_time = [netCDF4.date2num(model_datetime[0],
                                 units=col_obj.vars['time_unit'])]
                 break
@@ -372,7 +395,7 @@ class collocation_class():
     def write_to_monthly_nc(self,path=None,filename=None):
         # divide time into months by loop over months from sdate to edate
         if 'error' in vars(self):
-            print('Erroneous station_class file detected')
+            print('Erroneous collocation_class file detected')
             print('--> dump to netCDF not possible !')
         else:
             tmpdate = self.sdate

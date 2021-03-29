@@ -281,21 +281,31 @@ def get_revised_categories(sl,category):
     revised_categories (type: list)
     """
     revised_categories = []
+    idxlst = []
     count = 1
     searching = True
-    while searching is True:
+    while (searching is True or count<10):
         revised_category = category+str(count)
         if find_category(sl,revised_category) is True:
             revised_categories.append(revised_category)
+            idxlst.append(count-1)
             count += 1
         else:
             searching = False
-    return revised_categories
+            count += 1
+    return revised_categories,idxlst
 
 def find_category(sl,category):
     for element in sl:
         if category in element:
             return True
+
+def check_sensor_availability(revised_categories,idxlst,platform,sensor):
+    idxyaml = station_dict['platform'][platform]['sensor'][sensor]
+    if idxyaml in idxlst:
+        return idxlst.index(idxyaml)
+    else:
+        return None
 
 def extract_d22(sl,varalias,platform,sensor):
     """
@@ -306,43 +316,52 @@ def extract_d22(sl,varalias,platform,sensor):
     """
     print('Extracting data from parsed .d22-files')
     category = find_category_for_variable(varalias)
-    revised_categories = get_revised_categories(sl,category)
-    print( 'Consitency check: \n'
+    revised_categories,idxlst = get_revised_categories(sl,category)
+    print( 'Consistency check: \n'
            ' --> compare found #sensors against defined in station_specs.yaml')
     sensornr = len(station_dict['platform'][platform]['sensor'].keys())
     if len(revised_categories) == sensornr:
         print('Consistency check: OK!')
     else:
         print('Consistency check: Failed!')
-        print(  '!!! Caution:\n' + 
-                'found #sensors is not equal to defined ' +
-                '#sensors in station_specs.yaml')
+        print(    '!!! Caution:\n'
+                + 'found #sensor (' 
+                + str(len(revised_categories))
+                + ') is not equal to defined ' +
+                '#sensors (' 
+                + str(sensornr)
+                + ') in station_specs.yaml')
+    # check that the defined sensors are actually the ones being found 
+    check = check_sensor_availability(revised_categories,\
+                                      idxlst,platform,sensor)
     ts = []
     dt = []
-    for i, line in enumerate(sl):
-        # get ts for date and time
-        if "!!!!" in line:
-            datestr = sl[  i
-                         + d22_var_dicts['datetime']['date']['idx']
-                        ].strip()
-            timestr = sl[  i
-                         + d22_var_dicts['datetime']['time']['idx']
-                        ].strip()
-            date_object = datetime.strptime(datestr 
-                                            + ' ' 
-                                            + timestr,
-                                            '%d-%m-%Y %H:%M')
-            dt.append(date_object)
-        # get ts for variable of interest
-        revised_category_for_sensor = revised_categories[
-                                        station_dict['platform']\
-                                        [platform]['sensor']\
-                                        [sensor] ]
-        if revised_category_for_sensor in line:
-            value = sl[  i
-                       + d22_var_dicts[category][varalias]['idx']
-                       ].strip()
-            ts.append(floater(value))
+    if check is not None:
+        print('Sensor is available and defined in station_specs.yaml')
+        for i, line in enumerate(sl):
+            # get ts for date and time
+            if "!!!!" in line:
+                datestr = sl[  i
+                             + d22_var_dicts['datetime']['date']['idx']
+                            ].strip()
+                timestr = sl[  i
+                             + d22_var_dicts['datetime']['time']['idx']
+                            ].strip()
+                date_object = datetime.strptime(datestr 
+                                                + ' ' 
+                                                + timestr,
+                                                '%d-%m-%Y %H:%M')
+                dt.append(date_object)
+            # get ts for variable of interest
+            revised_category_for_sensor = revised_categories[check]
+            #print(revised_category_for_sensor)
+            if revised_category_for_sensor in line:
+                value = sl[  i
+                            + d22_var_dicts[category][varalias]['idx']
+                           ].strip()
+                ts.append(floater(value))
+    else:
+        print('Caution: Sensor is not defined or available')
     #Convert data to arrays
     dt = np.array(dt)
     ts = np.array(ts)

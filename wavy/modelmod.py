@@ -46,8 +46,9 @@ def get_model_filedate(model,fc_date,leadtime):
         print('Assuming continuous simulation with hourly values')
         init_times = np.array(range(25)).astype('float')
     date = fc_date - timedelta(hours=leadtime)
-    if date.hour in init_times:
-        init_diffs = date.hour - init_times
+    date_hour = hour_rounder(date).hour
+    if date_hour in init_times:
+        init_diffs = date_hour - init_times
         init_diffs[init_diffs<0] = np.nan
         h_idx = np.where(init_diffs==\
                         np.min(init_diffs[~np.isnan(init_diffs)]))

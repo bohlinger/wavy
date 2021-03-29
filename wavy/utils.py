@@ -358,14 +358,14 @@ def find_included_times(unfiltered_t,target_t=None,
     or within a time window specified by sdate and edate
     """
     if (sdate is None and edate is None): # [interval]
-        cidx = [ i for i in range(len(unfiltered_t))
+        idx = [ i for i in range(len(unfiltered_t))
              if (unfiltered_t[i] >= target_t-timedelta(minutes=twin)
              and unfiltered_t[i] <= target_t+timedelta(minutes=twin)) ]
     else: # ]interval[
-        cidx = [ i for i in range(len(unfiltered_t))
+        idx = [ i for i in range(len(unfiltered_t))
              if (unfiltered_t[i] > sdate-timedelta(minutes=twin)\
              and unfiltered_t[i] < edate+timedelta(minutes=twin)) ]
-    return cidx
+    return idx
 
 def collocate_times(unfiltered_t,target_t=None,
     sdate=None,edate=None,twin=None):
