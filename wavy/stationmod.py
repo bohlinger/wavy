@@ -99,8 +99,8 @@ class station_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-#        try:
-        for i in range(1):
+        try:
+#        for i in range(1):
             var, time, timedt, \
             pathtofile = self.get_station( platform,
                                            sdate,edate,
@@ -136,10 +136,10 @@ class station_class():
             self.platform = platform
             self.sensor = sensor
             print (" ### station_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No station_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No station_class object initialized !")
         print ('# ----- ')
 
     def get_station(self,platform,sdate,edate,mode,sensor,varalias):

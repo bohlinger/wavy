@@ -70,8 +70,10 @@ def make_model_filename(model,fc_date,leadtime):
             for i in range(model_dict[model]['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
                 replacestr = (filedate \
+                            + timedelta(hours=leadtime)
+                                    * model_dict[model]['lt_switch'][i]
                             + timedelta(hours = \
-                                        model_dict[model]['xtra_h'][i])).\
+                                    model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
                 tmpstr = tmpstr.replace('filedate',replacestr,1)
             filename = (filedate.strftime(model_dict[model]['path_template'])

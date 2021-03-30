@@ -418,6 +418,7 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
     for strsub in strsublst:
         pathtofile = pathtofile.replace(strsub,kwargs[strsub])
     while os.path.isfile(pathtofile) is False:
+        print(pathtofile, 'does not exist!')
         i += 1
         pathtofile = date.strftime(pathlst[i])
         for strsub in strsublst:

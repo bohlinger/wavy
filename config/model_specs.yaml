@@ -19,6 +19,7 @@
 #    path_template: 
 #    file_template:
 #    xtra_h: # h adjustment according to position in filename
+#    lt_switch: # should lead time be used for filedate [False/True]
 #    nr_filedates: # how many dates are introduced in the filename
 #    filedate_formats: # time string format e.g. %Y%m%d
 #    init_times: # UTC hours of model initialization
@@ -38,17 +39,18 @@ ARCMFC3:
         time: time
         lons: lon
         lats: lat
-    #path_template: "/lustre/storeA/project/copernicus/sea/\
-    #                mywavewam3/arctic/%Y/%m/"
-    path_template: "https://thredds.met.no/thredds/dodsC/\
-                    cmems/mywavewam3km_files/%Y/%m/"
+    path_template: "/lustre/storeA/project/copernicus/sea/\
+                    mywavewam3/arctic/%Y/%m/"
+    #path_template: "https://thredds.met.no/thredds/dodsC/\
+    #                cmems/mywavewam3km_files/%Y/%m/"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
     # introduce the sub-string filedate into filename
     # for each time a date should be replaced
     file_template: "filedate_MyWaveWam3_bfiledate.nc"
-    xtra_h: [0,6] # h adjustment according to position in filename
+    xtra_h: [0,6] # h bias adjustment according to position in filename
+    lt_switch: [1,0] # should lead time be used for filedate [False/True]
     nr_filedates: 2
     # defining format which substitutes filedate in file_template
     filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
