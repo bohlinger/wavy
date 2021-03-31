@@ -50,7 +50,8 @@ ARCMFC3:
     # for each time a date should be replaced
     file_template: "filedate_MyWaveWam3_bfiledate.nc"
     xtra_h: [0,6] # h bias adjustment according to position in filename
-    lt_switch: [1,0] # should lead time be used for filedate [False/True]
+    lt_switch_f: [1,0] # should lead time be to adjust filedate [False/True]
+    lt_switch_p: 1 # should lead time be to adjust pathdate [False/True]
     nr_filedates: 2
     # defining format which substitutes filedate in file_template
     filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']

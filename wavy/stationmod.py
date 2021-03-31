@@ -99,8 +99,8 @@ class station_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        try:
-#        for i in range(1):
+#        try:
+        for i in range(1):
             var, time, timedt, \
             pathtofile = self.get_station( platform,
                                            sdate,edate,
@@ -136,10 +136,10 @@ class station_class():
             self.platform = platform
             self.sensor = sensor
             print (" ### station_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No station_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No station_class object initialized !")
         print ('# ----- ')
 
     def get_station(self,platform,sdate,edate,mode,sensor,varalias):
@@ -189,8 +189,16 @@ class station_class():
             time = np.array(
                     [(t-self.basedate).total_seconds() for t in timedt]
                     )
-        idxtmp = collocate_times(unfiltered_t=timedt,
-                                sdate=sdate,edate=edate,twin=1)
+
+        if 'twin' in station_dict['platform'][platform]:
+            idxtmp = collocate_times(unfiltered_t=timedt,\
+                                sdate=sdate,edate=edate,
+                                twin=station_dict['platform']\
+                                                 [platform]['twin'])
+        else:
+            idxtmp = collocate_times(unfiltered_t=timedt,\
+                                sdate=sdate,edate=edate,
+                                twin=1)
         # convert to list for consistency with other classes
         # and make sure that only steps with existing obs are included
         time = [time[i] for i in idxtmp if i < len(var)]
@@ -248,7 +256,7 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
     Read all lines in file and append to sl
     """
     sl=[]
-    for d in range(int(pl.date2num(sdate)),int(pl.date2num(edate))+1): 
+    for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2): 
         pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
                                     platform=platform,sensor=sensor,
                                     varalias=varalias)

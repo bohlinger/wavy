@@ -66,17 +66,19 @@ def make_model_filename(model,fc_date,leadtime):
     if model in model_dict:
         if 'xtra_h' in model_dict[model]:
             filedate = get_model_filedate(model,fc_date,leadtime)
+            pathdate = filedate + timedelta(hours=leadtime) \
+                                * model_dict[model]['lt_switch_p']
             tmpstr = model_dict[model]['file_template']
             for i in range(model_dict[model]['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
                 replacestr = (filedate \
                             + timedelta(hours=leadtime)
-                                    * model_dict[model]['lt_switch'][i]
+                                    * model_dict[model]['lt_switch_f'][i]
                             + timedelta(hours = \
                                     model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
                 tmpstr = tmpstr.replace('filedate',replacestr,1)
-            filename = (filedate.strftime(model_dict[model]['path_template'])
+            filename = (pathdate.strftime(model_dict[model]['path_template'])
                         + tmpstr)
         else:
             filedate = get_model_filedate(model,fc_date,leadtime)
