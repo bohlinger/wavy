@@ -23,7 +23,8 @@ from utils import haversine, haversine_new, collocate_times
 from utils import progress, make_fc_dates
 from utils import make_pathtofile
 from utils import hour_rounder
-from modelmod import model_class, make_model_filename, get_model_filedate
+from modelmod import model_class, make_model_filename_wrapper
+from modelmod import get_model_filedate
 from ncmod import dumptonc_ts_collocation
 # ---------------------------------------------------------------------#
 
@@ -115,7 +116,7 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
     return fc_dates_new
 
 def check_if_file_is_valid(fc_date,model,leadtime):
-    fname = make_model_filename(model,fc_date,leadtime)
+    fname = make_model_filename_wrapper(model,fc_date,leadtime)
     nc = netCDF4.Dataset(fname,mode='r')
     time = nc.variables['time']
     dt = netCDF4.num2date(time[:],time.units)
@@ -159,7 +160,11 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     # adjust again assumed fc_dates by filtered obs dates
     fc_date = obs_obj.vars['datetime']
     # find valid dates for given leadtime and model
-    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
+    if leadtime == 'best' or leadtime is None:
+        # all time steps are used
+        pass
+    else:
+        fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                                     fc_date,model,leadtime)
     # check if file exists and if it includes desired time
     check = False
