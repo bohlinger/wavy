@@ -430,3 +430,10 @@ def make_pathtofile(tmppath,strsublst,date,**kwargs):
     for strsub in strsublst:
         pathtofile = pathtofile.replace(strsub,kwargs[strsub])
     return pathtofile
+
+def convert_meteorologic_oceanographic(alpha):
+    """
+    fct to convert angles from meteorological convention to 
+    oceanographic/nautical and vice versa
+    """
+    return (alpha+180)%360

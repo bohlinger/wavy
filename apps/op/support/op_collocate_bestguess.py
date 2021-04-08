@@ -12,16 +12,21 @@ sys.path.append('../../wavy')
 with open("../../config/model_specs.yaml", 'r') as stream:
     model_dict=yaml.safe_load(stream)
 
+with open("../../config/satellite_specs.yaml", 'r') as stream:
+    satellite_dict=yaml.safe_load(stream)
+
+with open("../../config/collocation_specs.yaml", 'r') as stream:
+    collocation_dict=yaml.safe_load(stream)
+
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
-from satmod import satellite_class as sa
-from modelmod import get_model
-from collocmod import collocate
 from utils import grab_PID
-from ncmod import dumptonc_ts
+from modelmod import model_class
+from collocmod import collocation_class
+from stationmod import station_class
 
 # parser
 parser = argparse.ArgumentParser(
@@ -55,7 +60,7 @@ args = parser.parse_args()
 
 now = datetime.now()
 
-varlst = ['Hs']
+varalias = 'Hs'
 
 if args.mod is None:
     args.mod = 'mwam4'
@@ -63,7 +68,7 @@ if args.mod is None:
 if args.sat is None:
     args.sat = ['s3a']
 elif args.sat == "all":
-    args.sat = ['s3a','s3b','c2','j3','al','cfo']
+    args.sat = satellite_dict['altimeter']['cmems']['satellite']
 else: args.sat = [args.sat]
 
 if args.reg is None:
@@ -80,8 +85,33 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
+
+leadtimestr = "best"
+
 if args.path is None:
-    args.path = '/lustre/storeB/project/fou/om/waveverification/'
+    path_template = collocation_dict['path']\
+                                    [self.obstype]\
+                                    ['local']['nc']\
+                                    ['path_template'][0]
+    file_template = collocation_dict['path'][self.obstype]\
+                                    ['local']['nc']\
+                                    ['file_template']
+    strsublst = collocation_dict['path'][self.obstype]\
+                                ['local']['nc']\
+                                ['strsub']
+    tmppath = path_template + '/' + file_template
+    pathtofile = make_pathtofile(tmppath,strsublst,
+                                 tmpdate,
+                                 varalias=self.varalias,
+                                 model=self.model,
+                                 satellite=self.sat,
+                                 leadtime=leadtimestr)
+
+title = ( 'Collocation of ' + self.stdvarname
+        + ' observations from ' + self.sat
+        + ' vs ' + self.model )
+
+
 
 # retrieve PID
 grab_PID()

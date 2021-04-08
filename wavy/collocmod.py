@@ -111,7 +111,10 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
     Finds valid dates that are close to desired dates at a precision
     of complete hours
     '''
-    fc_dates_new = [hour_rounder(d) for d in fc_dates \
+    if (leadtime is None or leadtime == 'best'):
+        fc_dates_new = [hour_rounder(d) for d in fc_dates]
+    else:
+        fc_dates_new = [hour_rounder(d) for d in fc_dates \
                     if get_model_filedate(model,d,leadtime) != False]
     return fc_dates_new
 
@@ -123,7 +126,7 @@ def check_if_file_is_valid(fc_date,model,leadtime):
     if fc_date in list(dt):
         return True
     else:
-        print('Desired date is not in',fname)
+        print('Desired date ' + str(fc_date) +  ' is not in',fname)
         return False
 
 def get_closest_date(overdetermined_lst,target_lst):
@@ -160,11 +163,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     # adjust again assumed fc_dates by filtered obs dates
     fc_date = obs_obj.vars['datetime']
     # find valid dates for given leadtime and model
-    if leadtime == 'best' or leadtime is None:
-        # all time steps are used
-        pass
-    else:
-        fc_date = find_valid_fc_dates_for_model_and_leadtime(\
+    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                                     fc_date,model,leadtime)
     # check if file exists and if it includes desired time
     check = False
@@ -321,7 +320,8 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
     elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
-        results_dict['model_values'] = model_vals[collocation_idx]
+        results_dict['model_values'] = model_vals[\
+                                        col_obj.vars['collocation_idx']]
     return results_dict
 
 
@@ -375,6 +375,7 @@ class collocation_class():
             self.obsname = sa_obj.sat
             self.sat = sa_obj.sat
             self.obstype = "satellite_altimeter"
+            self.region = sa_obj.region
         if st_obj is not None:
             obs_obj = st_obj
             if 'twin' in station_dict['platform'][st_obj.platform].keys():
@@ -476,6 +477,7 @@ class collocation_class():
                                                 varalias=self.varalias,
                                                 model=self.model,
                                                 satellite=self.sat,
+                                                region=self.region,
                                                 leadtime=leadtimestr)
                         title = ( 'Collocation of ' + self.stdvarname 
                                 + ' observations from ' + self.sat

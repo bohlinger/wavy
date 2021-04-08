@@ -36,6 +36,7 @@ from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from ncmod import dumptonc_ts_station
 from utils import collocate_times
 from utils import make_pathtofile, get_pathtofile
+from utils import convert_meteorologic_oceanographic
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -373,6 +374,11 @@ def extract_d22(sl,varalias,platform,sensor):
     #Convert data to arrays
     dt = np.array(dt)
     ts = np.array(ts)
+    # adjust conventions
+    if ('convention' in d22_var_dicts[category][varalias].keys() and
+    d22_var_dicts[category][varalias]['convention'] == 'meteorologic'):
+        print('Convert from meteorologic to oceanographic convention')
+        ts = convert_meteorologic_oceanographic(ts)
     return ts, dt
 
 # --- help ------------------------------------------------------------#
