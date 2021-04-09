@@ -140,8 +140,10 @@ def validate(results_dict,boot=None):
     #date_matches = results_dict['datetime']
     if isinstance(results_dict['model_values'],list):
         model_matches = np.array(results_dict['model_values'])
+    else: model_matches = results_dict['model_values']
     if isinstance(results_dict['obs_values'],list):
         obs_matches = np.array(results_dict['obs_values'])
+    else: obs_matches = results_dict['obs_values']
     if (boot is None or boot ==  False):
         mop = np.nanmean(model_matches)
         mor = np.nanmean(obs_matches)
@@ -189,7 +191,6 @@ def validate(results_dict,boot=None):
     return validation_dict
 
 def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
-
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt

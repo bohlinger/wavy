@@ -38,7 +38,7 @@ platform:
             lat: 67.07
             lon: 7.01
         operator: Equinor_Energy
-        twin: 4
+        twin: 1
     brage:
         sensor:
             NA_1: 0

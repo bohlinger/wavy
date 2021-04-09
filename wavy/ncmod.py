@@ -610,7 +610,7 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
         nc.sync()
         nc.close()
 
-def dumptonc_stats(outpath,filename,title,time_dt,time_unit,valid_dict):
+def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
     """
     1. check if nc file already exists
     2. - if so use append mode
@@ -627,18 +627,15 @@ def dumptonc_stats(outpath,filename,title,time_dt,time_unit,valid_dict):
     bias = np.array(valid_dict['bias'])
     SI = np.array(valid_dict['SI'][1])
     nov = np.array(valid_dict['nov'])
-    fullpath = outpath + filename
-    print ('Dump data to file: ' + fullpath)
-    if os.path.isfile(fullpath):
+    print ('Dump data to file: ' + pathtofile)
+    if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
-                        fullpath,mode='a',
+                        pathtofile,mode='a',
                         clobber=False
                         )
         # variables
         startidx = len(nc['time'])
         endidx = len(nc['time'])+1
-        print(startidx)
-        print(endidx)
         nc.variables['time'][startidx:endidx] = time
         nc.variables['mop'][startidx:endidx] = mop
         nc.variables['mor'][startidx:endidx] = mor
@@ -650,9 +647,10 @@ def dumptonc_stats(outpath,filename,title,time_dt,time_unit,valid_dict):
         nc.variables['SI'][startidx:endidx] = SI
         nc.variables['nov'][startidx:endidx] = nov
     else:
+        outpath = pathtofile[0:-len(pathtofile.split('/')[-1])]
         os.system('mkdir -p ' + outpath)
         nc = netCDF4.Dataset(
-                        fullpath,mode='w',
+                        pathtofile,mode='w',
 #                        format='NETCDF4'
                         )
         nc.title = title

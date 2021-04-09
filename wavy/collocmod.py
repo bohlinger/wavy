@@ -485,3 +485,27 @@ class collocation_class():
                 dumptonc_ts_collocation(self,pathtofile,title)
                 tmpdate = tmpdate + relativedelta(months = +1)
         return
+
+    def validate_collocated_values(self,date=None,twin=None,path=None,
+    filename=None):
+        validation_dict = validate_collocated_valuesa(col_obj=self,date=date,\
+                                    twin=twin,path=path,filename=filename)
+        return validation_dict
+
+def validate_collocated_values(col_obj=None,mods=None,obs=None,\
+dtime=None,date=None,twin=None,path=None,filename=None):
+    if col_obj is not None:
+        mods = col_obj.vars['model_values']
+        obs = col_obj.vars['obs_values']
+        dtime = col_obj.vars['datetime']
+    # get idx for date and twin
+    from utils import find_included_times
+    idx = find_included_times(dtime,target_t=date,twin=twin)
+    mods = np.array(mods)[idx]
+    obs = np.array(obs)[idx]
+    results_dict = {'model_values':mods,'obs_values':obs}
+    # validate
+    from validationmod import validate
+    validation_dict = validate(results_dict)
+    return validation_dict
+
