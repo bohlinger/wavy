@@ -250,10 +250,13 @@ class satellite_class():
                 else:
                     rvardict[element] = cvardict[element]
             del cvardict
-            rvardict['datetime'] = list(netCDF4.num2date(rvardict['time'],
+            if len(rvardict['time'])>0:
+                rvardict['datetime'] = list(netCDF4.num2date(rvardict['time'],
                                                     rvardict['time_unit']))
-            print('For chosen region and time: ', len(rvardict['time']), 
-                ' footprints found')
+                print('For chosen region and time: ', len(rvardict['time']), 
+                    ' footprints found')
+            else:
+                print('For chosen region and time: 0 footprints found!')
             # find variable name as defined in file
             stdname = variable_info[varalias]['standard_name']
             ncdict = ncdumpMeta(pathlst[0])

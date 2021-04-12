@@ -109,8 +109,8 @@ def get_arcmfc_ts(pathtofile):
             )
         time_var = nc.variables['time']
         dtime = netCDF4.num2date(time_var[:],time_var.units)
-        sHs = nc.variables['sHs'][:]
-        mHs = nc.variables['mHs'][:]
+        sHs = nc.variables['obs_values'][:]
+        mHs = nc.variables['model_values'][:]
         nc.close()
     return dtime,sHs,mHs
 
