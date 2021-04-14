@@ -37,6 +37,7 @@ from ncmod import dumptonc_ts_station
 from utils import collocate_times
 from utils import make_pathtofile, get_pathtofile
 from utils import convert_meteorologic_oceanographic
+from superobmod import superobbing
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -65,7 +66,8 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir, 'r') as stream:
     d22_var_dicts=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+                        '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
@@ -94,39 +96,16 @@ class station_class():
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
     def __init__(self,platform,sensor,sdate,edate,
-                mode='d22',varalias='Hs'):
+                mode='d22',varalias='Hs',date_incr=1,
+                superobserve = False, **kwargs):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-#        try:
-        for i in range(1):
-            var, time, timedt, \
-            pathtofile = self.get_station( platform,
-                                           sdate,edate,
-                                           mode,
-                                           sensor,
-                                           varalias )
-            vardict = {
-                    stdvarname:var,
-                    'time':time,
-                    'datetime':timedt,
-                    'time_unit':self.time_unit,
-                    'longitude':[ station_dict['platform'][platform]\
-                                  ['coords']['lon'] ]*len(var),
-                    'latitude':[ station_dict['platform'][platform]\
-                                 ['coords']['lat'] ]*len(var)
-                    }
-            self.vars = vardict
+        try:
+#        for i in range(1):
             self.stdvarname = stdvarname
-            if mode == 'd22':
-                self.varname = varalias
-            elif mode == 'nc':
-                model_meta = ncdumpMeta(pathtofile)
-                self.vars['model_meta'] = model_meta
-                self.varname = get_varname_for_cf_stdname_in_ncfile( 
-                                model_meta,stdvarname)
             self.varalias = varalias
             self.sdate = sdate
             self.edate = edate
@@ -136,11 +115,62 @@ class station_class():
                                    ['coords']['lon']
             self.platform = platform
             self.sensor = sensor
+            if superobserve == False:
+                var, time, timedt, \
+                pathtofile = self.get_station( platform,
+                                           sdate,edate,
+                                           mode,
+                                           sensor,
+                                           varalias )
+                vardict = {
+                    stdvarname:var,
+                    'time':time,
+                    'datetime':timedt,
+                    'time_unit':self.time_unit,
+                    'longitude':[ station_dict['platform'][platform]\
+                                  ['coords']['lon'] ]*len(var),
+                    'latitude':[ station_dict['platform'][platform]\
+                                 ['coords']['lat'] ]*len(var)
+                    }
+            elif superobserve == True:
+                # determine start and end date
+                twin = 0# twin in hours
+                sdate_new = sdate - timedelta(hours=kwargs['stwin'])
+                edate_new = edate + timedelta(hours=kwargs['etwin'])
+                var, time, timedt, \
+                pathtofile = self.get_station( platform,
+                                           sdate_new,edate_new,
+                                           mode,
+                                           sensor,
+                                           varalias )
+                tmp_vardict = {
+                    stdvarname:var,
+                    'time':time,
+                    'datetime':timedt,
+                    'time_unit':self.time_unit,
+                    'longitude':[ station_dict['platform'][platform]\
+                                  ['coords']['lon'] ]*len(var),
+                    'latitude':[ station_dict['platform'][platform]\
+                                 ['coords']['lat'] ]*len(var)
+                    }
+                vardict = superobbing(varalias,st_obj.vars,\
+                            superob=kwargs['superob'],\
+                            outlier_detection=kwargs['outlier_detection'],\
+                            missing_data=kwargs['missing_data'],\
+                            date_incr=kwargs['date_incr'],**kwargs)
+            self.vars = vardict
+            if mode == 'd22':
+                self.varname = varalias
+            elif mode == 'nc':
+                model_meta = ncdumpMeta(pathtofile)
+                self.vars['model_meta'] = model_meta
+                self.varname = get_varname_for_cf_stdname_in_ncfile(
+                                model_meta,stdvarname)
             print (" ### station_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No station_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No station_class object initialized !")
         print ('# ----- ')
 
     def get_station(self,platform,sdate,edate,mode,sensor,varalias):
@@ -258,13 +288,17 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
     """
     sl=[]
     for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2): 
-        pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
+        try:
+            pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
                                     platform=platform,sensor=sensor,
                                     varalias=varalias)
-        print('Parsing:', pathtofile)
-        f = open(pathtofile, "r")
-        sl = sl + f.readlines()
-        f.close()
+            print('Parsing:', pathtofile)
+            f = open(pathtofile, "r")
+            sl = sl + f.readlines()
+            f.close()
+        except Exception as e:
+            print('Error in parse_d22:')
+            print(e)
     return sl
 
 def floater(s):

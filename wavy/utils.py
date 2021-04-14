@@ -351,18 +351,18 @@ def get_size(obj, seen=None):
     return size
 
 def find_included_times(unfiltered_t,target_t=None,
-    sdate=None,edate=None,twin=None):
+    sdate=None,edate=None,twin=0):
     """
     find index/indices of unfiltered time series that fall 
     within a tolearance time window around the target time
     or within a time window specified by sdate and edate
     """
     if (sdate is None and edate is None): # [interval]
-        idx = [ i for i in range(len(unfiltered_t))
-             if (unfiltered_t[i] >= target_t-timedelta(minutes=twin)
+        idx = [ i for i in range(len(unfiltered_t))\
+             if (unfiltered_t[i] >= target_t-timedelta(minutes=twin)\
              and unfiltered_t[i] <= target_t+timedelta(minutes=twin)) ]
     else: # [interval]
-        idx = [ i for i in range(len(unfiltered_t))
+        idx = [ i for i in range(len(unfiltered_t))\
              if (unfiltered_t[i] >= sdate-timedelta(minutes=twin)\
              and unfiltered_t[i] <= edate+timedelta(minutes=twin)) ]
     return idx
