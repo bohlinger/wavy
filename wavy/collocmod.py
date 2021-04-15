@@ -158,7 +158,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
         idx1 = list(np.array(idx1)[idx_closest])
     # adjust obs_obj according to valid dates
     for key in obs_obj.vars.keys():
-        if key != 'time_unit':
+        if (key != 'time_unit' and key !='model_meta'):
             obs_obj.vars[key] = list(np.array(obs_obj.vars[key])[idx1])
     # adjust again assumed fc_dates by filtered obs dates
     fc_date = obs_obj.vars['datetime']
@@ -414,6 +414,10 @@ class collocation_class():
             self.vars = results_dict
             self.fc_date = results_dict['datetime']
             print(len(self.vars['time'])," values collocated")
+            if 'superob' in vars(obs_obj).keys():
+                self.superob = obs_obj.superob
+                self.outlier_detection = obs_obj.outlier_detection
+                self.missing_data = obs_obj.missing_data
             print (" ### Collocation_class object initialized ###")
         except Exception as e:
             print(e)
@@ -454,6 +458,8 @@ class collocation_class():
                     strsublst = collocation_dict['path'][self.obstype]\
                                                     ['local']['nc']\
                                                     ['strsub']
+                    if 'superob' in vars(self).keys():
+                        file_template = 'superobbed_' + file_template
                     tmppath = path_template + '/' + file_template
                     if isinstance(self.leadtime,str):
                         leadtimestr=self.leadtime

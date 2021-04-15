@@ -96,7 +96,7 @@ class station_class():
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
     def __init__(self,platform,sensor,sdate,edate,
-                mode='d22',varalias='Hs',date_incr=1,
+                mode='d22',varalias='Hs',
                 superobserve = False, **kwargs):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
@@ -134,7 +134,10 @@ class station_class():
                     }
             elif superobserve == True:
                 # determine start and end date
-                twin = 0# twin in hours
+                if 'stwin' not in kwargs.keys():
+                    kwargs['stwin'] = 3
+                if 'etwin' not in kwargs.keys():
+                    kwargs['etwin'] = 0
                 sdate_new = sdate - timedelta(hours=kwargs['stwin'])
                 edate_new = edate + timedelta(hours=kwargs['etwin'])
                 var, time, timedt, \
@@ -153,11 +156,28 @@ class station_class():
                     'latitude':[ station_dict['platform'][platform]\
                                  ['coords']['lat'] ]*len(var)
                     }
-                vardict = superobbing(varalias,st_obj.vars,\
-                            superob=kwargs['superob'],\
-                            outlier_detection=kwargs['outlier_detection'],\
-                            missing_data=kwargs['missing_data'],\
-                            date_incr=kwargs['date_incr'],**kwargs)
+                print(kwargs)
+                vardict = superobbing(varalias,tmp_vardict,**kwargs)
+                # cut to original sdate and edate
+                time_cut = np.array(vardict['time'])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)) ]
+                var_cut = np.array(vardict[stdvarname])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)) ]
+                lon_cut = [vardict['longitude'][0]]*len(time_cut)
+                lat_cut = [vardict['latitude'][0]]*len(time_cut)
+                dtime_cut = np.array(vardict['datetime'])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)) ]
+                vardict['time'] = list(time_cut)
+                vardict['datetime'] = list(dtime_cut)
+                vardict[stdvarname] = list(var_cut)
+                vardict['longitude'] = lon_cut
+                vardict['latitude'] = lat_cut
+                self.superob = kwargs['superob']
+                self.outlier_detection = kwargs['outlier_detection']
+                self.missing_data = kwargs['missing_data']
             self.vars = vardict
             if mode == 'd22':
                 self.varname = varalias
@@ -187,11 +207,13 @@ class station_class():
             var = []
             time = []
             timedt = []
-            while (tmpdate <= edate):
+            while (datetime(tmpdate.year,tmpdate.month,1) \
+            <= datetime(edate.year,edate.month,1)):
                 pathtofile = get_pathtofile(pathlst,strsublst,tmpdate,
                                             platform=platform, 
                                             sensor=sensor,
                                             varalias=varalias)
+                print('Parsing:',pathtofile)
                 ncdict = ncdumpMeta(pathtofile)
                 varname = get_varname_for_cf_stdname_in_ncfile(ncdict,
                                                                stdvarname)
@@ -208,9 +230,19 @@ class station_class():
                 timedt.append(netCDF4.num2date(timeobj[:],timeobj.units))
                 nc.close()
                 tmpdate = tmpdate + relativedelta(months = +1)
-            var = np.array(var).flatten()
-            time = np.array(time).flatten()
-            timedt = np.array(timedt).flatten()
+                print(tmpdate)
+            var = flatten(var)
+            time = flatten(time)
+            timedt = flatten(timedt)
+            # convert to datetime object
+            timedt = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second) 
+                    for t in timedt]
+            # remove duplicates
+            timedt, \
+            unique_time_idx = list(np.unique(timedt,return_index=True)[0]),\
+                              list(np.unique(timedt,return_index=True)[1])
+            var = list(np.array(var)[unique_time_idx])
+            time = list(np.array(time)[unique_time_idx])
         elif mode == 'd22':
             sdatetmp = sdate
             edatetmp = edate
@@ -269,6 +301,8 @@ class station_class():
                     strsublst = station_dict['path']['platform']\
                                                     ['local']['nc']\
                                                     ['strsub']
+                    if 'superob' in vars(self).keys():
+                        file_template = 'superobbed_' + file_template
                     tmppath = path_template + '/' + file_template
                     pathtofile = make_pathtofile(tmppath,strsublst,
                                                 tmpdate,
@@ -300,6 +334,17 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
             print('Error in parse_d22:')
             print(e)
     return sl
+
+# flatten all lists before returning them
+# define flatten function for lists
+''' fct does the following:
+flat_list = [item for sublist in TIME for item in sublist]
+or:
+for sublist in TIME:
+for item in sublist:
+flat_list.append(item)
+'''
+flatten = lambda l: [item for sublist in l for item in sublist]
 
 def floater(s):
     """

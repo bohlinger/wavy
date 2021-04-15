@@ -427,7 +427,17 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
                                 "Norwegian Meteorological Institute"
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
-        globalAttribs['processing_level'] = \
+        if 'superob' in vars(st_obj).keys():
+            globalAttribs['processing_level'] = ('superob: ' 
+                                                + str(st_obj.superob)
+                                                + '; '
+                                                + 'outlier_detection: '
+                                                + st_obj.outlier_detection
+                                                + '; '
+                                                + 'missing_data: '
+                                                + st_obj.missing_data)
+        else:
+            globalAttribs['processing_level'] = \
                                 "No post-processing performed"
         globalAttribs['static_position_station'] =  ("Latitude: "
                             + str(station_dict['platform']\
@@ -603,7 +613,17 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
                                 "Norwegian Meteorological Institute"
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
-        globalAttribs['processing_level'] = \
+        if 'superob' in vars(col_obj).keys():
+            globalAttribs['processing_level'] = ('superob: '
+                                                + str(col_obj.superob)
+                                                + '; '
+                                                + 'outlier_detection: '
+                                                + col_obj.outlier_detection
+                                                + '; '
+                                                + 'missing_data: '
+                                                + col_obj.missing_data)
+        else:
+            globalAttribs['processing_level'] = \
                                 "No post-processing performed"
         globalAttribs['leadtime'] = str(leadtime) + 'h'
         nc.setncatts(globalAttribs)

@@ -15,7 +15,7 @@ with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
 def superobbing(varalias,vardict,superob=None,outlier_detection='gam',\
-missing_data='marginalize',date_incr=None,**kwargs):
+missing_data='marginalize',date_incr=1,**kwargs):
     """
     Applies a smoothing filter to create a super-observed ts
     **kwargs includes method specific input for chosen smoother
@@ -28,7 +28,6 @@ missing_data='marginalize',date_incr=None,**kwargs):
     Caution:    for some smoothers much more of time series has 
                 to be included.
     """
-    print('under construction')
     newdict = deepcopy(vardict)
     stdvarname = variable_info[varalias]['standard_name']
     # !if for satellites first a landmask has to be created!
@@ -72,20 +71,19 @@ missing_data='marginalize',date_incr=None,**kwargs):
 
 def compute_superobs(varalias,vardict,input_grid,dtlst,method='gam',\
 date_incr=1,**kwargs):
+    print('Superobserve data with method:',method)
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
     x = vardict['time']
     y = vardict[stdvarname]
     X = input_grid
     if method=='gam':
-        print('Chosen superobbing method: "gam"')
         sobs_ts = so_linearGAM(x,y,X,varalias,**kwargs)
     if method=='block_mean':
         # blocks are means from date_incr in hours
         # For each grid_input time_stamp compute mean of hour 
         # if at least half of values are valid
         # else attribute NaN
-        print('Chosen superobbing method: "block_mean"')
         sobs_ts = block_means(dt,x,y,dtlst,date_incr)
     else: print('Method not defined, please enter valid method')
     return sobs_ts
@@ -103,7 +101,12 @@ def block_means(dt,x,y,X,date_incr):
                                   sdate=X[i]-timedelta(hours=date_incr),\
                                   edate=X[i],twin=0)
         block = y[idx]
-        ratio = len(block[np.isnan(block)])/float(len(block))
+        nominator = len(block[np.isnan(block)])
+        denominator = len(block)
+        if denominator == 0:
+            ratio = 1
+        else:
+            ratio = nominator/float(denominator)
         if ratio < 0.5:
             means.append(np.nanmean(block))
         else:
@@ -127,7 +130,7 @@ def so_linearGAM(x,y,X,varalias,**kwargs):
         n_splines = kwargs['n_splines']
     else:
         # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/6)
+        n_splines = int(len(y)/5)
     if varalias != 'Mdir':
         gam = LinearGAM(n_splines=n_splines,\
                         terms=s(0,basis='ps')\
@@ -136,7 +139,7 @@ def so_linearGAM(x,y,X,varalias,**kwargs):
         print('CYCLIC!')
         print(x.shape)
         print(X.shape)
-        n_splines = int(len(y)/6)
+        n_splines = int(len(y)/5)
         gam = LinearGAM(n_splines=n_splines,\
                         terms=s(0,basis='cp',edge_knots=[0,360])\
                         ).gridsearch(x, y)
@@ -145,7 +148,7 @@ def so_linearGAM(x,y,X,varalias,**kwargs):
     return means
 
 def detect_outliers(varalias,vardict,method='gam',**kwargs):
-    print('Detect outliers ...')
+    print('Detect outliers with method:', method)
     stdvarname = variable_info[varalias]['standard_name']
     ol_dict={}
     dt = vardict['datetime']
@@ -178,7 +181,7 @@ def ol_expectileGAM(x,y,varalias,**kwargs):
         n_splines = kwargs['n_splines']
     else:
         # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/6)
+        n_splines = int(len(y)/5)
     gam50 = ExpectileGAM(expectile=0.50,terms=s(0),\
                         n_splines=n_splines).gridsearch(X, y)
     # This practice of copying makes the models 
@@ -207,7 +210,7 @@ def ol_linearGAM(x,y,varalias,**kwargs):
         n_splines = kwargs['n_splines']
     else:
         # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/6)
+        n_splines = int(len(y)/5)
     if varalias != 'Mdir':
         gam = LinearGAM(n_splines=n_splines,\
                         terms=s(0,basis='ps')\
@@ -216,7 +219,7 @@ def ol_linearGAM(x,y,varalias,**kwargs):
         print('CYCLIC!')
         print(x.shape)
         print(X.shape)
-        n_splines = int(len(y)/6)
+        n_splines = int(len(y)/5)
         gam = LinearGAM(n_splines=n_splines,\
                         terms=s(0,basis='cp',edge_knots=[0,360])\
                         ).gridsearch(X, y)
