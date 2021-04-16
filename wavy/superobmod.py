@@ -33,23 +33,32 @@ missing_data='marginalize',date_incr=1,**kwargs):
     # !if for satellites first a landmask has to be created!
     if outlier_detection is not None:
         ol_dict = detect_outliers(varalias,vardict,method=outlier_detection)
+        newdict[stdvarname] = ol_dict['ts_clean']
     else: print('Warning: Performing outlier detection is recommended')
-    if missing_data == 'marginalize':
-        newdict[stdvarname] = ol_dict['ts_clean']
-    elif missing_data == 'impute':
-        newdict[stdvarname] = ol_dict['ts_clean']
-        # create list of time stamps depending on choice
-        sd = vardict['datetime'][0]
-        ed = vardict['datetime'][-1]
-        steps = int((ed-sd).total_seconds()/(date_incr*60*60))+1
-        tmpd = sd
-        dtlst = [tmpd + timedelta(hours=i) \
-            for i in range(0,steps,date_incr) \
-            if (tmpd + timedelta(hours=i) <= ed)]
-        input_grid = netCDF4.date2num(dtlst,units=vardict['time_unit'])
-        del tmpd
+    if superob is not None:
+        # check if outlier detection was performed if not warn
+        if 'ol_dict' not in locals():
+            print('Warning: not outlier detection was performed!')
+        # determine the output grid
+        if isinstance(date_incr,int):
+        # increments are in #hours
+        # create output grid --> list of time stamps depending on choice
+            sd = vardict['datetime'][0]
+            ed = vardict['datetime'][-1]
+            steps = int((ed-sd).total_seconds()/(date_incr*60*60))+1
+            tmpd = sd
+            output_dates = [tmpd + timedelta(hours=i) \
+                            for i in range(0,steps,date_incr) \
+                            if (tmpd + timedelta(hours=i) <= ed)]
+            del tmpd    
+        elif isinstance(date_incr,list):
+            output_dates = date_incr
+        else: # original datetimes are used
+            output_dates = vardict['datetime']
+        output_grid = netCDF4.date2num(output_dates,units=vardict['time_unit'])
         # super observations are computed from cleaned time series
         tmp_vardict = deepcopy(newdict)
+        # NaNs need to be removed before calculating superobs
         tmpvar = np.array(tmp_vardict[stdvarname])
         tmptime = np.array(tmp_vardict['time'])
         tmpdtime = np.array(tmp_vardict['datetime'])
@@ -59,24 +68,34 @@ missing_data='marginalize',date_incr=1,**kwargs):
         tmp_vardict[stdvarname] = tmpvar
         tmp_vardict['time'] = tmptime
         tmp_vardict['datetime'] = tmpdtime
-        sobs_ts = compute_superobs(varalias,tmp_vardict,input_grid,dtlst,
-                        method=superob,date_incr=date_incr,ol_dict=ol_dict)
+        sobs_ts = compute_superobs(varalias,tmp_vardict,output_grid,\
+                                    output_dates,method=superob,\
+                                    date_incr=date_incr,ol_dict=ol_dict) 
+    if missing_data == 'marginalize':
+        # padding with NaNs retrieved from ol_dict['ts_clean']
+        # only possible when same grid or datetimes are used
+        if 'output_grid' in locals():
+            print('Marginalization is not possible on given output grid')
+            raise(RuntimeError)
+        else:
+            newdict[stdvarname][np.isnan(ol_dict['ts_clean'])] = np.nan
+    elif missing_data == 'impute':
         # handle missing data
         newdict[stdvarname] = list(sobs_ts)
-        newdict['time'] = list(input_grid)
-        newdict['datetime'] = dtlst
-        newdict['longitude'] = [vardict['longitude'][0]]*len(dtlst)
-        newdict['latitude'] = [vardict['latitude'][0]]*len(dtlst)
+        newdict['time'] = list(output_grid)
+        newdict['datetime'] = output_dates
+        newdict['longitude'] = [vardict['longitude'][0]]*len(output_dates)
+        newdict['latitude'] = [vardict['latitude'][0]]*len(output_dates)
     return newdict
 
-def compute_superobs(varalias,vardict,input_grid,dtlst,method='gam',\
+def compute_superobs(varalias,vardict,output_grid,output_dates,method='gam',\
 date_incr=1,**kwargs):
     print('Superobserve data with method:',method)
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
     x = vardict['time']
     y = vardict[stdvarname]
-    X = input_grid
+    X = output_grid
     if method=='gam':
         sobs_ts = so_linearGAM(x,y,X,varalias,**kwargs)
     if method=='block_mean':
@@ -84,7 +103,7 @@ date_incr=1,**kwargs):
         # For each grid_input time_stamp compute mean of hour 
         # if at least half of values are valid
         # else attribute NaN
-        sobs_ts = block_means(dt,x,y,dtlst,date_incr)
+        sobs_ts = block_means(dt,x,y,output_dates,date_incr)
     else: print('Method not defined, please enter valid method')
     return sobs_ts
 

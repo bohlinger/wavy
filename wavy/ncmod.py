@@ -428,14 +428,11 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
         if 'superob' in vars(st_obj).keys():
-            globalAttribs['processing_level'] = ('superob: ' 
-                                                + str(st_obj.superob)
-                                                + '; '
-                                                + 'outlier_detection: '
-                                                + st_obj.outlier_detection
-                                                + '; '
-                                                + 'missing_data: '
-                                                + st_obj.missing_data)
+            globalAttribs['processing_level'] = 'post-processing performed' 
+            globalAttribs['method_superobbing'] = str(st_obj.superob)
+            globalAttribs['method_outlier_detection'] = (\
+                                                st_obj.outlier_detection)
+            globalAttribs['missing_value_handling'] = (st_obj.missing_data)
         else:
             globalAttribs['processing_level'] = \
                                 "No post-processing performed"
