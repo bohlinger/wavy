@@ -252,7 +252,6 @@ class station_class():
             time = np.array(
                     [(t-self.basedate).total_seconds() for t in timedt]
                     )
-
         if 'twin' in station_dict['platform'][platform]:
             idxtmp = collocate_times(unfiltered_t=timedt,\
                                 sdate=sdate,edate=edate,

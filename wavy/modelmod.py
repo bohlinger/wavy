@@ -72,7 +72,9 @@ def make_model_filename(model,fc_date,leadtime):
             for i in range(model_dict[model]['nr_filedates']):
                 filedatestr = model_dict[model]['filedate_formats'][i]
                 replacestr = (filedate \
-                            + timedelta(hours=leadtime)
+                            + timedelta(hours = leadtime \
+                                        - (leadtime % \
+                                           model_dict[model]['init_step']))
                                     * model_dict[model]['lt_switch_f'][i]
                             + timedelta(hours = \
                                     model_dict[model]['xtra_h'][i])).\

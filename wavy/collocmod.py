@@ -120,13 +120,20 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
 
 def check_if_file_is_valid(fc_date,model,leadtime):
     fname = make_model_filename_wrapper(model,fc_date,leadtime)
-    nc = netCDF4.Dataset(fname,mode='r')
-    time = nc.variables['time']
-    dt = netCDF4.num2date(time[:],time.units)
-    if fc_date in list(dt):
-        return True
-    else:
-        print('Desired date ' + str(fc_date) +  ' is not in',fname)
+    print('Check if requested file:\n',fname,'\nis available and valid')
+    try:
+        nc = netCDF4.Dataset(fname,mode='r')
+        time = nc.variables['time']
+        dt = netCDF4.num2date(time[:],time.units)
+        if fc_date in list(dt):
+            print('File is available')
+            return True
+        else:
+            print('Desired date ' + str(fc_date) +  ' is not in', fname)
+            return False
+    except FileNotFoundError as e:
+        print('File is not available')
+        print(e)
         return False
 
 def get_closest_date(overdetermined_lst,target_lst):
@@ -166,32 +173,37 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                                     fc_date,model,leadtime)
     # check if file exists and if it includes desired time
+    # if not check next possible file
     check = False
     for d in range(len(fc_date)):
         check = check_if_file_is_valid(fc_date[d],model,leadtime)
-        if check==True:
-            mc_obj = model_class( model=model,
-                                  fc_date=fc_date[d],
-                                  leadtime=leadtime,
-                                  varalias=obs_obj.varalias)
-            col_obj = collocation_class( mc_obj=mc_obj,
-                                         st_obj=obs_obj,
-                                         distlim=distlim )
-            model_vals = [col_obj.vars['model_values'][0]]
-            tmpdate = hour_rounder(col_obj.vars['datetime'][0])
-            model_datetime = [ datetime(tmpdate.year,
-                                        tmpdate.month,
-                                        tmpdate.day,
-                                        tmpdate.hour) ]
-            model_time = [netCDF4.date2num(model_datetime[0],
-                            units=col_obj.vars['time_unit'])]
+        if check == True:
             break
+    if check == True:
+        mc_obj = model_class( model=model,
+                              fc_date=fc_date[d],
+                              leadtime=leadtime,
+                              varalias=obs_obj.varalias)
+        col_obj = collocation_class( mc_obj=mc_obj,
+                                     st_obj=obs_obj,
+                                     distlim=distlim )
+        model_vals = [col_obj.vars['model_values'][0]]
+        tmpdate = hour_rounder(col_obj.vars['datetime'][0])
+        model_datetime = [ datetime(tmpdate.year,
+                                    tmpdate.month,
+                                    tmpdate.day,
+                                    tmpdate.hour) ]
+        model_time = [netCDF4.date2num(model_datetime[0],
+                        units=col_obj.vars['time_unit'])]
     if check == False:
         print('No valid model file available!')
     else:
         for i in range(d+1,len(fc_date)):
 #            for t in range(1):
             try:
+                check = check_if_file_is_valid(fc_date[i],model,leadtime)
+                if check == False:
+                    raise FileNotFoundError
                 mc_obj = model_class( model=model,
                                       fc_date=fc_date[i],
                                       leadtime=leadtime,
@@ -206,7 +218,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                                     mc_obj.vars['datetime'][0].month,
                                     mc_obj.vars['datetime'][0].day,
                                     mc_obj.vars['datetime'][0].hour ) )
-            except Exception as e:
+            except FileNotFoundError as e:
                 print(e)
         # potentially there are different number of values 
         # for obs and model
