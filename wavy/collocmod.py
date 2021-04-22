@@ -237,6 +237,10 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
         datein = list(datein)
     cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.twin)
     obs_time_dt = np.array(dtime)[cidx]
+    obs_time_dt = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)\
+                   for t in obs_time_dt]
+    datein = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)\
+                   for t in datein]
     obs_time = np.array(obs_obj.vars['time'])[cidx]
     obs_time_unit = obs_obj.vars['time_unit']
     # Compare wave heights of satellite with model with 
@@ -260,10 +264,10 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
                                     obs_lons, obs_lats,
                                     model_lons, model_lats)
         results_dict = {
-            'valid_date':np.array(datein),
-            'time':list(np.array(obs_time)),
+            'valid_date':datein,
+            'time':list(obs_time),
             'time_unit':obs_time_unit,
-            'datetime':list(np.array(obs_time_dt)),
+            'datetime':obs_time_dt,
             'distance':list(dist),
             'model_values':list(model_vals[index_array_2d[0],\
                                            index_array_2d[1]]),
@@ -454,7 +458,7 @@ class collocation_class():
 
     def validate_collocated_values(self,date=None,twin=None,path=None,
     filename=None):
-        validation_dict = validate_collocated_valuesa(col_obj=self,date=date,\
+        validation_dict = validate_collocated_values(col_obj=self,date=date,\
                                     twin=twin,path=path,filename=filename)
         return validation_dict
 
