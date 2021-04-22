@@ -3,7 +3,7 @@
 download satellite data from Copernicus
 """
 # --- imports -------------------------------------------------------- #
-# standard linrary imports
+# standard library imports
 import sys
 sys.path.append('../../wavy')
 
@@ -17,6 +17,7 @@ import numpy as np
 
 # own import
 from satmod import get_remote_files
+from utils import sort_files
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
@@ -111,7 +112,6 @@ for sat in satlst:
         time1 = time.time() - start_time
         print("Time used for collecting data: ", time1, " seconds")
         print("Data is being sorted into subdirectories year and month ...")
-        from utils import sort_files
         filelst = np.sort(os.listdir(destination))
         sort_files(destination,filelst)
     except Exception as e:

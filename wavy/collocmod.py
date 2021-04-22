@@ -17,6 +17,7 @@ import os
 import time
 import calendar
 from dateutil.relativedelta import relativedelta
+import pyresample
 
 # own imports
 from utils import haversine, haversine_new, collocate_times
@@ -47,64 +48,29 @@ with open(moddir,'r') as stream:
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def get_collocation_idx(distlst,tmp_idx):
-    tmp_idx2 = distlst.index(np.nanmin(distlst))
-    collocation_idx = tmp_idx[tmp_idx2]
-    return collocation_idx,tmp_idx2
+def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
+    grid = pyresample.geometry.GridDefinition(\
+                                lats=model_lats, \
+                                lons=model_lons)
+    # Define some sample points
+    swath = pyresample.geometry.SwathDefinition(lons=obs_lons, 
+                                                lats=obs_lats)
+    # Determine nearest (w.r.t. great circle distance) neighbour in the grid.
+    _, _, index_array, distance_array = \
+                                pyresample.kd_tree.get_neighbour_info(
+                                source_geo_def=grid, 
+                                target_geo_def=swath, 
+                                radius_of_influence=distlim*1000,
+                                neighbours=1)
+    # get_neighbour_info() returns indices in the 
+    # flattened lat/lon grid. Compute the 2D grid indices:
+    index_array_2d = np.unravel_index(index_array, grid.shape)
+    #print("Indices of nearest neighbours:", index_array_2d)
+    #print("Longitude of nearest neighbours:", model_lons[index_array_2d])
+    #print("Latitude of nearest neighbours:", model_lats[index_array_2d])
+    #print("Great Circle Distance:", distance_array)
+    return index_array_2d, distance_array
 
-def collocation_loop(j,distlim,obs_lats,obs_lons,model_lats,
-model_lons,model_vals,lon_win,lat_win):
-    obs_lat = obs_lats[j]
-    obs_lon = obs_lons[j]
-    # constraints to reduce workload
-    model_lats_new = model_lats[
-                    (model_lats>=obs_lat-lat_win)
-                    &
-                    (model_lats<=obs_lat+lat_win)
-                    &
-                    (model_lons>=obs_lon-lon_win)
-                    &
-                    (model_lons<=obs_lon+lon_win)
-                    ]
-    model_lons_new = model_lons[
-                    (model_lats>=obs_lat-lat_win)
-                    &
-                    (model_lats<=obs_lat+lat_win)
-                    &
-                    (model_lons>=obs_lon-lon_win)
-                    &
-                    (model_lons<=obs_lon+lon_win)
-                    ]
-    tmp = range(len(model_lats))
-    tmp_idx = np.array(tmp)[
-                    (model_lats>=obs_lat-lat_win)
-                    &
-                    (model_lats<=obs_lat+lat_win)
-                    &
-                    (model_lons>=obs_lon-lon_win)
-                    &
-                    (model_lons<=obs_lon+lon_win)
-                    ]
-    # compute distances
-    #distlst = list(map(
-    #                haversine,
-    #                [obs_lon]*len(model_lons_new),
-    #                [obs_lat]*len(model_lons_new),
-    #                model_lons_new,model_lats_new
-    #                ))
-    distlst = haversine_new([obs_lon]*len(model_lons_new),
-                            [obs_lat]*len(model_lons_new),
-                            model_lons_new,model_lats_new)
-    collocation_idx,tmp_idx2 = get_collocation_idx(distlst,tmp_idx)
-    dist = distlst[tmp_idx2]
-    if dist <= distlim:
-        while(model_vals[collocation_idx]<=0):
-            distlst[tmp_idx2] = np.nan
-            collocation_idx,tmp_idx2 = get_collocation_idx(distlst,tmp_idx)
-            dist = distlst[tmp_idx2]
-        return collocation_idx,dist
-    else:
-        return
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
     '''
@@ -208,10 +174,11 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                                       fc_date=fc_date[i],
                                       leadtime=leadtime,
                                       varalias=obs_obj.varalias )
-                model_vals.append(list(mc_obj.vars[\
-                                        mc_obj.stdvarname ].flatten()\
-                                    [ col_obj.vars['collocation_idx']\
-                                    ] )[0])
+                model_vals.append( mc_obj.vars[\
+                                   mc_obj.stdvarname][ \
+                                   col_obj.vars['collocation_idx'][0],\
+                                   col_obj.vars['collocation_idx'][1]\
+                                   ] )
                 model_time.append(mc_obj.vars['time'][0])
                 model_datetime.append( datetime(\
                                     mc_obj.vars['datetime'][0].year,
@@ -273,67 +240,48 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
     obs_time = np.array(obs_obj.vars['time'])[cidx]
     obs_time_unit = obs_obj.vars['time_unit']
     # Compare wave heights of satellite with model with 
-    # constraint on distance and time frame
-    collocation_idx_lst = []
-    dist_lst = []
-    time_idx_lst = []
-    # create local variables before loop
+    #   constraint on distance and time frame
+    # 1. time constraint
     obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
     obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
     obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
     # flatten numpy arrays
-    model_lats = mc_obj.vars['latitude'].flatten()
-    model_lons = mc_obj.vars['longitude'].flatten()
-    model_vals = mc_obj.vars[mc_obj.stdvarname].flatten()
-    # moving window compensating for increasing latitudes
+    model_lats = mc_obj.vars['latitude']
+    model_lons = mc_obj.vars['longitude']
+    model_vals = mc_obj.vars[mc_obj.stdvarname]
     if distlim == None:
         distlim = 6
-    lon_win = round(
-                (distlim /
-                 haversine(0,
-                    np.max(np.abs(obs_lats)),
-                    1,
-                    np.max(np.abs(obs_lats))) ) 
-                + 0.01, 2)
-    lat_win = round(distlim/111.+0.01,2)
     if (col_obj is None):
         print ("No collocation idx available")
         print (len(obs_time_dt),"footprints to be collocated")
-        print ("Perform collocation with moving window of degree\n",\
-            "lon:",lon_win,"lat:",lat_win)
-        for j in range(len(obs_time_dt)):
-            progress(j,str(int(len(obs_time_dt))),'')
-            try:
-#            for i in range(1):
-                collocation_idx,dist = collocation_loop(\
-                    j,distlim,obs_lats,obs_lons,\
-                    model_lats,model_lons,model_vals,\
-                    lon_win,lat_win)
-                collocation_idx_lst.append(collocation_idx)
-                dist_lst.append(dist)
-                time_idx_lst.append(j)
-            except:
-                print ("Collocation error -> no collocation:",
-                        sys.exc_info()[0])
+        print ("Perform collocation with distance limit\n",\
+                "distlim:",distlim)
+        index_array_2d, dist = collocation_fct(distlim,
+                                    obs_lons, obs_lats,
+                                    model_lons, model_lats)
         results_dict = {
             'valid_date':np.array(datein),
-            'time':list(np.array(obs_time[time_idx_lst])),
+            'time':list(np.array(obs_time)),
             'time_unit':obs_time_unit,
-            'datetime':list(np.array(obs_time_dt[time_idx_lst])),
-            'distance':dist_lst,
-            'model_values':list(model_vals[collocation_idx_lst]),
-            'model_lons':list(model_lons[collocation_idx_lst]),
-            'model_lats':list(model_lats[collocation_idx_lst]),
-            'obs_values':list(obs_vals[time_idx_lst]),
-            'obs_lons':list(obs_lons[time_idx_lst]),
-            'obs_lats':list(obs_lats[time_idx_lst]),
-            'collocation_idx':collocation_idx_lst
+            'datetime':list(np.array(obs_time_dt)),
+            'distance':list(dist),
+            'model_values':list(model_vals[index_array_2d[0],\
+                                           index_array_2d[1]]),
+            'model_lons':list(model_lons[index_array_2d[0],\
+                                         index_array_2d[1]]),
+            'model_lats':list(model_lats[index_array_2d[0],\
+                                         index_array_2d[1]]),
+            'obs_values':list(obs_vals),
+            'obs_lons':list(obs_lons),
+            'obs_lats':list(obs_lats),
+            'collocation_idx':index_array_2d # tuple
             }
-    elif (col_obj is not None and len(col_obj.vars['collocation_idx']) > 0):
+    elif (col_obj is not None and len(col_obj.vars['collocation_idx'][0]) > 0):
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
         results_dict['model_values'] = model_vals[\
-                                        col_obj.vars['collocation_idx']]
+                                        col_obj.vars['collocation_idx'][0],
+                                        col_obj.vars['collocation_idx'][1]]
     return results_dict
 
 

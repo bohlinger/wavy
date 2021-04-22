@@ -16,3 +16,7 @@ dependencies:
   - pandas
   - pyGAM
   - scikit-sparse
+  - xarray
+  - zarr
+  - pyresample
+  - dask
