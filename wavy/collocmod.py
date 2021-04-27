@@ -27,6 +27,9 @@ from utils import hour_rounder
 from modelmod import model_class, make_model_filename_wrapper
 from modelmod import get_model_filedate
 from ncmod import dumptonc_ts_collocation
+from satmod import satellite_class
+from stationmod import station_class
+from modelmod import model_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -151,7 +154,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                               leadtime=leadtime,
                               varalias=obs_obj.varalias)
         col_obj = collocation_class( mc_obj=mc_obj,
-                                     st_obj=obs_obj,
+                                     obs_obj=obs_obj,
                                      distlim=distlim )
         model_vals = [col_obj.vars['model_values'][0]]
         tmpdate = hour_rounder(col_obj.vars['datetime'][0])
@@ -176,9 +179,9 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                                       varalias=obs_obj.varalias )
                 model_vals.append( mc_obj.vars[\
                                    mc_obj.stdvarname][ \
-                                   col_obj.vars['collocation_idx'][0],\
-                                   col_obj.vars['collocation_idx'][1]\
-                                   ] )
+                                   col_obj.vars['collocation_idx_x'],\
+                                   col_obj.vars['collocation_idx_y']\
+                                   ][0] )
                 model_time.append(mc_obj.vars['time'][0])
                 model_datetime.append( datetime(\
                                     mc_obj.vars['datetime'][0].year,
@@ -193,6 +196,9 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
         idx2 = collocate_times( model_datetime,
                                 target_t=obs_obj.vars['datetime'],
                                 twin = obs_obj.twin)
+        print(idx2)
+        print(model_vals)
+        print(np.array(model_vals))
         col_obj.vars['model_values'] = list(np.array(\
                                                     model_vals)[idx2])
         col_obj.vars['time'] = list(np.array(model_time)\
@@ -216,7 +222,9 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                                         len(col_obj.vars['datetime'])
     col_obj.vars['obs_lons'] = col_obj.vars['obs_lons']*\
                                         len(col_obj.vars['datetime'])
-    col_obj.vars['collocation_idx'] = col_obj.vars['collocation_idx']*\
+    col_obj.vars['collocation_idx_x'] = col_obj.vars['collocation_idx_x']*\
+                                        len(col_obj.vars['datetime'])
+    col_obj.vars['collocation_idx_y'] = col_obj.vars['collocation_idx_y']*\
                                         len(col_obj.vars['datetime'])
     col_obj.vars['model_lats'] = col_obj.vars['model_lats']*\
                                        len(col_obj.vars['datetime'])
@@ -263,6 +271,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
         index_array_2d, dist = collocation_fct(distlim,
                                     obs_lons, obs_lats,
                                     model_lons, model_lats)
+        # caution: index_array_2d is tuple
         results_dict = {
             'valid_date':datein,
             'time':list(obs_time),
@@ -278,14 +287,15 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
             'obs_values':list(obs_vals),
             'obs_lons':list(obs_lons),
             'obs_lats':list(obs_lats),
-            'collocation_idx':index_array_2d # tuple
+            'collocation_idx_x':list(index_array_2d[0]),
+            'collocation_idx_y':list(index_array_2d[1]),
             }
     elif (col_obj is not None and len(col_obj.vars['collocation_idx'][0]) > 0):
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
-        results_dict['model_values'] = model_vals[\
-                                        col_obj.vars['collocation_idx'][0],
-                                        col_obj.vars['collocation_idx'][1]]
+        results_dict['model_values'] = list(model_vals[\
+                                        col_obj.vars['collocation_idx_x'],
+                                        col_obj.vars['collocation_idx_y']])
     return results_dict
 
 
@@ -314,7 +324,6 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                             distlim=distlim,\
                                             leadtime=leadtime,\
                                             date_incr=date_incr)
-        return results_dict
     else:
         results_dict = collocate_field(mc_obj=mc_obj,\
                                               obs_obj=obs_obj,\
@@ -328,29 +337,26 @@ class collocation_class():
     draft of envisioned collocation class object
     '''
 
-    def __init__(self,mc_obj=None,sa_obj=None,st_obj=None,col_obj=None,
+    def __init__(self,mc_obj=None,obs_obj=None,col_obj=None,
         model=None,distlim=None,leadtime=None,date_incr=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
-        if sa_obj is not None:
-            obs_obj = sa_obj
-            obs_obj.twin = sa_obj.twin
-            self.obsname = sa_obj.sat
-            self.sat = sa_obj.sat
+        if isinstance(obs_obj,satellite_class):
+            self.obsname = obs_obj.sat
+            self.sat = obs_obj.sat
             self.obstype = "satellite_altimeter"
-            self.region = sa_obj.region
-        if st_obj is not None:
-            obs_obj = st_obj
-            if 'twin' in station_dict['platform'][st_obj.platform].keys():
+            self.region = obs_obj.region
+        if isinstance(obs_obj,station_class):
+            if 'twin' in station_dict['platform'][obs_obj.platform].keys():
                 obs_obj.twin =  station_dict['platform']\
-                                [st_obj.platform]['twin']
+                                [obs_obj.platform]['twin']
             else:
                 obs_obj.twin = None
-            self.obsname = st_obj.platform + '_' +  st_obj.sensor
+            self.obsname = obs_obj.platform + '_' +  obs_obj.sensor
             self.obstype = 'platform'
-            self.platform = st_obj.platform
-            self.sensor = st_obj.sensor
+            self.platform = obs_obj.platform
+            self.sensor = obs_obj.sensor
         if mc_obj is not None:
             model = mc_obj.model
         # define class variables

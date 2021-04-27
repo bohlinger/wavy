@@ -35,7 +35,7 @@ def calc_rmsd(a,b):
 
 def calc_drmsd(a,b):
     '''
-    root mean square deviation
+    debiased root mean square deviation
     if nans exist the prinziple of marginalization is applied
     '''
     a,b = np.array(a),np.array(b)
