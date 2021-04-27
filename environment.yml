@@ -20,3 +20,4 @@ dependencies:
   - zarr
   - pyresample
   - dask
+  - tqdm

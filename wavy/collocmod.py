@@ -18,6 +18,8 @@ import time
 import calendar
 from dateutil.relativedelta import relativedelta
 import pyresample
+from tqdm import tqdm
+from copy import deepcopy
 
 # own imports
 from utils import haversine, haversine_new, collocate_times
@@ -58,7 +60,7 @@ def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
     # Define some sample points
     swath = pyresample.geometry.SwathDefinition(lons=obs_lons, 
                                                 lats=obs_lats)
-    # Determine nearest (w.r.t. great circle distance) neighbour in the grid.
+    # Determine nearest (great circle distance) neighbour in the grid.
     _, _, index_array, distance_array = \
                                 pyresample.kd_tree.get_neighbour_info(
                                 source_geo_def=grid, 
@@ -68,10 +70,6 @@ def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
     # get_neighbour_info() returns indices in the 
     # flattened lat/lon grid. Compute the 2D grid indices:
     index_array_2d = np.unravel_index(index_array, grid.shape)
-    #print("Indices of nearest neighbours:", index_array_2d)
-    #print("Longitude of nearest neighbours:", model_lons[index_array_2d])
-    #print("Latitude of nearest neighbours:", model_lats[index_array_2d])
-    #print("Great Circle Distance:", distance_array)
     return index_array_2d, distance_array
 
 
@@ -194,7 +192,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
         # for obs and model
         # double check and use only coherent datetimes
         idx2 = collocate_times( model_datetime,
-                                target_t=obs_obj.vars['datetime'],
+                                target_t = obs_obj.vars['datetime'],
                                 twin = obs_obj.twin)
         print(idx2)
         print(model_vals)
@@ -233,6 +231,83 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     results_dict = col_obj.vars
     return results_dict
 
+def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
+    leadtime=None,date_incr=None):
+    """
+    Some info
+    """
+    fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
+    results_dict = {
+            'valid_date':[],
+            'time':[],
+            'time_unit':obs_obj.vars['time_unit'],
+            'datetime':[],
+            'distance':[],
+            'model_values':[],
+            'model_lons':[],
+            'model_lats':[],
+            'obs_values':[],
+            'obs_lons':[],
+            'obs_lats':[],
+            'collocation_idx_x':[],
+            'collocation_idx_y':[],
+            }
+    for i in tqdm(range(len(fc_date))):
+        # get model_class object
+        mc_obj = model_class( model=model,
+                              fc_date=fc_date[i],
+                              leadtime=leadtime,
+                              varalias=obs_obj.varalias )
+        # filter needed obs within time period
+        idx = collocate_times( obs_obj.vars['datetime'],
+                               target_t = [fc_date[i]],
+                               twin = obs_obj.twin )
+        # make tmp obs_obj with filtered data
+        obs_obj_tmp = deepcopy(obs_obj)
+        obs_obj_tmp.vars['time'] = list(np.array(\
+                                    obs_obj.vars['time'])[idx])
+        obs_obj_tmp.vars['latitude'] = list(np.array(\
+                                    obs_obj.vars['latitude'])[idx])
+        obs_obj_tmp.vars['longitude'] = list(np.array(\
+                                    obs_obj.vars['longitude'])[idx])
+        obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
+                                    obs_obj.vars[obs_obj.stdvarname])[idx])
+        # collocate
+        results_dict_tmp = collocate_field( mc_obj=mc_obj,\
+                                            obs_obj=obs_obj_tmp,\
+                                            distlim=distlim )
+        # append to dict
+        results_dict['valid_date'].append(fc_date[i])
+        results_dict['time'].append(results_dict_tmp['time'])
+        results_dict['datetime'].append(results_dict_tmp['datetime'])
+        results_dict['distance'].append(results_dict_tmp['distance'])
+        results_dict['model_values'].append(results_dict_tmp['model_values'])
+        results_dict['model_lons'].append(results_dict_tmp['model_lons'])
+        results_dict['model_lats'].append(results_dict_tmp['model_lats'])
+        results_dict['obs_values'].append(results_dict_tmp['obs_values'])
+        results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
+        results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
+        results_dict['collocation_idx_x'].append(\
+                                results_dict_tmp['collocation_idx_x'])
+        results_dict['collocation_idx_y'].append(\
+                                results_dict_tmp['collocation_idx_y'])
+    # flatten all aggregated entries
+    #results_dict['valid_date'] = flatten(results_dict['valid_date'])
+    results_dict['time'] = flatten(results_dict['time'])
+    results_dict['datetime'] = flatten(results_dict['datetime'])
+    results_dict['distance'] = flatten(results_dict['distance'])
+    results_dict['model_values'] = flatten(results_dict['model_values'])
+    results_dict['model_lons'] = flatten(results_dict['model_lons'])
+    results_dict['model_lats'] = flatten(results_dict['model_lats'])
+    results_dict['obs_values'] = flatten(results_dict['obs_values'])
+    results_dict['obs_lats'] = flatten(results_dict['obs_lats'])
+    results_dict['obs_lons'] = flatten(results_dict['obs_lons'])
+    results_dict['collocation_idx_x'] = flatten(\
+                                results_dict['collocation_idx_x'])
+    results_dict['collocation_idx_y'] = flatten(\
+                                results_dict['collocation_idx_y'])
+    return results_dict
+
 def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
     """
     Some info
@@ -257,7 +332,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
     obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
     obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
     obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
-    # flatten numpy arrays
+    # prepare model field
     model_lats = mc_obj.vars['latitude']
     model_lons = mc_obj.vars['longitude']
     model_vals = mc_obj.vars[mc_obj.stdvarname]
@@ -318,17 +393,25 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                         + 'no model values available for collocation!'
                         + '\n###'
                         )
-    if (mc_obj is None and model is not None and obs_obj is not None):
+    if (mc_obj is None and model is not None and obs_obj is not None\
+    and isinstance(obs_obj,station_class)):
         results_dict = collocate_station_ts(obs_obj=obs_obj,
                                             model=model,\
                                             distlim=distlim,\
                                             leadtime=leadtime,\
                                             date_incr=date_incr)
+    if (mc_obj is None and model is not None and obs_obj is not None\
+    and isinstance(obs_obj,satellite_class)):
+        results_dict = collocate_satellite_ts(obs_obj=obs_obj,
+                                            model=model,\
+                                            distlim=distlim,\
+                                            leadtime=leadtime,\
+                                            date_incr=date_incr)
     else:
-        results_dict = collocate_field(mc_obj=mc_obj,\
-                                              obs_obj=obs_obj,\
-                                              col_obj=col_obj,\
-                                              distlim=distlim)
+        results_dict = collocate_field( mc_obj=mc_obj,\
+                                        obs_obj=obs_obj,\
+                                        col_obj=col_obj,\
+                                        distlim=distlim )
     return results_dict
 
 
@@ -369,8 +452,8 @@ class collocation_class():
         if leadtime is None:
             self.leadtime = 'best'
         # get vars dictionary
-        try:
-#        for i in range(1):
+#        try:
+        for i in range(1):
             t0=time.time()
             results_dict = collocate(mc_obj=mc_obj,
                                     obs_obj=obs_obj,
@@ -389,10 +472,10 @@ class collocation_class():
                 self.outlier_detection = obs_obj.outlier_detection
                 self.missing_data = obs_obj.missing_data
             print (" ### Collocation_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No collocation_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No collocation_class object initialized !")
         print ('# ----- ')
 
     def write_to_monthly_nc(self,path=None,filename=None):
