@@ -26,6 +26,7 @@ from utils import haversine, haversine_new, collocate_times
 from utils import progress, make_fc_dates
 from utils import make_pathtofile
 from utils import hour_rounder
+from utils import NoStdStreams
 from modelmod import model_class, make_model_filename_wrapper
 from modelmod import get_model_filedate
 from ncmod import dumptonc_ts_collocation
@@ -237,6 +238,8 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     Some info
     """
     fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
+    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
+                            fc_date,model,leadtime)
     results_dict = {
             'valid_date':[],
             'time':[],
@@ -253,27 +256,28 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             'collocation_idx_y':[],
             }
     for i in tqdm(range(len(fc_date))):
-        # get model_class object
-        mc_obj = model_class( model=model,
+        with NoStdStreams():
+            # get model_class object
+            mc_obj = model_class( model=model,
                               fc_date=fc_date[i],
                               leadtime=leadtime,
                               varalias=obs_obj.varalias )
-        # filter needed obs within time period
-        idx = collocate_times( obs_obj.vars['datetime'],
+            # filter needed obs within time period
+            idx = collocate_times( obs_obj.vars['datetime'],
                                target_t = [fc_date[i]],
                                twin = obs_obj.twin )
-        # make tmp obs_obj with filtered data
-        obs_obj_tmp = deepcopy(obs_obj)
-        obs_obj_tmp.vars['time'] = list(np.array(\
+            # make tmp obs_obj with filtered data
+            obs_obj_tmp = deepcopy(obs_obj)
+            obs_obj_tmp.vars['time'] = list(np.array(\
                                     obs_obj.vars['time'])[idx])
-        obs_obj_tmp.vars['latitude'] = list(np.array(\
+            obs_obj_tmp.vars['latitude'] = list(np.array(\
                                     obs_obj.vars['latitude'])[idx])
-        obs_obj_tmp.vars['longitude'] = list(np.array(\
+            obs_obj_tmp.vars['longitude'] = list(np.array(\
                                     obs_obj.vars['longitude'])[idx])
-        obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
+            obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
                                     obs_obj.vars[obs_obj.stdvarname])[idx])
-        # collocate
-        results_dict_tmp = collocate_field( mc_obj=mc_obj,\
+            # collocate
+            results_dict_tmp = collocate_field( mc_obj=mc_obj,\
                                             obs_obj=obs_obj_tmp,\
                                             distlim=distlim )
         # append to dict
@@ -291,6 +295,8 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                                 results_dict_tmp['collocation_idx_x'])
         results_dict['collocation_idx_y'].append(\
                                 results_dict_tmp['collocation_idx_y'])
+        if 'results_dict_tmp' in locals():
+            del results_dict_tmp
     # flatten all aggregated entries
     #results_dict['valid_date'] = flatten(results_dict['valid_date'])
     results_dict['time'] = flatten(results_dict['time'])
