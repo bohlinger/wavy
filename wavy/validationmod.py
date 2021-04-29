@@ -232,7 +232,7 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
     """
     If sa_obj is not None get satellite_altimetry data for plotting
     """
-    if sa_obj is not None:
+    if sa_obj is None:
         slons, slats = coll_obj.vars['obs_lons'],coll_obj.vars['obs_lats']
         svar = coll_obj.vars['obs_values']
 
@@ -452,7 +452,7 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
     qv = ax.quiver( Mlons, Mlats, u, v, color='k', 
                     transform=ccrs.PlateCarree(),scale=500)
 
-def plot_sat(sa_obj,var,**kwargs):
+def plot_sat(sa_obj,**kwargs):
     
     import matplotlib.cm as mplcm
     import matplotlib as mpl
@@ -468,7 +468,7 @@ def plot_sat(sa_obj,var,**kwargs):
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
     if (sa_obj.region in model_dict and 'mc_obj' in kwargs.keys()):
         grid_date = model_dict[sa_obj.region]['grid_date']
-        model_var_dict = kwargs['mc_obj'].model_var_dict
+        model_var_dict = kwargs['mc_obj'].vars
     # check region and determine projection
     if (sa_obj.region == 'global' 
         or (sa_obj.region in region_dict['rect'] 
@@ -495,10 +495,10 @@ def plot_sat(sa_obj,var,**kwargs):
             lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])
         elif sa_obj.region in model_dict:
             # model bounds
-            latmin = np.min(model_var_dict['model_lats'])
-            latmax = np.max(model_var_dict['model_lats'])
-            lonmin = np.min(model_var_dict['model_lons'])
-            lonmax = np.max(model_var_dict['model_lons'])
+            latmin = np.min(model_var_dict['latitude'])
+            latmax = np.max(model_var_dict['latitude'])
+            lonmin = np.min(model_var_dict['longitude'])
+            lonmax = np.max(model_var_dict['longitude'])
         else: print("Error: Region not defined!")
         projection = ccrs.Mercator(
                         central_longitude=(lonmin+lonmax)/2.,
@@ -521,41 +521,41 @@ def plot_sat(sa_obj,var,**kwargs):
 
     # plot model domain if region is a model domain
     if (sa_obj.region in model_dict
-    and len(model_var_dict['model_lats'].shape)==1):
-        lenlons = len(model_var_dict['model_lons'][:])
-        lenlats = len(model_var_dict['model_lats'][:])
-        ax.plot([model_var_dict['model_lons'][0]]*lenlats,
-                model_var_dict['model_lats'][:], '-',
+    and len(model_var_dict['latitude'].shape)==1):
+        lenlons = len(model_var_dict['longitude'][:])
+        lenlats = len(model_var_dict['longitude'][:])
+        ax.plot([model_var_dict['longitude'][0]]*lenlats,
+                model_var_dict['latitude'][:], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][:],
-                [model_var_dict['model_lats'][-1]]*lenlons, '-',
+        ax.plot(model_var_dict['longitude'][:],
+                [model_var_dict['latitude'][-1]]*lenlons, '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot([model_var_dict['model_lons'][-1]]*lenlats,
-                model_var_dict['model_lats'][::-1], '-',
+        ax.plot([model_var_dict['longitude'][-1]]*lenlats,
+                model_var_dict['latitude'][::-1], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][::-1],
-                [model_var_dict['model_lats'][0]]*lenlons, '-',
+        ax.plot(model_var_dict['longitude'][::-1],
+                [model_var_dict['latitude'][0]]*lenlons, '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
     if (sa_obj.region in model_dict
-    and len(model_var_dict['model_lats'].shape)==2):
-        ax.plot(model_var_dict['model_lons'][0,:],
-                model_var_dict['model_lats'][0,:], '-',
+    and len(model_var_dict['latitude'].shape)==2):
+        ax.plot(model_var_dict['longitude'][0,:],
+                model_var_dict['latitude'][0,:], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][-1,:],
-                model_var_dict['model_lats'][-1,:], '-',
+        ax.plot(model_var_dict['longitude'][-1,:],
+                model_var_dict['latitude'][-1,:], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][:,0],
-                model_var_dict['model_lats'][:,0], '-',
+        ax.plot(model_var_dict['longitude'][:,0],
+                model_var_dict['latitude'][:,0], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
-        ax.plot(model_var_dict['model_lons'][:,-1],
-                model_var_dict['model_lats'][:,-1], '-',
+        ax.plot(model_var_dict['longitude'][:,-1],
+                model_var_dict['latitude'][:,-1], '-',
                 transform = ccrs.PlateCarree(),
                 color = 'gray', linewidth = 2)
 
@@ -615,7 +615,7 @@ def plot_sat(sa_obj,var,**kwargs):
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
     # - add satellite
-    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[var],
+    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[sa_obj.stdvarname],
                 marker='o', edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
@@ -646,12 +646,12 @@ def plot_sat(sa_obj,var,**kwargs):
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
                         fraction=0.04, pad=0.04)
-    cbar.ax.set_ylabel(var + ' [m]')
+    cbar.ax.set_ylabel(sa_obj.stdvarname + ' [m]')
     cbar.ax.tick_params(labelsize=fs)
 
     plt.title(sa_obj.sat
             + ' with '
-            + str(len(sa_obj.vars[var]))
+            + str(len(sa_obj.vars[sa_obj.stdvarname]))
             + ' footprints: '
             + '\n'
             + sa_obj.sdate.strftime("%Y-%m-%d %H:%M:%S UTC" )

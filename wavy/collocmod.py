@@ -18,6 +18,7 @@ import time
 import calendar
 from dateutil.relativedelta import relativedelta
 import pyresample
+import xarray as xr
 from tqdm import tqdm
 from copy import deepcopy
 
@@ -68,10 +69,22 @@ def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
                                 target_geo_def=swath, 
                                 radius_of_influence=distlim*1000,
                                 neighbours=1)
+    len(index_array)
+    len(distance_array)
     # get_neighbour_info() returns indices in the 
     # flattened lat/lon grid. Compute the 2D grid indices:
     index_array_2d = np.unravel_index(index_array, grid.shape)
     return index_array_2d, distance_array
+
+#def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
+#    M = xr.open_dataset("https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam4archive/2020/12/08/MyWave_wam4_WAVE_20201208T00Z.nc")
+#    M.hs.sel(time=("2020-12-08 00:00:00"),rlon=[10,11,12], rlat=[-10,-9,-8], method='nearest')
+#    M.sel(time=("2020-12-08 00:00:00")).sel(rlon=5.7,rlat=-14, method='nearest')['hs'].values
+#    # get_neighbour_info() returns indices in the 
+#    # flattened lat/lon grid. Compute the 2D grid indices:
+#    index_array_2d = np.unravel_index(index_array, grid.shape)
+#    return index_array_2d, distance_array
+
 
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
@@ -240,6 +253,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
     fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                             fc_date,model,leadtime)
+    print(fc_date)
     results_dict = {
             'valid_date':[],
             'time':[],
@@ -256,7 +270,8 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             'collocation_idx_y':[],
             }
     for i in tqdm(range(len(fc_date))):
-        with NoStdStreams():
+        for j in range(1):
+#        with NoStdStreams():
             # get model_class object
             mc_obj = model_class( model=model,
                               fc_date=fc_date[i],
@@ -276,6 +291,10 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                                     obs_obj.vars['longitude'])[idx])
             obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
                                     obs_obj.vars[obs_obj.stdvarname])[idx])
+            print('len(obs_obj.vars[obs_obj.stdvarname])')
+            print(len(obs_obj.vars[obs_obj.stdvarname]))
+            print('len(obs_obj_tmp.vars[obs_obj_tmp.stdvarname])')
+            print(len(obs_obj_tmp.vars[obs_obj_tmp.stdvarname]))
             # collocate
             results_dict_tmp = collocate_field( mc_obj=mc_obj,\
                                             obs_obj=obs_obj_tmp,\
