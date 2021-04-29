@@ -466,6 +466,10 @@ def plot_sat(sa_obj,**kwargs):
 
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
+    if 'col_obj' in kwargs.keys():
+        model_lats = kwargs['col_obj'].vars['model_lats']
+        model_lons = kwargs['col_obj'].vars['model_lons']
+        model_vals = kwargs['col_obj'].vars['model_values']
     if (sa_obj.region in model_dict and 'mc_obj' in kwargs.keys()):
         grid_date = model_dict[sa_obj.region]['grid_date']
         model_var_dict = kwargs['mc_obj'].vars
@@ -615,7 +619,15 @@ def plot_sat(sa_obj,**kwargs):
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
     # - add satellite
-    sc = ax.scatter(slons,slats,s=10,c=sa_obj.vars[sa_obj.stdvarname],
+    sc = ax.scatter(slons,slats,s=10,
+                c='k',#sa_obj.vars[sa_obj.stdvarname],
+                marker='o', edgecolor = 'face',
+                cmap=cmocean.cm.amp, norm = norm,
+                transform=ccrs.PlateCarree())
+    if 'col_obj' in kwargs.keys():
+        # - add satellite
+        sc2 = ax.scatter(model_lons,model_lats,s=10,
+                c='r',#model_vals,
                 marker='o', edgecolor = 'face',
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())

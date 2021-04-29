@@ -19,6 +19,7 @@ import calendar
 from dateutil.relativedelta import relativedelta
 import pyresample
 import xarray as xr
+import pyproj
 from tqdm import tqdm
 from copy import deepcopy
 
@@ -30,10 +31,11 @@ from utils import hour_rounder
 from utils import NoStdStreams
 from modelmod import model_class, make_model_filename_wrapper
 from modelmod import get_model_filedate
+from modelmod import model_class
 from ncmod import dumptonc_ts_collocation
+from ncmod import find_attr_in_nc
 from satmod import satellite_class
 from stationmod import station_class
-from modelmod import model_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -55,37 +57,72 @@ with open(moddir,'r') as stream:
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
-    grid = pyresample.geometry.GridDefinition(\
-                                lats=model_lats, \
-                                lons=model_lons)
-    # Define some sample points
-    swath = pyresample.geometry.SwathDefinition(lons=obs_lons, 
-                                                lats=obs_lats)
-    # Determine nearest (great circle distance) neighbour in the grid.
-    _, _, index_array, distance_array = \
-                                pyresample.kd_tree.get_neighbour_info(
-                                source_geo_def=grid, 
-                                target_geo_def=swath, 
-                                radius_of_influence=distlim*1000,
-                                neighbours=1)
-    len(index_array)
-    len(distance_array)
-    # get_neighbour_info() returns indices in the 
-    # flattened lat/lon grid. Compute the 2D grid indices:
-    index_array_2d = np.unravel_index(index_array, grid.shape)
-    return index_array_2d, distance_array
-
 #def collocation_fct(distlim,obs_lons,obs_lats,model_lons,model_lats):
-#    M = xr.open_dataset("https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam4archive/2020/12/08/MyWave_wam4_WAVE_20201208T00Z.nc")
-#    M.hs.sel(time=("2020-12-08 00:00:00"),rlon=[10,11,12], rlat=[-10,-9,-8], method='nearest')
-#    M.sel(time=("2020-12-08 00:00:00")).sel(rlon=5.7,rlat=-14, method='nearest')['hs'].values
+#    grid = pyresample.geometry.GridDefinition(\
+#                                lats=model_lats, \
+#                                lons=model_lons)
+#    # Define some sample points
+#    swath = pyresample.geometry.SwathDefinition(lons=obs_lons, 
+#                                                lats=obs_lats)
+#    # Determine nearest (great circle distance) neighbour in the grid.
+#    valid_input_index, valid_output_index, index_array, distance_array = \
+#                                pyresample.kd_tree.get_neighbour_info(
+#                                source_geo_def=grid, 
+#                                target_geo_def=swath, 
+#                                radius_of_influence=distlim*1000,
+#                                neighbours=1)
+#    len(index_array)
+#    len(distance_array)
 #    # get_neighbour_info() returns indices in the 
 #    # flattened lat/lon grid. Compute the 2D grid indices:
 #    index_array_2d = np.unravel_index(index_array, grid.shape)
-#    return index_array_2d, distance_array
+#    return  index_array_2d, distance_array, valid_input_index, \
+#            valid_output_index
 
+#def collocation_fct(sa_obj,mc_obj):
+#    ncdict = mc_obj.vars['model_meta']
+#    try:
+#        proj4 = find_attr_in_nc('proj',ncdict=ncdict,
+#                                subattrstr='proj4')
+#    except IndexError:
+#        print('proj4 not defined in netcdf-file')
+#        print('Using proj4 from model config file')
+#        proj4 = model_dict[region]['proj4']
+#    proj_model = pyproj.Proj(proj4)
+#    Vx, Vy = proj_model(sa_obj.vars['longitude'],\
+#                        sa_obj.vars['latitude'],inverse=False)
+#    M = xr.open_dataset("/lustre/storeA/project/copernicus"\
+#                        + "/sea/mywavewam3/arctic/2021/01/"\
+#                        + "2021010112_MyWaveWam3_b20210101T18.nc")
+#    print(type(Vx))
+#    print(Vx)
+#    model_val = M.sel(time=("2021-01-01 12:00:00")).sel(\
+#                rlon=Vx,rlat=Vy, method='nearest',tolerance=6000\
+#                )['VHM0'].values
+    #M.hs.sel(time=("2020-12-08 00:00:00"),rlon=[10,11,12], rlat=[-10,-9,-8], method='nearest')
+    #M.sel(time=("2020-12-08 00:00:00")).sel(rlon=5.7,rlat=-14, method='nearest')['hs'].values
+    # get_neighbour_info() returns indices in the 
+    # flattened lat/lon grid. Compute the 2D grid indices:
+    #index_array_2d = np.unravel_index(index_array, grid.shape)
+    #return index_array_2d, distance_array
+#    return model_val
 
+def collocation_fct(distlim,sat_rlat,sat_rlon,model_lats,model_lons):
+    # constraints to reduce workload
+    lat_diff = np.abs(model_lats) - np.abs(sat_rlat)
+    lat_idx = lat_diff.index(np.min(lat_diff))
+    lon_diff = np.abs(model_lons) - np.abs(sat_rlon)
+    lon_idx = lon_diff.index(np.min(lon_diff))
+    # compute distances
+    dist = haversine(
+                [sat_rlon]*len(red_lons),
+                [sat_rlat]*len(red_lons),
+                red_lons,red_lats
+                )
+    if dist<=distlim:
+        return lon_idx,lat_idx
+    else:
+        return
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
     '''
@@ -333,6 +370,71 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                                 results_dict['collocation_idx_y'])
     return results_dict
 
+#def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
+#    """
+#    Some info
+#    """
+#    dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
+#    datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
+#    if isinstance(dtime,np.ndarray):
+#        dtime = list(dtime)
+#    if isinstance(datein,np.ndarray):
+#        datein = list(datein)
+#    cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.twin)
+#    obs_time_dt = np.array(dtime)[cidx]
+#    obs_time_dt = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)\
+#                   for t in obs_time_dt]
+#    datein = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)\
+#                   for t in datein]
+#    obs_time = np.array(obs_obj.vars['time'])[cidx]
+#    obs_time_unit = obs_obj.vars['time_unit']
+#    # Compare wave heights of satellite with model with 
+#    #   constraint on distance and time frame
+#    # 1. time constraint
+#    obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
+#    obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
+#    obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
+#    # prepare model field
+#    model_lats = mc_obj.vars['latitude']
+#    model_lons = mc_obj.vars['longitude']
+#    model_vals = mc_obj.vars[mc_obj.stdvarname]
+#    if distlim == None:
+#        distlim = 6
+#    if (col_obj is None):
+#        print ("No collocation idx available")
+#        print (len(obs_time_dt),"footprints to be collocated")
+#        print ("Perform collocation with distance limit\n",\
+#                "distlim:",distlim)
+#        index_array_2d, dist, valid_in, valid_out = collocation_fct(distlim,
+#                                    obs_lons, obs_lats,
+#                                    model_lons, model_lats)
+#        # caution: index_array_2d is tuple
+#        results_dict = {
+#            'valid_date':datein,
+#            'time':list(obs_time[valid_out]),
+#            'time_unit':obs_time_unit,
+#            'datetime':list(np.array(obs_time_dt)[valid_out]),
+#            'distance':list(dist),
+#            'model_values':list(model_vals[index_array_2d[0],\
+#                                           index_array_2d[1]]),
+#            'model_lons':list(model_lons[index_array_2d[0],\
+#                                         index_array_2d[1]]),
+#            'model_lats':list(model_lats[index_array_2d[0],\
+#                                         index_array_2d[1]]),
+#            'obs_values':list(obs_vals[valid_out]),
+#            'obs_lons':list(obs_lons[valid_out]),
+#            'obs_lats':list(obs_lats[valid_out]),
+#            'collocation_idx_x':list(index_array_2d[0]),
+#            'collocation_idx_y':list(index_array_2d[1]),
+#            }
+#    elif (col_obj is not None and len(col_obj.vars['collocation_idx'][0]) > 0):
+#        print("Collocation idx given through collocation_class object")
+#        results_dict = col_obj.vars
+#        results_dict['model_values'] = list(model_vals[\
+#                                        col_obj.vars['collocation_idx_x'],
+#                                        col_obj.vars['collocation_idx_y']])
+#    return results_dict
+
 def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
     """
     Some info
@@ -353,51 +455,14 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None):
     obs_time_unit = obs_obj.vars['time_unit']
     # Compare wave heights of satellite with model with 
     #   constraint on distance and time frame
-    # 1. time constraint
+    # time constraint
     obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
     obs_lons = np.array(obs_obj.vars['longitude'])[cidx]
     obs_vals = np.array(obs_obj.vars[obs_obj.stdvarname])[cidx]
-    # prepare model field
-    model_lats = mc_obj.vars['latitude']
-    model_lons = mc_obj.vars['longitude']
-    model_vals = mc_obj.vars[mc_obj.stdvarname]
-    if distlim == None:
-        distlim = 6
-    if (col_obj is None):
-        print ("No collocation idx available")
-        print (len(obs_time_dt),"footprints to be collocated")
-        print ("Perform collocation with distance limit\n",\
-                "distlim:",distlim)
-        index_array_2d, dist = collocation_fct(distlim,
-                                    obs_lons, obs_lats,
-                                    model_lons, model_lats)
-        # caution: index_array_2d is tuple
-        results_dict = {
-            'valid_date':datein,
-            'time':list(obs_time),
-            'time_unit':obs_time_unit,
-            'datetime':obs_time_dt,
-            'distance':list(dist),
-            'model_values':list(model_vals[index_array_2d[0],\
-                                           index_array_2d[1]]),
-            'model_lons':list(model_lons[index_array_2d[0],\
-                                         index_array_2d[1]]),
-            'model_lats':list(model_lats[index_array_2d[0],\
-                                         index_array_2d[1]]),
-            'obs_values':list(obs_vals),
-            'obs_lons':list(obs_lons),
-            'obs_lats':list(obs_lats),
-            'collocation_idx_x':list(index_array_2d[0]),
-            'collocation_idx_y':list(index_array_2d[1]),
-            }
-    elif (col_obj is not None and len(col_obj.vars['collocation_idx'][0]) > 0):
-        print("Collocation idx given through collocation_class object")
-        results_dict = col_obj.vars
-        results_dict['model_values'] = list(model_vals[\
-                                        col_obj.vars['collocation_idx_x'],
-                                        col_obj.vars['collocation_idx_y']])
+    # transform to model koordinates
+    # conduct collocation
+    collocation_fct(distlim,sat_rlat,sat_rlon,model_lats,model_lons)
     return results_dict
-
 
 def collocate(mc_obj=None,obs_obj=None,col_obj=None,
     model=None,distlim=None,leadtime=None,date_incr=None):
