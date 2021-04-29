@@ -75,6 +75,19 @@ ARCMFC3_hc:
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
     grid_date: 2018-01-01 00:00:00
 
+wam3_hc:
+    vars:
+        #Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "https://thredds.met.no/thredds/dodsC/windsurfer/\
+                    mywavewam3km_files/%Y/%m/"
+    file_template: "%Y%m%d_MyWam3km_hindcast.nc"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    init_step: 24
+
 mwam3force:
     vars:
         ux: Uwind
@@ -128,11 +141,11 @@ mwam4:
         Pdir: Pdir
         lons: longitude
         lats: latitude
-    #path_template: "/lustre/storeB/immutable/\
-    #        archive/projects/metproduction/\
-    #        DNMI_WAVE/%Y/%m/%d/"
-    path_template: "https://thredds.met.no/thredds/dodsC/\
-                    fou-hi/mywavewam4archive/%Y/%m/%d/"
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
+            DNMI_WAVE/%Y/%m/%d/"
+    #path_template: "https://thredds.met.no/thredds/dodsC/\
+    #                fou-hi/mywavewam4archive/%Y/%m/%d/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
     init_step: 6
