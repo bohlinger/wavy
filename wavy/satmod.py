@@ -30,6 +30,8 @@ import netCDF4 as netCDF4
 import calendar
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
+import xarray as xa
+
 # own imports
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from utils import progress, sort_files, collocate_times
@@ -473,11 +475,15 @@ class satellite_class():
                 region['lats'])), closed=True)
         elif (isinstance(region,str)==True and region in model_dict):
             from modelmod import model_class as mc
-            from ncmod import find_attr_in_nc
+            from ncmod import find_attr_in_nc,ncdumpMeta
             import pyproj
+            from modelmod import make_model_filename_wrapper
             try:
                 print('Use date for retrieving grid: ', grid_date)
-                mc_obj = mc(model=region,fc_date=grid_date)
+                fstr = make_model_filename_wrapper(region,grid_date,'best')
+                M = xa.open_dataset(fstr, decode_cf=True)
+                model_lons = M.lon
+                model_lats = M.lat
             except (KeyError,IOError,ValueError) as e:
                 print(e)
                 if 'grid_date' in model_dict[region]:
@@ -489,19 +495,19 @@ class satellite_class():
                                         datetime.now().month,
                                         datetime.now().day
                                         )
-                mc_obj = mc(model=region,fc_date=grid_date)
-            if (len(mc_obj.vars['latitude'].shape)==1):
+                fstr = make_model_filename_wrapper(region,grid_date,'best')
+                M = xa.open_dataset(fstr, decode_cf=True)
+                model_lons = M.lon
+                model_lats = M.lat
+            if (len(model_lons.shape)==1):
                 model_lons, model_lats = np.meshgrid(
-                                        mc_obj.vars['longitude'], 
-                                        mc_obj.vars['latitude']
+                                        model_lons, 
+                                        model_lats
                                         )
-            else:
-                model_lons = mc_obj.vars['longitude']
-                model_lats = mc_obj.vars['latitude']
             if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:
-                ncdict = mc_obj.vars['model_meta']
+                ncdict = ncdumpMeta(fstr)
                 try:
                     proj4 = find_attr_in_nc('proj',ncdict=ncdict,
                                             subattrstr='proj4')
