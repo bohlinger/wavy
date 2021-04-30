@@ -116,10 +116,7 @@ def get_model_fc_mode(filestr,model,fc_date,varalias=None):
     vardict = {}
     print ("Get model data according to selected date ....")
     print(filestr)
-    t0=time.time()
     model_meta = ncdumpMeta(filestr)
-    t1=time.time()
-    print('------- TIMER t1-t0: ',t1-t0,'----------')
     f = netCDF4.Dataset(filestr,'r')
     stdvarname = variable_info[varalias]['standard_name']
     # get coordinates and time
@@ -129,26 +126,16 @@ def get_model_fc_mode(filestr,model,fc_date,varalias=None):
                                 model_dict,model_meta)
     timename = get_filevarname(model,'time',variable_info,
                                 model_dict,model_meta)
-    t2=time.time()
-    print('------- TIMER t2-t1: ',t2-t1,'----------')
     model_lons = f.variables[lonsname][:]
-    t3=time.time()
-    print('------- TIMER t3-t2: ',t3-t2,'----------')
     vardict[variable_info['lons']['standard_name']]=model_lons
-    t4=time.time()
-    print('------- TIMER t4-t3: ',t4-t3,'----------')
     model_lats = f.variables[latsname][:]
     vardict[variable_info['lats']['standard_name']]=model_lats
     model_time = f.variables[timename]
-    t5=time.time()
     model_time_dt = list( netCDF4.num2date(model_time[:],
                         units = model_time.units) )
-    print('------- TIMER t5-t4: ',t5-t4,'----------')
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varalias,variable_info,
                                     model_dict,model_meta)
-    t6=time.time()
-    print('------- TIMER t6-t5: ',t6-t5,'----------')
     if (type(filevarname) is dict):
         print('Target variable can be computed from vector \n' 
               'components with the following aliases: ', filevarname)
@@ -209,11 +196,11 @@ def get_model_fc_mode(filestr,model,fc_date,varalias=None):
             model_var_valid = model_var_link[:,:].squeeze()
         vardict[variable_info[varalias]['standard_name']] = \
                                                     model_var_valid
+    # transform masked array to numpy array with NaNs
     f.close()
+    vardict[variable_info[varalias]['standard_name']] = \
+        vardict[variable_info[varalias]['standard_name']].filled(np.nan)
     vardict['model_meta'] = model_meta
-    t7=time.time()
-    print('------- TIMER t7-t6: ',t7-t6,'----------')
-    print('------- TIMER t7-t0: ',t7-t0,'----------')
     return vardict, filevarname
 
 def generate_bestguess_leadtime(model,fc_date):
@@ -357,7 +344,7 @@ class model_class():
                 str(sdate) + " - " + str(edate))
 
         print('Please wait ...')
-
+        t0=time.time()
         vardict, \
         fc_date, leadtime, \
         filestr, \
@@ -378,5 +365,7 @@ class model_class():
         self.stdvarname = stdname
         self.vars = vardict
         self.filestr = filestr
+        t1=time.time()
+        print("Time used for retrieving model data:",round(t1-t0,2),"seconds")
         print (" ### model_class object initialized ###")
         print ('# ----- ')

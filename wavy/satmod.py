@@ -31,11 +31,18 @@ import calendar
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 import xarray as xa
+import pyresample
 
 # own imports
 from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from ncmod import find_attr_in_nc
 from utils import progress, sort_files, collocate_times
 from credentials import get_credentials
+from modelmod import get_filevarname
+from modelmod import model_class as mc
+from modelmod import make_model_filename_wrapper
+import pyproj
+
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -219,6 +226,8 @@ class satellite_class():
             get_remote_files(path_remote,path_local,
                         sdate,edate,twin,corenum,
                         instr,provider)
+
+        t0=time.time()
         pathlst, filelst = self.get_local_filelst(
                             sdate,edate,twin,region)
         if len(pathlst) > 0:
@@ -284,9 +293,12 @@ class satellite_class():
             self.twin = twin
             self.region = region
             self.sat = sat
+            t1=time.time()
+            print("Time used for retrieving satellite data:",\
+                    round(t1-t0,2),"seconds")
             print ("Satellite object initialized including " 
                 + str(len(self.vars['time'])) + " footprints.")
-            print (" ### satellite_class object initialized ###")
+            #print (" ### satellite_class object initialized ###")
             print ('# ----- ')
         else:
             print('No satellite_class object initialized')
@@ -474,16 +486,20 @@ class satellite_class():
             poly = Polygon(list(zip(region['lons'],
                 region['lats'])), closed=True)
         elif (isinstance(region,str)==True and region in model_dict):
-            from modelmod import model_class as mc
-            from ncmod import find_attr_in_nc,ncdumpMeta
-            import pyproj
-            from modelmod import make_model_filename_wrapper
             try:
                 print('Use date for retrieving grid: ', grid_date)
-                fstr = make_model_filename_wrapper(region,grid_date,'best')
-                M = xa.open_dataset(fstr, decode_cf=True)
-                model_lons = M.lon
-                model_lats = M.lat
+                filestr = make_model_filename_wrapper(\
+                                        region,grid_date,'best')
+                model_meta = ncdumpMeta(filestr)
+                flon = get_filevarname(region,\
+                                    'lons',variable_info,\
+                                    model_dict,model_meta)
+                flat = get_filevarname(region,\
+                                    'lats',variable_info,\
+                                    model_dict,model_meta)
+                M = xa.open_dataset(filestr, decode_cf=True)
+                model_lons = M[flon].data
+                model_lats = M[flat].data
             except (KeyError,IOError,ValueError) as e:
                 print(e)
                 if 'grid_date' in model_dict[region]:
@@ -495,19 +511,28 @@ class satellite_class():
                                         datetime.now().month,
                                         datetime.now().day
                                         )
-                fstr = make_model_filename_wrapper(region,grid_date,'best')
-                M = xa.open_dataset(fstr, decode_cf=True)
-                model_lons = M.lon
-                model_lats = M.lat
+                filestr = make_model_filename_wrapper(\
+                                        region,grid_date,'best')
+                model_meta = ncdumpMeta(filestr)
+                flon = get_filevarname(region,\
+                                    'lons',variable_info,\
+                                    model_dict,model_meta)
+                flat = get_filevarname(region,\
+                                    'lats',variable_info,\
+                                    model_dict,model_meta)
+                M = xa.open_dataset(filestr, decode_cf=True)
+                model_lons = M[flon].data
+                model_lats = M[flat].data
             if (len(model_lons.shape)==1):
                 model_lons, model_lats = np.meshgrid(
                                         model_lons, 
                                         model_lats
                                         )
+            print('Check if footprints fall within the chosen domain')
             if (region=='global'):
                 rlatlst, rlonlst = LATS, LONS
             else:
-                ncdict = ncdumpMeta(fstr)
+                ncdict = ncdumpMeta(filestr)
                 try:
                     proj4 = find_attr_in_nc('proj',ncdict=ncdict,
                                             subattrstr='proj4')
