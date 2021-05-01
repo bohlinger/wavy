@@ -75,7 +75,7 @@ ARCMFC3_hc:
     file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
     grid_date: 2018-01-01 00:00:00
 
-wam3_hc:
+mwam3_hc:
     vars:
         #Hs: hs
         time: time

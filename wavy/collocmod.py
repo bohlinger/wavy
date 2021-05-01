@@ -439,7 +439,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                             distlim=distlim,\
                                             leadtime=leadtime,\
                                             date_incr=date_incr)
-    if (mc_obj is None and model is not None and obs_obj is not None\
+    elif (mc_obj is None and model is not None and obs_obj is not None\
     and isinstance(obs_obj,satellite_class)):
         results_dict = collocate_satellite_ts(obs_obj=obs_obj,
                                             model=model,\

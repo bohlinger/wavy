@@ -72,6 +72,7 @@ U:
     aliases_of_vector_components: 
         alt1: [ua,va] 
         alt2: [ux,vy]
+    valid_range: [0., 200]
 dist:
     standard_name: collocation_distance
     long_name: 'distance between collocated values'
@@ -79,4 +80,12 @@ dist:
 colidx:
     standard_name: collocation_idx
     long_name: 'collocation indices in flattened (1D) model field'
+    units: NA
+colidx_x:
+    standard_name: collocation_idx_x
+    long_name: 'collocation indices in x-direction'
+    units: NA
+colidx_y:
+    standard_name: collocation_idx_y
+    long_name: 'collocation indices in y-direction'
     units: NA

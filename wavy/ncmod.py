@@ -464,7 +464,8 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
     modlat = col_obj.vars['model_lats']
     obslon = col_obj.vars['obs_lons']
     obslat = col_obj.vars['obs_lats']
-    colidx = col_obj.vars['collocation_idx']
+    colidx_x = col_obj.vars['collocation_idx_x']
+    colidx_y = col_obj.vars['collocation_idx_y']
     leadtime = col_obj.leadtime
     varobs = np.array(col_obj.vars['obs_values'])
     varobs[varobs<variable_info[col_obj.varalias]['valid_range'][0]] = -999.
@@ -535,8 +536,13 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
                                np.float64,
                                dimensions=('time')
                                )
-        nccolidx = nc.createVariable(
-                               'colidx',
+        nccolidx_x = nc.createVariable(
+                               'colidx_x',
+                               np.float64,
+                               dimensions=('time')
+                               )
+        nccolidx_y = nc.createVariable(
+                               'colidx_y',
                                np.float64,
                                dimensions=('time')
                                )
@@ -592,8 +598,10 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
         ncdist[:] = dists
         ncdist.setncatts(variable_info['dist'])
         # colidx
-        nccolidx[:] = colidx
-        nccolidx.setncatts(variable_info['colidx'])
+        nccolidx_x[:] = colidx_x
+        nccolidx_x.setncatts(variable_info['colidx_x'])
+        nccolidx_y[:] = colidx_y
+        nccolidx_y.setncatts(variable_info['colidx_y'])
         # coordinate system info
         nc_crs = nc.createVariable('latlon',np.int32)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
