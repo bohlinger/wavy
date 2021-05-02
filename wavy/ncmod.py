@@ -475,7 +475,7 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
     varmod[varmod<variable_info[col_obj.varalias]['valid_range'][0]] = -999.
     varmod[varmod>variable_info[col_obj.varalias]['valid_range'][1]] = -999.
     varmod = list(varmod)
-    dists = np.array(col_obj.vars['distance'])*1000 # from km to m
+    dists = np.array(col_obj.vars['distance'])
     print ('Dump data to file: ' + pathtofile)
     if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
@@ -501,7 +501,8 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
         nc.variables['obs_lats'][startidx:endidx] = obslat[:]
         nc.variables['obs_values'][startidx:endidx] = varobs[:]
         nc.variables['dist'][startidx:endidx] = dists[:]
-        nc.variables['colidx'][startidx:endidx] = colidx[:]
+        nc.variables['colidx_x'][startidx:endidx] = colidx_x[:]
+        nc.variables['colidx_y'][startidx:endidx] = colidx_y[:]
         nc.close()
     else:
         outpath = os.path.dirname(pathtofile)
