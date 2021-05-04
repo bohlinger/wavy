@@ -46,8 +46,6 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir,'r') as stream:
     buoy_dict=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
-                        '..', 'config/stationlist.yaml'))
 with open(moddir,'r') as stream:
     locations=yaml.safe_load(stream)
 
@@ -55,11 +53,6 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/station_specs.yaml'))
 with open(moddir,'r') as stream:
     station_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
-                        '..', 'config/pathfinder.yaml'))
-with open(moddir,'r') as stream:
-    pathfinder=yaml.safe_load(stream)
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/d22_var_dicts.yaml'))
@@ -70,9 +63,6 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
-
-stationpath_lustre_om = pathfinder['stationpath_lustre_om']
-stationpath_lustre_hi = pathfinder['stationpath_lustre_hi']
 
 # --- global functions ------------------------------------------------#
 

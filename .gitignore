@@ -10,3 +10,4 @@ logs
 examples
 tmp
 LC-WVF
+*.yaml

@@ -1,0 +1,49 @@
+--- # specifications for satellite missions
+
+########################################################################
+# """
+# general structure: 
+#   + instrument type (altimeter/scatterometer) 
+#       + provider (eumetsat/cmems)
+#           + specs
+# """
+
+# define source after the following example encompassing all options:
+#instrument type:
+#    provider:
+#        level: # processing level e.g. 3
+#        satellite: # mission name abbreviations
+#        local:
+#            path:
+#        remote:
+#            path:
+#            server:
+#        misc:
+#            vardef: # stdname: ncfile varname
+#                stdvarname of interest: ncfile varname
+########################################################################
+
+altimeter:
+    eumetsat:
+        level: 2
+        satellite: s3a,s3b
+        local:
+            path:
+        remote:
+            path:
+            server:
+        misc:
+    cmems:
+        level: 3
+        satellite: s3a,s3b,c2,al,j3,h2b,cfo # do not use space for lists
+        local:
+            path: /home/patrikb/tmp_altimeter
+        remote: 
+            path: "/Core/\
+                   WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                   dataset-wav-alti-l3-swh-rt-global-"
+            server: "nrt.cmems-du.eu"
+        misc:
+            vardef: # stdname: abbreviation
+                sea_surface_wave_significant_height: VAVH
+                wind_speed: WIND_SPEED
