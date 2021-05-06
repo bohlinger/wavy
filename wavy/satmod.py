@@ -276,7 +276,7 @@ class satellite_class():
             stdname = variable_info[varalias]['standard_name']
             ncdict = ncdumpMeta(pathlst[0])
             filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
-            if len(filevarname) > 1:
+            if (len(filevarname) or filename is None) > 1:
                 filevarname = satellite_dict[instr][provider]\
                             ['misc']['vardef'][stdname]
             else:
