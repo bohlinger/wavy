@@ -91,7 +91,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         sys.exit()
 
 def get_remote_files(path_remote,path_local,sdate,edate,twin,
-                    corenum,instr,provider):
+                    nproc,instr,provider):
     '''
     Download swath files and store them at defined location
     time stamps in file name stand for: from, to, creation
@@ -142,8 +142,8 @@ def get_remote_files(path_remote,path_local,sdate,edate,twin,
         matching = tmplst
         # Download and gunzip matching files
         print ('Downloading ' + str(len(matching)) + ' files: .... \n')
-        print ("Used number of cores " + str(corenum) + "!")
-        Parallel(n_jobs=corenum)(
+        print ("Used number of processes " + str(nproc) + "!")
+        Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
                         i,matching,user,pw,server,
                         path,path_local
@@ -196,7 +196,7 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,twin=None,download=False,region=None,
-        corenum=1,varalias='Hs'
+        nproc=1,varalias='Hs'
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -224,7 +224,7 @@ class satellite_class():
         else:
             print ("Downloading necessary files ...")
             get_remote_files(path_remote,path_local,
-                        sdate,edate,twin,corenum,
+                        sdate,edate,twin,nproc,
                         instr,provider)
 
         t0=time.time()
