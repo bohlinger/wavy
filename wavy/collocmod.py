@@ -575,7 +575,7 @@ class collocation_class():
                                                 tmpdate,
                                                 varalias=self.varalias,
                                                 model=self.model,
-                                                satellite=self.sat,
+                                                mission=self.sat,
                                                 region=self.region,
                                                 leadtime=leadtimestr)
                         title = ( 'Collocation of ' + self.stdvarname 
