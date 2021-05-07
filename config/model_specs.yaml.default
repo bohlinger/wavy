@@ -39,10 +39,10 @@ ARCMFC3:
         time: time
         lons: lon
         lats: lat
-    path_template: "/lustre/storeA/project/copernicus/sea/\
-                    mywavewam3/arctic/%Y/%m/"
-    #path_template: "https://thredds.met.no/thredds/dodsC/\
-    #                cmems/mywavewam3km_files/%Y/%m/"
+    #path_template: "/lustre/storeA/project/copernicus/sea/\
+    #                mywavewam3/arctic/%Y/%m/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    cmems/mywavewam3km_files/%Y/%m/"
     # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
     # - This is actually 2019071500_*_b20190715T00* but due
     #   to delay the bulletin date/time is adjusted
@@ -141,11 +141,11 @@ mwam4:
         Pdir: Pdir
         lons: longitude
         lats: latitude
-    path_template: "/lustre/storeB/immutable/\
-            archive/projects/metproduction/\
-            DNMI_WAVE/%Y/%m/%d/"
-    #path_template: "https://thredds.met.no/thredds/dodsC/\
-    #                fou-hi/mywavewam4archive/%Y/%m/%d/"
+    #path_template: "/lustre/storeB/immutable/\
+    #        archive/projects/metproduction/\
+    #        DNMI_WAVE/%Y/%m/%d/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    fou-hi/mywavewam4archive/%Y/%m/%d/"
     file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
     init_times: [0,6,12,18]
     init_step: 6
