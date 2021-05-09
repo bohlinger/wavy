@@ -108,7 +108,7 @@ for sat in satlst:
         start_time = time.time()
         sa_obj = get_remote_files(satpath, destination,
                             sdate,edate,twin=30,
-                            corenum=nproc,instr=instr,provider=provider)
+                            nproc=nproc,instr=instr,provider=provider)
         time1 = time.time() - start_time
         print("Time used for collecting data: ", time1, " seconds")
         print("Data is being sorted into subdirectories year and month ...")
