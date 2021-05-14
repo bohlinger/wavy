@@ -2,14 +2,14 @@
 
 path:
     platform:
-        local: 
-            d22: 
+        local:
+            d22:
                 path_template: ["/lustre/storeB/immutable/archive/projects/\
-                                metproduction/DNMI_OFFSHORE/platform/d22/%Y/", 
+                                metproduction/DNMI_OFFSHORE/platform/d22/%Y/",
                                 "/vol/gorgon/offshore/platform/d22/"]
                 file_template: '%Y%m%d.d22'
                 strsub: ['platform'] # part of string to be substituted
-            nc: 
+            nc:
                 path_template: ["/home/patrikb/tmp_station/%Y/%m/",
                                 "/lustre/storeB/project/fou/om/\
                                  waveverification/obs/stations/%Y/%m/"]
@@ -42,10 +42,10 @@ platform:
     brage:
         sensor:
             NA_1: 0
-        manufacturer: 
+        manufacturer:
             NA_1: NA
-        coords: 
-            lat: 60.54 
+        coords:
+            lat: 60.54
             lon: 3.05
         operator: Wintershall_Dea_Norge
     draugen:
@@ -137,7 +137,7 @@ platform:
             lon: 2.80
         operator: NA
     gullfaksc:
-        sensor: 
+        sensor:
             MKIIIradar: 0 # python indexing
         manufacturer:
             MKIIIradar: Miros
@@ -217,7 +217,7 @@ platform:
 #        manufacturer:
 #            MKIIIradar: Miros
 #        coords:
-#            lat: 63.38 
+#            lat: 63.38
 #            lon: 5.31
 #        operator: NorskeShell
     snorrea:
@@ -318,7 +318,7 @@ platform:
         manufacturer:
             NA_1: NA
         coords:
-            lat: 60.78 
+            lat: 60.78
             lon: 2.89
         operator: Equinor_Energy
     veslefrikkb:
@@ -350,7 +350,7 @@ platform:
 # leiveiriksson (2008-2013)
 # njorda (2004-2016)
 # nobleglobet2 (2013-2017)
-# scarabeo8 (fra 2015) 
+# scarabeo8 (fra 2015)
 # sleipnerb (fra 2013)
 # trollc (fra 2013)
 # westnav (2013-2017)

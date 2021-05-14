@@ -18,12 +18,12 @@ from collocmod import collocation_class as coll
 from ncmod import dumptonc_sat
 import yaml
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../../', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../../', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
@@ -49,7 +49,7 @@ parser.add_argument("-sat", metavar='satellite',
         \nal - SARAL/AltiKa\
         \ncfo - CFOSAT\
         \nh2b - HaiYang-2B")
-parser.add_argument('-l', metavar='satellite list', 
+parser.add_argument('-l', metavar='satellite list',
     help='delimited list input for sats', type=str)
 parser.add_argument("-sd", metavar='startdate',
     help="start date of time period to check")

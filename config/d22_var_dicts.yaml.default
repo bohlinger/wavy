@@ -2,7 +2,7 @@
 
 ########################################################################
 # """
-# general structure: 
+# general structure:
 #   + categories
 #       + variables
 #           + specs
@@ -15,25 +15,25 @@
 ########################################################################
 
 datetime: # date and time related
-    date: 
+    date:
         idx: 3
-    time: 
+    time:
         idx: 4
 WM: # wave related
-    Hs: 
+    Hs:
         idx: 2
-    Tp: 
+    Tp:
         idx: 5
-    Tm10: 
+    Tm10:
         idx: 9
-    Tm02: 
+    Tm02:
         idx: 11
-    Tm01: 
+    Tm01:
         idx: 12
-    Pdir: 
+    Pdir:
         idx: 16
         convention: meteorologic
-    Mdir: 
+    Mdir:
         idx: 17
         convention: meteorologic
 WL: # water level related

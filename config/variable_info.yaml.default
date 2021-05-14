@@ -1,7 +1,7 @@
---- # Additional information on variables 
+--- # Additional information on variables
 # cf convention together with variable alias for wavy
 # http://cfconventions.org/Data/cf-standard-names/69/build/cf-standard-name-table.html
-# This config file sets the standard for how variables are handled 
+# This config file sets the standard for how variables are handled
 # and treated within wavy as well as for the wavy putput files
 
 #time
@@ -9,10 +9,10 @@ time:
     standard_name: time
 
 # coordinates
-lons: 
+lons:
     standard_name: longitude
     units: degree_east
-lats: 
+lats:
     standard_name: latitude
     units: degree_north
 
@@ -56,21 +56,21 @@ ux:
     standard_name: x_wind
     alias: grid_eastward_wind
     units: m s-1
-ua: 
+ua:
     standard_name: eastward_wind
     units: m s-1
-vy: 
-    standard_name: y_wind 
+vy:
+    standard_name: y_wind
     alias: grid_northward_wind
     units: m s-1
-va: 
+va:
     standard_name: northward_wind
     units: m s-1
-U: 
+U:
     standard_name: wind_speed
     units: m s-1
-    aliases_of_vector_components: 
-        alt1: [ua,va] 
+    aliases_of_vector_components:
+        alt1: [ua,va]
         alt2: [ux,vy]
     valid_range: [0., 200]
 dist:

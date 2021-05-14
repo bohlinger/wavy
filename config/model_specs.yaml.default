@@ -2,8 +2,8 @@
 
 ########################################################################
 # """
-# general structure: 
-#   + model 
+# general structure:
+#   + model
 #       + specs
 #           + subspecs
 #                + subsubspecs
@@ -13,10 +13,10 @@
 # modelname:
 #    vars:
 #        Hs: # varname in your model output file
-#        Mdir: 
+#        Mdir:
 #            convention: # e.g. oceanographic
-#        ...       
-#    path_template: 
+#        ...
+#    path_template:
 #    file_template:
 #    xtra_h: # h adjustment according to position in filename
 #    lt_switch: # should lead time be used for filedate [False/True]
@@ -24,12 +24,12 @@
 #    filedate_formats: # time string format e.g. %Y%m%d
 #    init_times: # UTC hours of model initialization
 #    init_step: # hours between model initialization
-#    leadtimes: 
+#    leadtimes:
 #    grid_date: # date and time of a model run you know exists
 #    proj4: # proj string to be read if not available in model output
-########################################################################
+#########################################################################
 
-ARCMFC3: 
+ARCMFC3:
     vars:
         Hs: VHM0
         Tp: VTPK
@@ -152,7 +152,7 @@ mwam4:
     leadtimes: [0,6,12,18,24,36,48,60]
     grid_date: 2020-01-01 00:00:00
 
-mwam4force: 
+mwam4force:
     vars:
         ux: Uwind
         vy: Vwind
@@ -166,12 +166,12 @@ mwam4force:
     init_times: [0,6,12,18]
     init_step: 6
     leadtimes: [0,6,12,18,24,36,48,60]
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
 
 
-ecwam: 
+ecwam:
     vars:
         Hs: significant_wave_height
         Mdir: wave_direction
@@ -206,7 +206,7 @@ ww3: # WW3_4km
     init_step: 6
     leadtimes: [0,6,12,18,24,36,48,60]
     _FillValue: 9.96921e+36
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
             +o_lat_p=22 +R=6.371e+06 +no_defs"
     grid_date: 2020-01-01 00:00:00
 
@@ -222,7 +222,7 @@ NORA10:
         lats: latitude
     path_template: "/lustre/storeB/project/fou/om/NORA10/wave/"
     file_template: "wam10_%Y.nc"
-    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
                 +o_lat_p=22 +a=6367470 +e=0"
 
 Erin1way:
@@ -239,6 +239,6 @@ Erin1way:
     init_step: 12
     leadtimes: [0,12]
     grid_date: 2020-01-01 12:00:00
-    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25 
-            +lat_1=77.5 +lat_2=77.5 
+    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25
+            +lat_1=77.5 +lat_2=77.5
             +no_defs +R=6.371e+06"

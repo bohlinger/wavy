@@ -2,7 +2,7 @@
 
 # rectangular on lat lon, or bounded by lat
 rect:
-    global: 
+    global:
         llcrnrlon: -180.
         llcrnrlat: -90.
         urcrnrlon: 180.
