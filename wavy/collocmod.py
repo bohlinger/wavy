@@ -405,7 +405,8 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
             'collocation_idx_x':list(idx_x),
             'collocation_idx_y':list(idx_y),
             }
-    elif (col_obj is not None and len(col_obj.vars['collocation_idx'][0]) > 0):
+    elif (col_obj is not None and \
+    len(col_obj.vars['collocation_idx'][0]) > 0):
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
         results_dict['model_values'] = list(model_vals[\
