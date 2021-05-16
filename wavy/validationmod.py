@@ -15,6 +15,11 @@ with open(moddir,'r') as stream:
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/quicklook_specs.yaml'))
+if os.path.exists(moddir):
+    with open(moddir,'r') as stream:
+        quicklook_dict=yaml.safe_load(stream)
+
 
 # define global functions
 def calc_rmsd(a,b):
@@ -215,7 +220,6 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
         svar = sa_obj.vars[sa_obj.stdvarname]
         stdvarname = sa_obj.stdvarname
         sat = sa_obj.sat
-    
     """
     If mc_obj is not None get model data for plotting
     """
@@ -285,21 +289,21 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
                     facecolor=cfeature.COLORS['land'])
 
     # make figure
-    fig, ax = plt.subplots(nrows=1, ncols=1, 
+    fig, ax = plt.subplots(nrows=1, ncols=1,
                         subplot_kw=dict(projection=projection),
                         figsize=(9, 9))
     # plot domain extent
     ax.set_extent([lonmin, lonmax,latmin, latmax],crs = ccrs.PlateCarree())
-    
+
     # plot model domain if model is available
     if mc_obj is not None:
-        ax.plot(mlons[0,:], mlats[0,:], '-', transform= ccrs.PlateCarree(), 
+        ax.plot(mlons[0,:], mlats[0,:], '-', transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-        ax.plot(mlons[-1,:], mlats[-1,:], '-', transform= ccrs.PlateCarree(), 
+        ax.plot(mlons[-1,:], mlats[-1,:], '-', transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-        ax.plot(mlons[:,0], mlats[:,0], '-', transform= ccrs.PlateCarree(), 
+        ax.plot(mlons[:,0], mlats[:,0], '-', transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-        ax.plot(mlons[:,-1], mlats[:,-1], '-', transform= ccrs.PlateCarree(), 
+        ax.plot(mlons[:,-1], mlats[:,-1], '-', transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
 
     # plot polygon if defined
@@ -354,12 +358,12 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
     gl.yformatter = LatitudeFormatter()
 
     # - model contours
-    im = ax.contourf(mlons, mlats, mvar, levels = levels, 
-                    transform = ccrs.PlateCarree(), 
+    im = ax.contourf(mlons, mlats, mvar, levels = levels,
+                    transform = ccrs.PlateCarree(),
                     cmap = cmocean.cm.amp, norm = norm, extend = extend)
 
     imc = ax.contour(mlons, mlats, mvar, levels = levels[18::1],
-                    transform = ccrs.PlateCarree(), 
+                    transform = ccrs.PlateCarree(),
                     colors='w', linewidths = 0.3)
     ax.clabel(imc, fmt='%2d', colors='w', fontsize=fs)
 
@@ -378,38 +382,36 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
         sc = ax.scatter(slons,slats,s=10,
                 c=svar,
                 marker='o', edgecolor = 'face',
-                cmap=cmocean.cm.amp, norm = norm, 
+                cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
 
-    # - point of interests
-    if 'poi' in kwargs.keys():
-        names=[]
-        plons=[]
-        plats=[]
-        for poi in kwargs['poi']:
-            names.append(poi)
-            plats.append(kwargs['poi'][poi]['lat'])
-            plons.append(kwargs['poi'][poi]['lon'])
-        scp = ax.scatter(plons,plats,s=20, c='b',
-                marker = 'x',transform = ccrs.PlateCarree())
-        for n in range(len(names)):
-            ax.text(plons[n], plats[n], names[n],
+    # - point of interests depending on region
+    if ('quicklook_dict' in globals()
+    and sa_obj.region in quicklook_dict
+    and 'poi' in quicklook_dict[sa_obj.region]):
+        for poi in quicklook_dict[sa_obj.region]['poi']:
+            pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
+            plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
+            plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
+            scp = ax.scatter(plon,plat,s=20, c='b',
+                    marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
                     transform = ccrs.PlateCarree())
+            ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
 
     # - colorbar
     cbar = fig.colorbar(im, ax=ax, orientation='vertical',
                         fraction=0.04, pad=0.04)
-    cbar.ax.set_ylabel( stdvarname + ' [' + 
-                        variable_info[sa_obj.varalias]['units'] 
+    cbar.ax.set_ylabel( stdvarname + ' [' +
+                        variable_info[sa_obj.varalias]['units']
                         + ']',size=fs)
     cbar.ax.tick_params(labelsize=fs)
 
     # - title
     plt.title(model + ' model time step: '
-        + coll_obj.vars['valid_date'][0].strftime("%Y-%m-%d %H:%M:%S UTC") 
+        + coll_obj.vars['valid_date'][0].strftime("%Y-%m-%d %Hua%M:%S UTC")
         + '\n'
         + sat
-        + ' coverage \n from ' 
+        + ' coverage \n from '
         + coll_obj.vars['datetime'][0].strftime("%Y-%m-%d %H:%M:%S UTC" )
         + ' to '
         + coll_obj.vars['datetime'][-1].strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -449,11 +451,11 @@ def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
     var = np.sqrt(u**2+v**2)
 
     # add quivers for wind
-    qv = ax.quiver( Mlons, Mlats, u, v, color='k', 
+    qv = ax.quiver( Mlons, Mlats, u, v, color='k',
                     transform=ccrs.PlateCarree(),scale=500)
 
 def plot_sat(sa_obj,**kwargs):
-    
+
     import matplotlib.cm as mplcm
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -474,14 +476,14 @@ def plot_sat(sa_obj,**kwargs):
         grid_date = model_dict[sa_obj.region]['grid_date']
         model_var_dict = kwargs['mc_obj'].vars
     # check region and determine projection
-    if (sa_obj.region == 'global' 
-        or (sa_obj.region in region_dict['rect'] 
+    if (sa_obj.region == 'global'
+        or (sa_obj.region in region_dict['rect']
             and 'boundinglat' in region_dict['rect'][sa_obj.region].keys())
         ):
         # Polar Stereographic Projection
         polarproj = ccrs.NorthPolarStereo(
-                            central_longitude=0.0, 
-                            true_scale_latitude=66, 
+                            central_longitude=0.0,
+                            true_scale_latitude=66,
                             globe=None)
         projection = polarproj
         land = cfeature.GSHHSFeature(scale='i', levels=[1],
@@ -492,7 +494,7 @@ def plot_sat(sa_obj,**kwargs):
             latmax = region_dict['rect'][sa_obj.region]['urcrnrlat']
             lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
             lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
-        elif sa_obj.region in region_dict['poly']: 
+        elif sa_obj.region in region_dict['poly']:
             latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])
             latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])
             lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])
@@ -632,20 +634,18 @@ def plot_sat(sa_obj,**kwargs):
                 cmap=cmocean.cm.amp, norm = norm,
                 transform=ccrs.PlateCarree())
 
-    # - point of interests
-    if 'poi' in kwargs.keys():
-        names=[]
-        plons=[]
-        plats=[]
-        for poi in kwargs['poi']:
-            names.append(poi)
-            plats.append(kwargs['poi'][poi]['lat'])
-            plons.append(kwargs['poi'][poi]['lon'])
-        scp = ax.scatter(plons,plats,s=20, c='b',
-                marker = 'x',transform = ccrs.PlateCarree())
-        for n in range(len(names)):
-            ax.text(plons[n], plats[n], names[n],
+    # - point of interests depending on region
+    if ('quicklook_dict' in globals()
+    and sa_obj.region in quicklook_dict
+    and 'poi' in quicklook_dict[sa_obj.region]):
+        for poi in quicklook_dict[sa_obj.region]['poi']:
+            pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
+            plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
+            plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
+            scp = ax.scatter(plon,plat,s=20, c='b',
+                    marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
                     transform = ccrs.PlateCarree())
+            ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
 
     # - plot polygon
     if sa_obj.region in region_dict['poly']:

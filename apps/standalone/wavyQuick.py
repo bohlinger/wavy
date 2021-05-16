@@ -186,19 +186,19 @@ elif (args.mod is None and sa_obj.region in model_dict):
     mc_obj = mc(model=sa_obj.region,
                 fc_date=model_dict[sa_obj.region]['grid_date'],
                 varalias=args.var)
-    plot_sat(sa_obj,variable_info[args.var]['standard_name'],
-            mc_obj=mc_obj,savepath=args.savep,showfig=args.show)
+    plot_sat(sa_obj,mc_obj=mc_obj,savepath=args.savep,showfig=args.show)
 elif (args.mod is not None and args.col is True):
     # get model collocated values
     mc_obj = mc(model=args.mod,fc_date=edate,leadtime=args.lt,
                 varalias=args.var)
     #collocation
-    coll_obj = coll(mc_obj, 
-                    sa_obj=sa_obj,
+    coll_obj = coll(mc_obj,
+                    obs_obj=sa_obj,
                     distlim=args.dist )
     valid_dict=validate(coll_obj.vars)
     disp_validation(valid_dict)
-    comp_fig(sa_obj,mc_obj,coll_obj,savepath=args.savep,showfig=args.show)
+    comp_fig(sa_obj=sa_obj,mc_obj=mc_obj,coll_obj=coll_obj,
+            savepath=args.savep,showfig=args.show)
 else:
     # get model collocated values
     mc_obj = mc(model=sa_obj.region,fc_date=edate,leadtime=args.lt,
