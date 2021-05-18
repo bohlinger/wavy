@@ -50,7 +50,7 @@ missing_data='marginalize',date_incr=1,**kwargs):
             output_dates = [tmpd + timedelta(hours=i) \
                             for i in range(0,steps,date_incr) \
                             if (tmpd + timedelta(hours=i) <= ed)]
-            del tmpd    
+            del tmpd
         elif isinstance(date_incr,list):
             output_dates = date_incr
         else: # original datetimes are used
@@ -70,7 +70,7 @@ missing_data='marginalize',date_incr=1,**kwargs):
         tmp_vardict['datetime'] = tmpdtime
         sobs_ts = compute_superobs(varalias,tmp_vardict,output_grid,\
                                     output_dates,method=superob,\
-                                    date_incr=date_incr,ol_dict=ol_dict) 
+                                    date_incr=date_incr,ol_dict=ol_dict)
     if missing_data == 'marginalize':
         # padding with NaNs retrieved from ol_dict['ts_clean']
         # only possible when same grid or datetimes are used
@@ -88,8 +88,8 @@ missing_data='marginalize',date_incr=1,**kwargs):
         newdict['latitude'] = [vardict['latitude'][0]]*len(output_dates)
     return newdict
 
-def compute_superobs(varalias,vardict,output_grid,output_dates,method='gam',\
-date_incr=1,**kwargs):
+def compute_superobs(varalias,vardict,output_grid,\
+output_dates, method='gam', date_incr=1,**kwargs):
     print('Superobserve data with method:',method)
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
@@ -98,9 +98,9 @@ date_incr=1,**kwargs):
     X = output_grid
     if method=='gam':
         sobs_ts = so_linearGAM(x,y,X,varalias,**kwargs)
-    if method=='block_mean':
+    elif method=='block_mean':
         # blocks are means from date_incr in hours
-        # For each grid_input time_stamp compute mean of hour 
+        # For each grid_input time_stamp compute mean of hour
         # if at least half of values are valid
         # else attribute NaN
         sobs_ts = block_means(dt,x,y,output_dates,date_incr)
