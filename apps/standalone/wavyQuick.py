@@ -7,12 +7,12 @@ sys.path.append('../../wavy')
 import numpy as np
 from datetime import datetime, timedelta
 from satmod import satellite_class as sa
-from validationmod import plot_sat
 import argparse
 from argparse import RawTextHelpFormatter
 import os
 from modelmod import model_class as mc
-from validationmod import comp_fig, validate, disp_validation
+from validationmod import validate, disp_validation
+from quicklookmod import comp_fig, plot_sat
 from collocmod import collocate
 from collocmod import collocation_class as coll
 from ncmod import dumptonc_sat

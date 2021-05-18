@@ -96,6 +96,7 @@ else:
 for sat in satlst:
     try:
         print("Attempting to download data for:", sat)
+        print("Time period:",str(sdate), "to", str(edate))
         satpath = satellite_dict[instr][provider]['remote']['path'] + sat
         destination = targetpath + '/' + sat
         print('destination: ' + destination)
