@@ -101,7 +101,7 @@ def check_if_file_is_valid(fc_date,model,leadtime):
         else:
             print('Desired date ' + str(fc_date) +  ' is not in', fname)
             return False
-    except FileNotFoundError as e:
+    except (FileNotFoundError, OSError) as e:
         print('File is not available')
         print(e)
         return False

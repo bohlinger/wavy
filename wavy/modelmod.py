@@ -37,7 +37,7 @@ def get_model_filedate(model,fc_date,leadtime):
     '''
     get init_date for latest model output file and checks if available
     '''
-    if ('init_times' in model_dict[model].keys() and 
+    if ('init_times' in model_dict[model].keys() and
     model_dict[model]['init_times'] is not None):
         init_times = \
             np.array(model_dict[model]['init_times']).astype('float')
@@ -137,7 +137,7 @@ def get_model_fc_mode(filestr,model,fc_date,varalias=None):
     filevarname = get_filevarname(model,varalias,variable_info,
                                     model_dict,model_meta)
     if (type(filevarname) is dict):
-        print('Target variable can be computed from vector \n' 
+        print('Target variable can be computed from vector \n'
               'components with the following aliases: ', filevarname)
         model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
         model_time_valid = float(model_time[model_time_dt.index(fc_date)])
@@ -236,7 +236,7 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
         filevarname = None
     if filevarname is not None:
         return filevarname[0]
-    if (filevarname is None 
+    if (filevarname is None
     and varalias in model_dict[model]['vars'].keys()):
         filevarname = model_dict[model]['vars'][varalias]
         print('Variable defined in model_specs.yaml is:')
@@ -245,7 +245,7 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
     elif (filevarname is None
     and varalias not in model_dict[model]['vars'].keys()
     and 'aliases_of_vector_components' in variable_info[varalias]):
-        print('Checking variable_info if variable can be ' + 
+        print('Checking variable_info if variable can be ' +
         'computed from vector components')
         filevarname = variable_info[varalias]['aliases_of_vector_components']
         return filevarname
@@ -263,14 +263,14 @@ def get_model(model=None,sdate=None,edate=None,date_incr=None,
         sdate = st_obj.sdate
         edate = st_obj.edate
         varalias = st_obj.varalias
-    if (sdate is not None and edate is not None 
+    if (sdate is not None and edate is not None
     and date_incr is not None):
         fc_date = make_fc_dates(sdate,edate,date_incr)
-    
+
     filestr = make_model_filename_wrapper(model=model,
                                           fc_date=fc_date,
                                           leadtime=leadtime)
-    
+
     if (isinstance(filestr,list) and st_obj is None):
         vardict, \
         filevarname = get_model_fc_mode(filestr=filestr[0],model=model,
