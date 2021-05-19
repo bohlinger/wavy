@@ -50,7 +50,8 @@ else:
     args.sd = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 if args.ed is None:
-    args.ed = datetime(now.year,now.month,now.day)-timedelta(minutes=1)
+    args.ed = datetime(now.year,now.month,now.day,now.hour)
+              #- timedelta(minutes=1)
 else:
     args.ed = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))-timedelta(minutes=1)
