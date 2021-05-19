@@ -104,8 +104,37 @@ output_dates, method='gam', date_incr=1,**kwargs):
         # if at least half of values are valid
         # else attribute NaN
         sobs_ts = block_means(dt,x,y,output_dates,date_incr)
+    elif method=='lanczos':
+        sobs_ts = lanczos()
     else: print('Method not defined, please enter valid method')
     return sobs_ts
+
+def lanczos_weights(window,cutoff):
+    """
+    Calculate weights for a low pass Lanczos filter
+    Args:
+        window: (integer) the length of the filter window
+    cutoff: (float) the cutoff frequency in inverse time steps
+    source: https://scitools.org.uk/iris/docs/v1.2/examples/
+            graphics/SOI_filtering.html
+    """
+    order = ((window - 1) // 2 ) + 1
+    nwts = 2 * order + 1
+    w = np.zeros([nwts])
+    n = nwts // 2
+    w[n] = 2 * cutoff
+    k = np.arange(1., n)
+    sigma = np.sin(np.pi * k / n) * n / (np.pi * k)
+    firstfactor = np.sin(2. * np.pi * cutoff * k) / (np.pi * k)
+    w[n-1:0:-1] = firstfactor * sigma
+    w[n+1:-1] = firstfactor * sigma
+    return w[1:-1]
+
+def lanczos(y,window,cutoff):
+    from utils import runmean
+    weights = lanczos_weights(window,cutoff)
+    ts,std = runmean(y,window,mode='centered',weights=weights)
+    return ts
 
 def block_means(dt,x,y,X,date_incr):
     means = []

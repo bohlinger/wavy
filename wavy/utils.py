@@ -212,11 +212,12 @@ def haversine_new(lon1, lat1, lon2, lat2):
         km = 6367 * c
         return [km]
 
-def runmean(vec,win,mode=None):
+def runmean(vec,win,mode=None,weights=None):
     """
     input:  vec = vector of values to me smoothed
             win = window length
-            mode= string: left, centered, right
+            mode = string: left, centered, right
+            weights = weights (same size as win)
     """
     win = int(win)
     if mode is None:
@@ -225,24 +226,25 @@ def runmean(vec,win,mode=None):
     std = np.zeros(len(vec))*np.nan
     length = len(vec)-win+1
     if mode=='left':
-        count = int(win-1)
-        start = int(win-1)
+        count = win-1
+        start = win-1
         for i in range(length):
             out[count] = np.mean(vec[count-start:count+1])
             std[count] = np.std(vec[count-start:count+1])
             count = count+1
     elif mode=='centered':
-        count = int(floor(win/2))
         start = int(floor(win/2))
-        for i in range(length):
+        for i in range(start,length):
             if win%2==0:
                 sys.exit("window length needs to be odd!")
             else:
-                sidx = int(count-start)
-                eidx = int(count+start+1)
-                out[count] = np.mean(vec[sidx-start:eidx])
-                std[count] = np.std(vec[sidx:eidx])
-                count = count+1
+                sidx = int(i-start)
+                eidx = int(i+start+1)
+                if weights is not None:
+                    out[i] = np.sum(vec[sidx:eidx]*weights)
+                else:
+                    out[i] = np.mean(vec[sidx:eidx])
+                std[i] = np.std(vec[sidx:eidx])
     elif mode=='right':
         count = int(0)
         for i in range(length):
