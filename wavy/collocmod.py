@@ -62,16 +62,16 @@ def collocation_fct(obs_lons,obs_lats,model_lons,model_lats):
                                 lats=model_lats, \
                                 lons=model_lons)
     # Define some sample points
-    swath = pyresample.geometry.SwathDefinition(lons=obs_lons, 
+    swath = pyresample.geometry.SwathDefinition(lons=obs_lons,
                                                 lats=obs_lats)
     # Determine nearest (great circle distance) neighbour in the grid.
     valid_input_index, valid_output_index, index_array, distance_array = \
                             pyresample.kd_tree.get_neighbour_info(
-                            source_geo_def=grid, 
-                            target_geo_def=swath, 
+                            source_geo_def=grid,
+                            target_geo_def=swath,
                             radius_of_influence=1000000000,
                             neighbours=1)
-    # get_neighbour_info() returns indices in the 
+    # get_neighbour_info() returns indices in the
     # flattened lat/lon grid. Compute the 2D grid indices:
     index_array_2d = np.unravel_index(index_array, grid.shape)
     return  index_array_2d, distance_array, valid_output_index,
@@ -426,7 +426,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                         + 'no observation values for collocation!'
                         + '\n###'
                         )
-    if ((mc_obj is None or len(mc_obj.vars[mc_obj.stdvarname]) < 1) 
+    if ((mc_obj is None or len(mc_obj.vars[mc_obj.stdvarname]) < 1)
     and model is None):
         raise Exception ( '\n###\n'
                         + 'Collocation not possible, '

@@ -101,7 +101,7 @@ def get_and_store_data(platformlst,sensorlst,sd,ed,var,date_incr,model,lt,dist):
                 st_obj = station_class(station,sensor,sd,ed,
                                                varalias=var)
                 col_obj = collocation_class(model=model,
-                                            st_obj=st_obj,
+                                            obs_obj=st_obj,
                                             distlim=dist,
                                             leadtime=lt,
                                             date_incr=date_incr)
