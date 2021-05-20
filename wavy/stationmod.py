@@ -59,7 +59,7 @@ moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
 with open(moddir, 'r') as stream:
     d22_var_dicts=yaml.safe_load(stream)
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/variable_info.yaml'))
 with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
@@ -123,6 +123,7 @@ class station_class():
                                  ['coords']['lat'] ]*len(var)
                     }
             elif superobserve == True:
+                print(kwargs)
                 # determine start and end date
                 if 'stwin' not in kwargs.keys():
                     kwargs['stwin'] = 3
@@ -146,7 +147,6 @@ class station_class():
                     'latitude':[ station_dict['platform'][platform]\
                                  ['coords']['lat'] ]*len(var)
                     }
-                print(kwargs)
                 vardict = superobbing(varalias,tmp_vardict,**kwargs)
                 # cut to original sdate and edate
                 time_cut = np.array(vardict['time'])[ \

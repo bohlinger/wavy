@@ -7,7 +7,7 @@ import os
 from datetime import datetime, timedelta
 import netCDF4
 
-from utils import find_included_times
+from utils import find_included_times,collocate_times
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/variable_info.yaml'))
@@ -15,7 +15,7 @@ with open(moddir,'r') as stream:
     variable_info=yaml.safe_load(stream)
 
 def superobbing(varalias,vardict,superob=None,outlier_detection='gam',\
-missing_data='marginalize',date_incr=1,**kwargs):
+missing_data='marginalize',date_incr=None,**kwargs):
     """
     Applies a smoothing filter to create a super-observed ts
     **kwargs includes method specific input for chosen smoother
@@ -39,6 +39,7 @@ missing_data='marginalize',date_incr=1,**kwargs):
         # check if outlier detection was performed if not warn
         if 'ol_dict' not in locals():
             print('Warning: not outlier detection was performed!')
+            ol_dict = None
         # determine the output grid
         if isinstance(date_incr,int):
         # increments are in #hours
@@ -55,22 +56,15 @@ missing_data='marginalize',date_incr=1,**kwargs):
             output_dates = date_incr
         else: # original datetimes are used
             output_dates = vardict['datetime']
+            print(len(output_dates))
         output_grid = netCDF4.date2num(output_dates,units=vardict['time_unit'])
         # super observations are computed from cleaned time series
         tmp_vardict = deepcopy(newdict)
-        # NaNs need to be removed before calculating superobs
-        tmpvar = np.array(tmp_vardict[stdvarname])
-        tmptime = np.array(tmp_vardict['time'])
-        tmpdtime = np.array(tmp_vardict['datetime'])
-        tmptime = tmptime[~np.isnan(tmpvar)]
-        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
-        tmpvar = tmpvar[~np.isnan(tmpvar)]
-        tmp_vardict[stdvarname] = tmpvar
-        tmp_vardict['time'] = tmptime
-        tmp_vardict['datetime'] = tmpdtime
-        sobs_ts = compute_superobs(varalias,tmp_vardict,output_grid,\
+        #sobs_ts = compute_superobs(varalias,tmp_vardict,output_grid,\
+        sobs_ts = compute_superobs(varalias,newdict,output_grid,\
                                     output_dates,method=superob,\
-                                    date_incr=date_incr,ol_dict=ol_dict)
+                                    date_incr=date_incr,\
+                                    **kwargs)
     if missing_data == 'marginalize':
         # padding with NaNs retrieved from ol_dict['ts_clean']
         # only possible when same grid or datetimes are used
@@ -89,7 +83,7 @@ missing_data='marginalize',date_incr=1,**kwargs):
     return newdict
 
 def compute_superobs(varalias,vardict,output_grid,\
-output_dates, method='gam', date_incr=1,**kwargs):
+output_dates, method='gam', date_incr=None,**kwargs):
     print('Superobserve data with method:',method)
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
@@ -97,6 +91,16 @@ output_dates, method='gam', date_incr=1,**kwargs):
     y = vardict[stdvarname]
     X = output_grid
     if method=='gam':
+        # NaNs need to be removed before gam
+        tmpvar = np.array(y)
+        tmptime = np.array(x)
+        tmpdtime = np.array(dt)
+        tmptime = tmptime[~np.isnan(tmpvar)]
+        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+        tmpvar = tmpvar[~np.isnan(tmpvar)]
+        y = tmpvar
+        x = tmptime
+        dt = tmpdtime
         sobs_ts = so_linearGAM(x,y,X,varalias,**kwargs)
     elif method=='block_mean':
         # blocks are means from date_incr in hours
@@ -105,7 +109,12 @@ output_dates, method='gam', date_incr=1,**kwargs):
         # else attribute NaN
         sobs_ts = block_means(dt,x,y,output_dates,date_incr)
     elif method=='lanczos':
-        sobs_ts = lanczos()
+        y = vardict[stdvarname]
+        window = kwargs['window']
+        cutoff = kwargs['cutoff']
+        sobs_ts = lanczos(y,window,cutoff)
+        idx = collocate_times(list(dt),output_dates)
+        sobs_ts = sobs_ts[idx]
     else: print('Method not defined, please enter valid method')
     return sobs_ts
 
@@ -115,8 +124,8 @@ def lanczos_weights(window,cutoff):
     Args:
         window: (integer) the length of the filter window
     cutoff: (float) the cutoff frequency in inverse time steps
-    source: https://scitools.org.uk/iris/docs/v1.2/examples/
-            graphics/SOI_filtering.html
+    example: https://scitools.org.uk/iris/docs/v1.2/examples/
+             graphics/SOI_filtering.html
     """
     order = ((window - 1) // 2 ) + 1
     nwts = 2 * order + 1
@@ -133,7 +142,7 @@ def lanczos_weights(window,cutoff):
 def lanczos(y,window,cutoff):
     from utils import runmean
     weights = lanczos_weights(window,cutoff)
-    ts,std = runmean(y,window,mode='centered',weights=weights)
+    ts, std = runmean(y,window,mode='centered',weights=weights)
     return ts
 
 def block_means(dt,x,y,X,date_incr):
@@ -205,7 +214,7 @@ def detect_outliers(varalias,vardict,method='gam',**kwargs):
     # coars use approximate limits (in future use range from yaml)
     llim = variable_info[varalias]['valid_range'][0]
     ulim = variable_info[varalias]['valid_range'][1]
-    # rogorous removal use techniques like: 
+    # rogorous removal use techniques like:
     # blockVariance, GP, GAM, (quantile regression) random forest, ...
     if method=='gam':
         idx = ol_linearGAM(x,y,varalias,**kwargs)
@@ -232,7 +241,7 @@ def ol_expectileGAM(x,y,varalias,**kwargs):
         n_splines = int(len(y)/5)
     gam50 = ExpectileGAM(expectile=0.50,terms=s(0),\
                         n_splines=n_splines).gridsearch(X, y)
-    # This practice of copying makes the models 
+    # This practice of copying makes the models
     # less likely to cross and much faster
     # https://pygam.readthedocs.io/en/latest/notebooks/tour_of_pygam.html
     # and copy the smoothing to the other models
