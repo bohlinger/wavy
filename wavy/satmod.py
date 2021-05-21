@@ -3,8 +3,8 @@
 # ---------------------------------------------------------------------#
 '''
 This module encompasses classes and methods to read and process wave
-field related data from satellites. I try to mostly follow the PEP 
-convention for python code style. Constructive comments on style and 
+field related data from satellites. I try to mostly follow the PEP
+convention for python code style. Constructive comments on style and
 effecient programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
@@ -69,7 +69,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
                             path_local):
     #for element in matching:
     print("File: ",matching[i])
-    dlstr=('ftp://' + user + ':' + pw + '@' 
+    dlstr=('ftp://' + user + ':' + pw + '@'
                 + server + path + matching[i])
     for attempt in range(10):
         print ("Attempt to download data: ")
@@ -85,7 +85,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         else:
             break
     else:
-        print ('An error was raised and I ' + 
+        print ('An error was raised and I ' +
               'failed to fix problem myself :(')
         print ('Exit program')
         sys.exit()
@@ -99,8 +99,6 @@ def get_remote_files(path_remote,path_local,sdate,edate,twin,
     # credentials
     user, pw = get_credentials()
     tmpdate = deepcopy(sdate)
-    pathlst = []
-    filelst = []
     while (tmpdate <= edate):
         # server and path
         if sdate >= datetime(2017,7,9):
@@ -141,7 +139,8 @@ def get_remote_files(path_remote,path_local,sdate,edate,twin,
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = tmplst
         # Download and gunzip matching files
-        print ('Downloading ' + str(len(matching)) + ' files: .... \n')
+        print ('Downloading ' + str(len(matching))
+                + ' files: .... \n')
         print ("Used number of processes " + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
@@ -169,7 +168,7 @@ def check_date(filelst,date):
     '''
     returns idx for file
     '''
-    # check if str in lst according to wished date (sdate,edate)
+    # check if str in lst according to desired date (sdate,edate)
     idx = []
     for i in range(len(filelst)):
         element = filelst[i]
@@ -184,8 +183,8 @@ def check_date(filelst,date):
 
 class satellite_class():
     '''
-    Class to handle netcdf files containing satellite data i.e. 
-    Hs[time], lat[time], lon[time] 
+    Class to handle netcdf files containing satellite data i.e.
+    Hs[time], lat[time], lon[time]
     This class offers the following added functionality:
      - get swaths of desired days and read
      - get the closest time stamp(s)
@@ -195,8 +194,8 @@ class satellite_class():
 
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
-        edate=None,twin=None,download=False,region=None,
-        nproc=1,varalias='Hs'
+        edate=None,twin=None,download=False,download_path=None,
+        remote_ftp_path=None,region=None,nproc=1,varalias='Hs'
         ):
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
@@ -205,17 +204,23 @@ class satellite_class():
             print ("Requested time: ", str(sdate))
             edate = sdate
         else:
-            print ("Requested time frame: " + 
+            print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
         if twin is None:
             twin = int(30)
         print('Please wait ...')
         print('Chosen time window is:', twin, 'min')
         # make satpaths
-        path_local = satellite_dict[instr][provider]['local']['path']\
-                        + '/' + sat + '/'
-        path_remote = satellite_dict[instr][provider]['remote']['path']\
-                        + sat + '/'
+        if download_path is None:
+            path_local = satellite_dict[instr][provider]\
+                        ['local']['path'] + '/' + sat + '/'
+        else:
+            path_local = download_path
+        if remote_ftp_path is None:
+            path_remote = satellite_dict[instr][provider]\
+                        ['remote']['path'] + sat + '/'
+        else:
+            path_remote = remote_ftp_path
         self.path_local = path_local
         self.path_remote = path_remote
         # retrieve files
@@ -246,7 +251,7 @@ class satellite_class():
                 else:
                     cvardict[element] = vardict[element]
             del vardict
-            print('In chosen time period: ', len(cvardict['time']), 
+            print('In chosen time period: ', len(cvardict['time']),
                 ' footprints found')
             # find values for given region
             ridx = self.matchregion(cvardict['latitude'],
@@ -262,10 +267,11 @@ class satellite_class():
                     rvardict[element] = cvardict[element]
             del cvardict
             if len(rvardict['time'])>0:
-                rvardict['datetime'] = netCDF4.num2date(rvardict['time'],
-                                                    rvardict['time_unit'])
-                print('For chosen region and time: ', len(rvardict['time']), 
-                    ' footprints found')
+                rvardict['datetime'] = netCDF4.num2date(
+                                            rvardict['time'],
+                                            rvardict['time_unit'])
+                print('For chosen region and time: ',
+                        len(rvardict['time']),'footprints found')
                 # convert to datetime object
                 timedt = rvardict['datetime']
                 rvardict['datetime'] = [datetime(t.year,t.month,t.day,
@@ -275,7 +281,8 @@ class satellite_class():
             # find variable name as defined in file
             stdname = variable_info[varalias]['standard_name']
             ncdict = ncdumpMeta(pathlst[0])
-            filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
+            filevarname = get_varname_for_cf_stdname_in_ncfile(
+                                                ncdict,stdname)
             if (len(filevarname) or filename is None) > 1:
                 filevarname = satellite_dict[instr][provider]\
                             ['misc']['vardef'][stdname]
@@ -296,7 +303,7 @@ class satellite_class():
             t1=time.time()
             print("Time used for retrieving satellite data:",\
                     round(t1-t0,2),"seconds")
-            print ("Satellite object initialized including " 
+            print ("Satellite object initialized including "
                 + str(len(self.vars['time'])) + " footprints.")
             #print (" ### satellite_class object initialized ###")
             print ('# ----- ')
@@ -306,12 +313,15 @@ class satellite_class():
 
     def get_local_filelst(self,sdate,edate,twin,region):
         print ("Time window: ", twin)
-        tmpdate=deepcopy(sdate-timedelta(minutes=twin))
+        tmpdate = deepcopy(sdate-timedelta(minutes=twin))
         pathlst = []
         filelst = []
         try:
             while (tmpdate <= edate + timedelta(minutes=twin)):
-                tmpdatestr=(self.path_local
+                if self.path_local == 'tmp_unittest/':
+                    tmpdatestr = self.path_local
+                else:
+                    tmpdatestr=(self.path_local
                         + str(tmpdate.year)
                         + '/' + tmpdate.strftime('%m')
                         + '/')
@@ -360,7 +370,7 @@ class satellite_class():
                     if satellite_dict['altimeter'][provider]\
                     ['misc']['vardef'] is not None:
                         if (stdname in satellite_dict['altimeter'][provider]\
-                        ['misc']['vardef'] 
+                        ['misc']['vardef']
                         and ncvar != satellite_dict['altimeter'][provider]\
                         ['misc']['vardef'][stdname]):
                             ncvar = satellite_dict['altimeter'][provider]\
@@ -505,7 +515,7 @@ class satellite_class():
                 if 'grid_date' in model_dict[region]:
                     grid_date = model_dict[region]['grid_date']
                     print('Trying default date ', grid_date)
-                else: 
+                else:
                     grid_date = datetime(
                                         datetime.now().year,
                                         datetime.now().month,
@@ -525,7 +535,7 @@ class satellite_class():
                 model_lats = M[flat].data
             if (len(model_lons.shape)==1):
                 model_lons, model_lats = np.meshgrid(
-                                        model_lons, 
+                                        model_lons,
                                         model_lats
                                         )
             print('Check if footprints fall within the chosen domain')
@@ -545,7 +555,7 @@ class satellite_class():
                 Vx, Vy = proj_model(LONS,LATS,inverse=False)
                 xmax, xmin = np.max(Mx), np.min(Mx)
                 ymax, ymin = np.max(My), np.min(My)
-                ridx = list(np.where((Vx>xmin) & (Vx<xmax) & 
+                ridx = list(np.where((Vx>xmin) & (Vx<xmax) &
                                 (Vy>ymin) & (Vy<ymax))[0]
                             )
         elif isinstance(region,str)==True:
