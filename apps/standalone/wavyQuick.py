@@ -179,8 +179,8 @@ else:
 
 # plot
 if (args.mod is None and sa_obj.region not in model_dict):
-    plot_sat(sa_obj,variable_info[args.var]['standard_name'],
-            savepath=args.savep,showfig=args.show)
+    #plot_sat(sa_obj,variable_info[args.var]['standard_name'],
+    plot_sat(sa_obj,savepath=args.savep,showfig=args.show)
 elif (args.mod is None and sa_obj.region in model_dict):
     print('Chosen region is a specified model domain')
     mc_obj = mc(model=sa_obj.region,
