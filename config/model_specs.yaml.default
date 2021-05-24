@@ -230,6 +230,8 @@ NORA3_wind:
         time: time
         lons: longitude
         lats: latitude
+        ux: x_wind_10m
+        vy: y_wind_10m
     path_template: "/lustre/storeB/project/fou/om/WINDSURFER/\
                     HM40h12/hm2nve/%Y/%m/"
     file_template: "fc%Y%m%d.nc"
