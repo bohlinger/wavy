@@ -225,6 +225,20 @@ NORA10:
     proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
                 +o_lat_p=22 +a=6367470 +e=0"
 
+NORA3_wind:
+    vars:
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/project/fou/om/WINDSURFER/\
+                    HM40h12/hm2nve/%Y/%m"
+    file_template: "fc%Y%m%d.nc"
+    proj4: "+proj=lcc +lat_0=66.3 +lon_0=-42 +lat_1=66.3 \
+            +lat_2=66.3 +no_defs +R=6.371e+06"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    init_step: 24
+
 Erin1way:
     vars:
         Hs: hs

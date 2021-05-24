@@ -191,7 +191,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                                     mc_obj.vars['datetime'][0].hour ) )
             except FileNotFoundError as e:
                 print(e)
-        # potentially there are different number of values 
+        # potentially there are different number of values
         # for obs and model
         # double check and use only coherent datetimes
         idx2 = collocate_times( model_datetime,
@@ -283,10 +283,6 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                                     obs_obj.vars['longitude'])[idx])
             obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
                                     obs_obj.vars[obs_obj.stdvarname])[idx])
-            print('len(obs_obj.vars[obs_obj.stdvarname])')
-            print(len(obs_obj.vars[obs_obj.stdvarname]))
-            print('len(obs_obj_tmp.vars[obs_obj_tmp.stdvarname])')
-            print(len(obs_obj_tmp.vars[obs_obj_tmp.stdvarname]))
             # collocate
             filestr = make_model_filename_wrapper(model=model,
                                           fc_date=fc_date[i],
@@ -294,6 +290,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             M = xa.open_dataset(filestr, decode_cf=True)
             filevarname = get_filevarname(model,obs_obj.varalias,
                                 variable_info,model_dict,model_meta)
+            # need function if variable consists of vector components
             model_vals = M.sel(time=fc_date[i])[filevarname].data
             results_dict_tmp = collocate_field(\
                             datein=fc_date[i],\
@@ -362,7 +359,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
                    for t in datein]
     obs_time = np.array(obs_obj.vars['time'])[cidx]
     obs_time_unit = obs_obj.vars['time_unit']
-    # Compare wave heights of satellite with model with 
+    # Compare wave heights of satellite with model with
     #   constraint on distance and time frame
     # 1. time constraint
     obs_lats = np.array(obs_obj.vars['latitude'])[cidx]
@@ -417,7 +414,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
 def collocate(mc_obj=None,obs_obj=None,col_obj=None,
     model=None,distlim=None,leadtime=None,date_incr=None):
     """
-    get obs value for model value for given 
+    get obs value for model value for given
         temporal and spatial constraints
     """
     if (len(obs_obj.vars[obs_obj.stdvarname]) < 1):
@@ -579,7 +576,7 @@ class collocation_class():
                                                 mission=self.sat,
                                                 region=self.region,
                                                 leadtime=leadtimestr)
-                        title = ( 'Collocation of ' + self.stdvarname 
+                        title = ( 'Collocation of ' + self.stdvarname
                                 + ' observations from ' + self.sat
                                 + ' vs ' + self.model)
                 dumptonc_ts_collocation(self,pathtofile,title)

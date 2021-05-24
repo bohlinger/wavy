@@ -222,7 +222,7 @@ def generate_bestguess_leadtime(model,fc_date):
 def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
     stdname = variable_info[varalias]['standard_name']
     print('Get filevarname for \n' +
-          'stdvarname:',stdname,'\n' + 
+          'stdvarname:',stdname,'\n' +
           'varalias:',varalias)
     filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict,stdname)
     if (filevarname is None and 'alias' in variable_info[varalias]):
