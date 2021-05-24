@@ -589,11 +589,15 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
         ncmodlat.setncatts(variable_info['lats'])
         # varobs
         ncvarobs[:] = varobs
-        ncvarobs.setncatts(variable_info[col_obj.varalias])
+        dict_for_nc = deepcopy(variable_info[col_obj.varalias])
+        del dict_for_nc['aliases_of_vector_components']
+        ncvarobs.setncatts(dict_for_nc)
         ncvarobs.observation_name = col_obj.obsname
         # varmod
         ncvarmod[:] = varmod
-        ncvarmod.setncatts(variable_info[col_obj.varalias])
+        dict_for_nc = deepcopy(variable_info[col_obj.varalias])
+        del dict_for_nc['aliases_of_vector_components']
+        ncvarobs.setncatts(dict_for_nc)
         ncvarmod.model_name = col_obj.model
         # dists
         ncdist[:] = dists
