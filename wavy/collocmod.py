@@ -31,7 +31,7 @@ from utils import hour_rounder
 from utils import NoStdStreams
 from modelmod import model_class, make_model_filename_wrapper
 from modelmod import get_model_filedate, get_filevarname
-from modelmod import model_class
+from modelmod import model_class,get_model
 from ncmod import dumptonc_ts_collocation
 from ncmod import find_attr_in_nc, ncdumpMeta
 from satmod import satellite_class
@@ -255,20 +255,20 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             'collocation_idx_y':[],
             }
     # get model coordinates
-    filestr = make_model_filename_wrapper(model=model,
-                                          fc_date=fc_date[0],
-                                          leadtime=leadtime)
-    model_meta = ncdumpMeta(filestr)
-    flon = get_filevarname(model,'lons',variable_info,\
-                                    model_dict,model_meta)
-    flat = get_filevarname(model,'lats',variable_info,\
-                                    model_dict,model_meta)
-    M = xa.open_dataset(filestr, decode_cf=True)
-    model_lons = M[flon].data
-    model_lats = M[flat].data
+    #filestr = make_model_filename_wrapper(model=model,
+    #                                      fc_date=fc_date[0],
+    #                                      leadtime=leadtime)
+    #model_meta = ncdumpMeta(filestr)
+    #flon = get_filevarname(model,'lons',variable_info,\
+    #                                model_dict,model_meta)
+    #flat = get_filevarname(model,'lats',variable_info,\
+    #                                model_dict,model_meta)
+    #M = xa.open_dataset(filestr, decode_cf=True)
+    #model_lons = M[flon].data
+    #model_lats = M[flat].data
     for i in tqdm(range(len(fc_date))):
-#        for j in range(1):
-        with NoStdStreams():
+        for j in range(1):
+#        with NoStdStreams():
             # filter needed obs within time period
             idx = collocate_times( obs_obj.vars['datetime'],
                                target_t = [fc_date[i]],
@@ -284,19 +284,26 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
                                     obs_obj.vars[obs_obj.stdvarname])[idx])
             # collocate
-            filestr = make_model_filename_wrapper(model=model,
-                                          fc_date=fc_date[i],
-                                          leadtime=leadtime)
-            M = xa.open_dataset(filestr, decode_cf=True)
-            filevarname = get_filevarname(model,obs_obj.varalias,
-                                variable_info,model_dict,model_meta)
-            # need function if variable consists of vector components
-            model_vals = M.sel(time=fc_date[i])[filevarname].data
+            #filestr = make_model_filename_wrapper(model=model,
+            #                              fc_date=fc_date[i],
+            #                              leadtime=leadtime)
+            #M = xa.open_dataset(filestr, decode_cf=True)
+            #filevarname = get_filevarname(model,obs_obj.varalias,
+            #                    variable_info,model_dict,model_meta)
+            ## need function if variable consists of vector components
+            #model_vals = M.sel(time=fc_date[i])[filevarname].data
+            vardict,_,_,_,_ = get_model(model=model,
+                                fc_date=fc_date[i],
+                                varalias=obs_obj.varalias,
+                                leadtime=leadtime)
             results_dict_tmp = collocate_field(\
                             datein=fc_date[i],\
-                            model_lats=model_lats,\
-                            model_lons=model_lons,\
-                            model_vals=model_vals,\
+#                            model_lats=model_lats,\
+#                            model_lons=model_lons,\
+#                            model_vals=model_vals,\
+                            model_lats=vardict['latitude'],\
+                            model_lons=vardict['longitude'],\
+                            model_vals=vardict[obs_obj.stdvarname],\
                             obs_obj=obs_obj_tmp,\
                             distlim=distlim )
         # append to dict
@@ -490,8 +497,8 @@ class collocation_class():
         if leadtime is None:
             self.leadtime = 'best'
         # get vars dictionary
-        try:
-#        for i in range(1):
+#        try:
+        for i in range(1):
             t0=time.time()
             results_dict = collocate(mc_obj=mc_obj,
                                     obs_obj=obs_obj,
@@ -510,10 +517,10 @@ class collocation_class():
                 self.outlier_detection = obs_obj.outlier_detection
                 self.missing_data = obs_obj.missing_data
             print (" ### Collocation_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No collocation_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No collocation_class object initialized !")
         print ('# ----- ')
 
     def write_to_monthly_nc(self,path=None,filename=None):

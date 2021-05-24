@@ -299,7 +299,7 @@ def get_model(model=None,sdate=None,edate=None,date_incr=None,
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/model_specs.yaml'))
 with open(moddir,'r') as stream:
     model_dict=yaml.safe_load(stream)
@@ -336,7 +336,7 @@ class model_class():
             now = datetime.now()
             fc_date = datetime(now.year,now.month,now.day,now.hour)
             print ("Requested time: ", str(fc_date))
-        elif (sdate is not None and edate is not None 
+        elif (sdate is not None and edate is not None
         and date_incr is not None):
             # time frame function to access a temporal subset
             # --> not yet in use
