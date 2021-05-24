@@ -231,7 +231,7 @@ NORA3_wind:
         lons: longitude
         lats: latitude
     path_template: "/lustre/storeB/project/fou/om/WINDSURFER/\
-                    HM40h12/hm2nve/%Y/%m"
+                    HM40h12/hm2nve/%Y/%m/"
     file_template: "fc%Y%m%d.nc"
     proj4: "+proj=lcc +lat_0=66.3 +lon_0=-42 +lat_1=66.3 \
             +lat_2=66.3 +no_defs +R=6.371e+06"
