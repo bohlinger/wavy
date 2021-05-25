@@ -1,5 +1,4 @@
 from utils import runmean_conv
-from pygam import LinearGAM, l, s, ExpectileGAM
 import numpy as np
 from copy import deepcopy
 import yaml
@@ -7,7 +6,8 @@ import os
 from datetime import datetime, timedelta
 import netCDF4
 
-from utils import find_included_times,collocate_times
+# own imports
+from utils import find_included_times, collocate_times
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '..', 'config/variable_info.yaml'))
@@ -24,15 +24,19 @@ missing_data='marginalize',date_incr=None,**kwargs):
             running mean using convolution
             GP
             GAM
+            Lanczos
             ...
-    Caution:    for some smoothers much more of time series has 
+    Caution:    for some smoothers much more of time series has
                 to be included.
     """
     newdict = deepcopy(vardict)
     stdvarname = variable_info[varalias]['standard_name']
     # !if for satellites first a landmask has to be created!
     if outlier_detection is not None:
-        ol_dict = detect_outliers(varalias,vardict,method=outlier_detection)
+        ol_dict = detect_outliers(varalias,
+                                  vardict,
+                                  method = outlier_detection,
+                                  **kwargs)
         newdict[stdvarname] = ol_dict['ts_clean']
     else: print('Warning: Performing outlier detection is recommended')
     if superob is not None:
@@ -102,6 +106,18 @@ output_dates, method='gam', date_incr=None,**kwargs):
         x = tmptime
         dt = tmpdtime
         sobs_ts = so_linearGAM(x,y,X,varalias,**kwargs)
+    if method=='gp':
+        # NaNs need to be removed before gp
+        tmpvar = np.array(y)
+        tmptime = np.array(x)
+        tmpdtime = np.array(dt)
+        tmptime = tmptime[~np.isnan(tmpvar)]
+        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+        tmpvar = tmpvar[~np.isnan(tmpvar)]
+        y = tmpvar
+        x = tmptime
+        dt = tmpdtime
+        sobs_ts = so_GP(x,y,X,varalias,**kwargs)
     elif method=='block_mean':
         # blocks are means from date_incr in hours
         # For each grid_input time_stamp compute mean of hour
@@ -172,6 +188,7 @@ def block_means(dt,x,y,X,date_incr):
     return means
 
 def so_linearGAM(x,y,X,varalias,**kwargs):
+    from pygam import LinearGAM, l, s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
     x = x.reshape(len(x),1)
@@ -188,21 +205,61 @@ def so_linearGAM(x,y,X,varalias,**kwargs):
     else:
         # This is because the automatic approach is too smooth
         n_splines = int(len(y)/5)
-    if varalias != 'Mdir':
-        gam = LinearGAM(n_splines=n_splines,\
-                        terms=s(0,basis='ps')\
-                        ).gridsearch(x, y)
-    else:
-        print('CYCLIC!')
-        print(x.shape)
-        print(X.shape)
-        n_splines = int(len(y)/5)
-        gam = LinearGAM(n_splines=n_splines,\
-                        terms=s(0,basis='cp',edge_knots=[0,360])\
-                        ).gridsearch(x, y)
+    gam = LinearGAM(n_splines=n_splines,\
+                    terms=s(0,basis='ps')\
+                    ).gridsearch(x, y)
     # sample on the input grid
     means = gam.predict(X)
     return means
+
+def so_GP(x,y,X,varalias,**kwargs):
+    print('Caution: bug in GP')
+    from sklearn import gaussian_process
+    from sklearn.gaussian_process.kernels import RBF
+    from sklearn.gaussian_process.kernels import WhiteKernel
+    from sklearn.gaussian_process.kernels import RationalQuadratic
+    if isinstance(x,list):
+        x = np.array(x)
+    if isinstance(y,list):
+        y = np.array(y)
+    if isinstance(X,list):
+        X = np.array(X)
+    if X is None:
+        X = x.reshape(-1,1)
+    else:
+        X = X.reshape(-1,1)
+    # create a zero mean process
+    Y = y.reshape(-1,1) - np.nanmean(y)
+    # define the kernel based on kwargs
+    if 'kernel' in kwargs.keys():
+        print('kernel is defined by user')
+        kernel = kwargs['kernel']
+    elif 'kernel_lst' in kwargs.keys():
+        print('kernel constituents given by user')
+        kernel = WhiteKernel(noise_level=1,\
+                            noise_level_bounds=(0.0,np.nanmax(Y)))
+        if 'RBF' in kwargs['kernel_lst']:
+            kernel += RBF(length_scale=2,\
+                          length_scale_bounds=(1,20))
+        if 'RationalQuadratic' in kwargs['kernel_lst']:
+            kernel += RationalQuadratic(alpha=1,\
+                                        length_scale=2,\
+                                        alpha_bounds=(0,100),\
+                                        length_scale_bounds=(1,20))
+    else:
+        print('default kernel')
+        kernel =  (
+                   WhiteKernel(noise_level=1, \
+                               noise_level_bounds=(0.1,10)) \
+                +  1 * RBF(length_scale=11, \
+                           length_scale_bounds=(10,100)) \
+                )
+    gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
+    gp.fit(x.reshape(-1,1), Y)
+    print(gp.kernel_)
+    y_pred, sigma = gp.predict(X, return_std=True)
+    y_pred = y_pred + np.nanmean(y)
+    return y_pred
 
 def detect_outliers(varalias,vardict,method='gam',**kwargs):
     print('Detect outliers with method:', method)
@@ -214,10 +271,14 @@ def detect_outliers(varalias,vardict,method='gam',**kwargs):
     # coars use approximate limits (in future use range from yaml)
     llim = variable_info[varalias]['valid_range'][0]
     ulim = variable_info[varalias]['valid_range'][1]
-    # rogorous removal use techniques like:
+    # rigorous removal use techniques like:
     # blockVariance, GP, GAM, (quantile regression) random forest, ...
     if method=='gam':
         idx = ol_linearGAM(x,y,varalias,**kwargs)
+        ts_clean = np.array(y)
+        ts_clean[idx] = np.nan
+    if method=='gp':
+        idx = ol_GP(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
     if method=='expectile':
@@ -229,6 +290,7 @@ def detect_outliers(varalias,vardict,method='gam',**kwargs):
     return ol_dict
 
 def ol_expectileGAM(x,y,varalias,**kwargs):
+    from pygam import LinearGAM, l, s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
     if isinstance(y,list):
@@ -258,6 +320,7 @@ def ol_expectileGAM(x,y,varalias,**kwargs):
     return idx
 
 def ol_linearGAM(x,y,varalias,**kwargs):
+    from pygam import LinearGAM, l, s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
     if isinstance(y,list):
@@ -268,22 +331,58 @@ def ol_linearGAM(x,y,varalias,**kwargs):
     else:
         # This is because the automatic approach is too smooth
         n_splines = int(len(y)/5)
-    if varalias != 'Mdir':
-        gam = LinearGAM(n_splines=n_splines,\
-                        terms=s(0,basis='ps')\
-                        ).gridsearch(X, y)
-    else:
-        print('CYCLIC!')
-        print(x.shape)
-        print(X.shape)
-        n_splines = int(len(y)/5)
-        gam = LinearGAM(n_splines=n_splines,\
-                        terms=s(0,basis='cp',edge_knots=[0,360])\
-                        ).gridsearch(X, y)
+    gam = LinearGAM(n_splines=n_splines,\
+                    terms=s(0,basis='ps')\
+                    ).gridsearch(X, y)
     #gam = LinearGAM(n_splines=n_splines,terms=s(0)).gridsearch(X, y)
     # sample on the input grid
     means = gam.predict(X)
     bounds = gam.prediction_intervals(X, width=.95)
     idx = [i for i in range(len(y)) \
             if (y[i]>bounds[i,1] or y[i]<bounds[i,0])]
+    return idx
+
+def ol_GP(x,y,varalias,**kwargs):
+    from sklearn import gaussian_process
+    from sklearn.gaussian_process.kernels import RBF
+    from sklearn.gaussian_process.kernels import WhiteKernel
+    from sklearn.gaussian_process.kernels import RationalQuadratic
+    if isinstance(x,list):
+        x = np.array(x)
+    if isinstance(y,list):
+        y = np.array(y)
+    X = x.reshape(-1,1)
+    # create a zero mean process
+    Y = y.reshape(-1,1) - np.nanmean(y)
+    # define the kernel based on kwargs
+    if 'kernel' in kwargs.keys():
+        print('kernel is defined by user')
+        kernel = kwargs['kernel']
+    elif 'kernel_lst' in kwargs.keys():
+        print('kernel constituents given by user')
+        kernel = WhiteKernel(noise_level=1,\
+                            noise_level_bounds=(0.0,np.nanmax(Y)))
+        if 'RBF' in kwargs['kernel_lst']:
+            kernel += RBF(length_scale=1,\
+                          length_scale_bounds=(1,20))
+        if 'RationalQuadratic' in kwargs['kernel_lst']:
+            kernel += RationalQuadratic(alpha=1,\
+                                        length_scale=1,\
+                                        alpha_bounds=(0,100),\
+                                        length_scale_bounds=(1,20))
+    else:
+        print('default kernel')
+        kernel =  (
+                   WhiteKernel(noise_level=1) \
+                +  1 * RBF(length_scale=1, \
+                           length_scale_bounds=(3,100)) \
+                )
+    gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
+    gp.fit(X, Y)
+    print(gp.kernel_)
+    y_pred, sigma = gp.predict(X, return_std=True)
+    uplim = y_pred + (2*sigma).reshape(-1,1)
+    lowlim = y_pred - (2*sigma).reshape(-1,1)
+    idx = [i for i in range(len(Y)) \
+            if (Y[i]>uplim[i] or Y[i]<lowlim[i])]
     return idx
