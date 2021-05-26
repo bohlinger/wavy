@@ -213,7 +213,6 @@ def so_linearGAM(x,y,X,varalias,**kwargs):
     return means
 
 def so_GP(x,y,X,varalias,**kwargs):
-    print('Caution: bug in GP')
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
@@ -236,26 +235,19 @@ def so_GP(x,y,X,varalias,**kwargs):
         kernel = kwargs['kernel']
     elif 'kernel_lst' in kwargs.keys():
         print('kernel constituents given by user')
-        kernel = WhiteKernel(noise_level=1,\
-                             noise_level_bounds=(0.0,np.nanmax(Y)))
+        kernel = WhiteKernel(noise_level=1)
         if 'RBF' in kwargs['kernel_lst']:
-            kernel += RBF(length_scale=2,\
-                          length_scale_bounds=(1,20))
+            kernel += RBF(length_scale=1)
         if 'RationalQuadratic' in kwargs['kernel_lst']:
             kernel += RationalQuadratic(alpha=1,\
-                                        length_scale=2,\
-                                        alpha_bounds=(0,100),\
-                                        length_scale_bounds=(1,20))
+                                        length_scale=1)
     else:
         print('default kernel')
-        kernel =  (
-                   WhiteKernel(noise_level=1, \
-                               noise_level_bounds=(0.01,10000)) \
-                +  1 * RBF(length_scale=1, \
-                           length_scale_bounds=(0.01,10000)) \
-                )
-    gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
-    gp.fit(x, Y)
+        kernel =  WhiteKernel(noise_level=1) +  1 * RBF(length_scale=1)
+    gp = gaussian_process.GaussianProcessRegressor(
+            kernel=kernel,
+            n_restarts_optimizer=10)
+    gp.fit(x.reshape(-1,1), Y)
     print(gp.kernel_)
     y_pred, sigma = gp.predict(X, return_std=True)
     y_pred = y_pred + np.nanmean(y)
@@ -360,24 +352,18 @@ def ol_GP(x,y,varalias,**kwargs):
         kernel = kwargs['kernel']
     elif 'kernel_lst' in kwargs.keys():
         print('kernel constituents given by user')
-        kernel = WhiteKernel(noise_level=1,\
-                            noise_level_bounds=(0.0,np.nanmax(Y)))
+        kernel = WhiteKernel(noise_level=1)
         if 'RBF' in kwargs['kernel_lst']:
-            kernel += RBF(length_scale=1,\
-                          length_scale_bounds=(1,20))
+            kernel += RBF(length_scale=1)
         if 'RationalQuadratic' in kwargs['kernel_lst']:
             kernel += RationalQuadratic(alpha=1,\
-                                        length_scale=1,\
-                                        alpha_bounds=(0,100),\
-                                        length_scale_bounds=(1,20))
+                                        length_scale=1)
     else:
         print('default kernel')
-        kernel =  (
-                   WhiteKernel(noise_level=1) \
-                +  1 * RBF(length_scale=1, \
-                           length_scale_bounds=(3,100)) \
-                )
-    gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
+        kernel =  WhiteKernel(noise_level=1) +  1 * RBF(length_scale=1)
+    gp = gaussian_process.GaussianProcessRegressor(
+            kernel=kernel,
+            n_restarts_optimizer=10)
     gp.fit(X, Y)
     print(gp.kernel_)
     y_pred, sigma = gp.predict(X, return_std=True)
