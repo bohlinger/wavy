@@ -237,7 +237,7 @@ def so_GP(x,y,X,varalias,**kwargs):
     elif 'kernel_lst' in kwargs.keys():
         print('kernel constituents given by user')
         kernel = WhiteKernel(noise_level=1,\
-                            noise_level_bounds=(0.0,np.nanmax(Y)))
+                             noise_level_bounds=(0.0,np.nanmax(Y)))
         if 'RBF' in kwargs['kernel_lst']:
             kernel += RBF(length_scale=2,\
                           length_scale_bounds=(1,20))
@@ -250,12 +250,12 @@ def so_GP(x,y,X,varalias,**kwargs):
         print('default kernel')
         kernel =  (
                    WhiteKernel(noise_level=1, \
-                               noise_level_bounds=(0.1,10)) \
-                +  1 * RBF(length_scale=11, \
-                           length_scale_bounds=(10,100)) \
+                               noise_level_bounds=(0.01,10000)) \
+                +  1 * RBF(length_scale=1, \
+                           length_scale_bounds=(0.01,10000)) \
                 )
     gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
-    gp.fit(x.reshape(-1,1), Y)
+    gp.fit(x, Y)
     print(gp.kernel_)
     y_pred, sigma = gp.predict(X, return_std=True)
     y_pred = y_pred + np.nanmean(y)
