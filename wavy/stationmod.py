@@ -111,7 +111,7 @@ class station_class():
                                            sdate,edate,
                                            mode,
                                            sensor,
-                                           varalias )
+                                           varalias,**kwargs)
                 vardict = {
                     stdvarname:var,
                     'time':time,
@@ -136,7 +136,7 @@ class station_class():
                                            sdate_new,edate_new,
                                            mode,
                                            sensor,
-                                           varalias )
+                                           varalias,**kwargs)
                 tmp_vardict = {
                     stdvarname:var,
                     'time':time,
@@ -183,7 +183,8 @@ class station_class():
             print ("! No station_class object initialized !")
         print ('# ----- ')
 
-    def get_station(self,platform,sdate,edate,mode,sensor,varalias):
+    def get_station(self,platform,sdate,edate,mode,sensor,
+    varalias,**kwargs):
         stdvarname = variable_info[varalias]['standard_name']
         path_template = station_dict['path']['platform']['local']\
                                     [mode]['path_template']
@@ -200,7 +201,7 @@ class station_class():
             while (datetime(tmpdate.year,tmpdate.month,1) \
             <= datetime(edate.year,edate.month,1)):
                 pathtofile = get_pathtofile(pathlst,strsublst,tmpdate,
-                                            platform=platform, 
+                                            platform=platform,
                                             sensor=sensor,
                                             varalias=varalias)
                 print('Parsing:',pathtofile)
@@ -225,7 +226,7 @@ class station_class():
             time = flatten(time)
             timedt = flatten(timedt)
             # convert to datetime object
-            timedt = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second) 
+            timedt = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)
                     for t in timedt]
             # remove duplicates
             timedt, \
@@ -256,8 +257,30 @@ class station_class():
         time = [time[i] for i in idxtmp if i < len(var)]
         timedt = [timedt[i] for i in idxtmp if i < len(var)]
         var = [np.real(var[i]) for i in idxtmp if i < len(var)]
+        # rm double entries due to 10min spacing
+        if ('unique' in kwargs.keys() and kwargs['unique'] is True):
+            # delete 10,30,50 min times, keep 00,20,40
+            # 1. create artificial time vector for collocation
+            tmpdate = deepcopy(sdate)
+            tmpdatelst = []
+            while tmpdate<edate:
+                tmpdatelst.append(tmpdate)
+                tmpdate += timedelta(minutes=20)
+            # 2. collocate times
+            if 'twin' in station_dict['platform'][platform]:
+                idxtmp = collocate_times(unfiltered_t=timedt,\
+                                target_t=tmpdatelst,
+                                twin=station_dict['platform']\
+                                                 [platform]['twin'])
+            else:
+                idxtmp = collocate_times(unfiltered_t=timedt,\
+                                target_t=tmpdatelst,
+                                twin=1)
+            time = list(np.array(time)[idxtmp])
+            timedt = list(np.array(timedt)[idxtmp])
+            var = list(np.array(var)[idxtmp])
         return var, time, timedt, pathtofile
-    
+
     def write_to_monthly_nc(self,path=None,filename=None):
         # divide time into months by loop over months from sdate to edate
         if 'error' in vars(self):
