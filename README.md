@@ -101,6 +101,10 @@ cd ~/wavy/apps/standalone
 ```
 ./wavyQuick.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
+You can also check wind speed instead of significant wave height by using the abbreviation U instead of Hs
+```
+./wavyQuick.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 -var U --col --show
+```
 5. Use multiple satellite missions in one line e.g. all of them. First download the data. This time use the key "-nproc" to speed up the downloading.
 ```
 ./download.py -sat s3b -sd 2020103000 -ed 2020111000 -nproc 2
