@@ -56,7 +56,7 @@ Add your path for satellite data here under cmems:
 ```
 Then download satellite data using the download.py script:
 ```
-cd ~/wavy/wavy
+cd ~/wavy/apps/standalone
 ```
 To get help check ...
 ```
@@ -75,39 +75,34 @@ Executable files usually have help function which can be read using e.g.:
 
 e.g.:
 ```
-cd ~/wavy/wavy
+cd ~/wavy/apps/standalone
 ./download.py -h
 ```
 ### Quicklook examples
 The script "check_sat.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. 
 0. Checkout the help:
 ```
-cd ~/wavy/wavy
-./check_sat.py -h
+cd ~/wavy/apps/standalone
+./wavyQuick.py -h
 ```
 1. Browse for satellite data and show footprints on map for one time step:
 ```
-cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -sd 2020110112 --show
+./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110112 --show
 ```
 2. Browse for satellite data and show footprints on map for time period:
 ```
-cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 --show
+./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 --show
 ```
 3. Same as above but now dump data to netcdf-file for further use and sharing
 ```
-cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/
+./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/
 ```
 4. Browse for satellite data, collocate and show footprints and model for one time step:
 ```
-cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
+./wavyQuick.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
 5. Use multiple satellite missions in one line e.g. all of them. First download the data. This time use the key "-nproc" to speed up the downloading.
 ```
-cd ~/wavy/wavy
 ./download.py -sat s3b -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat al -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat h3b -sd 2020103000 -ed 2020111000 -nproc 2
@@ -115,33 +110,28 @@ cd ~/wavy/wavy
 ```
 Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute check_sat.py while altering the leadtime (-lt) and time constraints (-twin):
 ```
-./check_sat.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 60 --col --show
+./wavyQuick.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 60 --col --show
 ```
 
 6. Or list of satellites:
 ```
-cd ~/wavy/wavy
-./check_sat.py -sat multi -l s3a,s3b,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
+./wabyQuick.py -sat multi -l s3a,s3b,al -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 30 --col --show
 ```
 
 7. Now concentrate on a subregion of your model domain by specifiying a region different from the model domain. The subregion is defined in region_specs.yaml.
 ```
-cd ~/wavy/wavy
-./check_sat.py -sat s3a -reg NorwegianSea -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
+./wavyQuick.py -sat s3a -reg NorwegianSea -mod mwam4 -sd 2020110112 -lt 0 -twin 30 --col --show
 ```
 ### Setup of operational usage: examples
 1. Collocation and systematically dump to netcdf-file:
 ```
-cd ~/wavy/op/support
-./op_collocate.py -sat s3a -mod mwam4 -sd 2020110100 -ed 2020111000 -path ~/tmp_validation/
+coming soon
 ```
 2. Validation and systematically dump to netcdf-file:
 ```
-cd ~/wavy/op/support
-./op_validate.py -sat s3a -mod mwam4 -sd 2020110100 -ed 2020111000 -path ~/tmp_validation/
+coming soon
 ```
 3. Plotting basic validation figures:
 ```
-cd ~/wavy/op/support
-./op_figures.py -sat s3a -mod mwam4 -d 202011 -path ~/tmp_validation/
+coming soon
 ```
