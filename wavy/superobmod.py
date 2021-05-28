@@ -106,7 +106,19 @@ output_dates, method='gam', date_incr=None,**kwargs):
         x = tmptime
         dt = tmpdtime
         sobs_ts = so_linearGAM(x,y,X,varalias,**kwargs)
-    if method=='gp':
+    elif method=='expectileGAM':
+        # NaNs need to be removed before gam
+        tmpvar = np.array(y)
+        tmptime = np.array(x)
+        tmpdtime = np.array(dt)
+        tmptime = tmptime[~np.isnan(tmpvar)]
+        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+        tmpvar = tmpvar[~np.isnan(tmpvar)]
+        y = tmpvar
+        x = tmptime
+        dt = tmpdtime
+        sobs_ts = so_expectileGAM(x,y,X,varalias,**kwargs)
+    elif method=='gp':
         # NaNs need to be removed before gp
         tmpvar = np.array(y)
         tmptime = np.array(x)
@@ -188,7 +200,7 @@ def block_means(dt,x,y,X,date_incr):
     return means
 
 def so_linearGAM(x,y,X,varalias,**kwargs):
-    from pygam import LinearGAM, l, s, ExpectileGAM
+    from pygam import LinearGAM, l, s
     if isinstance(x,list):
         x = np.array(x)
     x = x.reshape(len(x),1)
@@ -211,6 +223,34 @@ def so_linearGAM(x,y,X,varalias,**kwargs):
     # sample on the input grid
     means = gam.predict(X)
     return means
+
+def so_expectileGAM(x,y,X,varalias,**kwargs):
+    from pygam import s, ExpectileGAM
+    if isinstance(x,list):
+        x = np.array(x)
+    if isinstance(y,list):
+        y = np.array(y)
+    if X is None:
+        X = deepcopy(x)
+    x = x.reshape(len(x),1)
+    X = X.reshape(len(X),1)
+    if 'n_splines' in kwargs.keys():
+        n_splines = kwargs['n_splines']
+    else:
+        # This is because the automatic approach is too smooth
+        n_splines = int(len(y)/5)
+    if 'expectile' in kwargs.keys():
+        expectile = kwargs['expectile']
+    else:
+        expectile = .5
+    gam50 = ExpectileGAM(expectile=expectile,terms=s(0),\
+                        n_splines=n_splines).gridsearch(x, y)
+    # This practice of copying makes the models
+    # less likely to cross and much faster
+    # https://pygam.readthedocs.io/en/latest/notebooks/tour_of_pygam.html
+    # and copy the smoothing to the other models
+    pred = gam50.predict(X)
+    return pred
 
 def so_GP(x,y,X,varalias,**kwargs):
     from sklearn import gaussian_process
@@ -273,7 +313,7 @@ def detect_outliers(varalias,vardict,method='gam',**kwargs):
         idx = ol_GP(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
-    if method=='expectile':
+    if method=='expectileGAM':
         idx = ol_expectileGAM(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
@@ -282,7 +322,7 @@ def detect_outliers(varalias,vardict,method='gam',**kwargs):
     return ol_dict
 
 def ol_expectileGAM(x,y,varalias,**kwargs):
-    from pygam import LinearGAM, l, s, ExpectileGAM
+    from pygam import s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
     if isinstance(y,list):
@@ -293,7 +333,7 @@ def ol_expectileGAM(x,y,varalias,**kwargs):
     else:
         # This is because the automatic approach is too smooth
         n_splines = int(len(y)/5)
-    gam50 = ExpectileGAM(expectile=0.50,terms=s(0),\
+    gam50 = ExpectileGAM(expectile=.5,terms=s(0),\
                         n_splines=n_splines).gridsearch(X, y)
     # This practice of copying makes the models
     # less likely to cross and much faster
@@ -301,18 +341,26 @@ def ol_expectileGAM(x,y,varalias,**kwargs):
     # and copy the smoothing to the other models
     lam = gam50.lam
     # now fit a few more models
-    gam95 = ExpectileGAM(expectile=0.95, lam=lam, terms=s(0),\
-                        n_splines=n_splines).fit(X, y)
-    gam05 = ExpectileGAM(expectile=0.05, lam=lam, terms=s(0),\
-                        n_splines=n_splines).fit(X, y)
-    ulim = gam95.predict(X)
-    llim = gam05.predict(X)
+    if 'expectile_ulim' in kwargs.keys():
+        expectile_ulim = kwargs['expectile_ulim']
+    else:
+        expectile_ulim = .95
+    if 'expectile_llim' in kwargs.keys():
+        expectile_llim = kwargs['expectile_llim']
+    else:
+        expectile_llim = .05
+    gam_ulim = ExpectileGAM(expectile=expectile_ulim, lam=lam,
+                        terms=s(0),n_splines=n_splines).fit(X, y)
+    gam_llim = ExpectileGAM(expectile=expectile_llim, lam=lam,
+                        terms=s(0),n_splines=n_splines).fit(X, y)
+    ulim = gam_ulim.predict(X)
+    llim = gam_llim.predict(X)
     idx = [i for i in range(len(y)) \
-            if (y[i]>ulim[i,1] or y[i]<llim[i])]
+            if (y[i]>ulim[i] or y[i]<llim[i])]
     return idx
 
 def ol_linearGAM(x,y,varalias,**kwargs):
-    from pygam import LinearGAM, l, s, ExpectileGAM
+    from pygam import LinearGAM, l, s
     if isinstance(x,list):
         x = np.array(x)
     if isinstance(y,list):
