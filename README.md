@@ -79,7 +79,7 @@ cd ~/wavy/apps/standalone
 ./download.py -h
 ```
 ### Quicklook examples
-The script "check_sat.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. 
+The script "wavyQuick.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation.
 0. Checkout the help:
 ```
 cd ~/wavy/apps/standalone
@@ -108,7 +108,7 @@ cd ~/wavy/apps/standalone
 ./download.py -sat h3b -sd 2020103000 -ed 2020111000 -nproc 2
 ./download.py -sat cfo -sd 2020103000 -ed 2020111000 -nproc 2
 ```
-Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute check_sat.py while altering the leadtime (-lt) and time constraints (-twin):
+Note that the delivery of files from j3 and c2 is temporarily interupted. Now execute wavyQuick.py while altering the leadtime (-lt) and time constraints (-twin):
 ```
 ./wavyQuick.py -sat all -mod mwam4 -reg mwam4 -sd 2020110112 -lt 30 -twin 60 --col --show
 ```
