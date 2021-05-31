@@ -21,3 +21,7 @@ dependencies:
   - pyresample
   - dask
   - tqdm
+  - pytest
+  - pytest-benchmark
+  - pylint
+  - yapf

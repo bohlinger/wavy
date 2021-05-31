@@ -11,3 +11,5 @@ examples
 tmp
 LC-WVF
 *.yaml
+.eggs
+*.egg-info
