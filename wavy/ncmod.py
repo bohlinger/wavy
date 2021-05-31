@@ -12,11 +12,9 @@ and effecient programming are most welcome!
 List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
-# read files
+# standard library imports
 from netCDF4 import Dataset
 import netCDF4
-
-# all class
 import numpy as np
 from datetime import datetime, timedelta
 import datetime as dt
@@ -24,16 +22,13 @@ import argparse
 from argparse import RawTextHelpFormatter
 import os
 import yaml
-
 import sys
-
-# get_remote
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
-
 import time
 
-from .wconfig import load_or_default
+# own imports
+from wavy.wconfig import load_or_default
 
 # read yaml config files:
 model_dict = load_or_default('config/model_specs.yaml')

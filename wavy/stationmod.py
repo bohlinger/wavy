@@ -32,13 +32,13 @@ import pylab as pl
 from datetime import datetime
 import scipy as sp
 # own imports
-from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from .ncmod import dumptonc_ts_station
-from .utils import collocate_times
-from .utils import make_pathtofile, get_pathtofile
-from .utils import convert_meteorologic_oceanographic
-from .superobmod import superobbing
-from .wconfig import load_or_default
+from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import dumptonc_ts_station
+from wavy.utils import collocate_times
+from wavy.utils import make_pathtofile, get_pathtofile
+from wavy.utils import convert_meteorologic_oceanographic
+from wavy.superobmod import superobbing
+from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
 # read yaml config files:

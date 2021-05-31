@@ -1,4 +1,3 @@
-from .utils import runmean_conv
 import numpy as np
 from copy import deepcopy
 import yaml
@@ -7,8 +6,9 @@ from datetime import datetime, timedelta
 import netCDF4
 
 # own imports
-from .utils import find_included_times, collocate_times
-from .wconfig import load_or_default
+from wavy.utils import find_included_times, collocate_times
+from wavy.wconfig import load_or_default
+from wavy.utils import runmean_conv
 
 variable_info = load_or_default('config/variable_info.yaml')
 

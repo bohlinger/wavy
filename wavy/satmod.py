@@ -32,17 +32,17 @@ from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 import xarray as xa
 import pyresample
+import pyproj
 
 # own imports
-from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from .ncmod import find_attr_in_nc
-from .utils import progress, sort_files, collocate_times
-from .credentials import get_credentials
-from .modelmod import get_filevarname
-from .modelmod import model_class as mc
-from .modelmod import make_model_filename_wrapper
-from .wconfig import load_or_default
-import pyproj
+from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import find_attr_in_nc
+from wavy.utils import progress, sort_files, collocate_times
+from wavy.credentials import get_credentials
+from wavy.modelmod import get_filevarname
+from wavy.modelmod import model_class as mc
+from wavy.modelmod import make_model_filename_wrapper
+from wavy.wconfig import load_or_default
 
 # ---------------------------------------------------------------------#
 

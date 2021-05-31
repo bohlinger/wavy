@@ -4,7 +4,7 @@
 '''
 Module to handle all visualization related functions.
 
-I try to mostly follow the PEP convention for python code style. 
+I try to mostly follow the PEP convention for python code style.
 Constructive comments on style and effecient programming are most welcome!
 '''
 
@@ -38,7 +38,7 @@ def add_colorbar(im, aspect=20, pad_fraction=0.5, **kwargs):
     Add a vertical color bar to an image plot.
     '''
     divider = axes_grid1.make_axes_locatable(im.axes)
-    width = axes_grid1.axes_size.AxesY(im.axes, 
+    width = axes_grid1.axes_size.AxesY(im.axes,
                                     aspect=1./aspect)
     pad = axes_grid1.axes_size.Fraction(pad_fraction, width)
     current_ax = plt.gca()

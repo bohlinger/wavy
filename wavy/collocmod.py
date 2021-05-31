@@ -24,18 +24,18 @@ from tqdm import tqdm
 from copy import deepcopy
 
 # own imports
-from utils import haversine, haversine_new, collocate_times
-from utils import progress, make_fc_dates
-from utils import make_pathtofile
-from utils import hour_rounder
-from utils import NoStdStreams
-from modelmod import model_class, make_model_filename_wrapper
-from modelmod import get_model_filedate, get_filevarname
-from modelmod import model_class,get_model
-from ncmod import dumptonc_ts_collocation
-from ncmod import find_attr_in_nc, ncdumpMeta
-from satmod import satellite_class
-from stationmod import station_class
+from wavy.utils import haversine, haversine_new, collocate_times
+from wavy.utils import progress, make_fc_dates
+from wavy.utils import make_pathtofile
+from wavy.utils import hour_rounder
+from wavy.utils import NoStdStreams
+from wavy.modelmod import model_class, make_model_filename_wrapper
+from wavy.modelmod import get_model_filedate, get_filevarname
+from wavy.modelmod import model_class,get_model
+from wavy.ncmod import dumptonc_ts_collocation
+from wavy.ncmod import find_attr_in_nc, ncdumpMeta
+from wavy.satmod import satellite_class
+from wavy.stationmod import station_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:

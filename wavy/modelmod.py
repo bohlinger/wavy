@@ -3,8 +3,8 @@
 # ---------------------------------------------------------------------#
 '''
 This module encompasses classes and methods to read and process wave
-field from model output. I try to mostly follow the PEP convention for 
-python code style. Constructive comments on style and effecient 
+field from model output. I try to mostly follow the PEP convention for
+python code style. Constructive comments on style and effecient
 programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
@@ -24,11 +24,11 @@ from copy import deepcopy
 import time
 
 # own imports
-from .utils import progress, hour_rounder, collocate_times
-from .utils import make_fc_dates
+from wavy.utils import progress, hour_rounder, collocate_times
+from wavy.utils import make_fc_dates
 #from collocmod import collocation_class
-from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from .wconfig import load_or_default
+from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from wavy.wconfig import load_or_default
 
 # --- global functions ------------------------------------------------#
 """
