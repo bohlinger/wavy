@@ -16,12 +16,12 @@ from argparse import RawTextHelpFormatter
 import numpy as np
 
 # own import
-from satmod import get_remote_files
-from utils import sort_files
+from wavy.satmod import get_remote_files
+from wavy.utils import sort_files
 # -------------------------------------------------------------------- #
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
+moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../../', 'config/satellite_specs.yaml'))
 with open(moddir,'r') as stream:
     satellite_dict=yaml.safe_load(stream)

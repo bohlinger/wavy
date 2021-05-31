@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# import libraries
+# import standard libraries
 import sys
 sys.path.append('../../wavy')
 
@@ -10,13 +10,15 @@ from satmod import satellite_class as sa
 import argparse
 from argparse import RawTextHelpFormatter
 import os
-from modelmod import model_class as mc
-from validationmod import validate, disp_validation
-from quicklookmod import comp_fig, plot_sat
-from collocmod import collocate
-from collocmod import collocation_class as coll
-from ncmod import dumptonc_sat
 import yaml
+
+# own imports
+from wavy.modelmod import model_class as mc
+from wavy.validationmod import validate, disp_validation
+from wavy.quicklookmod import comp_fig, plot_sat
+from wavy.collocmod import collocate
+from wavy.collocmod import collocation_class as coll
+from wavy.ncmod import dumptonc_sat
 
 moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
                         '../../', 'config/variable_info.yaml'))
