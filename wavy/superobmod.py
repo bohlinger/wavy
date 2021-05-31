@@ -1,4 +1,4 @@
-from utils import runmean_conv
+from .utils import runmean_conv
 import numpy as np
 from copy import deepcopy
 import yaml
@@ -7,12 +7,10 @@ from datetime import datetime, timedelta
 import netCDF4
 
 # own imports
-from utils import find_included_times, collocate_times
+from .utils import find_included_times, collocate_times
+from .wconfig import load_or_default
 
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
+variable_info = load_or_default('config/variable_info.yaml')
 
 def superobbing(varalias,vardict,superob=None,outlier_detection='gam',\
 missing_data='marginalize',date_incr=None,**kwargs):

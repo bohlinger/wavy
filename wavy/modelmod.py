@@ -24,10 +24,11 @@ from copy import deepcopy
 import time
 
 # own imports
-from utils import progress, hour_rounder, collocate_times
-from utils import make_fc_dates
+from .utils import progress, hour_rounder, collocate_times
+from .utils import make_fc_dates
 #from collocmod import collocation_class
-from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from .wconfig import load_or_default
 
 # --- global functions ------------------------------------------------#
 """
@@ -299,16 +300,8 @@ def get_model(model=None,sdate=None,edate=None,date_incr=None,
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '..', 'config/model_specs.yaml'))
-with open(moddir,'r') as stream:
-    model_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
-
+model_dict = load_or_default('config/model_specs.yaml')
+variable_info = load_or_default('config/variable_info.yaml')
 
 class model_class():
 
