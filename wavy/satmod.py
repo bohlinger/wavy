@@ -34,8 +34,8 @@ import xarray as xa
 import pyresample
 
 # own imports
-from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from ncmod import find_attr_in_nc
+from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from .ncmod import find_attr_in_nc
 from utils import progress, sort_files, collocate_times
 from credentials import get_credentials
 from modelmod import get_filevarname
