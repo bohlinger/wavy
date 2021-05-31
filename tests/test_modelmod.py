@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 
 date = datetime(2017,8,1,12)

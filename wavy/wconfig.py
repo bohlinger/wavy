@@ -23,4 +23,4 @@ def load_or_default(name):
     except FileNotFoundError:
         logging.debug('could not load from local directory, using default.')
         from pkg_resources import resource_stream
-        return resource_stream(__name__, name + '.default')
+        return yaml.safe_load(resource_stream(__name__, name + '.default'))
