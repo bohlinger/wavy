@@ -13,7 +13,8 @@ def kernel(X1, X2, l=1.0, sigma_f=1.0):
     Returns:
         Covariance matrix (m x n).
     '''
-    sqdist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * np.dot(X1, X2.T)
+    sqdist = np.sum(X1**2, 1).reshape(-1, 1) \
+            + np.sum(X2**2, 1) - 2 * np.dot(X1, X2.T)
     M = sigma_f**2 * np.exp(-0.5 / l**2 * sqdist)
     return M
 
@@ -27,10 +28,10 @@ Grad_fmean=None):
         X_s: New input locations (n x d)
         X_train: Training locations (m x d)
         Y_train: Training targets (m x 1)
-        l: Kernel length parameter
-        sigma_f: Kernel vertical variation parameter
-        sigma_y: Noise parameter
-        sigma_x: Noise parameter
+        l: length scale parameter
+        sigma_f: signal variance parameter
+        sigma_y: noise paramter on y
+        sigma_x: noise parameter on x
     Returns:
         Posterior mean vector (n x d) and covariance matrix (n x n)
     '''
@@ -90,9 +91,10 @@ def nll_fn_nigp(X_train,Y_train,Grad_fmean,naive=False):
             theta[2]**2 * np.eye(len(X_train)) + \
             np.diag(np.diag(np.dot(Grad_fmean,
                 np.atleast_2d(Grad_fmean.ravel())))) * theta[3]**2
-        return 0.5 * np.log(det(K)) + \
+        F = 0.5 * np.log(det(K)) + \
                0.5 * Y_train.T.dot(inv(K).dot(Y_train)) + \
                0.5 * len(X_train) * np.log(2*np.pi)
+        return F.ravel()
     def nll_stable(theta):
         # Numerically more stable implementation of Eq. (7) as described
         # in http://www.gaussianprocess.org/gpml/chapters/RW2.pdf, Section
@@ -103,13 +105,14 @@ def nll_fn_nigp(X_train,Y_train,Grad_fmean,naive=False):
                 np.atleast_2d(Grad_fmean.ravel())))) * theta[3]**2
         #L = cholesky(K)
         L = sp.linalg.cholesky(K,lower=True)
-        return np.sum(np.log(np.diagonal(L))) + \
+        F = np.sum(np.log(np.diagonal(L))) + \
                   0.5 * Y_train.T.dot(lstsq(
                   L.T, lstsq(
                     L, Y_train,rcond=None
                     )[0],rcond=None)[0]
                   ) + \
                   0.5 * len(X_train) * np.log(2*np.pi)
+        return F.ravel()
     if naive:
         return nll_naive
     else:
