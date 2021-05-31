@@ -34,33 +34,23 @@ import xarray as xa
 import pyresample
 
 # own imports
-from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from ncmod import find_attr_in_nc
-from utils import progress, sort_files, collocate_times
-from credentials import get_credentials
-from modelmod import get_filevarname
-from modelmod import model_class as mc
-from modelmod import make_model_filename_wrapper
+from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from .ncmod import find_attr_in_nc
+from .utils import progress, sort_files, collocate_times
+from .credentials import get_credentials
+from .modelmod import get_filevarname
+from .modelmod import model_class as mc
+from .modelmod import make_model_filename_wrapper
+from .wconfig import load_or_default
 import pyproj
 
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/region_specs.yaml'))
-with open(moddir,'r') as stream:
-    region_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
-with open(moddir,'r') as stream:
-    model_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/satellite_specs.yaml'))
-with open(moddir,'r') as stream:
-    satellite_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
+region_dict = load_or_default('config/region_specs.yaml')
+model_dict = load_or_default('config/model_specs.yaml')
+satellite_dict = load_or_default('config/satellite_specs.yaml')
+variable_info = load_or_default('config/variable_info.yaml')
 
 # --- global functions ------------------------------------------------#
 

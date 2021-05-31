@@ -3,8 +3,8 @@
 # ---------------------------------------------------------------------#
 '''
 This module encompasses classes and methods to read and process wave
-field related data from stations. I try to mostly follow the PEP 
-convention for python code style. Constructive comments on style and 
+field related data from stations. I try to mostly follow the PEP
+convention for python code style. Constructive comments on style and
 effecient programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
@@ -32,38 +32,20 @@ import pylab as pl
 from datetime import datetime
 import scipy as sp
 # own imports
-from ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from ncmod import dumptonc_ts_station
-from utils import collocate_times
-from utils import make_pathtofile, get_pathtofile
-from utils import convert_meteorologic_oceanographic
-from superobmod import superobbing
+from .ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from .ncmod import dumptonc_ts_station
+from .utils import collocate_times
+from .utils import make_pathtofile, get_pathtofile
+from .utils import convert_meteorologic_oceanographic
+from .superobmod import superobbing
+from .wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
-                        '..', 'config/buoy_specs.yaml'))
-with open(moddir,'r') as stream:
-    buoy_dict=yaml.safe_load(stream)
-
-with open(moddir,'r') as stream:
-    locations=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 
-                        '..', 'config/station_specs.yaml'))
-with open(moddir,'r') as stream:
-    station_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '..', 'config/d22_var_dicts.yaml'))
-with open(moddir, 'r') as stream:
-    d22_var_dicts=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ),
-                        '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
-
+buoy_dict = load_or_default('config/buoy_specs.yaml')
+station_dict = load_or_default('config/station_specs.yaml')
+variable_info = load_or_default('config/variable_info.yaml')
+d22_dict = load_or_default('config/d22_var_dicts.yaml')
 # --- global functions ------------------------------------------------#
 
 # define flatten function for lists
@@ -321,7 +303,7 @@ class station_class():
                                                 platform=self.platform,
                                                 sensor=self.sensor,
                                                 varalias=self.varalias)
-                title = ( self.varname + ' observations from ' 
+                title = ( self.varname + ' observations from '
                         + self.platform + ' ' + self.sensor )
                 dumptonc_ts_station(self,pathtofile,title)
                 tmpdate = tmpdate + relativedelta(months = +1)
@@ -333,7 +315,7 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
     Read all lines in file and append to sl
     """
     sl=[]
-    for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2): 
+    for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2):
         try:
             pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
                                     platform=platform,sensor=sensor,
@@ -360,7 +342,7 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 def floater(s):
     """
-    Function that converts 's' to float32 or nan if floater throws exception 
+    Function that converts 's' to float32 or nan if floater throws exception
     """
     try:
         x = np.float32(s)
@@ -425,13 +407,13 @@ def extract_d22(sl,varalias,platform,sensor):
     else:
         print('Consistency check: Failed!')
         print(    '!!! Caution:\n'
-                + 'found #sensor (' 
+                + 'found #sensor ('
                 + str(len(revised_categories))
                 + ') is not equal to defined ' +
-                '#sensors (' 
+                '#sensors ('
                 + str(sensornr)
                 + ') in station_specs.yaml')
-    # check that the defined sensors are actually the ones being found 
+    # check that the defined sensors are actually the ones being found
     check = check_sensor_availability(revised_categories,\
                                       idxlst,platform,sensor)
     ts = []
@@ -447,8 +429,8 @@ def extract_d22(sl,varalias,platform,sensor):
                 timestr = sl[  i
                              + d22_var_dicts['datetime']['time']['idx']
                             ].strip()
-                date_object = datetime.strptime(datestr 
-                                                + ' ' 
+                date_object = datetime.strptime(datestr
+                                                + ' '
                                                 + timestr,
                                                 '%d-%m-%Y %H:%M')
                 dt.append(date_object)

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-This module encompasses classes and methods to read and write to netcdf 
-files from model, station, or satellite output. I try to mostly follow 
-the PEP convention for python code style. Constructive comments on style 
+This module encompasses classes and methods to read and write to netcdf
+files from model, station, or satellite output. I try to mostly follow
+the PEP convention for python code style. Constructive comments on style
 and effecient programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
@@ -33,26 +33,14 @@ from copy import deepcopy
 
 import time
 
+from .wconfig import load_or_default
+
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
-with open(moddir,'r') as stream:
-    model_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/buoy_specs.yaml'))
-with open(moddir,'r') as stream:
-    buoy_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/station_specs.yaml'))
-with open(moddir,'r') as stream:
-    station_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/d22_var_dicts.yaml'))
-with open(moddir,'r') as stream:
-    d22_dict=yaml.safe_load(stream)
+model_dict = load_or_default('config/model_specs.yaml')
+buoy_dict = load_or_default('config/buoy_specs.yaml')
+station_dict = load_or_default('config/station_specs.yaml')
+variable_info = load_or_default('config/variable_info.yaml')
+d22_dict = load_or_default('config/d22_var_dicts.yaml')
 
 # --- global functions ------------------------------------------------#
 """
@@ -206,7 +194,7 @@ def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
     slons = results_dict['sat_lons_matches']
     slats = results_dict['sat_lats_matches']
     dists = results_dict['dist_matches']
-    
+
     fullpath = outpath + filename
     print ('Dump data to file: ' + fullpath)
     if os.path.isfile(fullpath):
@@ -428,7 +416,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
         if 'superob' in vars(st_obj).keys():
-            globalAttribs['processing_level'] = 'post-processing performed' 
+            globalAttribs['processing_level'] = 'post-processing performed'
             globalAttribs['method_superobbing'] = str(st_obj.superob)
             globalAttribs['method_outlier_detection'] = (\
                                                 st_obj.outlier_detection)
@@ -890,8 +878,8 @@ def dumptonc_pointsat(sa_obj,outpath,mode=None):
     nc = netCDF4.Dataset(
                     fullpath,mode='w',
                     )
-    nc.title = (sa_obj.sat + 
-                ' altimeter significant wave height close to ' 
+    nc.title = (sa_obj.sat +
+                ' altimeter significant wave height close to '
                 + sa_obj.region)
     timerange=len(sa_obj.Hs)
     dimsize = None
@@ -948,7 +936,7 @@ def dumptonc_pointsat(sa_obj,outpath,mode=None):
     nclatitude.valid_max = 90.
     ncdist.units = 'km'
     ncdist[:] = sa_obj.dist
-    ncdist.long_name = ('distance from footprint ' 
+    ncdist.long_name = ('distance from footprint '
                     + 'to location according '
                     + 'to haversine')
     nc.close()
@@ -1159,7 +1147,7 @@ def ncdumpMeta(pathtofile):
 def find_attr_in_nc(attrstr,pathtofile=None,ncdict=None,subattrstr=None):
     """
     fct to find a specific attribute with its value in a netcdf-file
-    when only a fraction of attribute name is given, can also search 
+    when only a fraction of attribute name is given, can also search
     in a deeper layer of attribute hierarchy.
     input:  path to the nc-file or ncdict
             string of desired attribute
