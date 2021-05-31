@@ -89,6 +89,8 @@ missing_data='marginalize',date_incr=None,**kwargs):
 def compute_superobs(varalias,vardict,output_grid,\
 output_dates, method='gam', date_incr=None,**kwargs):
     print('Superobserve data with method:',method)
+    if 'iter' in kwargs.keys():
+        print('Using ',kwargs['iter'], 'iterations')
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
     x = vardict['time']
@@ -130,6 +132,18 @@ output_dates, method='gam', date_incr=None,**kwargs):
         x = tmptime
         dt = tmpdtime
         sobs_ts = so_GP(x,y,X,varalias,**kwargs)
+    elif method=='nigp':
+        # NaNs need to be removed before gp
+        tmpvar = np.array(y)
+        tmptime = np.array(x)
+        tmpdtime = np.array(dt)
+        tmptime = tmptime[~np.isnan(tmpvar)]
+        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+        tmpvar = tmpvar[~np.isnan(tmpvar)]
+        y = tmpvar
+        x = tmptime
+        dt = tmpdtime
+        sobs_ts = so_NIGP(x,y,X,varalias,**kwargs)
     elif method=='block_mean':
         # blocks are means from date_incr in hours
         # For each grid_input time_stamp compute mean of hour
@@ -267,6 +281,7 @@ def so_GP(x,y,X,varalias,**kwargs):
         X = x.reshape(-1,1)
     else:
         X = X.reshape(-1,1)
+    x = x.reshape(-1,1)
     # create a zero mean process
     Y = y.reshape(-1,1) - np.nanmean(y)
     # define the kernel based on kwargs
@@ -287,11 +302,76 @@ def so_GP(x,y,X,varalias,**kwargs):
     gp = gaussian_process.GaussianProcessRegressor(
             kernel=kernel,
             n_restarts_optimizer=10)
-    gp.fit(x.reshape(-1,1), Y)
+    gp.fit(x, Y)
     print(gp.kernel_)
     y_pred, sigma = gp.predict(X, return_std=True)
     y_pred = y_pred + np.nanmean(y)
     return y_pred
+
+def so_NIGP(x,y,X,varalias,**kwargs):
+    import numpy as np
+    from GPfcts import nll_fn_nigp
+    from GPfcts import posterior_predictive_nigp
+    from scipy.optimize import minimize
+    from scipy.optimize import Bounds
+    if isinstance(x,list):
+        x = np.array(x)
+    if isinstance(y,list):
+        y = np.array(y)
+    if isinstance(X,list):
+        X = np.array(X)
+    if X is None:
+        X = x.reshape(-1,1)
+    else:
+        X = X.reshape(-1,1)
+    x = x.reshape(-1,1)
+    # create a zero mean process
+    Y = y.reshape(-1,1) - np.nanmean(y)
+    # initialize using using standard GP
+    mu = so_GP(x,Y,x,varalias,**kwargs)
+    # define inits
+    inits = np.array([1,1,1,1])
+    # define bounds
+    ulim = 1000
+    bounds = Bounds([1, .001, .001, .001],[ulim,ulim,ulim,ulim])
+    # continue with NIGP (depends on number of interations)
+    if 'iter' in kwargs.keys():
+        for i in range(kwargs['iter']):
+            # get gradient
+            fgrad = np.gradient(mu.ravel())
+            # interpolate to points of interest
+            fgrad_opt = np.interp(x.ravel(), X.ravel(), fgrad.ravel())
+            fgrad_opt = fgrad_opt.reshape(-1,1)
+            print(nll_fn_nigp(x, Y,Grad_fmean=fgrad_opt))
+            # optimization
+            res = minimize(
+                    nll_fn_nigp(x, Y,Grad_fmean=fgrad_opt),
+                    inits,
+                    bounds=bounds,
+                    method='L-BFGS-B')
+                    #method='SLSQP')
+            l_opt, sigma_f_opt, sigma_y_opt, sigma_x_opt = res.x
+            # compute statistics
+            mu, cov = posterior_predictive_nigp(
+                                    x,x,Y,
+                                    l = l_opt,
+                                    sigma_f = sigma_f_opt,
+                                    sigma_y = sigma_y_opt,
+                                    sigma_x = sigma_x_opt,
+                                    Grad_fmean = fgrad_opt )
+    print(  'l:',l_opt,'sigma_f:',sigma_f_opt,
+            'sigma_y:',sigma_y_opt,'sigma_x:',sigma_x_opt )
+    # last step is to compute predictive posterior statistics
+    # for output grid and add previously substracted mean
+    mu, cov = posterior_predictive_nigp(
+                                    X,x,Y,
+                                    l = l_opt,
+                                    sigma_f = sigma_f_opt,
+                                    sigma_y = sigma_y_opt,
+                                    sigma_x = sigma_x_opt,
+                                    Grad_fmean = fgrad_opt )
+    mu += np.mean(y)
+    return mu
 
 def detect_outliers(varalias,vardict,method='gam',**kwargs):
     print('Detect outliers with method:', method)
