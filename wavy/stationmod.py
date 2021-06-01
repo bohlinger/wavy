@@ -351,8 +351,8 @@ def floater(s):
     return x
 
 def find_category_for_variable(varalias):
-    lst = [ i for i in d22_var_dicts.keys() \
-            if (varalias in d22_var_dicts[i]) ]
+    lst = [ i for i in d22_dict.keys() \
+            if (varalias in d22_dict[i]) ]
     if len(lst) == 1:
         return lst[0]
     else: return None
@@ -424,10 +424,10 @@ def extract_d22(sl,varalias,platform,sensor):
             # get ts for date and time
             if "!!!!" in line:
                 datestr = sl[  i
-                             + d22_var_dicts['datetime']['date']['idx']
+                             + d22_dict['datetime']['date']['idx']
                             ].strip()
                 timestr = sl[  i
-                             + d22_var_dicts['datetime']['time']['idx']
+                             + d22_dict['datetime']['time']['idx']
                             ].strip()
                 date_object = datetime.strptime(datestr
                                                 + ' '
@@ -439,7 +439,7 @@ def extract_d22(sl,varalias,platform,sensor):
             #print(revised_category_for_sensor)
             if revised_category_for_sensor in line:
                 value = sl[  i
-                            + d22_var_dicts[category][varalias]['idx']
+                            + d22_dict[category][varalias]['idx']
                            ].strip()
                 ts.append(floater(value))
     else:
@@ -448,8 +448,8 @@ def extract_d22(sl,varalias,platform,sensor):
     dt = np.array(dt)
     ts = np.array(ts)
     # adjust conventions
-    if ('convention' in d22_var_dicts[category][varalias].keys() and
-    d22_var_dicts[category][varalias]['convention'] == 'meteorologic'):
+    if ('convention' in d22_dict[category][varalias].keys() and
+    d22_dict[category][varalias]['convention'] == 'meteorologic'):
         print('Convert from meteorologic to oceanographic convention')
         ts = convert_meteorologic_oceanographic(ts)
     return ts, dt
