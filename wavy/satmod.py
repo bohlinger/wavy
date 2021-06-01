@@ -141,7 +141,7 @@ def get_remote_files(path_remote,path_local,sdate,edate,twin,
         # update time
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
                             (tmpdate + relativedelta(months=+1)).month,1)
-    print ('Files downloaded to: \n' + path_local)
+    print ('Files downloaded to: \n', path_local)
 
 # flatten all lists before returning them
 # define flatten function for lists

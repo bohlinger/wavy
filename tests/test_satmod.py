@@ -11,7 +11,7 @@ region = 'NordicSeas'
 sat = 's3a'
 varalias = 'Hs'
 twin = 60
-nproc = 2
+nproc = 1
 instr = 'altimeter'
 provider = 'cmems'
 
@@ -26,13 +26,15 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                     [provider]['remote']['path']\
                     + sat + '/'
     # evoke fct get_remote_files
-    satmod.get_remote_files(path_remote, tmpdir, date, date, twin, nproc,
+    satmod.get_remote_files(path_remote, tmpdir,
+                            date, date, twin, nproc,
                             instr, provider)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
+    print(filelist)
     nclist = [i for i in range(len(filelist))\
                 if '.nc' in filelist[i]]
-    assert len(nclist) > 1
+    assert len(nclist) >= 1
     # init satellite_object and check for polygon region
 
     from wavy.satmod import satellite_class
