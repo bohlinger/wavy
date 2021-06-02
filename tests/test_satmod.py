@@ -1,7 +1,7 @@
 import sys
 import os
 from datetime import datetime
-import yaml
+import pytest
 
 from wavy.wconfig import load_or_default
 
@@ -18,6 +18,7 @@ provider = 'cmems'
 satellite_dict = load_or_default('config/satellite_specs.yaml')
 
 
+@pytest.mark.need_credentials
 def test_ftp_files_and_init_satellite_class(tmpdir):
     from wavy import satmod
 
