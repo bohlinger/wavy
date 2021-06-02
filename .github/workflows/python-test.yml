@@ -8,24 +8,38 @@ jobs:
     strategy:
       max-parallel: 5
 
+    env:
+      COVERALLS_REPO_TOKEN: xIILGI4RaHRkMSqLgZN8taBLNMaMNrBzD
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+
     - name: Add conda to system path
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
+
+    - name: conda cache
+      uses: actions/cache@v2
+      with:
+        path: $CONDA_PREFIX
+        key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-conda-
+
     - name: Install dependencies
+      if: steps.conda-cache.outputs.cache-hit != 'true'
       run: |
         conda env update --file environment.yml --name base
         conda install pytest-cov coveralls
+
     - name: Test with pytest
       run: |
         pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
+
     - name: Upload to Coveralls
       run: coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
