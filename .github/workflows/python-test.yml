@@ -1,4 +1,4 @@
-name: Test (using Conda)
+name: test
 
 on: [push]
 
@@ -21,11 +21,11 @@ jobs:
     - name: Install dependencies
       run: |
         conda env update --file environment.yml --name base
-        conda install pytest-cov
+        conda install pytest-cov coveralls
     - name: Test with pytest
       run: |
         pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
-    - name: Coveralls GitHub Action
-      uses: coverallsapp/github-action@v1.1.2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload to Coveralls
+      run: coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
