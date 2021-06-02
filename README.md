@@ -1,5 +1,10 @@
 # wavy
 
+[![Tests](https://github.com/bohlinger/wavy/actions/workflows/python-test.yml/badge.svg)](https://github.com/bohlinger/wavy/actions/workflows/python-test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/bohlinger/wavy/badge.svg?branch=master)](https://coveralls.io/github/bohlinger/wavy?branch=master)
+[![Lint](https://github.com/bohlinger/wavy/actions/workflows/lint.yml/badge.svg)](https://github.com/bohlinger/wavy/actions/workflows/lint.yml)
+[![Documentation Status](https://readthedocs.org/projects/wavyopen/badge/?version=latest)](https://wavyopen.readthedocs.io/en/latest/?badge=latest)
+
 ### Main developer and moderation:
 Patrik Bohlinger, Norwegian Meteorological Institute, patrikb@met.no
 
@@ -16,7 +21,7 @@ The collocation method follows Bohlinger et al. (2019): https://www.sciencedirec
 
 ## Getting Started
 ### Installing wavy with conda
-1. First download or clone the wavy github repository: 
+1. First download or clone the wavy github repository:
 ```
 git clone --single-branch --branch wavyMini https://github.com/bohlinger/wavy.git
 ```
