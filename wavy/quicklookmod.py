@@ -147,11 +147,12 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
     if stdvarname == 'sea_surface_wave_significant_height':
         cmap = cmocean.cm.amp
         levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
-                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,
+                16,17,18]
     elif stdvarname == 'wind_speed':
         cmap = cmocean.cm.amp
-        levels = [0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,36,40,44,48]
-
+        levels = [0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,
+                36,40,44,48]
     if 'cmap' in kwargs.keys():
         cmap = kwargs['cmap']
     if 'levels' in kwargs.keys():
@@ -312,6 +313,7 @@ def plot_sat(sa_obj,**kwargs):
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
     import matplotlib.ticker as mticker
 
+    stdvarname = sa_obj.stdvarname
     # sort out data/coordinates for plotting
     slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
     if 'col_obj' in kwargs.keys():
@@ -420,9 +422,15 @@ def plot_sat(sa_obj,**kwargs):
 
     # colors
     cmap = cmocean.cm.amp
-    levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
-                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
-
+    if stdvarname == 'sea_surface_wave_significant_height':
+        cmap = cmocean.cm.amp
+        levels = [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,
+                3,3.25,3.5,3.75,4,4.5,5,6,7,8,9,10,11,12,13,14,15,
+                16,17,18]
+    elif stdvarname == 'wind_speed':
+        cmap = cmocean.cm.amp
+        levels = [0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,
+                36,40,44,48]
     if 'cmap' in kwargs.keys():
         cmap = kwargs['cmap']
     if 'levels' in kwargs.keys():
