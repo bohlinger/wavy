@@ -15,7 +15,7 @@ nproc = 1
 instr = 'altimeter'
 provider = 'cmems'
 
-satellite_dict = load_or_default('config/satellite_specs.yaml')
+satellite_dict = load_or_default('/satellite_specs.yaml')
 
 
 @pytest.mark.need_credentials
