@@ -74,14 +74,16 @@ def make_model_filename(model,fc_date,leadtime):
                 filedatestr = model_dict[model]['filedate_formats'][i]
                 replacestr = (filedate \
                             + timedelta(hours = leadtime \
-                                        - (leadtime % \
-                                           model_dict[model]['init_step']))
+                                    - (leadtime % \
+                                        model_dict[model]['init_step']))
                                     * model_dict[model]['lt_switch_f'][i]
                             + timedelta(hours = \
                                     model_dict[model]['xtra_h'][i])).\
                             strftime(filedatestr)
                 tmpstr = tmpstr.replace('filedate',replacestr,1)
-            filename = (pathdate.strftime(model_dict[model]['path_template'])
+            filename = (
+                        pathdate.strftime(\
+                            model_dict[model]['path_template'])
                         + tmpstr)
         else:
             filedate = get_model_filedate(model,fc_date,leadtime)
@@ -111,7 +113,7 @@ def make_model_filename_wrapper(model,fc_date,leadtime):
     return filename
 
 def get_model_fc_mode(filestr,model,fc_date,varalias=None):
-    """ 
+    """
     fct to retrieve model data for correct time
     """
     vardict = {}
@@ -257,7 +259,7 @@ def get_filevarname(model,varalias,variable_info,model_dict,ncdict):
 def get_model(model=None,sdate=None,edate=None,date_incr=None,
     fc_date=None,leadtime=None,varalias=None,
     st_obj=None,distlim=None):
-    """ 
+    """
     toplevel function to get model data
     """
     if st_obj is not None:
@@ -306,9 +308,9 @@ variable_info = load_or_default('/variable_info.yaml')
 class model_class():
 
     '''
-    class to read and process model data 
+    class to read and process model data
     model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
-    This class should communicate with the satellite, model, and 
+    This class should communicate with the satellite, model, and
     station classes.
     '''
 

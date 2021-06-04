@@ -38,35 +38,9 @@ def block_detection(time,deltalim=None):
             blocklst.append(tmp)
     return idx_a, idx_b, blocklst
 
-def identify_outliers_GP(x,y,mag):
-    # mag -> magnitude in units std
-    # if len(y)<11 flag all
-    idx = []
-    if len(y)<3:
-        print (  "block too short with length " 
-                + str(int(len(y))) + ", values flagged")
-        x_pred = []
-        y_pred = []
-        sigma = []
-        for i in range(len(y)):
-            idx.append(i)
-            x_pred.append(np.nan)
-            y_pred.append(np.nan)
-            sigma.append(np.nan)
-    else:
-        kernel = 1* RBF(length_scale=1) + WhiteKernel(noise_level=1)
-        gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
-        gp.fit(x.reshape(-1,1), y.reshape(-1,1))
-        print (gp.kernel_)
-        x_pred = x.reshape(-1,1)
-        y_pred, sigma = gp.predict(x_pred, return_std=True)
-        for i in range(len(y)):
-            if ((y[i]>(y_pred[i]+(mag*sigma[i]))[0]) or (y[i]<(y_pred[i]-(mag*sigma[i]))[0])):
-                idx.append(i)
-    return idx,x_pred,y_pred,sigma
-
 def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=None):
     """
+    fct to identify outliers based on within block variance
     time -> time series to check neighbour values
     ts -> time series to be checked for outliers
     ts_ref -> time series to compare to (optional)
@@ -139,9 +113,9 @@ def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=No
             idx_c.append(i)
     idx = np.unique(np.array(idx_a + idx_b + idx_c))
     if len(idx)>0:
-        print(str(len(idx)) 
-                + ' outliers detected of ' 
-                + str(len(time)) 
+        print(str(len(idx))
+                + ' outliers detected of '
+                + str(len(time))
                 + ' values')
         return idx
     else:
@@ -159,7 +133,7 @@ def progress(count, total, status=''):
 
 def grab_PID():
     """
-    function to retrieve PID and display it to be able to kill the 
+    function to retrieve PID and display it to be able to kill the
     python program that was just started
     """
     import os
@@ -173,12 +147,12 @@ def grab_PID():
 
 def haversine(lon1, lat1, lon2, lat2):
     """
-    Calculate the great circle distance between two points 
+    Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     """
-    # convert decimal degrees to radians 
+    # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-    # haversine formula 
+    # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
@@ -188,13 +162,13 @@ def haversine(lon1, lat1, lon2, lat2):
 
 def haversine_new(lon1, lat1, lon2, lat2):
     """
-    Calculate the great circle distance between two points 
+    Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     Note: lon1,lat1,lon2, and lat2 can be lists
     """
-    # convert decimal degrees to radians 
+    # convert decimal degrees to radians
     rads = np.deg2rad(np.array([lon1,lat1,lon2,lat2]))
-    # haversine formula 
+    # haversine formula
     if isinstance(lon1,list):
         dlon = rads[2,:] - rads[0,:]
         dlat = rads[3,:] - rads[1,:]
@@ -312,25 +286,23 @@ def hour_rounder(t):
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
                +timedelta(hours=t.minute//30))
 
-
 def sort_files(dirpath,filelst):
     """
     mv CMEMS L3 files to sub-folders of year and month
     """
     for e in filelst:
-        if os.path.isfile(dirpath + '/' + e):
+        if os.path.isfile(os.path.join(dirpath + '/' + e)):
             tmp = 'global_vavh_l3_rt_' + os.path.basename(dirpath) + '_'
             year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
-            folder = (dirpath + '/' + year + '/' + month)
+            folder = os.path.join(dirpath + '/' + year + '/' + month)
             cmd = 'mkdir -p ' + folder
             os.system(cmd)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-
 def get_size(obj, seen=None):
-    """Recursively finds size of objects"""
     """
+    Recursively finds size of objects
     From:
     https://goshippo.com/blog/measure-real-size-any-python-object/
     """
@@ -355,7 +327,7 @@ def get_size(obj, seen=None):
 def find_included_times(unfiltered_t,target_t=None,
     sdate=None,edate=None,twin=0):
     """
-    find index/indices of unfiltered time series that fall 
+    find index/indices of unfiltered time series that fall
     within a tolearance time window around the target time
     or within a time window specified by sdate and edate
     """
@@ -435,7 +407,7 @@ def make_pathtofile(tmppath,strsublst,date,**kwargs):
 
 def convert_meteorologic_oceanographic(alpha):
     """
-    fct to convert angles from meteorological convention to 
+    fct to convert angles from meteorological convention to
     oceanographic/nautical and vice versa
     """
     return (alpha+180)%360

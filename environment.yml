@@ -27,3 +27,4 @@ dependencies:
   - yapf
   - sphinx
   - python-dotenv
+  - xdg
