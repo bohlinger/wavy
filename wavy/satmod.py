@@ -33,6 +33,7 @@ from joblib import Parallel, delayed
 import xarray as xa
 import pyresample
 import pyproj
+from dotenv import load_dotenv
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
@@ -47,10 +48,11 @@ from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-region_dict = load_or_default('config/region_specs.yaml')
-model_dict = load_or_default('config/model_specs.yaml')
-satellite_dict = load_or_default('config/satellite_specs.yaml')
-variable_info = load_or_default('config/variable_info.yaml')
+region_dict = load_or_default('/region_specs.yaml')
+model_dict = load_or_default('/model_specs.yaml')
+satellite_dict = load_or_default('/satellite_specs.yaml')
+variable_info = load_or_default('/variable_info.yaml')
+#variable_info = load_or_default('config/variable_info.yaml')
 
 # --- global functions ------------------------------------------------#
 
@@ -573,36 +575,3 @@ class satellite_class():
         else:
             print ("Values found for chosen region and time frame.")
         return ridx
-
-
-def get_pointsat(sa_obj,station=None,lat=None,lon=None,distlim=None):
-    from utils import haversine
-    # read yaml config files:
-    with open("../config/stationlist.yaml", 'r') as stream:
-        locations=yaml.safe_load(stream)
-    if ((lat is None or lon is None) and (station is None)):
-        print ("location is missing")
-    if (lat is None or lon is None):
-        lat=locations[station][0]
-        lon=locations[station][1]
-    print('Get footprints near lat:', lat, ' lon:', lon)
-    lats = sa_obj.loc[0]
-    lons = sa_obj.loc[1]
-    Hs = sa_obj.Hs
-    time = sa_obj.time
-    sample = []
-    distsp = []
-    lonsp = []
-    latsp = []
-    timep = []
-    idx = []
-    for i in range(len(lats)):
-        dist=haversine(lons[i],lats[i],lon,lat)
-        if (dist<=distlim):
-            sample.append(Hs[i])
-            distsp.append(dist)
-            lonsp.append(lons[i])
-            latsp.append(lats[i])
-            timep.append(time[i])
-            idx.append(i)
-    return sample, distsp, lonsp, latsp, timep, idx

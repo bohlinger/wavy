@@ -12,3 +12,4 @@ LC-WVF
 *.yaml
 .eggs
 *.egg-info
+*.env

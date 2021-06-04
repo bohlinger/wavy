@@ -26,3 +26,4 @@ dependencies:
   - pylint
   - yapf
   - sphinx
+  - python-dotenv
