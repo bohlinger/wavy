@@ -67,7 +67,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         print ("Attempt to download data: ")
         try:
             print ("Downloading file")
-            urlretrieve(dlstr, path_local + '/' + matching[i])
+            urlretrieve(dlstr, os.path.join(path_local, matching[i]))
             urlcleanup()
         except Exception as e:
             print (e.__doc__)
@@ -310,16 +310,18 @@ class satellite_class():
         filelst = []
         try:
             while (tmpdate <= edate + timedelta(minutes=twin)):
-                if self.path_local == 'tmp_unittest/':
+                if 'pytest' in str(self.path_local):
                     tmpdatestr = self.path_local
                 else:
-                    tmpdatestr=(self.path_local
-                        + str(tmpdate.year)
-                        + '/' + tmpdate.strftime('%m')
-                        + '/')
+                    tmpdatestr = (
+                            os.path.join(
+                            self.path_local,
+                            tmpdate.strftime('%Y'),
+                            tmpdate.strftime('%m'))
+                            )
                 tmplst = np.sort(os.listdir(tmpdatestr))
                 filelst.append(tmplst)
-                pathlst.append([(tmpdatestr + e) for e in tmplst])
+                pathlst.append([os.path.join(tmpdatestr,e) for e in tmplst])
                 if (edate is not None and edate!=sdate):
                     tmpdate = tmpdate + timedelta(hours=1)
                 else:

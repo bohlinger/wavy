@@ -32,7 +32,6 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                             instr, provider)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
-    print(filelist)
     nclist = [i for i in range(len(filelist))\
                 if '.nc' in filelist[i]]
     assert len(nclist) >= 1
