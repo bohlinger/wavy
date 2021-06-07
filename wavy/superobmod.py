@@ -10,7 +10,7 @@ from wavy.utils import find_included_times, collocate_times
 from wavy.wconfig import load_or_default
 from wavy.utils import runmean_conv
 
-variable_info = load_or_default('/variable_info.yaml')
+variable_info = load_or_default('variable_info.yaml')
 
 def superobbing(varalias,vardict,superob=None,outlier_detection='gam',\
 missing_data='marginalize',date_incr=None,**kwargs):

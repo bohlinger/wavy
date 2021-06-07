@@ -40,7 +40,7 @@ def load_or_default(name):
 
     .. code::
 
-        c = load_or_default('/model_specs.yaml')
+        c = load_or_default('model_specs.yaml')
 
     """
     logging.debug('attempting to load: %s..' % name)
@@ -58,6 +58,6 @@ def load_or_default(name):
     except FileNotFoundError:
         logging.debug('could not load from local directory, using default.')
         from pkg_resources import resource_stream
-        #return yaml.safe_load(resource_stream(__name__, name + '.default'))
-        return yaml.safe_load(resource_stream(__name__, 'config/' \
-                            +  name + '.default'))
+        return yaml.safe_load(
+            resource_stream(__name__,
+                            os.path.join('config', name + '.default')))
