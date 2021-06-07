@@ -302,8 +302,8 @@ def get_model(model=None,sdate=None,edate=None,date_incr=None,
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-model_dict = load_or_default('/model_specs.yaml')
-variable_info = load_or_default('/variable_info.yaml')
+model_dict = load_or_default('model_specs.yaml')
+variable_info = load_or_default('variable_info.yaml')
 
 class model_class():
 
