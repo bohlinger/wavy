@@ -52,7 +52,6 @@ region_dict = load_or_default('region_specs.yaml')
 model_dict = load_or_default('model_specs.yaml')
 satellite_dict = load_or_default('satellite_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
-#variable_info = load_or_default('variable_info.yaml')
 
 # --- global functions ------------------------------------------------#
 
@@ -144,6 +143,44 @@ def get_remote_files(path_remote,path_local,sdate,edate,twin,
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
                             (tmpdate + relativedelta(months=+1)).month,1)
     print ('Files downloaded to: \n', path_local)
+
+def get_remote_files_L2(instr,provider,sdate,edate,
+api_url=None,sat='s3a'):
+    import sentinelsat as ss
+    from sentinelsat import read_geojson, geojson_to_wkt
+    products = None
+    dates = (sdate.strftime('%Y%m%d'),edate.strftime('%Y%m%d'))
+    path_local = satellite_dict[instr][provider]['local']['path']
+    kwargs = make_query_dict(instr,provider,sat)
+    if api_url is None:
+        api_url_lst = \
+            satellite_dict[instr][provider]['remote']['api_url']
+        for url in api_url_lst:
+            print(url)
+            try:
+                user, pw = get_credentials(remoteHostName=url)
+                api = ss.SentinelAPI(user, pw, url)
+                products = api.query(area=None, date=dates,**kwargs)
+                break
+            except Exception as e:
+                if isinstance(e,ss.exceptions.ServerError):
+                    print(e)
+    else:
+        user, pw = get_credentials(remoteHostName=api_url)
+        api = ss.SentinelAPI(user, pw, api_url)
+        products = api.query(area=None, date=dates,**kwargs)
+    if products is not None:
+        api.download_all(products,directory_path=path_local)
+        #api.download(product_id)
+    else: print('No products found!')
+
+def make_query_dict(instr,provider,sat):
+    SAT = satellite_dict[instr][provider]['satellite'][sat]
+    kwargs =  {'platformname': 'Sentinel-3',
+               'instrumentshortname': 'SRAL',
+               'productlevel': 'L2',
+               'filename': SAT + '*WAT*'}
+    return kwargs
 
 # flatten all lists before returning them
 # define flatten function for lists
@@ -418,7 +455,8 @@ class satellite_class():
     def matchregion(self,LATS,LONS,region,grid_date):
         # region in region_dict[poly]:
         # find values for given region
-        if (region not in region_dict['poly'] and region not in model_dict):
+        if (region not in region_dict['poly'] and \
+        region not in model_dict):
             if region is None:
                 region = 'global'
             if ~isinstance(region,str)==True:
@@ -429,7 +467,7 @@ class satellite_class():
                 if region not in region_dict['rect']:
                     sys.exit("Region is not defined")
                 else:
-                    print ("Specified region: " + region + "\n"
+                    print("Specified region: " + region + "\n"
                       + " --> Bounds: " + str(region_dict['rect'][region]))
             ridx = self.matchregion_rect(LATS,LONS,region=region)
         else:

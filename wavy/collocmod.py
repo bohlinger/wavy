@@ -267,62 +267,66 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     #model_lons = M[flon].data
     #model_lats = M[flat].data
     for i in tqdm(range(len(fc_date))):
-        for j in range(1):
-#        with NoStdStreams():
-            # filter needed obs within time period
-            idx = collocate_times( obs_obj.vars['datetime'],
-                               target_t = [fc_date[i]],
-                               twin = obs_obj.twin )
-            # make tmp obs_obj with filtered data
-            obs_obj_tmp = deepcopy(obs_obj)
-            obs_obj_tmp.vars['time'] = list(np.array(\
-                                    obs_obj.vars['time'])[idx])
-            obs_obj_tmp.vars['latitude'] = list(np.array(\
-                                    obs_obj.vars['latitude'])[idx])
-            obs_obj_tmp.vars['longitude'] = list(np.array(\
-                                    obs_obj.vars['longitude'])[idx])
-            obs_obj_tmp.vars[obs_obj.stdvarname] = list(np.array(
-                                    obs_obj.vars[obs_obj.stdvarname])[idx])
-            # collocate
-            #filestr = make_model_filename_wrapper(model=model,
-            #                              fc_date=fc_date[i],
-            #                              leadtime=leadtime)
-            #M = xa.open_dataset(filestr, decode_cf=True)
-            #filevarname = get_filevarname(model,obs_obj.varalias,
-            #                    variable_info,model_dict,model_meta)
-            ## need function if variable consists of vector components
-            #model_vals = M.sel(time=fc_date[i])[filevarname].data
-            vardict,_,_,_,_ = get_model(model=model,
-                                fc_date=fc_date[i],
-                                varalias=obs_obj.varalias,
-                                leadtime=leadtime)
-            results_dict_tmp = collocate_field(\
-                            datein=fc_date[i],\
-#                            model_lats=model_lats,\
-#                            model_lons=model_lons,\
-#                            model_vals=model_vals,\
-                            model_lats=vardict['latitude'],\
-                            model_lons=vardict['longitude'],\
-                            model_vals=vardict[obs_obj.stdvarname],\
-                            obs_obj=obs_obj_tmp,\
-                            distlim=distlim )
-        # append to dict
-        results_dict['valid_date'].append(fc_date[i])
-        results_dict['time'].append(results_dict_tmp['time'])
-        results_dict['datetime'].append(results_dict_tmp['datetime'])
-        results_dict['distance'].append(results_dict_tmp['distance'])
-        results_dict['model_values'].append(results_dict_tmp['model_values'])
-        results_dict['model_lons'].append(results_dict_tmp['model_lons'])
-        results_dict['model_lats'].append(results_dict_tmp['model_lats'])
-        results_dict['obs_values'].append(results_dict_tmp['obs_values'])
-        results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
-        results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
-        results_dict['collocation_idx_x'].append(\
+#        for j in range(1):
+        with NoStdStreams():
+            try:
+                # filter needed obs within time period
+                idx = collocate_times( obs_obj.vars['datetime'],
+                                       target_t = [fc_date[i]],
+                                       twin = obs_obj.twin )
+                # make tmp obs_obj with filtered data
+                obs_obj_tmp = deepcopy(obs_obj)
+                obs_obj_tmp.vars['time'] = list(\
+                        np.array(obs_obj.vars['time'])[idx] )
+                obs_obj_tmp.vars['latitude'] = list(\
+                        np.array(obs_obj.vars['latitude'])[idx] )
+                obs_obj_tmp.vars['longitude'] = list(\
+                        np.array(obs_obj.vars['longitude'])[idx] )
+                obs_obj_tmp.vars[obs_obj.stdvarname] = \
+                        list(np.array(\
+                        obs_obj.vars[obs_obj.stdvarname])[idx] )
+                # collocate
+                #filestr = make_model_filename_wrapper(model=model,
+                #                              fc_date=fc_date[i],
+                #                              leadtime=leadtime)
+                #M = xa.open_dataset(filestr, decode_cf=True)
+                #filevarname = get_filevarname(model,obs_obj.varalias,
+                #                    variable_info,model_dict,model_meta)
+                ## need function if variable consists of vector components
+                #model_vals = M.sel(time=fc_date[i])[filevarname].data
+                vardict,_,_,_,_ = get_model(model=model,
+                                    fc_date=fc_date[i],
+                                    varalias=obs_obj.varalias,
+                                    leadtime=leadtime)
+                results_dict_tmp = collocate_field(\
+                                datein=fc_date[i],\
+#                                model_lats=model_lats,\
+#                               model_lons=model_lons,\
+#                               model_vals=model_vals,\
+                                model_lats=vardict['latitude'],\
+                                model_lons=vardict['longitude'],\
+                                model_vals=vardict[obs_obj.stdvarname],\
+                                obs_obj=obs_obj_tmp,\
+                                distlim=distlim )
+                # append to dict
+                results_dict['valid_date'].append(fc_date[i])
+                results_dict['time'].append(results_dict_tmp['time'])
+                results_dict['datetime'].append(results_dict_tmp['datetime'])
+                results_dict['distance'].append(results_dict_tmp['distance'])
+                results_dict['model_values'].append(results_dict_tmp['model_values'])
+                results_dict['model_lons'].append(results_dict_tmp['model_lons'])
+                results_dict['model_lats'].append(results_dict_tmp['model_lats'])
+                results_dict['obs_values'].append(results_dict_tmp['obs_values'])
+                results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
+                results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
+                results_dict['collocation_idx_x'].append(\
                                 results_dict_tmp['collocation_idx_x'])
-        results_dict['collocation_idx_y'].append(\
+                results_dict['collocation_idx_y'].append(\
                                 results_dict_tmp['collocation_idx_y'])
-        if 'results_dict_tmp' in locals():
-            del results_dict_tmp
+                if 'results_dict_tmp' in locals():
+                    del results_dict_tmp
+            except ValueError as e:
+                print(e)
     # flatten all aggregated entries
     #results_dict['valid_date'] = flatten(results_dict['valid_date'])
     results_dict['time'] = flatten(results_dict['time'])

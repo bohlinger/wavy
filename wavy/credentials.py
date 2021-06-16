@@ -34,16 +34,17 @@ def credentials_from_txt():
     pw = my_dict['pw'][1:-2]
     return user, pw
 
-def get_credentials():
+def get_credentials(remoteHostName=None):
     # get credentials from .netrc
     usrhome = os.getenv("HOME")
     if os.path.isfile(usrhome + "/.netrc"):
         try:
             print ('Attempt to obtain credentials from .netrc')
-            user, pw = credentials_from_netrc()
+            user, pw = \
+                credentials_from_netrc(remoteHostName=remoteHostName)
             return user, pw
         except AttributeError:
-            print ("std copernicus user in netrc file not registered")
+            print ("credentials in netrc file not registered")
             print ("try local file credentials.txt")
             print ("file must contain:")
             print ("user='username'")

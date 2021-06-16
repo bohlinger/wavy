@@ -163,7 +163,7 @@ def lanczos_weights(window,cutoff):
     Calculate weights for a low pass Lanczos filter
     Args:
         window: (integer) the length of the filter window
-    cutoff: (float) the cutoff frequency in inverse time steps
+        cutoff: (float) the cutoff frequency in inverse time steps
     example: https://scitools.org.uk/iris/docs/v1.2/examples/
              graphics/SOI_filtering.html
     """
@@ -290,9 +290,9 @@ def so_GP(x,y,X,varalias,**kwargs):
         print('kernel constituents given by user')
         kernel = WhiteKernel(noise_level=1)
         if 'RBF' in kwargs['kernel_lst']:
-            kernel += RBF(length_scale=1)
+            kernel += 1 * RBF(length_scale=1)
         if 'RationalQuadratic' in kwargs['kernel_lst']:
-            kernel += RationalQuadratic(alpha=1,\
+            kernel += 1 * RationalQuadratic(alpha=1,\
                                         length_scale=1)
     else:
         print('default kernel')
