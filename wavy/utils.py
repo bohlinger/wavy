@@ -288,7 +288,7 @@ def hour_rounder(t):
 
 def sort_files(dirpath,filelst):
     """
-    mv CMEMS L3 files to sub-folders of year and month
+    mv files to sub-folders of year and month
     """
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath + '/' + e)):

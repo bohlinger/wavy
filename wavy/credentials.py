@@ -19,19 +19,18 @@ def credentials_from_netrc(remoteHostName=None):
     pw = netrc.authenticators(remoteHostName)[2]
     return user, pw
 
-def credentials_from_txt():
+def credentials_from_txt(remoteHostName=None):
     print("try local file credentials.txt")
+    if remoteHostName is None:
+        remoteHostName = "nrt.cmems-du.eu"
     # get user home path
     usrhome = os.getenv("HOME")
-    my_dict = {}
     with open(usrhome + "/credentials.txt", 'r') as f:
         for line in f:
-            items = line.split('=')
-            key, values = items[0], items[1]
-            my_dict[key] = values
-    # 1:-2 to remove the linebreak and quotation marks \n
-    user = my_dict['user'][1:-2]
-    pw = my_dict['pw'][1:-2]
+            items = line.split(',')
+            if remoteHostName in items[0]:
+                user, pw = items[1].split('=')[1], \
+                        items[2].split('=')[1][0:-1]
     return user, pw
 
 def get_credentials(remoteHostName=None):
