@@ -286,15 +286,34 @@ def hour_rounder(t):
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
                +timedelta(hours=t.minute//30))
 
-def sort_files(dirpath,filelst):
+def sort_files(dirpath,filelst,provider,sat):
     """
     mv files to sub-folders of year and month
     """
+    if provider == 'cmems':
+        sort_cmems_l3(dirpath,filelst,sat)
+    if provider == 'eumetsat':
+        sort_eumetsat_l2(dirpath,filelst,sat)
+
+def sort_cmems_l3(dirpath,filelst,sat):
     for e in filelst:
-        if os.path.isfile(os.path.join(dirpath + '/' + e)):
-            tmp = 'global_vavh_l3_rt_' + os.path.basename(dirpath) + '_'
+        if os.path.isfile(os.path.join(dirpath,e)):
+            tmp = 'global_vavh_l3_rt_' + sat + '_'
             year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
             folder = os.path.join(dirpath + '/' + year + '/' + month)
+            cmd = 'mkdir -p ' + folder
+            os.system(cmd)
+            cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
+            os.system(cmd)
+
+def sort_eumetsat_l2(dirpath,filelst,sat):
+    for e in filelst:
+        splits = e.split('____')
+        if os.path.isfile(os.path.join(dirpath,e)):
+            year, month = splits[1][0:4],splits[1][4:6]
+            print(year,month)
+            folder = os.path.join(dirpath + '/' + year + '/' + month)
+            print(folder)
             cmd = 'mkdir -p ' + folder
             os.system(cmd)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
@@ -399,8 +418,9 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
             pathtofile = pathtofile.replace(strsub,kwargs[strsub])
     return pathtofile
 
-def make_pathtofile(tmppath,strsublst,date,**kwargs):
-    pathtofile = date.strftime(tmppath)
+def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
+    if date is not None:
+        pathtofile = date.strftime(tmppath)
     for strsub in strsublst:
         pathtofile = pathtofile.replace(strsub,kwargs[strsub])
     return pathtofile

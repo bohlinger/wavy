@@ -52,6 +52,10 @@ parser.add_argument("-sat", metavar='satellite',
         \nall - all availabe satellites")
 parser.add_argument("-path", metavar='path',
     help="destination for downloaded data")
+parser.add_argument("-provider", metavar='provider',
+    help="institution providing the data")
+parser.add_argument("-api_url", metavar='api_url',
+    help="source of eumetsat L2 data")
 parser.add_argument("-nproc", metavar='nproc',
     help="number of simultaneous processes",type = int)
 
@@ -59,14 +63,12 @@ args = parser.parse_args()
 
 # settings
 instr = 'altimeter'
-provider = 'cmems'
 
 now = datetime.now()
 if args.sat is None:
     satlst = ['s3a']
 elif args.sat == 'all':
-    tmp = satellite_dict['altimeter']['cmems']['satellite']
-    satlst = tmp.split(',')
+    satlst = satellite_dict['altimeter']['cmems']['satellite'].keys()
     del tmp
 else:
     satlst = [args.sat]
@@ -83,39 +85,30 @@ else:
     edate = datetime(int(args.ed[0:4]),int(args.ed[4:6]),
                 int(args.ed[6:8]),int(args.ed[8:10]))
 
-if args.path is None:
-    targetpath = satellite_dict[instr][provider]['local']['path']
-else:
-    targetpath = args.path
-
 if args.nproc is None:
-    nproc = 1
-else:
-    nproc = args.nproc
+    args.nproc = 1
+
+if args.provider is None:
+    args.provider = 'cmems'
+
+print(args)
+
+twin = 30
 
 for sat in satlst:
-    try:
+    for i in range(1):
+#    try:
         print("Attempting to download data for:", sat)
         print("Time period:",str(sdate), "to", str(edate))
-        satpath = satellite_dict[instr][provider]['remote']['path'] + sat
-        destination = targetpath + '/' + sat
-        print('destination: ' + destination)
-        # check if destination exists
-        if os.path.isdir(destination) == False:
-            print ( 'Your destination path does not exist')
-            print ( destination + ' will now be created')
-            cmd = 'mkdir -p ' + destination
-            os.system(cmd)
         start_time = time.time()
-        sa_obj = get_remote_files(satpath, destination,
-                            sdate,edate,twin=30,
-                            nproc=nproc,instr=instr,provider=provider)
+        sa_obj = get_remote_files(args.path,
+                            sdate,edate,twin,
+                            args.nproc,instr,
+                            args.provider,
+                            args.api_url,sat)
         time1 = time.time() - start_time
         print("Time used for collecting data: ", time1, " seconds")
-        print("Data is being sorted into subdirectories year and month ...")
-        filelst = np.sort(os.listdir(destination))
-        sort_files(destination,filelst)
-    except Exception as e:
-        print('Experienced error when downloading data for',sat,
-            '\nwith the error:',e,
-            '\nSkip and continue ...')
+#    except Exception as e:
+#        print('Experienced error when downloading data for',sat,
+#            '\nwith the error:',e,
+#            '\nSkip and continue ...')

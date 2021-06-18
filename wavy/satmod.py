@@ -39,12 +39,12 @@ from dotenv import load_dotenv
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc
 from wavy.utils import progress, sort_files, collocate_times
+from wavy.utils import make_pathtofile
 from wavy.credentials import get_credentials
 from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.wconfig import load_or_default
-
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -56,12 +56,12 @@ variable_info = load_or_default('variable_info.yaml')
 # --- global functions ------------------------------------------------#
 
 def tmploop_get_remote_files(i,matching,user,pw,
-                            server,path,
+                            server,remote_path,
                             path_local):
     #for element in matching:
     print("File: ",matching[i])
     dlstr=('ftp://' + user + ':' + pw + '@'
-                + server + path + matching[i])
+                + server + remote_path + matching[i])
     for attempt in range(10):
         print ("Attempt to download data: ")
         try:
@@ -81,42 +81,50 @@ def tmploop_get_remote_files(i,matching,user,pw,
         print ('Exit program')
         sys.exit()
 
-def get_remote_files(path_remote,path_local,sdate,edate,twin,
-                    nproc,instr,provider):
+def get_remote_files_cmems(\
+sdate,edate,twin,nproc,sat,instr,provider,path_local):
     '''
     Download swath files and store them at defined location
     time stamps in file name stand for: from, to, creation
     '''
     # credentials
-    user, pw = get_credentials()
+    server = satellite_dict[instr][provider]['remote']['server']
+    user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
     while (tmpdate <= edate):
-        # server and path
-        if sdate >= datetime(2017,7,9):
-            server = satellite_dict[instr][provider]['remote']['server']
-            path = (path_remote
-                 + '/'
-                 + str(tmpdate.year)
-                 + '/'
-                 + tmpdate.strftime('%m')
-                 + '/')
-            print ('# ----- ')
-            print ('Chosen source: ')
-            print (instr + ' from ' + provider + ': ' + server)
-            print ('# ----- ')
-        else:
-            sys.exit("Product not available for chosen date!")
+        # create remote path
+        path_template = satellite_dict[instr][provider]\
+                                      ['remote']['path_template']
+        strsublst = satellite_dict[instr][provider]\
+                                  ['remote']['strsub']
+        path_remote = make_pathtofile(path_template,\
+                                      strsublst,\
+                                      tmpdate,\
+                                      mission=sat)
+        if path_local is None:
+            # create local path
+            path_template = satellite_dict[instr][provider]\
+                                      ['local']['path_template']
+            strsublst = satellite_dict[instr][provider]\
+                                  ['local']['strsub']
+            path_local = make_pathtofile(path_template,\
+                                     strsublst,\
+                                     sdate,\
+                                     mission=sat)
+        print ('# ----- ')
+        print ('Chosen source: ')
+        print (instr + ' from ' + provider + ': ' + server)
+        print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
         ftp.login(user, pw)
-        ftp.cwd(path)
+        ftp.cwd(path_remote)
         content=FTP.nlst(ftp)
-        #choose files according to verification date
+        #choose files according to sdate/edate
         tmplst=[]
-        tmpdate_new=tmpdate-timedelta(minutes=twin)
-        tmpend=edate+timedelta(minutes=twin)
-        while (tmpdate_new.strftime("%Y%m%dT%H")
-            <= tmpend.strftime("%Y%m%dT%H")):
+        tmpdate_new = tmpdate-timedelta(minutes=twin)
+        tmpdate_end = edate+timedelta(minutes=twin)
+        while (tmpdate_new <= tmpdate_end):
             matchingtmp = [s for s in content
                             if ('_'
                             + str(tmpdate_new.year)
@@ -128,35 +136,54 @@ def get_remote_files(path_remote,path_local,sdate,edate,twin,
                             ]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
-        matching = tmplst
+        matching = np.unique(tmplst)
+        # check if download path exists if not create
+        if not os.path.exists(path_local):
+            cmd = 'mkdir ' + path_local
+            os.system(cmd)
         # Download and gunzip matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
-        print ("Used number of processes " + str(nproc) + "!")
+        print ("Used number of simultaneous downloads "
+                + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
                         i,matching,user,pw,server,
-                        path,path_local
+                        path_remote,path_local
                         ) for i in range(len(matching))
                         )
         # update time
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
                             (tmpdate + relativedelta(months=+1)).month,1)
+    # sort files
+    print("Data is being sorted into subdirectories year and month ...")
+    filelst = [f for f in os.listdir(path_local)
+                if os.path.isfile(os.path.join(path_local,f))]
+    sort_files(path_local,filelst,provider,sat)
     print ('Files downloaded to: \n', path_local)
 
-def get_remote_files_L2(instr,provider,sdate,edate,
-api_url=None,sat='s3a'):
+def get_remote_files_eumetsat(\
+instr,provider,sdate,edate,api_url,sat,path_local):
     import sentinelsat as ss
-    from sentinelsat import read_geojson, geojson_to_wkt
     products = None
-    dates = (sdate.strftime('%Y%m%d'),edate.strftime('%Y%m%d'))
-    path_local = satellite_dict[instr][provider]['local']['path']
+    dates = (sdate.strftime('%Y-%m-%dT%H:%M:%SZ'),\
+             edate.strftime('%Y-%m-%dT%H:%M:%SZ'))
+    if path_local is None:
+        # create local path
+        path_template = satellite_dict[instr][provider]\
+                                  ['local']['path_template']
+        strsublst = satellite_dict[instr][provider]\
+                              ['local']['strsub']
+        path_local = make_pathtofile(path_template,\
+                                     strsublst,\
+                                     sdate,\
+                                     mission=sat)
     kwargs = make_query_dict(instr,provider,sat)
     if api_url is None:
         api_url_lst = \
             satellite_dict[instr][provider]['remote']['api_url']
         for url in api_url_lst:
-            print(url)
+            print('Source:',url)
             try:
                 user, pw = get_credentials(remoteHostName=url)
                 api = ss.SentinelAPI(user, pw, url)
@@ -170,9 +197,31 @@ api_url=None,sat='s3a'):
         api = ss.SentinelAPI(user, pw, api_url)
         products = api.query(area=None, date=dates,**kwargs)
     if products is not None:
+        # check if download path exists if not create
+        if not os.path.exists(path_local):
+            cmd = 'mkdir ' + path_local
+            os.system(cmd)
         api.download_all(products,directory_path=path_local)
         #api.download(product_id)
     else: print('No products found!')
+    # sort files
+    print("Data is being sorted into subdirectories year and month ...")
+    filelst = [f for f in os.listdir(path_local)
+                if os.path.isfile(os.path.join(path_local,f))]
+    sort_files(path_local,filelst,provider,sat)
+    print ('Files downloaded to: \n', path_local)
+
+def get_remote_files(path_local,sdate,edate,twin,
+                    nproc,instr,provider,api_url,sat):
+    '''
+    Download swath files and store them at defined location
+    '''
+    if provider=='cmems':
+        get_remote_files_cmems(\
+                sdate,edate,twin,nproc,sat,instr,provider,path_local)
+    elif provider=='eumetsat':
+        get_remote_files_eumetsat(\
+                instr,provider,sdate,edate,api_url,sat,path_local)
 
 def make_query_dict(instr,provider,sat):
     SAT = satellite_dict[instr][provider]['satellite'][sat]
@@ -223,7 +272,7 @@ class satellite_class():
 
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
-        edate=None,twin=None,download=False,download_path=None,
+        edate=None,twin=None,download=False,path_local=None,
         remote_ftp_path=None,region=None,nproc=1,varalias='Hs'
         ):
         print ('# ----- ')
@@ -240,27 +289,25 @@ class satellite_class():
         print('Please wait ...')
         print('Chosen time window is:', twin, 'min')
         # make satpaths
-        if download_path is None:
-            path_local = satellite_dict[instr][provider]\
-                        ['local']['path'] + '/' + sat + '/'
-        else:
-            path_local = download_path
-        if remote_ftp_path is None:
-            path_remote = satellite_dict[instr][provider]\
-                        ['remote']['path'] + sat + '/'
-        else:
-            path_remote = remote_ftp_path
+        if path_local is None:
+            print('path_local is None -> looking in config file')
+            # create local path
+            path_template = satellite_dict[instr][provider]\
+                                      ['local']['path_template']
+            strsublst = satellite_dict[instr][provider]\
+                                  ['local']['strsub']
+            path_local = make_pathtofile(path_template,\
+                                     strsublst,\
+                                     sdate,\
+                                     mission=sat)
         self.path_local = path_local
-        self.path_remote = path_remote
         # retrieve files
         if download is False:
             print ("No download initialized, checking local files")
         else:
             print ("Downloading necessary files ...")
-            get_remote_files(path_remote,path_local,
-                        sdate,edate,twin,nproc,
-                        instr,provider)
-
+            get_remote_files(path_local,sdate,edate,twin,
+                            nproc,instr,provider,api_url,sat)
         t0=time.time()
         pathlst, filelst = self.get_local_filelst(
                             sdate,edate,twin,region)
