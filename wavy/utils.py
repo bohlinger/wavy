@@ -300,7 +300,7 @@ def sort_cmems_l3(dirpath,filelst,sat):
         if os.path.isfile(os.path.join(dirpath,e)):
             tmp = 'global_vavh_l3_rt_' + sat + '_'
             year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
-            folder = os.path.join(dirpath + '/' + year + '/' + month)
+            folder = os.path.join(dirpath,year,month)
             cmd = 'mkdir -p ' + folder
             os.system(cmd)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
@@ -312,7 +312,7 @@ def sort_eumetsat_l2(dirpath,filelst,sat):
         if os.path.isfile(os.path.join(dirpath,e)):
             year, month = splits[1][0:4],splits[1][4:6]
             print(year,month)
-            folder = os.path.join(dirpath + '/' + year + '/' + month)
+            folder = os.path.join(dirpath,year,month)
             print(folder)
             cmd = 'mkdir -p ' + folder
             os.system(cmd)

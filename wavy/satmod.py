@@ -91,6 +91,7 @@ sdate,edate,twin,nproc,sat,instr,provider,path_local):
     server = satellite_dict[instr][provider]['remote']['server']
     user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
+    filesort = False
     while (tmpdate <= edate):
         # create remote path
         path_template = satellite_dict[instr][provider]\
@@ -111,6 +112,7 @@ sdate,edate,twin,nproc,sat,instr,provider,path_local):
                                      strsublst,\
                                      sdate,\
                                      mission=sat)
+            filesort = True
         print ('# ----- ')
         print ('Chosen source: ')
         print (instr + ' from ' + provider + ': ' + server)
@@ -155,11 +157,13 @@ sdate,edate,twin,nproc,sat,instr,provider,path_local):
         # update time
         tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
                             (tmpdate + relativedelta(months=+1)).month,1)
-    # sort files
-    print("Data is being sorted into subdirectories year and month ...")
-    filelst = [f for f in os.listdir(path_local)
-                if os.path.isfile(os.path.join(path_local,f))]
-    sort_files(path_local,filelst,provider,sat)
+    if filesort is True:
+        # sort files
+        print("Data is being sorted into subdirectories " \
+            + "year and month ...")
+        filelst = [f for f in os.listdir(path_local)
+                    if os.path.isfile(os.path.join(path_local,f))]
+        sort_files(path_local,filelst,provider,sat)
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files_eumetsat(\
@@ -168,6 +172,7 @@ instr,provider,sdate,edate,api_url,sat,path_local):
     products = None
     dates = (sdate.strftime('%Y-%m-%dT%H:%M:%SZ'),\
              edate.strftime('%Y-%m-%dT%H:%M:%SZ'))
+    filessort = False
     if path_local is None:
         # create local path
         path_template = satellite_dict[instr][provider]\
@@ -178,6 +183,7 @@ instr,provider,sdate,edate,api_url,sat,path_local):
                                      strsublst,\
                                      sdate,\
                                      mission=sat)
+        filesort = True
     kwargs = make_query_dict(instr,provider,sat)
     if api_url is None:
         api_url_lst = \
@@ -204,11 +210,13 @@ instr,provider,sdate,edate,api_url,sat,path_local):
         api.download_all(products,directory_path=path_local)
         #api.download(product_id)
     else: print('No products found!')
-    # sort files
-    print("Data is being sorted into subdirectories year and month ...")
-    filelst = [f for f in os.listdir(path_local)
-                if os.path.isfile(os.path.join(path_local,f))]
-    sort_files(path_local,filelst,provider,sat)
+    if filesort is True:
+        # sort files
+        print("Data is being sorted into subdirectories " \
+            + "year and month ...")
+        filelst = [f for f in os.listdir(path_local)
+                    if os.path.isfile(os.path.join(path_local,f))]
+        sort_files(path_local,filelst,provider,sat)
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files(path_local,sdate,edate,twin,

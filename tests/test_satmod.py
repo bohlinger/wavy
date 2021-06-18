@@ -21,15 +21,12 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 @pytest.mark.need_credentials
 def test_ftp_files_and_init_satellite_class(tmpdir):
     from wavy import satmod
-
-    # make satpath
-    path_remote = satellite_dict[instr]\
-                    [provider]['remote']['path']\
-                    + sat + '/'
     # evoke fct get_remote_files
-    satmod.get_remote_files(path_remote, tmpdir,
+    api_url = None
+    sat = 's3a'
+    satmod.get_remote_files(tmpdir,
                             date, date, twin, nproc,
-                            instr, provider)
+                            instr, provider,api_url,sat)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
     nclist = [i for i in range(len(filelist))\
@@ -43,9 +40,9 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                              region=region,
                              sat=sat,
                              varalias=varalias,
-                             download_path=tmpdir)
+                             path_local=tmpdir)
     assert sa_obj.__class__.__name__ == 'satellite_class'
-    assert len(vars(sa_obj).keys()) >= 11
+    assert len(vars(sa_obj).keys()) >= 10
     assert len(sa_obj.vars.keys()) >= 6
     assert not 'error' in vars(sa_obj).keys()
     # another one checking for error
