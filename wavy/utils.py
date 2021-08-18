@@ -123,7 +123,10 @@ def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=No
         return []
 
 def progress(count, total, status=''):
-    "from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3"
+    '''
+    Create a progress bar:
+    from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
+    '''
     bar_len = 60
     filled_len = int(round(bar_len * count / float(total)))
     percents = round(100.0 * count / float(total), 1)
@@ -133,7 +136,7 @@ def progress(count, total, status=''):
 
 def grab_PID():
     """
-    function to retrieve PID and display it to be able to kill the
+    Function to retrieve PID and display it to be able to kill the
     python program that was just started
     """
     import os
@@ -188,6 +191,8 @@ def haversine_new(lon1, lat1, lon2, lat2):
 
 def runmean(vec,win,mode=None,weights=None):
     """
+    Computes the running mean with various configurations.
+
     input:  vec = vector of values to me smoothed
             win = window length
             mode = string: left, centered, right
@@ -230,9 +235,11 @@ def runmean(vec,win,mode=None,weights=None):
 def runmean_conv(x,win,mode='flat'):
     """
     running mean using convolution
+
     input:  x = vector of values to me smoothed
             win = window length
             mode= which window to pic
+
     source: https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
     """
     if x.ndim != 1:
@@ -253,6 +260,8 @@ def runmean_conv(x,win,mode='flat'):
 
 def bootstr(a,reps):
     """
+    Conducts a simple naive bootstrap:
+
     input:    - is a time series of length n
               - reps (number of repetitions)
     output:   - an array of dim n x m where
@@ -270,6 +279,8 @@ def bootstr(a,reps):
 
 def marginalize(a,b=None):
     """
+    Removes entries in both time series that are NaN.
+
     input: np.arrays with np.nan for invalids
     """
     if b is None:
@@ -282,7 +293,9 @@ def marginalize(a,b=None):
         return a1,b1,idx
 
 def hour_rounder(t):
-    # Rounds to nearest hour by adding a timedelta hour if minute >= 30
+    '''
+    Rounds to nearest hour by adding a timedelta hour if minute >= 30
+    '''
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
                +timedelta(hours=t.minute//30))
 
@@ -296,6 +309,9 @@ def sort_files(dirpath,filelst,provider,sat):
         sort_eumetsat_l2(dirpath,filelst,sat)
 
 def sort_cmems_l3(dirpath,filelst,sat):
+    '''
+    Sort l3 files according to year and month.
+    '''
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath,e)):
             tmp = 'global_vavh_l3_rt_' + sat + '_'
@@ -307,6 +323,9 @@ def sort_cmems_l3(dirpath,filelst,sat):
             os.system(cmd)
 
 def sort_eumetsat_l2(dirpath,filelst,sat):
+    '''
+    Sort l2 files according to year and month.
+    '''
     for e in filelst:
         splits = e.split('____')
         if os.path.isfile(os.path.join(dirpath,e)):
@@ -322,6 +341,7 @@ def sort_eumetsat_l2(dirpath,filelst,sat):
 def get_size(obj, seen=None):
     """
     Recursively finds size of objects
+
     From:
     https://goshippo.com/blog/measure-real-size-any-python-object/
     """
@@ -346,8 +366,8 @@ def get_size(obj, seen=None):
 def find_included_times(unfiltered_t,target_t=None,
     sdate=None,edate=None,twin=0):
     """
-    find index/indices of unfiltered time series that fall
-    within a tolearance time window around the target time
+    Find index/indices of unfiltered time series that fall
+    within a tolerance time window around the target time
     or within a time window specified by sdate and edate
     """
     if (sdate is None and edate is None): # [interval]
@@ -365,7 +385,8 @@ def collocate_times(unfiltered_t,target_t=None,
     """
     fct for collocating times within a given twin as tolerance
     target_t and unfiltered_t need to be lists of datetime objects
-    twin is in minutes
+    twin is in minutes.
+
     returns idx
     """
     if twin is None:
@@ -395,6 +416,9 @@ flat_list.append(item)
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 def make_fc_dates(sdate,edate,date_incr):
+    '''
+    fct to create forecast date vector
+    '''
     fc_dates = []
     while sdate <= edate:
         fc_dates.append(sdate)
@@ -406,6 +430,9 @@ def system_call(command):
     return p.stdout.read()
 
 def get_pathtofile(pathlst,strsublst,date,**kwargs):
+    '''
+    Finds and returns path of file given templates and keywords and date.
+    '''
     i = 0
     pathtofile = date.strftime(pathlst[i])
     for strsub in strsublst:
@@ -419,6 +446,9 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
     return pathtofile
 
 def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
+    '''
+    Creates a path given templates and keywords and date.
+    '''
     if date is not None:
         pathtofile = date.strftime(tmppath)
     else: pathtofile = tmppath
@@ -429,13 +459,17 @@ def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
 def convert_meteorologic_oceanographic(alpha):
     """
     fct to convert angles from meteorological convention to
-    oceanographic/nautical and vice versa
+    oceanographic/nautical and vice versa.
     """
     return (alpha+180)%360
 
 class NoStdStreams(object):
-    # https://codereview.stackexchange.com/questions/25417/
-    # is-there-a-better-way-to-make-a-function-silent-on-need
+    '''
+    Suppress stdout.
+
+    https://codereview.stackexchange.com/questions/25417/
+    is-there-a-better-way-to-make-a-function-silent-on-need
+    '''
     def __init__(self,stdout = None, stderr = None):
         self.devnull = open(os.devnull,'w')
         self._stdout = stdout or self.devnull or sys.stdout

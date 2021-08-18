@@ -84,8 +84,10 @@ def tmploop_get_remote_files(i,matching,user,pw,
 def get_remote_files_cmems(\
 sdate,edate,twin,nproc,sat,instr,provider,path_local):
     '''
-    Download swath files and store them at defined location
-    time stamps in file name stand for: from, to, creation
+    Download swath files from CMEMS and store them at defined
+    location. Time stamps in file name stand for:
+
+    from, to, creation
     '''
     # credentials
     server = satellite_dict[instr][provider]['remote']['server']
@@ -168,6 +170,10 @@ sdate,edate,twin,nproc,sat,instr,provider,path_local):
 
 def get_remote_files_eumetsat(\
 instr,provider,sdate,edate,api_url,sat,path_local):
+    '''
+    Download swath files from EUMETSAT and store them at defined
+    location. This fct uses the SentinelAPI for queries.
+    '''
     import sentinelsat as ss
     products = None
     dates = (sdate.strftime('%Y-%m-%dT%H:%M:%SZ'),\
@@ -222,7 +228,9 @@ instr,provider,sdate,edate,api_url,sat,path_local):
 def get_remote_files(path_local,sdate,edate,twin,
                     nproc,instr,provider,api_url,sat):
     '''
-    Download swath files and store them at defined location
+    Download swath files and store them at defined location.
+    It is currently possible to download L3 altimeter data from
+    CMEMS and L2 from EUMETSAT.
     '''
     if provider=='cmems':
         get_remote_files_cmems(\
@@ -232,6 +240,9 @@ def get_remote_files(path_local,sdate,edate,twin,
                 instr,provider,sdate,edate,api_url,sat,path_local)
 
 def make_query_dict(instr,provider,sat):
+    '''
+    fct to setup queries of L2 data using SentinelAPI
+    '''
     SAT = satellite_dict[instr][provider]['satellite'][sat]
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
@@ -326,7 +337,8 @@ sat,path_local=None):
 
 def read_local_files_cmems(pathlst,varalias):
     '''
-    read and concatenate all data to one timeseries for each variable
+    Read and concatenate all data to one timeseries for each variable.
+    Fct is tailored to CMEMS files.
     '''
     # --- open file and read variables --- #
     varlst = [varalias] + ['lons','lats','time']
@@ -402,6 +414,9 @@ def read_local_files_cmems(pathlst,varalias):
     return vardict
 
 def read_local_files_eumetsat(pathlst,varalias):
+    '''
+    Read files downloaded from EUMETSAT.
+    '''
     # --- open file and read variables --- #
     varlst = [varalias] + ['lons','lats','time']
     varlst_cf = []
@@ -421,6 +436,10 @@ def read_local_files_eumetsat(pathlst,varalias):
     return vardict
 
 def read_local_files(pathlst,provider,varalias):
+    '''
+    main fct to read L2/L3 altimetry files from EUMETSAT/CMEMS,
+    respectively. Currently only L3 are possible to read.
+    '''
     # read local files depending on provider
     # -> similar to get_remote_files
     vardict = read_local_files_cmems(pathlst,varalias)
@@ -457,13 +476,13 @@ def check_date(filelst,date):
 
 class satellite_class():
     '''
-    Class to handle netcdf files containing satellite data i.e.
+    Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
     This class offers the following added functionality:
      - get swaths of desired days and read
      - get the closest time stamp(s)
      - get the location (lon, lat) for this time stamp
-     - get Hs value for this time
+     - get Hs or 10m wind value for this time
     '''
 
     def __init__(

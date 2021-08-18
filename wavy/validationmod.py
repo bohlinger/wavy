@@ -58,6 +58,9 @@ def calc_drmsd(a,b):
     return dmsd, drmsd
 
 def calc_scatter_index(obs,model):
+    '''
+    Scatter index based on rmse and on std of diff
+    '''
     msd,rmsd = calc_rmsd(obs,model)
     stddiff = np.nanstd(obs-model)
     SIrmse = rmsd/np.nanmean(obs)*100.
@@ -104,6 +107,9 @@ def calc_mad(a,b):
     return mad
 
 def disp_validation(valid_dict):
+    '''
+    Print to screen validation scores.
+    '''
     print('\n')
     print('# ---')
     print('Validation stats')
@@ -136,6 +142,7 @@ def validate(results_dict,boot=None):
     import numpy as np
     """
     vars in dict: np.arrays with np.nan for invalids
+
     produced metrics:
     mean of product --> mop
     mean of reference --> mor
