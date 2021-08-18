@@ -69,7 +69,6 @@ if args.sat is None:
     satlst = ['s3a']
 elif args.sat == 'all':
     satlst = satellite_dict['altimeter']['cmems']['satellite'].keys()
-    del tmp
 else:
     satlst = [args.sat]
 

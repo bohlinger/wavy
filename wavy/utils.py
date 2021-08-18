@@ -421,6 +421,7 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
 def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
     if date is not None:
         pathtofile = date.strftime(tmppath)
+    else: pathtofile = tmppath
     for strsub in strsublst:
         pathtofile = pathtofile.replace(strsub,kwargs[strsub])
     return pathtofile

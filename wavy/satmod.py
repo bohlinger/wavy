@@ -23,7 +23,6 @@ if sys.version_info <= (3, 0):
     from urllib import urlretrieve, urlcleanup # python2
 else:
     from urllib.request import urlretrieve, urlcleanup # python3
-import gzip
 import ftplib
 from ftplib import FTP
 import netCDF4 as netCDF4
@@ -34,6 +33,7 @@ import xarray as xa
 import pyresample
 import pyproj
 from dotenv import load_dotenv
+import zipfile
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
@@ -239,6 +239,194 @@ def make_query_dict(instr,provider,sat):
                'filename': SAT + '*WAT*'}
     return kwargs
 
+def get_local_files(sdate,edate,twin,instr,provider,\
+sat,path_local=None):
+    filelst = []
+    pathlst = []
+    tmpdate = sdate-timedelta(minutes=twin)
+    try:
+        while (tmpdate <= edate + timedelta(minutes=twin)):
+            if path_local is None:
+                print('path_local is None -> checking config file')
+                # create local path
+                path_template = satellite_dict[instr][provider]\
+                                      ['local']['path_template']
+                strsublst = satellite_dict[instr][provider]\
+                                      ['local']['strsub']
+                print(path_template,strsublst)
+                path_local = make_pathtofile(path_template,\
+                                             strsublst,\
+                                             mission=sat)
+                path_local = (
+                        os.path.join(
+                        path_local,
+                        tmpdate.strftime('%Y'),
+                        tmpdate.strftime('%m'))
+                        )
+            tmplst = np.sort(os.listdir(path_local))
+            print(tmplst)
+            filelst.append(tmplst)
+            pathlst.append([os.path.join(path_local,e) for e in tmplst])
+            if (edate is not None and edate!=sdate):
+                tmpdate = tmpdate + timedelta(hours=1)
+            else:
+                tmpdate = tmpdate + relativedelta(months=+1)
+        filelst=np.sort(flatten(filelst))
+        pathlst=np.sort(flatten(pathlst))
+        idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=twin))
+        tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=twin))
+        del tmp
+        pathlst = np.unique(pathlst[idx_start:idx_end+1])
+        filelst = np.unique(filelst[idx_start:idx_end+1])
+        print (str(int(len(pathlst))) + " valid files found")
+    except FileNotFoundError as e:
+        print(e)
+    return pathlst, filelst
+
+#def read_var_from_nc():
+#    # file includes a 1-D dataset with dimension time
+#    f = netCDF4.Dataset(element,'r')
+#    ncvars = [v for v in f.variables]
+#    for ncvar in ncvars:
+#        stdname = f.variables[ncvar].getncattr('standard_name')
+#        if satellite_dict['altimeter'][provider]\
+#        ['misc']['vardef'] is not None:
+#            if (stdname in satellite_dict['altimeter'][provider]\
+#            ['misc']['vardef']
+#            and ncvar != satellite_dict['altimeter'][provider]\
+#            ['misc']['vardef'][stdname]):
+#                ncvar = satellite_dict['altimeter'][provider]\
+#                    ['misc']['vardef'][stdname]
+#        if stdname in varlst_cf:
+#            if stdname in vardict:
+#                if stdname in stdname_lst:
+#                    print("Caution: variable " +
+#                            "standard_name is not unique !!!")
+#                    if satellite_dict['altimeter'][provider]\
+#                    ['misc']['vardef'] is not None:
+#                        if stdname in satellite_dict['altimeter']\
+#                        [provider]['misc']['vardef']:
+#                            print( "As defined in "
+#                            + "satellite_specs.yaml, "
+#                            + "the following "
+#                            + "nc-variable name "
+#                            + "is chosen:\n", ncvar, "for "
+#                            + "stdname: ", stdname )
+#                    else:
+#                        print("Only 1. appearance is used.")
+#                        print("variable " + ncvar + " is neglected")
+#                else:
+#                    tmp = list(f.variables[ncvar][:])
+#                    vardict[stdname] += tmp
+#            else:
+#                tmp = list(f.variables[ncvar][:])
+#                vardict[stdname] = tmp
+#            stdname_lst.append(stdname)
+#    return
+
+def read_local_files_cmems(pathlst,varalias):
+    '''
+    read and concatenate all data to one timeseries for each variable
+    '''
+    # --- open file and read variables --- #
+    varlst = [varalias] + ['lons','lats','time']
+    varlst_cf = []
+    for var in varlst:
+        varlst_cf.append(variable_info[var]['standard_name'])
+    count = 0
+    print ("Processing " + str(int(len(pathlst))) + " files")
+    print (pathlst[0])
+    print (pathlst[-1])
+    vardict = {}
+    for element in pathlst:
+        progress(count,str(int(len(pathlst))),'')
+        stdname_lst = []
+        try:
+            # file includes a 1-D dataset with dimension time
+            f = netCDF4.Dataset(element,'r')
+            ncvars = [v for v in f.variables]
+            for ncvar in ncvars:
+                stdname = f.variables[ncvar].getncattr('standard_name')
+                if satellite_dict['altimeter'][provider]\
+                ['misc']['vardef'] is not None:
+                    if (stdname in satellite_dict['altimeter'][provider]\
+                    ['misc']['vardef']
+                    and ncvar != satellite_dict['altimeter'][provider]\
+                    ['misc']['vardef'][stdname]):
+                        ncvar = satellite_dict['altimeter'][provider]\
+                            ['misc']['vardef'][stdname]
+                if stdname in varlst_cf:
+                    if stdname in vardict:
+                        if stdname in stdname_lst:
+                            print("Caution: variable " +
+                                    "standard_name is not unique !!!")
+                            if satellite_dict['altimeter'][provider]\
+                            ['misc']['vardef'] is not None:
+                                if stdname in satellite_dict['altimeter']\
+                                [provider]['misc']['vardef']:
+                                    print( "As defined in "
+                                    + "satellite_specs.yaml, "
+                                    + "the following "
+                                    + "nc-variable name "
+                                    + "is chosen:\n", ncvar, "for "
+                                    + "stdname: ", stdname )
+                            else:
+                                print("Only 1. appearance is used.")
+                                print("variable " + ncvar + " is neglected")
+                        else:
+                            tmp = list(f.variables[ncvar][:])
+                            vardict[stdname] += tmp
+                    else:
+                        tmp = list(f.variables[ncvar][:])
+                        vardict[stdname] = tmp
+                    stdname_lst.append(stdname)
+        except (IOError) as e:
+            print ("No such file or directory")
+            print (e)
+        count = count + 1
+    print ('\n')
+    # remove redundant entries
+    time_unique,indices=np.unique(vardict['time'],return_index=True)
+    for key in vardict:
+        vardict[key]=list(np.array(vardict[key])[indices])
+    if (f.variables[variable_info['lons']\
+    ['standard_name']].getncattr('valid_min') == 0):
+        # transform to -180 to 180 degrees
+        tmp = np.array(vardict[variable_info['lons']['standard_name']])
+        vardict[variable_info['lons']['standard_name']] \
+            = list(((tmp - 180) % 360) - 180)
+    # add reference time from netcdf
+    vardict['time_unit'] = f.variables['time'].units
+    # close nc-file
+    f.close()
+    return vardict
+
+def read_local_files_eumetsat(pathlst,varalias):
+    # --- open file and read variables --- #
+    varlst = [varalias] + ['lons','lats','time']
+    varlst_cf = []
+    for var in varlst:
+        varlst_cf.append(variable_info[var]['standard_name'])
+    count = 0
+    print ("Processing " + str(int(len(pathlst))) + " files")
+    print (pathlst[0])
+    print (pathlst[-1])
+    vardict = {}
+    for f in pathlst:
+        path = f[0:-len(f.split('/')[-1])]
+        zipped = zipfile.ZipFile(f)
+        enhanced_measurement = zipped.namelist()[-1]
+        extracted = zipped.extract(enhanced_measurement, path=tmp_dir)
+        ncin = netCDF4.Dataset(extracted)
+    return vardict
+
+def read_local_files(pathlst,provider,varalias):
+    # read local files depending on provider
+    # -> similar to get_remote_files
+    vardict = read_local_files_cmems(pathlst,varalias)
+    vardict = read_local_files_eumetsat(pathlst,varalias)
+    return vardict
+
 # flatten all lists before returning them
 # define flatten function for lists
 ''' fct does the following:
@@ -317,8 +505,7 @@ class satellite_class():
             get_remote_files(path_local,sdate,edate,twin,
                             nproc,instr,provider,api_url,sat)
         t0=time.time()
-        pathlst, filelst = self.get_local_filelst(
-                            sdate,edate,twin,region)
+        pathlst, filelst = self.get_local_filelst(sdate,edate,twin)
         if len(pathlst) > 0:
             vardict = self.read_local_files(pathlst,provider,varalias)
             print('Total: ', len(vardict['time']), ' footprints found')
@@ -395,7 +582,7 @@ class satellite_class():
             print('No satellite_class object initialized')
             print ('# ----- ')
 
-    def get_local_filelst(self,sdate,edate,twin,region):
+    def get_local_filelst(self,sdate,edate,twin):
         print ("Time window: ", twin)
         tmpdate = deepcopy(sdate-timedelta(minutes=twin))
         pathlst = []
@@ -495,12 +682,16 @@ class satellite_class():
         time_unique,indices=np.unique(vardict['time'],return_index=True)
         for key in vardict:
             vardict[key]=list(np.array(vardict[key])[indices])
-        if (f.variables[variable_info['lons']\
+        if ('valid_min' in vars(f.variables[variable_info['lons']\
+        ['standard_name']]) and f.variables[variable_info['lons']\
         ['standard_name']].getncattr('valid_min') == 0):
             # transform to -180 to 180 degrees
             tmp = np.array(vardict[variable_info['lons']['standard_name']])
             vardict[variable_info['lons']['standard_name']] \
                 = list(((tmp - 180) % 360) - 180)
+        elif ('valid_min' not in vars(f.variables[variable_info['lons']\
+        ['standard_name']])):
+            print('--> Caution: valid_min is not defined for longitude!')
         # add reference time from netcdf
         vardict['time_unit'] = f.variables['time'].units
         # close nc-file

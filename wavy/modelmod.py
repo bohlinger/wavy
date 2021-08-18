@@ -210,7 +210,13 @@ def generate_bestguess_leadtime(model, fc_date):
         # init_step = \
         #     np.array(model_dict[model]['init_step']).astype('int')
         diffs = fc_date.hour - np.array(init_times)
-        leadtime = int(np.min(diffs[diffs >= 0]))
+        gtz = diffs[diffs >= 0]
+        if len(gtz) == 0:
+            leadtime = int(np.abs( np.min(np.abs(diffs)) \
+                                 - model_dict[model]['init_step']))
+        else:
+            leadtime = int(np.min(diffs[diffs >= 0]))
+        #leadtime = int(np.min(diffs[diffs >= 0]))
     return leadtime
 
 
