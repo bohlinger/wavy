@@ -5,7 +5,7 @@ Wavy
    This project is under active development.
 
 Introduction
-====
+============
 **wavy** is an open source package (under development) with the aim of easing the task of wave model validation. The user can either choose in-situ observation files or remote sensing files to extract time-series and/or collocate with wave model output.
 
 .. |ex1| image:: ./docs_fig_sat_waves.png
@@ -29,7 +29,7 @@ Introduction
 +-------------------+------------------+
 
 Contents
-===============
+========
 
 .. toctree::
    :maxdepth: 3
