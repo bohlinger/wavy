@@ -44,13 +44,16 @@ parser.add_argument("-reg", metavar='region',
     help="region to check")
 parser.add_argument("-sat", metavar='satellite',
     help="satellite mission, currently available: \
-        \ns3a - Sentinel-3A\
-        \ns3b - Sentinel-3B\
-        \nj3 - Jason-3 (reference mission)\
-        \nc2 - Cryosat-2\
-        \nal - SARAL/AltiKa\
-        \ncfo - CFOSAT\
-        \nh2b - HaiYang-2B")
+        \n s3a - Sentinel-3A\
+        \n s3b - Sentinel-3B\
+        \n j3 - Jason-3 (reference mission)\
+        \n c2 - Cryosat-2\
+        \n al - SARAL/AltiKa\
+        \n cfo - CFOSAT\
+        \n h2b - HaiYang-2B\
+        \nother options are:\
+        \n all - for all satellites\
+        \n list - a list of chosen satellies using -l")
 parser.add_argument('-l', metavar='satellite list',
     help='delimited list input for sats', type=str)
 parser.add_argument("-sd", metavar='startdate',
@@ -140,7 +143,7 @@ if args.sat == 'all':
     sa_obj.region = args.reg
     sa_obj.sat = str(sats)
     sa_obj.satname_ts = satnames
-elif args.sat == 'multi':
+elif args.sat == 'list':
     satlist = args.l.split(',')
     lats = []
     lons = []
@@ -168,6 +171,7 @@ elif args.sat == 'multi':
     lons = flatten(lons)
     var = flatten(var)
     time = flatten(time)
+    satnames = flatten(satnamelst)
     sa_obj.vars['time'] = time
     sa_obj.vars['latitude'] = np.array(lats)
     sa_obj.vars['longitude'] = np.array(lons)

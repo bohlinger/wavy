@@ -579,7 +579,7 @@ class satellite_class():
             else:
                 filevarname = get_varname_for_cf_stdname_in_ncfile(
                                                     ncdict,stdname)[0]
-            rvardict['model_meta'] = ncdict
+            rvardict['meta'] = ncdict
             # define class variables
             self.edate = edate
             self.sdate = sdate
@@ -797,13 +797,13 @@ class satellite_class():
                 print('Use date for retrieving grid: ', grid_date)
                 filestr = make_model_filename_wrapper(\
                                         region,grid_date,'best')
-                model_meta = ncdumpMeta(filestr)
+                meta = ncdumpMeta(filestr)
                 flon = get_filevarname(region,\
                                     'lons',variable_info,\
-                                    model_dict,model_meta)
+                                    model_dict,meta)
                 flat = get_filevarname(region,\
                                     'lats',variable_info,\
-                                    model_dict,model_meta)
+                                    model_dict,meta)
                 M = xa.open_dataset(filestr, decode_cf=True)
                 model_lons = M[flon].data
                 model_lats = M[flat].data
@@ -820,13 +820,13 @@ class satellite_class():
                                         )
                 filestr = make_model_filename_wrapper(\
                                         region,grid_date,'best')
-                model_meta = ncdumpMeta(filestr)
+                meta = ncdumpMeta(filestr)
                 flon = get_filevarname(region,\
                                     'lons',variable_info,\
-                                    model_dict,model_meta)
+                                    model_dict,meta)
                 flat = get_filevarname(region,\
                                     'lats',variable_info,\
-                                    model_dict,model_meta)
+                                    model_dict,meta)
                 M = xa.open_dataset(filestr, decode_cf=True)
                 model_lons = M[flon].data
                 model_lats = M[flat].data

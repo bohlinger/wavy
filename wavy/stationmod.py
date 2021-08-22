@@ -154,10 +154,10 @@ class station_class():
             if mode == 'd22':
                 self.varname = varalias
             elif mode == 'nc':
-                model_meta = ncdumpMeta(pathtofile)
-                self.vars['model_meta'] = model_meta
+                meta = ncdumpMeta(pathtofile)
+                self.vars['meta'] = meta
                 self.varname = get_varname_for_cf_stdname_in_ncfile(
-                                model_meta,stdvarname)
+                                meta,stdvarname)
             print (" ### station_class object initialized ###")
         except Exception as e:
             print(e)

@@ -113,16 +113,16 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
     vardict = {}
     print("Get model data according to selected date ....")
     print(filestr)
-    model_meta = ncdumpMeta(filestr)
+    meta = ncdumpMeta(filestr)
     f = netCDF4.Dataset(filestr, 'r')
     stdvarname = variable_info[varalias]['standard_name']
     # get coordinates and time
-    lonsname = get_filevarname(model, 'lons', variable_info, model_dict,
-                               model_meta)
-    latsname = get_filevarname(model, 'lats', variable_info, model_dict,
-                               model_meta)
-    timename = get_filevarname(model, 'time', variable_info, model_dict,
-                               model_meta)
+    lonsname = get_filevarname(model,'lons',variable_info,
+                               model_dict,meta)
+    latsname = get_filevarname(model,'lats',variable_info,
+                               model_dict,meta)
+    timename = get_filevarname(model,'time',variable_info,
+                               model_dict,meta)
     model_lons = f.variables[lonsname][:]
     vardict[variable_info['lons']['standard_name']] = model_lons
     model_lats = f.variables[latsname][:]
@@ -131,8 +131,8 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
     model_time_dt = list(
         netCDF4.num2date(model_time[:], units=model_time.units))
     # get other variables e.g. Hs [time,lat,lon]
-    filevarname = get_filevarname(model, varalias, variable_info, model_dict,
-                                  model_meta)
+    filevarname = get_filevarname(model,varalias,variable_info,
+                                  model_dict,meta)
     if (type(filevarname) is dict):
         print(
             'Target variable can be computed from vector \n'
@@ -144,9 +144,10 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
         vardict['datetime'] = model_time_dt_valid
         vardict['time_unit'] = model_time_unit
         for key in filevarname.keys():
-            filevarname_dummy = get_filevarname(model, filevarname[key][0],
-                                                variable_info, model_dict,
-                                                model_meta)
+            filevarname_dummy = get_filevarname(model,
+                                    filevarname[key][0],
+                                    variable_info,
+                                    model_dict,meta)
             if filevarname_dummy is not None:
                 print(filevarname[key][0], 'exists')
                 break
@@ -156,9 +157,10 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
             model_var_valid_tmp = \
                 model_var_dummy[model_time_dt.index(fc_date),:,:].squeeze()**2
             for i in range(1, len(filevarname[key])):
-                filevarname_dummy = get_filevarname(model, filevarname[key][i],
-                                                    variable_info, model_dict,
-                                                    model_meta)
+                filevarname_dummy = get_filevarname(model,
+                                        filevarname[key][i],
+                                        variable_info,
+                                        model_dict,meta)
                 model_var_valid_tmp += \
                     f.variables[filevarname_dummy][
                         model_time_dt.index(fc_date),:,:
@@ -167,9 +169,11 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
         else:  # if only one time step
             model_var_valid_tmp = model_var_dummy[:, :].squeeze()**2
             for i in range(1, len(filevarname[key])):
-                filevarname_dummy = get_filevarname(model, filevarname[key][i],
-                                                    variable_info, model_dict,
-                                                    model_meta)
+                filevarname_dummy = get_filevarname(model,
+                                                    filevarname[key][i],
+                                                    variable_info,
+                                                    model_dict,
+                                                    meta)
                 model_var_valid_tmp += \
                     f.variables[filevarname_dummy][:,:].squeeze()**2
             model_var_valid = np.sqrt(model_var_valid_tmp)
@@ -193,7 +197,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
     f.close()
     vardict[variable_info[varalias]['standard_name']] = \
         vardict[variable_info[varalias]['standard_name']].filled(np.nan)
-    vardict['model_meta'] = model_meta
+    vardict['meta'] = meta
     return vardict, filevarname
 
 
@@ -284,6 +288,7 @@ def get_model(model=None,
                     [vardict[variable_info[varalias]['standard_name']]]
         vardict['time'] = [vardict['time']]
         vardict['datetime'] = [vardict['datetime']]
+        vardict['leadtime'] = leadtime
         for i in range(1, len(filestr)):
             tmpdict, \
             filevarname = get_model_fc_mode(filestr=filestr[i],model=model,
@@ -300,6 +305,7 @@ def get_model(model=None,
                                     fc_date=fc_date,varalias=varalias)
         vardict['time'] = [vardict['time']]
         vardict['datetime'] = [vardict['datetime']]
+        vardict['leadtime'] = leadtime
     return vardict, fc_date, leadtime, filestr, filevarname
 
 
@@ -364,6 +370,7 @@ class model_class():
         self.fc_date = fc_date
         self.sdate = sdate
         self.edate = edate
+        self.leadtime = leadtime
         self.model = model
         self.varalias = varalias
         self.varname = varname

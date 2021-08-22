@@ -135,7 +135,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
         idx1 = list(np.array(idx1)[idx_closest])
     # adjust obs_obj according to valid dates
     for key in obs_obj.vars.keys():
-        if (key != 'time_unit' and key !='model_meta'):
+        if (key != 'time_unit' and key !='meta'):
             obs_obj.vars[key] = list(np.array(obs_obj.vars[key])[idx1])
     # adjust again assumed fc_dates by filtered obs dates
     fc_date = obs_obj.vars['datetime']
@@ -258,11 +258,11 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     #filestr = make_model_filename_wrapper(model=model,
     #                                      fc_date=fc_date[0],
     #                                      leadtime=leadtime)
-    #model_meta = ncdumpMeta(filestr)
+    #meta = ncdumpMeta(filestr)
     #flon = get_filevarname(model,'lons',variable_info,\
-    #                                model_dict,model_meta)
+    #                                model_dict,meta)
     #flat = get_filevarname(model,'lats',variable_info,\
-    #                                model_dict,model_meta)
+    #                                model_dict,meta)
     #M = xa.open_dataset(filestr, decode_cf=True)
     #model_lons = M[flon].data
     #model_lats = M[flat].data
@@ -291,7 +291,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                 #                              leadtime=leadtime)
                 #M = xa.open_dataset(filestr, decode_cf=True)
                 #filevarname = get_filevarname(model,obs_obj.varalias,
-                #                    variable_info,model_dict,model_meta)
+                #                    variable_info,model_dict,meta)
                 ## need function if variable consists of vector components
                 #model_vals = M.sel(time=fc_date[i])[filevarname].data
                 vardict,_,_,_,_ = get_model(model=model,
