@@ -155,7 +155,26 @@ With the retrieved variables in sa_obj.vars::
 
 5. access/read model data
 #########################
-Model output can be accessed and read using the modelmod module:
+Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read in follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
+
+.. code-block:: yaml
+
+   modelname:
+       path_template:
+       file_template:
+       init_times: []
+       init_step:
+       leadtimes: []
+
+Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding a variable like:
+
+.. code-block:: yaml
+
+    vars:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
 
 .. code-block:: python3
 
@@ -187,6 +206,65 @@ The output will be something like::
 
 6. read in-situ observations (.d22)
 ###################################
+.d22-files can be read in by adjusting d22_var_dicts config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the station_specs.yaml. There you need to define specs related to the station at choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
+
+.. code-block:: python3
+
+   >>> from datetime import datetime
+   >>> from stationmod import station_class
+   >>> varalias = 'Hs' # default
+   >>> sd = datetime(2020,1,1,0)
+   >>> ed = datetime(2020,1,2,0)
+   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
+
+In contrast to the L3 satellite time series, in-situ time series are not filtered or underwent rigorous outlier detection. There are various operations that can be performed to massage the time series as you wish.It is in particular interesting to remove double reported values, which is often the case. This is done with setting unique=True.
+
+.. code-block:: python3
+
+   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',unique=True)
+
+Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below are a few examples:
+
+.. code-block:: python3
+
+   >>> # GAM
+   >>> st_obj_gam = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
+
+   >>> # Expectile
+   >>> st_obj_EG = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='expectileGAM',outlier_detection=None,missing_data='impute',date_incr=1./6.,unique=True,expectile=.975)
+
+   >>> # Lanczos
+   >>> st_obj_lancz = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='lanczos',outlier_detection=None,missing_data='impute',cutoff=1./6.,window=7,stwin=3,etwin=3,unique=True)
+
+   >>> # Block Means
+   >>> st_obj_bm = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='block_mean',outlier_detection='gam',missing_data='impute',date_incr=1,unique=True)
+
+   >>> # GP, NIGP, ...
+
+Now, let's check how this could look like:
+
+.. code-block:: python3
+
+   >>> import matplotlib.pyplot as plt
+   >>> stdname = st_obj.stdvarname
+   >>> fig = plt.figure(figsize=(9,3.5))
+   >>> ax = fig.add_subplot(111)
+   >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],'ko',label='raw')
+   >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
+   >>> ax.plot(st_obj_EG.vars['datetime'],st_obj_EG.vars[stdname],color='cadetblue',label='expectile',lw=2)
+   >>> ax.plot(st_obj_lancz.vars['datetime'],st_obj_lancz.vars[stdname],color='orange',label='lanczos',lw=2)
+   >>> ax.plot(st_obj_bm.vars['datetime'],st_obj_bm.vars[stdname],color='gray',label='block mean',lw=2)
+   >>> plt.legend(loc='lower right')
+   >>> plt.ylabel('Hs [m]')
+   >>> plt.show()
+
+.. image:: ./ts_insitu.png
+   :scale: 80
+
+.. note::
+
+   NETCDF files are in the making but currently not available.
+   It is also important to note that due to different sampling frequencies there are still amibuities that will have to be removed in future fixes.
 
 7. collocating model and observations
 #####################################
@@ -284,4 +362,3 @@ And of course the figure:
 
 .. image:: ./docs_fig_sat_quicklook_005.png
    :scale: 40
-
