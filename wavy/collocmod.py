@@ -154,8 +154,8 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
                               fc_date=fc_date[d],
                               leadtime=leadtime,
                               varalias=obs_obj.varalias)
-        col_obj = collocation_class( mc_obj=mc_obj,
-                                     obs_obj=obs_obj,
+        col_obj = collocation_class( mc_obj_in=mc_obj,
+                                     obs_obj_in=obs_obj,
                                      distlim=distlim )
         model_vals = [col_obj.vars['model_values'][0]]
         tmpdate = hour_rounder(col_obj.vars['datetime'][0])
@@ -469,11 +469,16 @@ class collocation_class():
     draft of envisioned collocation class object
     '''
 
-    def __init__(self,mc_obj=None,obs_obj=None,col_obj=None,
-        model=None,distlim=None,leadtime=None,date_incr=None):
+    def __init__(self,mc_obj_in=None,obs_obj_in=None,
+        col_obj_in=None,model=None,distlim=None,leadtime=None,
+        date_incr=None):
         print ('# ----- ')
         print (" ### Initializing collocation_class object ###")
         print (" Please wait ...")
+        # make clones to prevent overwriting
+        mc_obj = deepcopy(mc_obj_in)
+        obs_obj = deepcopy(obs_obj_in)
+        col_obj = deepcopy(col_obj_in)
         if isinstance(obs_obj,satellite_class):
             self.obsname = obs_obj.sat
             self.sat = obs_obj.sat

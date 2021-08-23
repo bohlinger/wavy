@@ -286,7 +286,7 @@ One of the main focus of wavy is to ease the collocation of observations and num
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,11,1,12)
    >>> sa_obj = satellite_class(sdate=sd,region=model,sat=sat,varalias=varalias)
-   >>> col_obj = collocation_class(model=model,obs_obj=sa_obj,distlim=6,date_incr=1)
+   >>> col_obj = collocation_class(model=model,obs_obj_in=sa_obj,distlim=6,date_incr=1)
 
 This can also be done for a time period:
 
@@ -311,10 +311,10 @@ This can also be done for a time period:
    >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
 
    >>> st_obj_gam = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
-   >>> col_obj_gam = collocation_class(model=model,obs_obj=st_obj_gam,distlim=6,date_incr=1)
+   >>> col_obj_gam = collocation_class(model=model,obs_obj_in=st_obj_gam,distlim=6,date_incr=1)
 
    >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
-   >>> col_obj = collocation_class(model=model,obs_obj=st_obj,distlim=6,date_incr=1)
+   >>> col_obj = collocation_class(model=model,obs_obj_in=st_obj,distlim=6,date_incr=1)
 
 Let's plot the results:
 
