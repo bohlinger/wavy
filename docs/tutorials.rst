@@ -235,7 +235,7 @@ Additionally, outliers can be removed, missing data can be treated, and super-ob
    >>> st_obj_gam = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
 
    >>> # Expectile
-   >>> st_obj_EG = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='expectileGAM',outlier_detection=None,missing_data='impute',date_incr=1./6.,unique=True,expectile=.975)
+   >>> st_obj_EG = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='expectileGAM',outlier_detection=None,missing_data='impute',date_incr=1./6.,unique=True,expectile=.99)
 
    >>> # Lanczos
    >>> st_obj_lancz = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='lanczos',outlier_detection=None,missing_data='impute',cutoff=1./6.,window=7,stwin=3,etwin=3,unique=True)
@@ -255,7 +255,7 @@ Now, let's check how this could look like:
    >>> ax = fig.add_subplot(111)
    >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],'ko',label='raw')
    >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
-   >>> ax.plot(st_obj_EG.vars['datetime'],st_obj_EG.vars[stdname],color='cadetblue',label='0.9 expectile',lw=2)
+   >>> ax.plot(st_obj_EG.vars['datetime'],st_obj_EG.vars[stdname],color='cadetblue',label='0.99 expectile',lw=2)
    >>> ax.plot(st_obj_lancz.vars['datetime'],st_obj_lancz.vars[stdname],color='orange',label='lanczos',lw=2)
    >>> ax.plot(st_obj_bm.vars['datetime'],st_obj_bm.vars[stdname],color='gray',label='block mean',lw=2)
    >>> plt.legend(loc='lower right')
