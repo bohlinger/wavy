@@ -631,7 +631,8 @@ def validate_collocated_values(dtime,obs,mods,**kwargs):
     obs = np.array(obs)[idx]
     results_dict = {'model_values':mods,'obs_values':obs}
     # validate
-    from validationmod import validate
+    from validationmod import validate,disp_validation
     validation_dict = validate(results_dict)
+    disp_validation(validation_dict)
     return validation_dict
 

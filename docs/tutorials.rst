@@ -107,8 +107,8 @@ Ammend the satellite config file for L2 data and add the download directory of y
 
    $ ./download.py -sat s3a -sd 2020110100 -ed 2020111000 -provider eumetsat
 
-4. read satellite data
-######################
+4. read L3 satellite data
+#########################
 Once the satellite data is downloaded one can access and read the data for further use in python. L3 data can be read like:
 
 .. code-block:: python3
@@ -153,7 +153,11 @@ With the retrieved variables in sa_obj.vars::
    >>> sa_obj.vars.keys()
    dict_keys(['time', 'latitude', 'longitude', 'sea_surface_wave_significant_height', 'time_unit', 'datetime', 'meta'])
 
-5. access/read model data
+5. read L2 satellite data
+#########################
+L2 data are not yet filtered and processed to the degree L3 data are. There are multiple advantages to use L2 data. **wavy** provides possibilities to do so and to apply basic filters to the retrieved L2 time series.
+
+6. access/read model data
 #########################
 Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read in follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
 
@@ -204,14 +208,14 @@ The output will be something like::
 
    Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason being the ambiguous use of lead times. Whenever the keyword "leadtime" is None, a best guess is assumed and retrieved.
 
-6. read in-situ observations (.d22)
+7. read in-situ observations (.d22)
 ###################################
 .d22-files can be read in by adjusting d22_var_dicts config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the station_specs.yaml. There you need to define specs related to the station at choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
 
 .. code-block:: python3
 
    >>> from datetime import datetime
-   >>> from stationmod import station_class
+   >>> from wavy.stationmod import station_class
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,1,1,0)
    >>> ed = datetime(2020,1,2,0)
@@ -251,7 +255,7 @@ Now, let's check how this could look like:
    >>> ax = fig.add_subplot(111)
    >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],'ko',label='raw')
    >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
-   >>> ax.plot(st_obj_EG.vars['datetime'],st_obj_EG.vars[stdname],color='cadetblue',label='expectile',lw=2)
+   >>> ax.plot(st_obj_EG.vars['datetime'],st_obj_EG.vars[stdname],color='cadetblue',label='0.9 expectile',lw=2)
    >>> ax.plot(st_obj_lancz.vars['datetime'],st_obj_lancz.vars[stdname],color='orange',label='lanczos',lw=2)
    >>> ax.plot(st_obj_bm.vars['datetime'],st_obj_bm.vars[stdname],color='gray',label='block mean',lw=2)
    >>> plt.legend(loc='lower right')
@@ -266,16 +270,99 @@ Now, let's check how this could look like:
    NETCDF files are in the making but currently not available.
    It is also important to note that due to different sampling frequencies there are still amibuities that will have to be removed in future fixes.
 
-7. collocating model and observations
+8. collocating model and observations
 #####################################
+One of the main focus of wavy is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped.
 
-8. dump collocation ts to a netcdf file
+1. Collocation of satellite and wave model:
+
+.. code-block:: python3
+
+   >>> from datetime import datetime
+   >>> from wavy.satmod import satellite_class
+   >>> from wavy.collocmod import collocation_class
+   >>> model = 'mwam4' # default
+   >>> sat = 's3a' # default
+   >>> varalias = 'Hs' # default
+   >>> sd = datetime(2020,11,1,12)
+   >>> sa_obj = satellite_class(sdate=sd,region=model,sat=sat,varalias=varalias)
+   >>> col_obj = collocation_class(model=model,obs_obj=sa_obj,distlim=6,date_incr=1)
+
+This can also be done for a time period:
+
+.. code-block:: python3
+
+   >>> sd = datetime(2020,11,1)
+   >>> ed = datetime(2020,11,2)
+   >>> sa_obj = satellite_class(sdate=sd,edate=ed,region=model,sat=sat,varalias=varalias)
+   >>> sa_obj = satellite_class(sdate=sd,edate=ed,region=model,sat=sat,varalias=varalias)
+
+2. Collocation of in-situ data and wave model for a given time period. The following example may take a few minutes.
+
+.. code-block:: python3
+
+   >>> from datetime import datetime
+   >>> from wavy.stationmod import station_class
+   >>> from wavy.collocmod import collocation_class
+   >>> model = 'mwam4' # default
+   >>> varalias = 'Hs' # default
+   >>> sd = datetime(2020,1,1,1)
+   >>> ed = datetime(2020,1,4,0)
+   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
+
+   >>> st_obj_gam = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
+   >>> col_obj_gam = collocation_class(model=model,obs_obj=st_obj_gam,distlim=6,date_incr=1)
+
+   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
+   >>> col_obj = collocation_class(model=model,obs_obj=st_obj,distlim=6,date_incr=1)
+
+Let's plot the results:
+
+.. code-block:: python3
+
+   >>> import matplotlib.pyplot as plt
+   >>> stdname = st_obj.stdvarname
+   >>> fig = plt.figure(figsize=(9,3.5))
+   >>> ax = fig.add_subplot(111)
+   >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],'ko',label='raw')
+   >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
+   >>> ax.plot(col_obj_gam.vars['datetime'],col_obj_gam.vars['model_values'],'r-',label='mwam4',lw=2)
+   >>> plt.legend(loc='lower right')
+   >>> plt.ylabel('Hs [m]')
+   >>> plt.show()
+
+9. dump collocation ts to a netcdf file
 #######################################
+The collocation results can now be dumped to a netcdf file. The path and filename can be entered as keywords but also predefined config settings can be used from collocation_specs.yaml:
 
-9. validate the collocated time series
+.. code-block:: python3
+
+   >>> col_obj.write_to_monthly_nc()
+
+10. validate the collocated time series
 ######################################
+Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
-10. quick look examples
+.. code-block:: python3
+
+   >>> val_dict = col_obj.validate_collocated_values()
+
+   # ---
+   Validation stats
+   # ---
+   Correlation Coefficient: 0.98
+   Mean Absolute Difference: 0.38
+   Root Mean Squared Difference: 0.53
+   Debiased Root Mean Squared Difference: 0.50
+   Bias: -0.16
+   Scatter Index: 16.93
+   Mean of Model: 2.97
+   Mean of Observations: 3.14
+   Number of Collocated Values: 2217
+
+The entire validation dictionary will then be in val_dict.
+
+11. quick look examples
 #######################
 The script "wavyQuick.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. Checkout the help:
 
