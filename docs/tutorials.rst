@@ -262,7 +262,7 @@ Now, let's check how this could look like:
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
 
-.. image:: ./ts_insitu.png
+.. image:: ./docs_fig_ts_insitu.png
    :scale: 80
 
 .. note::
@@ -331,6 +331,9 @@ Let's plot the results:
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
 
+.. image:: ./docs_fig_col_insitu.png
+   :scale: 80
+
 9. dump collocation ts to a netcdf file
 #######################################
 The collocation results can now be dumped to a netcdf file. The path and filename can be entered as keywords but also predefined config settings can be used from collocation_specs.yaml:
@@ -340,7 +343,7 @@ The collocation results can now be dumped to a netcdf file. The path and filenam
    >>> col_obj.write_to_monthly_nc()
 
 10. validate the collocated time series
-######################################
+#######################################
 Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
 .. code-block:: python3
