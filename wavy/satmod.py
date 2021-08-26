@@ -255,43 +255,46 @@ sat,path_local=None):
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
-    try:
-        while (tmpdate <= edate + timedelta(minutes=twin)):
-            if path_local is None:
-                print('path_local is None -> checking config file')
-                # create local path
-                path_template = satellite_dict[instr][provider]\
-                                      ['local']['path_template']
-                strsublst = satellite_dict[instr][provider]\
-                                      ['local']['strsub']
-                print(path_template,strsublst)
-                path_local = make_pathtofile(path_template,\
-                                             strsublst,\
-                                             mission=sat)
-                path_local = (
+    tmpdate_s = datetime(tmpdate.year,tmpdate.month,1)
+    while (tmpdate <= edate + relativedelta(months=+1)):
+        try:
+            print(tmpdate)
+            print('path_local is None -> checking config file')
+            # create local path
+            path_template = satellite_dict[instr][provider]\
+                                  ['local']['path_template']
+            strsublst = satellite_dict[instr][provider]\
+                                ['local']['strsub']
+            print(path_template,strsublst)
+            path_local = make_pathtofile(path_template,\
+                                         strsublst,\
+                                         mission=sat)
+            path_local = (
                         os.path.join(
                         path_local,
                         tmpdate.strftime('%Y'),
                         tmpdate.strftime('%m'))
                         )
+            print(path_local)
             tmplst = np.sort(os.listdir(path_local))
-            print(tmplst)
             filelst.append(tmplst)
             pathlst.append([os.path.join(path_local,e) for e in tmplst])
-            if (edate is not None and edate!=sdate):
-                tmpdate = tmpdate + timedelta(hours=1)
-            else:
-                tmpdate = tmpdate + relativedelta(months=+1)
-        filelst=np.sort(flatten(filelst))
-        pathlst=np.sort(flatten(pathlst))
-        idx_start,tmp = check_date(pathlst,sdate-timedelta(minutes=twin))
-        tmp,idx_end = check_date(pathlst,edate+timedelta(minutes=twin))
-        del tmp
-        pathlst = np.unique(pathlst[idx_start:idx_end+1])
-        filelst = np.unique(filelst[idx_start:idx_end+1])
-        print (str(int(len(pathlst))) + " valid files found")
-    except FileNotFoundError as e:
-        print(e)
+            tmpdate = tmpdate + relativedelta(months=+1)
+        except Exception as e:
+            print(e)
+            tmpdate = tmpdate + relativedelta(months=+1)
+    filelst = np.sort(flatten(filelst))
+    pathlst = np.sort(flatten(pathlst))
+    #print(pathlst)
+    #print(filelst)
+    idx_start,tmp = check_date(filelst,sdate-timedelta(minutes=twin))
+    #print(idx_start)
+    tmp,idx_end = check_date(filelst,edate+timedelta(minutes=twin))
+    #print(idx_end)
+    del tmp
+    pathlst = np.unique(pathlst[idx_start:idx_end+1])
+    filelst = np.unique(filelst[idx_start:idx_end+1])
+    print (str(int(len(pathlst))) + " valid files found")
     return pathlst, filelst
 
 #def read_var_from_nc():
@@ -335,7 +338,7 @@ sat,path_local=None):
 #            stdname_lst.append(stdname)
 #    return
 
-def read_local_files_cmems(pathlst,varalias):
+def read_local_files_cmems(pathlst,varalias,provider):
     '''
     Read and concatenate all data to one timeseries for each variable.
     Fct is tailored to CMEMS files.
@@ -413,10 +416,15 @@ def read_local_files_cmems(pathlst,varalias):
     f.close()
     return vardict
 
-def read_local_files_eumetsat(pathlst,varalias):
+def read_local_files_eumetsat(pathlst,varalias,provider):
     '''
-    Read files downloaded from EUMETSAT.
+    Read and concatenate all data to one timeseries for each variable.
+    Fct is tailored to EUMETSAT files.
     '''
+    # --- create tmpdir --- #
+    import tempfile
+    tmpdir = tempfile.TemporaryDirectory()
+    print('tmp directory is established:',tmpdir.name)
     # --- open file and read variables --- #
     varlst = [varalias] + ['lons','lats','time']
     varlst_cf = []
@@ -431,8 +439,31 @@ def read_local_files_eumetsat(pathlst,varalias):
         path = f[0:-len(f.split('/')[-1])]
         zipped = zipfile.ZipFile(f)
         enhanced_measurement = zipped.namelist()[-1]
-        extracted = zipped.extract(enhanced_measurement, path=tmp_dir)
+        extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
         ncin = netCDF4.Dataset(extracted)
+        for stdname in varlst_cf:
+            if (satellite_dict['altimeter'][provider]\
+            ['misc']['vardef'] is not None and
+            stdname in satellite_dict['altimeter']\
+            [provider]['misc']['vardef']):
+                ncvar = satellite_dict['altimeter']\
+                            [provider]['misc']['vardef']\
+                            [stdname]
+                print( "As defined in "
+                     + "satellite_specs.yaml, "
+                     + "the following "
+                     + "nc-variable name "
+                     + "is chosen:\n", ncvar, "for "
+                     + "stdname: ", stdname )
+                vardict[stdname] = ncin[ncvar][:]
+    vardict['time_unit'] = ncin['time_20_ku'].units
+    # things that should be done at some point:
+    #  - apply coarse area filter
+    #  - apply land mask filter
+    #  - divide into chunks
+    #  - apply superob/outlier to chunks
+    #  - cleanup tmpdir
+    tmpdir.cleanup()
     return vardict
 
 def read_local_files(pathlst,provider,varalias):
@@ -442,8 +473,10 @@ def read_local_files(pathlst,provider,varalias):
     '''
     # read local files depending on provider
     # -> similar to get_remote_files
-    vardict = read_local_files_cmems(pathlst,varalias)
-    vardict = read_local_files_eumetsat(pathlst,varalias)
+    if provider == 'cmems':
+        vardict = read_local_files_cmems(pathlst,varalias,provider)
+    elif provider == 'eumetsat':
+        vardict = read_local_files_eumetsat(pathlst,varalias,provider)
     return vardict
 
 # flatten all lists before returning them
@@ -469,6 +502,8 @@ def check_date(filelst,date):
         if tmp>=0:
             #return first index available
             idx.append(i)
+    if len(idx)<=0:
+        idx=[0]
     return idx[0],idx[-1]
 
 # ---------------------------------------------------------------------#
