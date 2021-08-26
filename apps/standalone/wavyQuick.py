@@ -54,6 +54,8 @@ parser.add_argument("-sat", metavar='satellite',
         \nother options are:\
         \n all - for all satellites\
         \n list - a list of chosen satellies using -l")
+parser.add_argument("-prov", metavar='provider',
+    help="data provider (cmems/eumetsat)")
 parser.add_argument('-l', metavar='satellite list',
     help='delimited list input for sats', type=str)
 parser.add_argument("-sd", metavar='startdate',
@@ -91,6 +93,9 @@ if args.var is None:
 sdate = datetime(int(args.sd[0:4]),int(args.sd[4:6]),
                 int(args.sd[6:8]),int(args.sd[8:10]))
 
+if args.prov is None:
+    args.prov = 'cmems'
+
 if args.twin is None:
     twin = 30
 else:
@@ -117,7 +122,8 @@ if args.sat == 'all':
     for sat in satlist:
         try:
             sa_obj_tmp = sa(sdate,sat=sat,edate=edate,twin=twin,
-                            region=args.reg,varalias=args.var)
+                            region=args.reg,varalias=args.var,
+                            provider=args.prov)
             if ('vars' in vars(sa_obj_tmp).keys()
             and len(sa_obj_tmp.vars['time'])>0):
                 sa_obj = sa_obj_tmp
@@ -154,7 +160,8 @@ elif args.sat == 'list':
     for sat in satlist:
         try:
             sa_obj_tmp = sa(sdate,sat=sat,edate=edate,twin=twin,
-                            region=args.reg,varalias=args.var)
+                            region=args.reg,varalias=args.var,
+                            provider=args.prov)
             if ('vars' in vars(sa_obj_tmp).keys()
             and len(sa_obj_tmp.vars['time'])>0):
                 sa_obj = sa_obj_tmp
@@ -181,7 +188,7 @@ elif args.sat == 'list':
     sa_obj.satname_ts = satnames
 else:
     sa_obj = sa(sdate,sat=args.sat,edate=edate,twin=twin,
-                region=args.reg,varalias=args.var)
+                region=args.reg,varalias=args.var,provider=args.prov)
 
 # plot
 if (args.mod is None and sa_obj.region not in model_dict):
