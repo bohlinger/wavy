@@ -157,6 +157,46 @@ With the retrieved variables in sa_obj.vars::
 #########################
 L2 data are not yet filtered and processed to the degree L3 data are. There are multiple advantages to use L2 data. **wavy** provides possibilities to do so and to apply basic filters to the retrieved L2 time series.
 
+Retrieve pure L2 data and compare against L3
+********************************************
+Having downloaded L2 data in step 3., you can do:
+
+.. code-block:: python3
+
+   >>> # imports
+   >>> from wavy.satmod import satellite_class as sa
+   >>> from datetime import datetime
+   >>> import matplotlib.pyplot as plt
+
+   >>> # settings
+   >>> sd = datetime(2020,11,1,12)
+   >>> ed = datetime(2020,11,1,12)
+   >>> region = 'NorwegianSea'
+   >>> sat = 's3a'
+
+   >>> # retrievals
+   >>> sa_obj_e = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='eumetsat')
+   >>> sa_obj_c = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='cmems')
+
+   >>> # plotting
+   >>> stdname = sa_obj_e.stdvarname
+   >>> fig = plt.figure(figsize=(9,3.5))
+   >>> ax = fig.add_subplot(111)
+   >>> ax.plot(sa_obj_e.vars['datetime'],sa_obj_e.vars[stdname],'r.',label='L2 eumetsat')
+   >>> ax.plot(sa_obj_c.vars['datetime'],sa_obj_c.vars[stdname],'k.',label='L3 cmems')
+   >>> plt.legend(loc='upper left')
+   >>> plt.ylabel('Hs [m]')
+   >>> plt.show()
+
+This yields the following figure:
+
+.. image:: ./docs_fig_L2_vs_L3.png
+   :scale: 80
+
+Appy filter to raw L2 data
+**************************
+Coming soon ...
+
 6. access/read model data
 #########################
 Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read in follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
