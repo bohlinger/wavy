@@ -455,7 +455,17 @@ def read_local_files_eumetsat(pathlst,provider,varalias):
                      + "nc-variable name "
                      + "is chosen:\n", ncvar, "for "
                      + "stdname: ", stdname )
-                vardict[stdname] = ncin[ncvar][:]
+                if stdname in vardict.keys():
+                    vardict[stdname] += list(ncin[ncvar][:])
+                else:
+                    vardict[stdname] = list(ncin[ncvar][:])
+    ncvar_lon = satellite_dict['altimeter']\
+                            [provider]['misc']['vardef']\
+                            ['longitude']
+    #if (ncin.variables[ncvar_lon].getncattr('valid_min') == 0):
+    # transform to -180 to 180 degrees
+    tmp = np.array(vardict['longitude'])
+    vardict['longitude'] = list(((tmp - 180) % 360) - 180)
     vardict['time_unit'] = ncin['time_20_ku'].units
     # things that should be done at some point:
     #  - apply coarse area filter

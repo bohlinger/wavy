@@ -206,7 +206,7 @@ elif (args.mod is not None and args.col is True):
                 varalias=args.var)
     #collocation
     coll_obj = coll(mc_obj,
-                    obs_obj=sa_obj,
+                    obs_obj_in=sa_obj,
                     distlim=args.dist )
     valid_dict=validate(coll_obj.vars)
     disp_validation(valid_dict)

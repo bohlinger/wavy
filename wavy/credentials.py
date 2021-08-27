@@ -20,7 +20,7 @@ def credentials_from_netrc(remoteHostName=None):
     return user, pw
 
 def credentials_from_txt(remoteHostName=None):
-    print("try local file credentials.txt")
+    print("Try local file credentials.txt")
     if remoteHostName is None:
         remoteHostName = "nrt.cmems-du.eu"
     # get user home path
@@ -38,14 +38,14 @@ def get_credentials(remoteHostName=None):
     usrhome = os.getenv("HOME")
     if os.path.isfile(usrhome + "/.netrc"):
         try:
-            print ('Attempt to obtain credentials from .netrc')
+            print ('Obtaining credentials from .netrc')
             user, pw = \
                 credentials_from_netrc(remoteHostName=remoteHostName)
             return user, pw
         except AttributeError:
-            print ("credentials in netrc file not registered")
-            print ("try local file credentials.txt")
-            print ("file must contain:")
+            print ("Credentials in netrc file not registered")
+            print ("Try local file credentials.txt")
+            print ("File must contain:")
             print ("user='username'")
             print ("pw='yourpassword'")
             except_key = 1
