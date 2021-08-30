@@ -173,10 +173,11 @@ Having downloaded L2 data in step 3., you can do:
    >>> ed = datetime(2020,11,1,12)
    >>> region = 'NorwegianSea'
    >>> sat = 's3a'
+   >>> varalias = 'Hs'
 
    >>> # retrievals
-   >>> sa_obj_e = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='eumetsat')
-   >>> sa_obj_c = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='cmems')
+   >>> sa_obj_e = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='eumetsat')
+   >>> sa_obj_c = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='cmems')
 
    >>> # plotting
    >>> stdname = sa_obj_e.stdvarname
@@ -208,7 +209,6 @@ Model output can be accessed and read using the modelmod module. The modelmod co
        file_template:
        init_times: []
        init_step:
-       leadtimes: []
 
 Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding a variable like:
 
@@ -341,19 +341,25 @@ This can also be done for a time period:
 
 .. code-block:: python3
 
+   >>> # imports
    >>> from datetime import datetime
    >>> from wavy.stationmod import station_class
    >>> from wavy.collocmod import collocation_class
+
+   >>> # settings
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,1,1,1)
    >>> ed = datetime(2020,1,4,0)
-   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
+   >>> station = 'ekofiskL'
+   >>> sensor = 'waverider'
 
-   >>> st_obj_gam = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
+   >>> # retrievals
+   >>> st_obj_gam = station_class(station,sensor,sd,ed,varalias=varalias,superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
+   >>> st_obj = station_class(station,sensor,sd,ed,varalias=varalias)
+
+   >>> # collocation
    >>> col_obj_gam = collocation_class(model=model,obs_obj_in=st_obj_gam,distlim=6,date_incr=1)
-
-   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
    >>> col_obj = collocation_class(model=model,obs_obj_in=st_obj,distlim=6,date_incr=1)
 
 Let's plot the results:
@@ -362,12 +368,14 @@ Let's plot the results:
 
    >>> import matplotlib.pyplot as plt
    >>> stdname = st_obj.stdvarname
+
    >>> fig = plt.figure(figsize=(9,3.5))
    >>> ax = fig.add_subplot(111)
-   >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],'ko',label='raw')
+   >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],color='gray',marker='o',label='raw',linestyle='None',alpha=.4)
+   >>> ax.plot(col_obj.vars['datetime'],col_obj.vars['obs_values'],'ko',label='collocated obs')
    >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
    >>> ax.plot(col_obj_gam.vars['datetime'],col_obj_gam.vars['model_values'],'r-',label='mwam4',lw=2)
-   >>> plt.legend(loc='lower right')
+   >>> plt.legend(loc='upper left')
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
 

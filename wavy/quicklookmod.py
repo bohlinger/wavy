@@ -377,7 +377,7 @@ def plot_sat(sa_obj,**kwargs):
     if (sa_obj.region in model_dict
     and len(model_var_dict['latitude'].shape)==1):
         lenlons = len(model_var_dict['longitude'][:])
-        lenlats = len(model_var_dict['longitude'][:])
+        lenlats = len(model_var_dict['latitude'][:])
         ax.plot([model_var_dict['longitude'][0]]*lenlats,
                 model_var_dict['latitude'][:], '-',
                 transform = ccrs.PlateCarree(),

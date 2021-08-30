@@ -9,13 +9,13 @@ import argparse
 from argparse import RawTextHelpFormatter
 
 # custom
-from stationmod import station_class
-from collocmod import collocation_class
+from wavy.stationmod import station_class
+from wavy.collocmod import collocation_class
 
 # --- parser --- #
 parser = argparse.ArgumentParser(
     description="""
-Retrieve data from in-sistu stations, collocate with model,\n 
+Retrieve data from in-sistu stations, collocate with model,\n
 and dump data to monthly nc-file.
 If file exists, data is appended.
 
@@ -102,7 +102,7 @@ def get_and_store_data(platformlst,sensorlst,sd,ed,var,date_incr,model,lt,dist):
                 st_obj = station_class(station,sensor,sd,ed,
                                                varalias=var)
                 col_obj = collocation_class(model=model,
-                                            obs_obj=st_obj,
+                                            obs_obj_in=st_obj,
                                             distlim=dist,
                                             leadtime=lt,
                                             date_incr=date_incr)

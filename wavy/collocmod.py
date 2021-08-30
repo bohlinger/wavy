@@ -355,7 +355,10 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
         model_lats = mc_obj.vars['latitude']
         model_lons = mc_obj.vars['longitude']
         model_vals = mc_obj.vars[mc_obj.stdvarname]
-    dtime = netCDF4.num2date(obs_obj.vars['time'],obs_obj.vars['time_unit'])
+        if len(model_lats.shape)==1:
+            model_lons,model_lats = np.meshgrid(model_lons,model_lats)
+    dtime = netCDF4.num2date(obs_obj.vars['time'],
+                             obs_obj.vars['time_unit'])
     if isinstance(dtime,np.ndarray):
         dtime = list(dtime)
     if isinstance(datein,np.ndarray):
