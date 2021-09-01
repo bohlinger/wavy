@@ -43,7 +43,7 @@ from wavy.wconfig import load_or_default
 
 # read yaml config files:
 buoy_dict = load_or_default('buoy_specs.yaml')
-station_dict = load_or_default('station_specs.yaml')
+insitu_dict = load_or_default('insitu_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
 # --- global functions ------------------------------------------------#
@@ -63,13 +63,12 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 class station_class():
     '''
-    Class to handle platform based time series.
+    Class to handle insitu based time series.
     '''
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
-    def __init__(self,platform,sensor,sdate,edate,
-                mode='d22',varalias='Hs',
-                superobserve = False, **kwargs):
+    def __init__(self,nID,sensor,sdate,edate,fifo='d22',
+    varalias='Hs',superobserve = False, **kwargs):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
@@ -81,28 +80,27 @@ class station_class():
             self.varalias = varalias
             self.sdate = sdate
             self.edate = edate
-            self.lat = station_dict['platform'][platform]\
-                                   ['coords']['lat']
-            self.lon = station_dict['platform'][platform]\
-                                   ['coords']['lon']
-            self.platform = platform
+            self.lat = insitu_dict[fifo][nID]['coords']\
+                                   [sensor]['lat']
+            self.lon = insitu_dict[fifo][nID]['coords']\
+                                   [sensor]['lon']
+            self.nID = nID
             self.sensor = sensor
+            if ('tags' in insitu_dict[fifo].keys and
+            len(insitu_dict[fifo]['tags']>0)):
+                self.tags = insitu_dict[fifo]['tags']
             if superobserve == False:
-                var, time, timedt, \
-                pathtofile = self.get_station( platform,
-                                           sdate,edate,
-                                           mode,
-                                           sensor,
-                                           varalias,**kwargs)
+                var, time, timedt, lon, lat, pathtofile = \
+                    self.get_insitu_ts(\
+                                nID, sensor,sdate,edate,fifo,
+                                varalias,**kwargs)
                 vardict = {
                     stdvarname:var,
                     'time':time,
                     'datetime':timedt,
                     'time_unit':self.time_unit,
-                    'longitude':[ station_dict['platform'][platform]\
-                                  ['coords']['lon'] ]*len(var),
-                    'latitude':[ station_dict['platform'][platform]\
-                                 ['coords']['lat'] ]*len(var)
+                    'longitude':lon,
+                    'latitude':lat
                     }
             elif superobserve == True:
                 print(kwargs)
@@ -113,51 +111,55 @@ class station_class():
                     kwargs['etwin'] = 0
                 sdate_new = sdate - timedelta(hours=kwargs['stwin'])
                 edate_new = edate + timedelta(hours=kwargs['etwin'])
-                var, time, timedt, \
-                pathtofile = self.get_station( platform,
-                                           sdate_new,edate_new,
-                                           mode,
-                                           sensor,
-                                           varalias,**kwargs)
+                var, time, timedt, lon, lat, pathtofile = \
+                    self.get_insitu_ts(nID,sensor,
+                                sdate_new,edate_new,fifo,
+                                varalias,**kwargs)
                 tmp_vardict = {
                     stdvarname:var,
                     'time':time,
                     'datetime':timedt,
                     'time_unit':self.time_unit,
-                    'longitude':[ station_dict['platform'][platform]\
-                                  ['coords']['lon'] ]*len(var),
-                    'latitude':[ station_dict['platform'][platform]\
-                                 ['coords']['lat'] ]*len(var)
+                    'longitude':lon,
+                    'latitude':lat
                     }
                 vardict = superobbing(varalias,tmp_vardict,**kwargs)
                 # cut to original sdate and edate
                 time_cut = np.array(vardict['time'])[ \
                                 ( (np.array(vardict['datetime'])>=sdate)
-                                & (np.array(vardict['datetime'])<=edate)) ]
+                                & (np.array(vardict['datetime'])<=edate)
+                                ) ]
                 var_cut = np.array(vardict[stdvarname])[ \
                                 ( (np.array(vardict['datetime'])>=sdate)
-                                & (np.array(vardict['datetime'])<=edate)) ]
-                lon_cut = [vardict['longitude'][0]]*len(time_cut)
-                lat_cut = [vardict['latitude'][0]]*len(time_cut)
+                                & (np.array(vardict['datetime'])<=edate)
+                                ) ]
+                lon_cut = np.array(vardict['longitude'])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)
+                                ) ]
+                lat_cut = np.array(vardict['latitude'])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)
+                                ) ]
                 dtime_cut = np.array(vardict['datetime'])[ \
                                 ( (np.array(vardict['datetime'])>=sdate)
                                 & (np.array(vardict['datetime'])<=edate)) ]
                 vardict['time'] = list(time_cut)
                 vardict['datetime'] = list(dtime_cut)
                 vardict[stdvarname] = list(var_cut)
-                vardict['longitude'] = lon_cut
-                vardict['latitude'] = lat_cut
+                vardict['longitude'] = list(lon_cut)
+                vardict['latitude'] = list(lat_cut)
                 self.superob = kwargs['superob']
                 self.outlier_detection = kwargs['outlier_detection']
                 self.missing_data = kwargs['missing_data']
             self.vars = vardict
-            if mode == 'd22':
-                self.varname = varalias
-            elif mode == 'nc':
+            if fifo == 'nc':
                 meta = ncdumpMeta(pathtofile)
                 self.vars['meta'] = meta
                 self.varname = get_varname_for_cf_stdname_in_ncfile(
                                 meta,stdvarname)
+            else:
+                self.varname = varalias
             print (" ### station_class object initialized ###")
         except Exception as e:
             print(e)
@@ -165,15 +167,19 @@ class station_class():
             print ("! No station_class object initialized !")
         print ('# ----- ')
 
-    def get_station(self,platform,sdate,edate,mode,sensor,
-    varalias,**kwargs):
+#def get_d22
+#       parse_d22
+#       extract_d22
+#def get_nc
+#def get_insitu
+
+    def get_insitu_ts(self,nID,sensor,sdate,edate,fifo,
+    varalias,basedate,**kwargs):
         stdvarname = variable_info[varalias]['standard_name']
-        path_template = station_dict['path']['platform']['local']\
-                                    [mode]['path_template']
-        file_template = station_dict['path']['platform']['local']\
-                                    [mode]['file_template']
+        path_template = insitu_dict[fifo][nID]['src']['path_template']
+        file_template = insitu_dict[fifo][nID]['src']['file_template']
         pathlst = [p + ('/' + file_template) for p in path_template]
-        strsublst = station_dict['path']['platform']['local'][mode]['strsub']
+        strsublst = insitu_dict[fifo][nID]['src']['strsub']
         pathtofile = None
         if mode == 'nc':
             tmpdate = sdate
@@ -219,18 +225,18 @@ class station_class():
         elif mode == 'd22':
             sdatetmp = sdate
             edatetmp = edate
-            sl = parse_d22(platform,sensor,varalias,sdatetmp,edatetmp,
+            sl = parse_d22(ID,sensor,varalias,sdatetmp,edatetmp,
                           pathlst,strsublst)
-            var, timedt = extract_d22(sl,varalias,platform,sensor)
+            var, timedt = extract_d22(sl,varalias,project,ID,sensor)
             time = np.array(
                     [(t-self.basedate).total_seconds() for t in timedt]
                     )
-        if 'twin' in station_dict['platform'][platform]:
+        if 'twin' in insitu_dict[project][ID]:
             idxtmp = collocate_times(unfiltered_t=timedt,\
                                 sdate=sdate,edate=edate,
-                                twin=station_dict['platform']\
-                                                 [platform]['twin'])
+                                twin=insitu_dict[project][ID]['twin'])
         else:
+            # default to allow for a 1 min variation
             idxtmp = collocate_times(unfiltered_t=timedt,\
                                 sdate=sdate,edate=edate,
                                 twin=1)
@@ -249,11 +255,11 @@ class station_class():
                 tmpdatelst.append(tmpdate)
                 tmpdate += timedelta(minutes=20)
             # 2. collocate times
-            if 'twin' in station_dict['platform'][platform]:
-                idxtmp = collocate_times(unfiltered_t=timedt,\
-                                target_t=tmpdatelst,
-                                twin=station_dict['platform']\
-                                                 [platform]['twin'])
+            if 'twin' in insitu_dict[project][ID]:
+                idxtmp = collocate_times(\
+                            unfiltered_t=timedt,
+                            target_t=tmpdatelst,
+                            twin=insitu_dict[project][ID]['twin'])
             else:
                 idxtmp = collocate_times(unfiltered_t=timedt,\
                                 target_t=tmpdatelst,
@@ -310,7 +316,72 @@ class station_class():
         return
 
 
-def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
+def get_insitu_ts(nID,sensor,sdate,edate,fifo,varalias,
+basedate,**kwargs):
+    stdvarname = variable_info[varalias]['standard_name']
+    path_template = insitu_dict[fifo][nID]['src']['path_template']
+    file_template = insitu_dict[fifo][nID]['src']['file_template']
+    pathlst = [p + ('/' + file_template) for p in path_template]
+    strsublst = insitu_dict[fifo][nID]['src']['strsub']
+    pathtofile = None
+    if fifo == 'nc':
+        var, time, timedt = \
+            get_nc_ts()
+    elif fifo == 'd22':
+        var, time, timedt = \
+            get_d22_ts(sdate,edate,basedate,fifo,nID,sensor,varalias,\
+                        pathlst,strsublst)
+        if 'twin' in insitu_dict[fifo][nID]:
+            idxtmp = collocate_times(unfiltered_t=timedt,\
+                                sdate=sdate,edate=edate,
+                                twin=insitu_dict[fifo][nID]['twin'])
+        else:
+            # default to allow for a 1 min variation
+            idxtmp = collocate_times(unfiltered_t=timedt,\
+                                sdate=sdate,edate=edate,
+                                twin=1)
+        # convert to list for consistency with other classes
+        # and make sure that only steps with existing obs are included
+        time = [time[i] for i in idxtmp if i < len(var)]
+        timedt = [timedt[i] for i in idxtmp if i < len(var)]
+        var = [np.real(var[i]) for i in idxtmp if i < len(var)]
+        # rm double entries due to 10min spacing
+        if ('unique' in kwargs.keys() and kwargs['unique'] is True):
+            # delete 10,30,50 min times, keep 00,20,40
+            # 1. create artificial time vector for collocation
+            tmpdate = deepcopy(sdate)
+            tmpdatelst = []
+            while tmpdate<edate:
+                tmpdatelst.append(tmpdate)
+                tmpdate += timedelta(minutes=20)
+            # 2. collocate times
+            if 'twin' in insitu_dict[fifo][nID]:
+                idxtmp = collocate_times(\
+                            unfiltered_t=timedt,
+                            target_t=tmpdatelst,
+                            twin=insitu_dict[fifo][nID]['twin'])
+            else:
+                idxtmp = collocate_times(unfiltered_t=timedt,\
+                                target_t=tmpdatelst,
+                                twin=1)
+            time = list(np.array(time)[idxtmp])
+            timedt = list(np.array(timedt)[idxtmp])
+            var = list(np.array(var)[idxtmp])
+    return var, time, timedt
+
+def get_d22_ts(sdate,edate,basedate,fifo,nID,sensor,varalias,
+pathlst,strsublst):
+    sdatetmp = sdate
+    edatetmp = edate
+    sl = parse_d22(nID,sensor,varalias,sdatetmp,edatetmp,
+                   pathlst,strsublst)
+    var, timedt = extract_d22(sl,varalias,fifo,nID,sensor)
+    time = np.array(
+           [(t-basedate).total_seconds() for t in timedt]
+           )
+    return var, time, timedt
+
+def parse_d22(ID,sensor,varalias,sdate,edate,pathlst,strsublst):
     """
     Read all lines in file and append to sl
     """
@@ -318,7 +389,7 @@ def parse_d22(platform,sensor,varalias,sdate,edate,pathlst,strsublst):
     for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2):
         try:
             pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
-                                    platform=platform,sensor=sensor,
+                                    oilrig=ID,sensor=sensor,
                                     varalias=varalias)
             print('Parsing:', pathtofile)
             f = open(pathtofile, "r")
@@ -382,14 +453,14 @@ def find_category(sl,category):
         if category in element:
             return True
 
-def check_sensor_availability(revised_categories,idxlst,platform,sensor):
-    idxyaml = station_dict['platform'][platform]['sensor'][sensor]
+def check_sensor_availability(revised_categories,idxlst,fifo,nID,sensor):
+    idxyaml = insitu_dict[fifo][nID]['sensor'][sensor]
     if idxyaml in idxlst:
         return idxlst.index(idxyaml)
     else:
         return None
 
-def extract_d22(sl,varalias,platform,sensor):
+def extract_d22(sl,varalias,fifo,nID,sensor):
     """
     Extracting data of choice - reading sl from parse_d22
     CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
@@ -400,8 +471,8 @@ def extract_d22(sl,varalias,platform,sensor):
     category = find_category_for_variable(varalias)
     revised_categories,idxlst = get_revised_categories(sl,category)
     print( 'Consistency check: \n'
-           ' --> compare found #sensors against defined in station_specs.yaml')
-    sensornr = len(station_dict['platform'][platform]['sensor'].keys())
+           ' --> compare found #sensors against defined in insitu_specs.yaml')
+    sensornr = len(insitu_dict[fifo][nID]['sensor'].keys())
     if len(revised_categories) == sensornr:
         print('Consistency check: OK!')
     else:
@@ -412,14 +483,14 @@ def extract_d22(sl,varalias,platform,sensor):
                 + ') is not equal to defined ' +
                 '#sensors ('
                 + str(sensornr)
-                + ') in station_specs.yaml')
+                + ') in insitu_specs.yaml')
     # check that the defined sensors are actually the ones being found
     check = check_sensor_availability(revised_categories,\
-                                      idxlst,platform,sensor)
+                                      idxlst,fifo,nID,sensor)
     ts = []
     dt = []
     if check is not None:
-        print('Sensor is available and defined in station_specs.yaml')
+        print('Sensor is available and defined in insitu_specs.yaml')
         for i, line in enumerate(sl):
             # get ts for date and time
             if "!!!!" in line:
