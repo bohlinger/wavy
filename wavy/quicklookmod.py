@@ -531,7 +531,9 @@ def plot_sat(sa_obj,**kwargs):
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
                         fraction=0.04, pad=0.04)
-    cbar.ax.set_ylabel(sa_obj.stdvarname + ' [m]')
+    cbar.ax.set_ylabel(sa_obj.stdvarname + ' [' +
+                        variable_info[sa_obj.varalias]['units']
+                        + ']')
     cbar.ax.tick_params(labelsize=fs)
 
     plt.title(sa_obj.sat
