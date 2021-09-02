@@ -33,7 +33,7 @@ from datetime import datetime
 import scipy as sp
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from wavy.ncmod import dumptonc_ts_station
+from wavy.ncmod import dumptonc_ts_station, get_varlst_from_nc_1D
 from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
@@ -319,7 +319,7 @@ basedate,**kwargs):
     strsublst = insitu_dict[fifo][nID]['src']['strsub']
     pathtofile = None
     if fifo == 'nc':
-        var, time, timedt = \
+        var, time, timedt, lons, lats = \
             get_nc_ts()
     elif fifo == 'd22':
         var, time, timedt = \
@@ -361,7 +361,11 @@ basedate,**kwargs):
             time = list(np.array(time)[idxtmp])
             timedt = list(np.array(timedt)[idxtmp])
             var = list(np.array(var)[idxtmp])
-    return var, time, timedt
+        lons = [insitu_dict[fifo][nID]['coords'][sensor]['lon']]\
+               *len(var)
+        lats = [insitu_dict[fifo][nID]['coords'][sensor]['lat']]\
+               *len(var)
+    return var, time, timedt, lons, lats
 
 def get_d22_ts(sdate,edate,basedate,fifo,nID,sensor,varalias,
 pathlst,strsublst):
@@ -376,9 +380,37 @@ pathlst,strsublst):
     return var, time, timedt
 
 def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
-    # determine date increment
-    get_nc_1D(pathtofile,varlst,sdate,edate)
-    return
+    # retrieve filevarname for varalias
+    filevarname = get_filevarname()
+    # loop from sdate to edate with dateincr
+    tmpdate = deepcopy(sdate)
+    varlst = []
+    lonlst = []
+    latlst = []
+    timelst = []
+    dtimelst = []
+    varstrlst = [filevarname,'longitude','latitude','time']
+    while tmpdate <= edate:
+        # make pathtofile
+        pathtofile = get_pathtofile(pathlst,strsublst,tmpdate,nID=nID)
+        # query
+        vardict = get_varlst_from_nc_1D(pathtofile,
+                                        varstrlst,
+                                        sdate,edate)
+        varlst.append(list(vardict[filevarname]))
+        lonlst.append(list(vardict['longitude']))
+        latlst.append(list(vardict['latitude']))
+        timelst.append(list(vardict['time']))
+        dtimelst.append(list(vardict['dtime']))
+        # determine date increment
+        date_incr = insitu_dict['nc'][nID]['src']['date_incr']
+        if date_incr == 'm':
+            tmpdate += relativedelta(months = +1)
+        elif date_incr == 'Y':
+            tmpdate += relativedelta(years = +1)
+        elif date_incr == 'd':
+            tmpdate += timedelta(days = +1)
+    return varlst, timelst, dtimelst, lonlst, latlst
 
 def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     """
@@ -387,7 +419,10 @@ def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     sl=[]
     for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2):
         try:
-            pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),varalias=varalias,nID=nID,sensor=sensor)
+            pathtofile = get_pathtofile(pathlst,strsublst,
+                                        pl.num2date(d),
+                                        varalias=varalias,
+                                        nID=nID,sensor=sensor)
             print('Parsing:', pathtofile)
             f = open(pathtofile, "r")
             sl = sl + f.readlines()

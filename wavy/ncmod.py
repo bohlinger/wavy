@@ -156,16 +156,8 @@ def get_nc_ts(pathtofile,varlst):
         nc.close()
     return vardict
 
-def conc_nc_1D_to_ts(pathtofile,varlst,sdate,edate):
-    # loop from sdate to edate with dateincr
-    # make pathtofile
-    # query
-    vardict = get_nc_1D(pathtofile,varlst,sdate,edate))
-    return vardict
-
-def get_nc_1D(pathtofile,varlst,sdate,edate):
-    import os.path
-    indicator = os.path.isfile(pathtofile)
+def get_varlst_from_nc_1D(pathtofile,varlst,sdate,edate):
+    # retrieve
     vardict = {}
     nc = netCDF4.Dataset(pathtofile)
     time_var = nc.variables['time']
@@ -173,13 +165,24 @@ def get_nc_1D(pathtofile,varlst,sdate,edate):
     vardict['time_unit'] = time_var.units
     dtime = netCDF4.num2date(time_var[:],time_var.units)
     vardict['dtime'] = dtime
-    idx = find_included_times(dtime,sdate,edate)
+    idx = find_included_times(dtime,sdate=sdate,edate=edate)
     for name in varlst:
         if name != 'time':
             var = nc.variables[name][idx]
             vardict[name] = var
     nc.close()
     return vardict
+
+def get_var_from_nc_1D(pathtofile,var,sdate,edate):
+    indicator = os.path.isfile(pathtofile)
+    nc = netCDF4.Dataset(pathtofile)
+    time_var = nc.variables['time']
+    dtime = netCDF4.num2date(time_var[:],time_var.units)
+    idx = find_included_times(dtime,sdate,edate)
+    for name in varlst:
+        var = nc.variables[name][idx]
+    nc.close()
+    return var
 
 def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
     """
