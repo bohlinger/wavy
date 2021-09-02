@@ -167,12 +167,6 @@ class station_class():
             print ("! No station_class object initialized !")
         print ('# ----- ')
 
-#def get_d22
-#       parse_d22
-#       extract_d22
-#def get_nc
-#def get_insitu
-
     def get_insitu_ts(self,nID,sensor,sdate,edate,fifo,
     varalias,basedate,**kwargs):
         stdvarname = variable_info[varalias]['standard_name']
@@ -381,16 +375,19 @@ pathlst,strsublst):
            )
     return var, time, timedt
 
-def parse_d22(ID,sensor,varalias,sdate,edate,pathlst,strsublst):
+def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
+    # determine date increment
+    get_nc_1D(pathtofile,varlst,sdate,edate)
+    return
+
+def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     """
     Read all lines in file and append to sl
     """
     sl=[]
     for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2):
         try:
-            pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),
-                                    oilrig=ID,sensor=sensor,
-                                    varalias=varalias)
+            pathtofile = get_pathtofile(pathlst,strsublst,pl.num2date(d),varalias=varalias,nID=nID,sensor=sensor)
             print('Parsing:', pathtofile)
             f = open(pathtofile, "r")
             sl = sl + f.readlines()

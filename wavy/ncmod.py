@@ -29,6 +29,7 @@ import time
 
 # own imports
 from wavy.wconfig import load_or_default
+from wavy.utils import find_included_times
 
 # read yaml config files:
 model_dict = load_or_default('model_specs.yaml')
@@ -155,24 +156,29 @@ def get_nc_ts(pathtofile,varlst):
         nc.close()
     return vardict
 
-def get_nc_1D(pathtofile,varlst):
+def conc_nc_1D_to_ts(pathtofile,varlst,sdate,edate):
+    # loop from sdate to edate with dateincr
+    # make pathtofile
+    # query
+    vardict = get_nc_1D(pathtofile,varlst,sdate,edate))
+    return vardict
+
+def get_nc_1D(pathtofile,varlst,sdate,edate):
     import os.path
     indicator = os.path.isfile(pathtofile)
-    if indicator is False:
-        dtime = False
-        sys.exit('File does not exist')
-    else:
-        vardict = {}
-        for name in varlst:
-            nc = netCDF4.Dataset(
-                pathtofile,mode='r',
-                )
-            var = nc.variables[name][:]
-            vardict[name]=var
-        time_var = nc.variables['time']
-        dtime = netCDF4.num2date(time_var[:],time_var.units)
-        vardict['dtime']=dtime
-        nc.close()
+    vardict = {}
+    nc = netCDF4.Dataset(pathtofile)
+    time_var = nc.variables['time']
+    vardict['time'] = time_var[:]
+    vardict['time_unit'] = time_var.units
+    dtime = netCDF4.num2date(time_var[:],time_var.units)
+    vardict['dtime'] = dtime
+    idx = find_included_times(dtime,sdate,edate)
+    for name in varlst:
+        if name != 'time':
+            var = nc.variables[name][idx]
+            vardict[name] = var
+    nc.close()
     return vardict
 
 def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
