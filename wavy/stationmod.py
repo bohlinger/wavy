@@ -320,7 +320,7 @@ basedate,**kwargs):
     pathtofile = None
     if fifo == 'nc':
         var, time, timedt, lons, lats = \
-            get_nc_ts()
+            get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst)
     elif fifo == 'd22':
         var, time, timedt = \
             get_d22_ts(sdate,edate,basedate,fifo,nID,sensor,varalias,\
