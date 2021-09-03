@@ -39,6 +39,21 @@ def calc_rmsd(a,b):
     rmsd = np.sqrt(msd)
     return msd, rmsd
 
+def calc_nrmsd(a,b):
+    '''
+    Normalized root mean square deviation
+    if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
+    '''
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    diff2 = (a1-b1)**2
+    msd = diff2.sum()/np.sum(b1**2)
+    rmsd = np.sqrt(msd)
+    return msd, rmsd
+
 def calc_drmsd(a,b):
     '''
     debiased root mean square deviation
@@ -81,6 +96,7 @@ def calc_corrcoef(a,b):
 
 def calc_bias(a,b):
     """
+    Bias
     if nans exist the prinziple of marginalization is applied
     input: np.arrays with np.nan for invalids
     """
@@ -91,6 +107,20 @@ def calc_bias(a,b):
     N = len(a1)
     bias = np.sum(a1-b1)/N
     return bias
+
+def calc_nbias(a,b):
+    """
+    Normalized Bias [dimensionless]
+    if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
+    """
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    N = len(a1)
+    nbias = np.sum(a1-b1)/np.sum(b1)
+    return nbias
 
 def calc_mad(a,b):
     """
@@ -119,9 +149,12 @@ def disp_validation(valid_dict):
     print('Mean Absolute Difference: ' + '{:0.2f}'.format(valid_dict['mad']))
     print('Root Mean Squared Difference: '
             + '{:0.2f}'.format(valid_dict['rmsd']))
+    print('Normalized Root Mean Squared Difference: '
+            + '{:0.2f}'.format(valid_dict['nrmsd']))
     print('Debiased Root Mean Squared Difference: '
             + '{:0.2f}'.format(valid_dict['drmsd']))
     print('Bias: ' + '{:0.2f}'.format(valid_dict['bias']))
+    print('Normalized Bias: ' + '{:0.2f}'.format(valid_dict['nbias']))
     print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
     print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
     print('Mean of Observations: ' + '{:0.2f}'.format(valid_dict['mor']))
@@ -161,11 +194,13 @@ def validate(results_dict,boot=None):
         mop = np.nanmean(model_matches)
         mor = np.nanmean(obs_matches)
         msd, rmsd = calc_rmsd(model_matches,obs_matches)
+        nmsd, nrmsd = calc_nrmsd(model_matches,obs_matches)
         dmsd, drmsd = calc_drmsd(model_matches,obs_matches)
         nov = len(obs_matches)
         mad = calc_mad(model_matches,obs_matches)
         corr = calc_corrcoef(model_matches,obs_matches)
         bias = calc_bias(model_matches,obs_matches)
+        nbias = calc_nbias(model_matches,obs_matches)
         SI = calc_scatter_index(model_matches,obs_matches)
         validation_dict = {
             'mop':mop,
@@ -173,10 +208,12 @@ def validate(results_dict,boot=None):
             'msd':msd,
             'nov':nov,
             'rmsd':rmsd,
+            'nrmsd':nrmsd,
             'drmsd':drmsd,
             'corr':corr,
             'mad':mad,
             'bias':bias,
+            'nbias':nbias,
             'SI':SI}
     elif boot is True:
         from utils import bootstr, marginalize
