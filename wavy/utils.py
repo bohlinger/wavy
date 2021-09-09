@@ -2,6 +2,7 @@
 utility fcts for the verification
 """
 import numpy as np
+import netCDF4
 from datetime import datetime, timedelta
 from math import radians, cos, sin, asin, sqrt, floor
 import sys
@@ -434,16 +435,50 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
     Finds and returns path of file given templates and keywords and date.
     '''
     i = 0
-    pathtofile = date.strftime(pathlst[i])
-    for strsub in strsublst:
-        pathtofile = pathtofile.replace(strsub,kwargs[strsub])
-    while os.path.isfile(pathtofile) is False:
-        print(pathtofile, 'does not exist!')
-        i += 1
+    switch = False
+    while switch is False:
         pathtofile = date.strftime(pathlst[i])
         for strsub in strsublst:
             pathtofile = pathtofile.replace(strsub,kwargs[strsub])
+        # check if thredds and if accessible using netCDF4a
+        if ('thredds' in pathtofile and pathtofile[-3::] == '.nc'):
+            # check if available
+            try:
+                nc = netCDF4.Dataset(pathtofile)
+                nc.close()
+                switch = True
+            except Exception as e:
+                print(e)
+                print(pathtofile, 'not accessible')
+        else:
+            if os.path.isfile(pathtofile) is not False:
+                switch = True
+        if switch is False:
+            print(pathtofile, 'does not exist!')
+            i += 1
     return pathtofile
+
+def finditem(search_dict, field):
+    """
+    Takes a dict with nested lists and dicts,
+    and searches all dicts for a key of the field
+    provided.
+    """
+    fields_found = []
+    for key, value in search_dict.items():
+        if key == field:
+            fields_found.append(value)
+        elif isinstance(value, dict):
+            results = finditem(value, field)
+            for result in results:
+                fields_found.append(result)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    more_results = finditem(item, field)
+                    for another_result in more_results:
+                        fields_found.append(another_result)
+    return fields_found
 
 def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
     '''

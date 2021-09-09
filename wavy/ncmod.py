@@ -29,7 +29,7 @@ import time
 
 # own imports
 from wavy.wconfig import load_or_default
-from wavy.utils import find_included_times
+from wavy.utils import find_included_times, finditem
 
 # read yaml config files:
 model_dict = load_or_default('model_specs.yaml')
@@ -134,8 +134,40 @@ def get_arcmfc_stats(pathtofile):
             'SI':SI}
         return valid_dict, dtime
 
-def get_filevarname_from_nc(model, varalias, variable_info,
-model_dict, ncdict):
+#def get_filevarname_from_nc(model, varalias, variable_info,
+#model_dict, ncdict):
+#    stdname = variable_info[varalias]['standard_name']
+#    print('Get filevarname for \n' + 'stdvarname:', stdname,
+#          '\n' + 'varalias:', varalias)
+#    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
+#    if (filevarname is None and 'alias' in variable_info[varalias]):
+#        filevarname = get_varname_for_cf_stdname_in_ncfile(
+#            ncdict, variable_info[varalias]['alias'])
+#    if (filevarname is not None and len(filevarname) > 1):
+#        print('!!! standard_name: ', stdname, ' is not unique !!!',
+#              '\nThe following variables have the same standard_name:\n',
+#              filevarname)
+#        print('Searching model_specs.yaml config file for definition')
+#        filevarname = None
+#    if filevarname is not None:
+#        return filevarname[0]
+#    if (filevarname is None and varalias in model_dict[model]['vardef'].keys()):
+#        filevarname = model_dict[model]['vardef'][varalias]
+#        print('Variable defined in model_specs.yaml is:')
+#        print(varalias, '=', filevarname)
+#        return filevarname
+#    elif (filevarname is None
+#          and varalias not in model_dict[model]['vardef'].keys()
+#          and 'aliases_of_vector_components' in variable_info[varalias]):
+#        print('Checking variable_info if variable can be ' +
+#              'computed from vector components')
+#        filevarname = variable_info[varalias]['aliases_of_vector_components']
+#        return filevarname
+#    else:
+#        print('!!! variable not defined or ' +
+#              'available in model output file !!!')
+
+def get_filevarname_from_nc(varalias, variable_info, srcdict, ncdict):
     stdname = variable_info[varalias]['standard_name']
     print('Get filevarname for \n' + 'stdvarname:', stdname,
           '\n' + 'varalias:', varalias)
@@ -147,25 +179,31 @@ model_dict, ncdict):
         print('!!! standard_name: ', stdname, ' is not unique !!!',
               '\nThe following variables have the same standard_name:\n',
               filevarname)
-        print('Searching model_specs.yaml config file for definition')
+        print('Searching *_specs.yaml config file for definition')
         filevarname = None
     if filevarname is not None:
         return filevarname[0]
-    if (filevarname is None and varalias in model_dict[model]['vars'].keys()):
-        filevarname = model_dict[model]['vars'][varalias]
-        print('Variable defined in model_specs.yaml is:')
+    print(srcdict)
+    tmpdict = finditem(srcdict,'vardef')
+    if len(tmpdict)==0:
+        tmpdict = [{'None':None}]
+    vardefdict = tmpdict[0]
+    print(vardefdict)
+    if (filevarname is None and varalias in vardefdict.keys()):
+        filevarname = vardefdict[varalias]
+        print('Variable defined in *_specs.yaml is:')
         print(varalias, '=', filevarname)
         return filevarname
     elif (filevarname is None
-          and varalias not in model_dict[model]['vars'].keys()
+          and varalias not in vardefdict.keys()
           and 'aliases_of_vector_components' in variable_info[varalias]):
         print('Checking variable_info if variable can be ' +
               'computed from vector components')
         filevarname = variable_info[varalias]['aliases_of_vector_components']
         return filevarname
     else:
-        print('!!! variable not defined or ' +
-              'available in model output file !!!')
+        print('!!! variable not defined nor ' +
+              'available in nc-file !!!')
 
 def get_nc_ts(pathtofile,varlst):
     import os.path

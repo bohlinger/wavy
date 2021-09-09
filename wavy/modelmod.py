@@ -240,13 +240,13 @@ def get_filevarname(model, varalias, variable_info, model_dict, ncdict):
         filevarname = None
     if filevarname is not None:
         return filevarname[0]
-    if (filevarname is None and varalias in model_dict[model]['vars'].keys()):
-        filevarname = model_dict[model]['vars'][varalias]
+    if (filevarname is None and varalias in model_dict[model]['vardef'].keys()):
+        filevarname = model_dict[model]['vardef'][varalias]
         print('Variable defined in model_specs.yaml is:')
         print(varalias, '=', filevarname)
         return filevarname
     elif (filevarname is None
-          and varalias not in model_dict[model]['vars'].keys()
+          and varalias not in model_dict[model]['vardef'].keys()
           and 'aliases_of_vector_components' in variable_info[varalias]):
         print('Checking variable_info if variable can be ' +
               'computed from vector components')

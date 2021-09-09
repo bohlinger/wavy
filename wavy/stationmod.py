@@ -34,6 +34,7 @@ import scipy as sp
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import dumptonc_ts_station, get_varlst_from_nc_1D
+from wavy.ncmod import get_filevarname_from_nc
 from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
@@ -380,8 +381,6 @@ pathlst,strsublst):
     return var, time, timedt
 
 def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
-    # retrieve filevarname for varalias
-    filevarname = get_filevarname()
     # loop from sdate to edate with dateincr
     tmpdate = deepcopy(sdate)
     varlst = []
@@ -389,10 +388,19 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     latlst = []
     timelst = []
     dtimelst = []
-    varstrlst = [filevarname,'longitude','latitude','time']
+    count = 0
     while tmpdate <= edate:
+        flatten_switch += 1
         # make pathtofile
         pathtofile = get_pathtofile(pathlst,strsublst,tmpdate,nID=nID)
+        # get ncdump
+        ncdict = ncdumpMeta(pathtofile)
+        # retrieve filevarname for varalias
+        filevarname = get_filevarname_from_nc(varalias,
+                                          variable_info,
+                                          insitu_dict['nc'][nID],
+                                          ncdict)
+        varstrlst = [filevarname,'longitude','latitude','time']
         # query
         vardict = get_varlst_from_nc_1D(pathtofile,
                                         varstrlst,
@@ -410,6 +418,9 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
             tmpdate += relativedelta(years = +1)
         elif date_incr == 'd':
             tmpdate += timedelta(days = +1)
+    if count > 1:
+        # flatten lists
+    #turn timedt into datetime objects
     return varlst, timelst, dtimelst, lonlst, latlst
 
 def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
