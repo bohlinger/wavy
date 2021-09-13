@@ -82,10 +82,6 @@ class station_class():
             self.varalias = varalias
             self.sdate = sdate
             self.edate = edate
-            #self.lat = insitu_dict[nID]['coords']\
-            #                       [sensor]['lat']
-            #self.lon = insitu_dict[nID]['coords']\
-            #                       [sensor]['lon']
             self.nID = nID
             self.sensor = sensor
             if ('tags' in insitu_dict[nID].keys() and

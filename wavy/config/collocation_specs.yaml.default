@@ -1,13 +1,13 @@
 --- # specifications for collocation_class
 
 path:
-    platform:
-        local: 
-            nc: 
+    insitu:
+        local:
+            nc:
                 path_template: ["/home/patrikb/tmp_collocation/model/%Y/%m/"]
-                file_template: "varalias_model_vs_platform_sensor_coll_ts_\
+                file_template: "varalias_model_vs_nID_sensor_coll_ts_\
                                 ltleadtime_%Y%m.nc"
-                strsub: ['varalias','model','platform','sensor','leadtime']
+                strsub: ['varalias','model','nID','sensor','leadtime']
         remote:
     satellite_altimeter:
         local:

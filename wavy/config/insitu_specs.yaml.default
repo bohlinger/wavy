@@ -1,0 +1,1104 @@
+--- # in-situ observations
+
+### oil rigs ###
+asgardb: # object nID (nameID)
+    sensor:
+        MKIIIradar_1: 0 # python indexing
+    manufacturer:
+        MKIIIradar_1: Miros
+    coords:
+        MKIIIradar_1:
+            lat: 65.11
+            lon: 6.79
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+aastahansteen: # object nID (nameID)
+    sensor:
+        NA_1: 0 # python indexing
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 67.07
+            lon: 7.01
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+brage: # object nID (nameID)
+    sensor:
+        NA_1: 0 # python indexing
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 60.54
+            lon: 3.05
+    operator: Wintershall_Dea_Norge
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+draugen: # object nID (nameID)
+    sensor:
+        MKIIIradar_1: 0 # python indexing
+        MKIIIradar_2: 1
+    manufacturer:
+        MKIIIradar_1: Miros
+        MKIIIradar_2: Miros
+    coords:
+        MKIIIradar_1:
+            lat: 64.35
+            lon: 7.78
+        MKIIIradar_2:
+            lat: 64.35
+            lon: 7.78
+    operator: OKEA
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+ekofiskL: # object nID (nameID)
+    sensor:
+        waverider: 0 # python indexing
+        OptechLaser: 1
+        SAABWaveRadar: 2
+    manufacturer:
+        waverider: Datawell
+        OptechLaser: Optech
+        SAABWaveRadar: Rosemount
+    coords:
+        waverider:
+            lat: 56.54
+            lon: 3.21
+        OptechLaser:
+            lat: 56.54
+            lon: 3.21
+        SAABWaveRadar:
+            lat: 56.54
+            lon: 3.21
+    operator: ConocoPhillips_Skandinavia
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+gjoa: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 61.33
+            lon: 3.9
+    operator: Neptun_Energy_Norge
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+goliat: # object nID (nameID)
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 71.29
+            lon: 22.32
+    operator: VarEnergi
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+grane: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 59.17
+            lon: 2.48
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+gudrun: # object nID (nameID)
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 58.85
+            lon: 1.72
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+oseberg: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 60.5
+            lon: 2.8
+    operator: NA
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+osebergc: # object nID (nameID)
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 60.64
+            lon: 2.48
+    operator: NA
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+osebergsyd: # object nID (nameID)
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 60.40
+            lon: 2.80
+    operator: NA
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+gullfaksc: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 56.28
+            lon: 3.39
+    operator: Equinor_Energy
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+heidrun: # object nID (nameID)
+    sensor:
+        NA_1: 0
+        NA_2: 1
+    manufacturer:
+        NA_1: NA
+        NA_2: NA
+    coords:
+        NA_1:
+            lat: 65.32
+            lon: 7.32
+        NA_2:
+            lat: 65.32
+            lon: 7.32
+    operator: Equinor_Energy
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+heimdal: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        NA_1:
+            lat: 59.57
+            lon: 2.23
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+kvitebjorn: # object nID (nameID)
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 61.08
+            lon: 2.49
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+kristin: # object nID (nameID)
+    sensor:
+        NA_1: 0
+        NA_2: 1
+    manufacturer:
+        NA_1: NA
+        NA_2: NA
+    coords:
+        NA_1:
+            lat: 65.00
+            lon: 6.55
+        NA_2:
+            lat: 65.00
+            lon: 6.55
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+#huldra: # missing variables
+    #sensor:
+#        NA_1: 0
+#    manufacturer:
+#        NA_1: NA
+#    coords:
+#        NA_1:
+#            lat: 60.87
+#            lon: 2.65
+#    operator: Equinor_Energy
+
+njorda: # 2004-2016
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 65.00
+            lon: 6.55
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+norne: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 66.02
+            lon: 8.08
+    operator: Equinor_Energy
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+ormenlange: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 63.38
+            lon: 5.31
+    operator: NorskeShell
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+snorrea: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 61.45
+            lon: 2.15
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+snorreb: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 61.52
+            lon: 2.21
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+sleipner: # object nID (nameID)
+    sensor:
+        MKIIIradar: 0
+        NA_1: 1
+    manufacturer:
+        MKIIIradar: Miros
+        NA_1: NA
+    coords:
+        MKIIIradar:
+            lat: 58.37
+            lon: 1.91
+        NA_1:
+            lat: 58.37
+            lon: 1.91
+    operator: Equinor_Energy
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+#sleipnerb: # missing variables
+#    sensor:
+#        NA_1: 0
+#    manufacturer:
+#        NA_1: NA
+#    coords:
+#        MKIIIradar:
+#            lat: 58.37 # not sure
+#            lon: 1.91 # not sure
+#    operator: Equinor_Energy
+
+stafjorda: # etsablished typo -> should be statfjorda
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 61.25
+            lon: 1.85
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+statfjordb:
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 61.20
+            lon: 1.83
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+trolla:
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 60.64
+            lon: 3.72
+    operator: Equinor_Energy
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+trollb:
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 60.77
+            lon: 3.5
+    operator: Equinor_Energy
+    twin: 1
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+ula:
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 57.10
+            lon: 2.85
+    operator: Aker_BP
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+valhall:
+    sensor:
+        SAABWaveRadar_1: 0
+        SAABWaveRadar_2: 1
+    manufacturer:
+        SAABWaveRadar_1: Rosemount
+        SAABWaveRadar_2: Rosemount
+    coords:
+        SAABWaveRadar_1:
+            lat: 56.28
+            lon: 3.39
+        SAABWaveRadar_2:
+            lat: 56.28
+            lon: 3.39
+    operator: Aker_BP
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+veslefrikka:
+    sensor:
+        NA_1: 0
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 60.78
+            lon: 2.89
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+veslefrikkb:
+    sensor:
+        NA_1: 0
+        NA_2: 1
+        NA_3: 2
+    manufacturer:
+        NA_1: NA
+        NA_2: NA
+        NA_3: NA
+    coords:
+        NA_1:
+            lat: 60.78
+            lon: 2.90
+        NA_2:
+            lat: 60.78
+            lon: 2.90
+        NA_3:
+            lat: 60.78
+            lon: 2.90
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+
+visund:
+    sensor:
+        MKIIIradar: 0
+    manufacturer:
+        MKIIIradar: Miros
+    coords:
+        MKIIIradar:
+            lat: 61.37
+            lon: 2.46
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef: # stdname: abbreviation
+        #sea_surface_wave_significant_height: Hs_10min
+    tags: ['oilrig','arcmfc']
+    fifo: d22 # file format: fifo
+
+# ekofisk 1997-2014
+# petrojarlknarr (fra 2015)
+# johansverdrup (on and off)
+# leiveiriksson (2008-2013)
+# nobleglobet2 (2013-2017)
+# scarabeo8 (fra 2015)
+# sleipnerb (fra 2013)
+# trollc (fra 2013)
+# westnav (2013-2017)
+
+### E39 project ###
+A_Sulafjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+B_Sulafjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+B1_Sulafjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+C_Sulafjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+C1_Sulafjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+D_Breisundet: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+F_Vartdalsfjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc
+
+G_Halsafjorden: # object nID (nameID)
+    sensor: wavescan
+    manufacturer: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID_wave.nc"
+        strsub: ['nID']
+        date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        Hs: Hm0
+        Tm02: tm02
+    tags: ['E39']
+    fifo: nc

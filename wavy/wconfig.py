@@ -34,7 +34,7 @@ def load_or_default(name):
 
     1. check if env 'WAVY_CONFIG' is set or specified in .env
     2. check if a config folder exists using xdg
-    3. fall back to default files within the package
+    3. fall back on default files within the package
 
     e.g.:
 

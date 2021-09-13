@@ -29,6 +29,7 @@ from wavy.utils import progress, make_fc_dates
 from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder
 from wavy.utils import NoStdStreams
+from wavy.wconfig import load_or_default
 from wavy.modelmod import model_class, make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate, get_filevarname
 from wavy.modelmod import model_class,get_model
@@ -39,21 +40,10 @@ from wavy.stationmod import station_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
-with open(moddir,'r') as stream:
-    model_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/station_specs.yaml'))
-with open(moddir,'r') as stream:
-    station_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/collocation_specs.yaml'))
-with open(moddir,'r') as stream:
-    collocation_dict=yaml.safe_load(stream)
-
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
+model_dict = load_or_default('model_specs.yaml')
+insitu_dict = load_or_default('insitu_specs.yaml')
+collocation_dict = load_or_default('collocation_specs.yaml')
+variable_info = load_or_default('variable_info.yaml')
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
@@ -488,14 +478,14 @@ class collocation_class():
             self.obstype = "satellite_altimeter"
             self.region = obs_obj.region
         if isinstance(obs_obj,station_class):
-            if 'twin' in station_dict['platform'][obs_obj.platform].keys():
-                obs_obj.twin =  station_dict['platform']\
-                                [obs_obj.platform]['twin']
+            if 'twin' in insitu_dict[obs_obj.nID].keys():
+                obs_obj.twin =  insitu_dict\
+                                [obs_obj.nID]['twin']
             else:
                 obs_obj.twin = None
-            self.obsname = obs_obj.platform + '_' +  obs_obj.sensor
-            self.obstype = 'platform'
-            self.platform = obs_obj.platform
+            self.obsname = obs_obj.nID + '_' +  obs_obj.sensor
+            self.obstype = 'insitu'
+            self.nID = obs_obj.nID
             self.sensor = obs_obj.sensor
         if mc_obj is not None:
             model = mc_obj.model
@@ -575,17 +565,17 @@ class collocation_class():
                         leadtimestr=self.leadtime
                     else:
                         leadtimestr="{:0>3d}h".format(self.leadtime)
-                    if self.obstype=='platform':
+                    if self.obstype=='insitu':
                         pathtofile = make_pathtofile(tmppath,strsublst,
                                             tmpdate,
                                             varalias=self.varalias,
                                             model=self.model,
-                                            platform=self.platform,
+                                            nID=self.nID,
                                             sensor=self.sensor,
                                             leadtime=leadtimestr)
                         title = ( 'Collocation of ' + self.stdvarname
                                 + ' observations from '
-                                + self.platform + ' ' + self.sensor
+                                + self.nID + ' ' + self.sensor
                                 + ' vs ' + self.model)
                     elif self.obstype=='satellite_altimeter':
                         pathtofile = make_pathtofile(tmppath,strsublst,
