@@ -520,7 +520,3 @@ class NoStdStreams(object):
         sys.stdout = self.old_stdout
         sys.stderr = self.old_stderr
         self.devnull.close()
-
-def convert2datetime():
-    pass
-    #return dtime

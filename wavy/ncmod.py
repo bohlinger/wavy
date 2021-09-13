@@ -234,13 +234,17 @@ def get_varlst_from_nc_1D(pathtofile,varlst,sdate,edate):
     time_var = nc.variables['time']
     vardict['time'] = time_var[:]
     vardict['time_unit'] = time_var.units
-    dtime = netCDF4.num2date(time_var[:],time_var.units)
-    vardict['dtime'] = dtime
+    dtvar = netCDF4.num2date(time_var[:],time_var.units)
+    dtime = [datetime(dt.year,dt.month,dt.day,
+             dt.hour,dt.minute,dt.second)
+             for dt in dtvar]
     idx = find_included_times(dtime,sdate=sdate,edate=edate)
     for name in varlst:
         if name != 'time':
             var = nc.variables[name][idx]
             vardict[name] = var
+        else:
+            vardict['dtime'] = np.array(dtime)[idx]
     nc.close()
     return vardict
 
