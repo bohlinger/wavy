@@ -221,10 +221,12 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,**kwargs):
     file_template = insitu_dict[nID]['src']['file_template']
     pathlst = [p + ('/' + file_template) for p in path_template]
     strsublst = insitu_dict[nID]['src']['strsub']
-    pathtofile = None
+    if 'path_local' in kwargs.keys():
+        pathlst = [kwargs['path_local']]
     if fifo == 'nc':
         var, time, timedt, lons, lats, pathtofile = \
-            get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst)
+            get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,\
+                      strsublst)
     elif fifo == 'd22':
         var, time, timedt = \
             get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,\
@@ -293,7 +295,8 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     dtimelst = []
     while tmpdate <= edate:
         # make pathtofile
-        pathtofile = get_pathtofile(pathlst,strsublst,tmpdate,nID=nID)
+        pathtofile = get_pathtofile(pathlst,strsublst,\
+                                        tmpdate,nID=nID)
         # get ncdump
         ncdict = ncdumpMeta(pathtofile)
         # retrieve filevarname for varalias

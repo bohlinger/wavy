@@ -299,47 +299,6 @@ sat,path_local=None):
     print (str(int(len(pathlst))) + " valid files found")
     return pathlst, filelst
 
-#def read_var_from_nc():
-#    # file includes a 1-D dataset with dimension time
-#    f = netCDF4.Dataset(element,'r')
-#    ncvars = [v for v in f.variables]
-#    for ncvar in ncvars:
-#        stdname = f.variables[ncvar].getncattr('standard_name')
-#        if satellite_dict['altimeter'][provider]\
-#        ['misc']['vardef'] is not None:
-#            if (stdname in satellite_dict['altimeter'][provider]\
-#            ['misc']['vardef']
-#            and ncvar != satellite_dict['altimeter'][provider]\
-#            ['misc']['vardef'][stdname]):
-#                ncvar = satellite_dict['altimeter'][provider]\
-#                    ['misc']['vardef'][stdname]
-#        if stdname in varlst_cf:
-#            if stdname in vardict:
-#                if stdname in stdname_lst:
-#                    print("Caution: variable " +
-#                            "standard_name is not unique !!!")
-#                    if satellite_dict['altimeter'][provider]\
-#                    ['misc']['vardef'] is not None:
-#                        if stdname in satellite_dict['altimeter']\
-#                        [provider]['misc']['vardef']:
-#                            print( "As defined in "
-#                            + "satellite_specs.yaml, "
-#                            + "the following "
-#                            + "nc-variable name "
-#                            + "is chosen:\n", ncvar, "for "
-#                            + "stdname: ", stdname )
-#                    else:
-#                        print("Only 1. appearance is used.")
-#                        print("variable " + ncvar + " is neglected")
-#                else:
-#                    tmp = list(f.variables[ncvar][:])
-#                    vardict[stdname] += tmp
-#            else:
-#                tmp = list(f.variables[ncvar][:])
-#                vardict[stdname] = tmp
-#            stdname_lst.append(stdname)
-#    return
-
 def read_local_files_cmems(pathlst,provider,varalias):
     '''
     Read and concatenate all data to one timeseries for each variable.
@@ -552,17 +511,11 @@ class satellite_class():
         print('Chosen time window is:', twin, 'min')
         # make satpaths
         if path_local is None:
-            print('path_local is None -> looking in config file')
-            # create local path
             path_template = satellite_dict[instr][provider]\
                                       ['local']['path_template']
-            strsublst = satellite_dict[instr][provider]\
-                                  ['local']['strsub']
-            path_local = make_pathtofile(path_template,\
-                                     strsublst,\
-                                     sdate,\
-                                     mission=sat)
-        self.path_local = path_local
+            self.path_local = path_template
+        else:
+            self.path_local = path_local
         # retrieve files
         if download is False:
             print ("No download initialized, checking local files")
