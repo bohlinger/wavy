@@ -1,12 +1,15 @@
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytest
 
 from wavy.wconfig import load_or_default
+import wavy.satmod
+from wavy.satmod import satellite_class
 
 now = datetime.now()
-date = datetime(now.year, now.month, now.day)
+edate = datetime(now.year, now.month, now.day)
+sdate = datetime(now.year, now.month, now.day) - timedelta(hours=1)
 region = 'NordicSeas'
 sat = 's3a'
 varalias = 'Hs'
@@ -20,12 +23,11 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 
 @pytest.mark.need_credentials
 def test_ftp_files_and_init_satellite_class(tmpdir):
-    from wavy import satmod
     # evoke fct get_remote_files
     api_url = None
     sat = 's3a'
-    satmod.get_remote_files(tmpdir,
-                            date, date, twin, nproc,
+    wavy.satmod.get_remote_files(tmpdir,
+                            sdate, edate, twin, nproc,
                             instr, provider,api_url,sat)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
@@ -33,10 +35,7 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                 if '.nc' in filelist[i]]
     assert len(nclist) >= 1
     # init satellite_object and check for polygon region
-
-    from wavy.satmod import satellite_class
-
-    sa_obj = satellite_class(sdate=date,
+    sa_obj = satellite_class(sdate=sdate,edate=edate,
                              region=region,
                              sat=sat,
                              varalias=varalias,

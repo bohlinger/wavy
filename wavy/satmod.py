@@ -259,23 +259,24 @@ sat,path_local=None):
     tmpdate_s = datetime(tmpdate.year,tmpdate.month,1)
     while (tmpdate <= edate + relativedelta(months=+1)):
         try:
-            print(tmpdate)
-            print('path_local is None -> checking config file')
-            # create local path
-            path_template = satellite_dict[instr][provider]\
-                                  ['local']['path_template']
-            strsublst = satellite_dict[instr][provider]\
-                                ['local']['strsub']
-            print(path_template,strsublst)
-            path_local = make_pathtofile(path_template,\
-                                         strsublst,\
-                                         mission=sat)
-            path_local = (
-                        os.path.join(
-                        path_local,
-                        tmpdate.strftime('%Y'),
-                        tmpdate.strftime('%m'))
-                        )
+            if path_local is None:
+                print(tmpdate)
+                print('path_local is None -> checking config file')
+                # create local path
+                path_template = satellite_dict[instr][provider]\
+                                      ['local']['path_template']
+                strsublst = satellite_dict[instr][provider]\
+                                    ['local']['strsub']
+                print(path_template,strsublst)
+                path_local = make_pathtofile(path_template,\
+                                             strsublst,\
+                                             mission=sat)
+                path_local = (
+                            os.path.join(
+                            path_local,
+                            tmpdate.strftime('%Y'),
+                            tmpdate.strftime('%m'))
+                            )
             print(path_local)
             tmplst = np.sort(os.listdir(path_local))
             filelst.append(tmplst)
@@ -571,7 +572,8 @@ class satellite_class():
                             nproc,instr,provider,api_url,sat)
         t0=time.time()
         pathlst, filelst = get_local_files(sdate,edate,twin,
-                                        instr,provider,sat)
+                                        instr,provider,sat,
+                                        path_local=path_local)
         if len(pathlst) > 0:
             vardict = read_local_files(pathlst,provider,varalias)
             print('Total: ', len(vardict['time']), ' footprints found')
