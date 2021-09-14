@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "A package for processing wave measurements and wave model output."
 authors = ["Patrik Bohlinger <patrikb@met.no>"]
 
+[tool.poetry.scripts]
+wavyQuick = "apps.standalone.wavyQuick:main"
+wavyDownload = "apps.standalone.download:main"
+
 [tool.poetry.dependencies]
 python = "^3.8,<3.10"
 matplotlib = "^3.4.3"
