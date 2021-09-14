@@ -33,7 +33,6 @@ from wavy.utils import find_included_times, finditem
 
 # read yaml config files:
 model_dict = load_or_default('model_specs.yaml')
-buoy_dict = load_or_default('buoy_specs.yaml')
 station_dict = load_or_default('station_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
