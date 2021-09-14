@@ -44,7 +44,6 @@ from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-buoy_dict = load_or_default('buoy_specs.yaml')
 insitu_dict = load_or_default('insitu_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')

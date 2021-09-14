@@ -6,4 +6,4 @@ def test_load_default():
     assert isinstance(c, dict)
     print(c)
 
-    assert c['ARCMFC3']['vars']['Hs'] == 'VHM0'
+    assert c['ARCMFC3']['vardef']['Hs'] == 'VHM0'

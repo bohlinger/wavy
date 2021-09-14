@@ -13,16 +13,13 @@ from argparse import RawTextHelpFormatter
 
 # own import
 from wavy.satmod import get_remote_files
+from wavy.wconfig import load_or_default
 # -------------------------------------------------------------------- #
 
 
 def main():
     # read yaml config files:
-    moddir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../',
-                     'config/satellite_specs.yaml'))
-    with open(moddir, 'r') as stream:
-        satellite_dict = yaml.safe_load(stream)
+    satellite_dict = load_or_default('satellite_specs.yaml')
 
 # parser
     parser = argparse.ArgumentParser(description="""

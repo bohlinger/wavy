@@ -33,7 +33,7 @@ from wavy.utils import find_included_times, finditem
 
 # read yaml config files:
 model_dict = load_or_default('model_specs.yaml')
-station_dict = load_or_default('station_specs.yaml')
+insitu_dict = load_or_default('insitu_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
 
@@ -502,17 +502,19 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         else:
             globalAttribs['processing_level'] = \
                                 "No post-processing performed"
-        globalAttribs['static_position_station'] =  ("Latitude: "
-                            + str(station_dict['platform']\
-                                            [st_obj.platform]\
-                                            ['coords']['lat'])
+        globalAttribs['static_position_station'] =  \
+                            ("Latitude: "
+                            + str(station_dict\
+                                  [st_obj.nID]\
+                                  ['coords']['lat'])
                             + ", Longitude: "
-                            + str(station_dict['platform']\
-                                            [st_obj.platform]\
-                                            ['coords']['lon']))
-        globalAttribs['platform_operator'] = station_dict['platform']\
-                                           [st_obj.platform]\
-                                           ['operator']
+                            + str(station_dict\
+                                  [st_obj.nID]\
+                                  ['coords']['lon']))
+        globalAttribs['operator'] = \
+                            station_dict\
+                            [st_obj.nID]\
+                            ['operator']
         nc.setncatts(globalAttribs)
         nc.sync()
         nc.close()

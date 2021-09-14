@@ -15,20 +15,12 @@ from wavy.validationmod import validate, disp_validation
 from wavy.quicklookmod import comp_fig, plot_sat
 from wavy.collocmod import collocation_class as coll
 from wavy.ncmod import dumptonc_sat
+from wavy.wconfig import load_or_default
 
 
 def main():
-    moddir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../',
-                     'config/variable_info.yaml'))
-    with open(moddir, 'r') as stream:
-        variable_info = yaml.safe_load(stream)
-
-    moddir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../',
-                     'config/model_specs.yaml'))
-    with open(moddir, 'r') as stream:
-        model_dict = yaml.safe_load(stream)
+    variable_info = load_or_default('variable_info.yaml')
+    model_dict = load_or_default('model_specs.yaml')
 
 # parser
     parser = argparse.ArgumentParser(description="""
