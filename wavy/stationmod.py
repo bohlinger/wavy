@@ -222,7 +222,7 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,**kwargs):
     pathlst = [p + ('/' + file_template) for p in path_template]
     strsublst = insitu_dict[nID]['src']['strsub']
     if 'path_local' in kwargs.keys():
-        pathlst = [kwargs['path_local']]
+        pathlst = [kwargs['path_local'] + '/' + file_template]
     if fifo == 'nc':
         var, time, timedt, lons, lats, pathtofile = \
             get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,\

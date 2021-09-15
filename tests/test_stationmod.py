@@ -18,9 +18,7 @@ def test_data():
 def test_from_d22(test_data):
     nID = 'draugen'
     sensor = 'MKIIIradar_1'
-    print(test_data)
     st_obj = sc(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1,path_local=test_data)
-    print(type(st_obj))
     assert st_obj.__class__.__name__ == 'station_class'
     assert len(vars(st_obj).keys()) >= 10
     assert len(st_obj.vars.keys()) >= 6
