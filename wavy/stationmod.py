@@ -271,6 +271,7 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,**kwargs):
                *len(var)
         lats = [insitu_dict[nID]['coords'][sensor]['lat']]\
                *len(var)
+        pathtofile = path_template
     return var, time, timedt, lons, lats, fifo, pathtofile
 
 def get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,

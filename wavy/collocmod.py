@@ -499,8 +499,8 @@ class collocation_class():
         if leadtime is None:
             self.leadtime = 'best'
         # get vars dictionary
-#        try:
-        for i in range(1):
+        try:
+#        for i in range(1):
             t0=time.time()
             results_dict = collocate(mc_obj=mc_obj,
                                     obs_obj=obs_obj,
@@ -519,10 +519,10 @@ class collocation_class():
                 self.outlier_detection = obs_obj.outlier_detection
                 self.missing_data = obs_obj.missing_data
             print (" ### Collocation_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No collocation_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No collocation_class object initialized !")
         print ('# ----- ')
 
     def write_to_monthly_nc(self,path=None,filename=None):
@@ -531,6 +531,7 @@ class collocation_class():
             print('Erroneous collocation_class file detected')
             print('--> dump to netCDF not possible !')
         else:
+            print('Writing collocation time series to monthly files')
             tmpdate = self.sdate
             edate = self.edate
             while tmpdate <= edate:
@@ -552,7 +553,8 @@ class collocation_class():
                                                     ['local']['nc']\
                                                     ['path_template'][0]
                     if filename is None:
-                        file_template = collocation_dict['path'][self.obstype]\
+                        file_template = collocation_dict['path']\
+                                                    [self.obstype]\
                                                     ['local']['nc']\
                                                     ['file_template']
                     strsublst = collocation_dict['path'][self.obstype]\
