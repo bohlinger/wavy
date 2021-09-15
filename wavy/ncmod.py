@@ -204,11 +204,9 @@ def get_varlst_from_nc_1D(pathtofile,varlst,sdate,edate):
              for dt in dtvar]
     idx = find_included_times(dtime,sdate=sdate,edate=edate)
     for name in varlst:
-        if name != 'time':
-            var = nc.variables[name][idx]
-            vardict[name] = var
-        else:
-            vardict['dtime'] = np.array(dtime)[idx]
+        var = nc.variables[name][idx]
+        vardict[name] = var
+    vardict['dtime'] = np.array(dtime)[idx]
     nc.close()
     return vardict
 

@@ -196,20 +196,14 @@ def filter_data(varalias,vardict,output_dates=None,method=None,date_incr=1,**kwa
     elif output_dates is None: # original datetimes are used
         output_dates = vardict['datetime']
     output_grid = netCDF4.date2num(output_dates,units=vardict['time_unit'])
-    filtered_ts = apply_filter(varalias,newdict,output_grid,\
-                               output_dates,method=superob,\
-                               date_incr=date_incr,\
-                               **kwargs)
-    if missing_data == 'marginalize':
-        # proceeding with further nan-padded vardict
-        # apply marginalization
-        # values on output_grid if possible
-        # if not throw warning and give back on input grid
-        newdict[stdvarname] = list(filtered_ts)
-    elif missing_data == 'impute':
-        # for missing data apply imputation
-        # values on output_grid if possible
-        # if not throw warning and give back on input grid
+    filtered_ts, idx = apply_filter(varalias,newdict,output_grid,\
+                                    output_dates,method=method,\
+                                    date_incr=date_incr,\
+                                    **kwargs)
+    newdict[stdvarname] = list(filtered_ts)
+    for key in newdict:
+        if (key != stdvarname and key != 'time_unit' and key != 'meta'):
+            newdict[key] = list(np.array(newdict[key])[idx])
     return newdict
 
 def apply_filter(varalias,vardict,output_grid,\
