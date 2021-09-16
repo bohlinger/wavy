@@ -19,27 +19,110 @@ from wavy.utils import runmean_conv
 
 variable_info = load_or_default('variable_info.yaml')
 
-def filter_main():
+flatten = lambda l: [item for sublist in l for item in sublist]
+
+def filter_main(vardict_in,varalias='Hs',**kwargs):
     """ Governing function of filtermod
 
     Tasks:
         - check if prior/post transforms are needed
         - checks if cleaning is needed
         - checks if filter is needed
-        - checks if landmask is needed
+        - checks if land mask is needed
             - if so apply cleaning/filters to subsets
               i.e. each chunk will be fed into filter_data
               and consolidated when finished with all chunks
 
     Args:
+        - vardict
 
     Returns:
         vardict
     """
-    #return vardict
-    return
+    stdvarname = variable_info[varalias]['standard_name']
+    # clone vardict_in
+    vardict = deepcopy(vardict_in)
+    # start checking filters
+    # rm NaNs
+    vardict = rm_nan_from_vardict(varalias,vardict)
+    if ( kwargs.get('land_mask') is not None \
+    and kwargs['land_mask'] == True ):
+        del kwargs['land_mask']
+        vardict,sea_mask = apply_land_mask(vardict,**kwargs)
+        indices = start_stop(sea_mask, True)
+        # initialize newvardict with same keys
+        newvardict = deepcopy(vardict)
+        for key in vardict:
+            print(key)
+            if (key != 'time_unit' and key != 'meta'):
+                newvardict[key] = []
+        for start_idx, stop_idx in indices:
+            lenofchunk = len(list(range(start_idx, stop_idx)))
+            print('Length of chunk:',lenofchunk)
+            tmpdict = {}
+            for key in vardict:
+                if (key != 'time_unit' and key != 'meta'):
+                    tmpdict[key] = vardict[key][start_idx:stop_idx]
+                else:
+                    tmpdict[key] = vardict[key]
+            newtmpdict = filter_main(tmpdict,
+                                     varalias=varalias,
+                                     **kwargs)
+            # append to newvardict
+            for key in tmpdict:
+                if (key != 'time_unit' and key != 'meta'):
+                    newvardict[key].append(newtmpdict[key])
+        # flatten newvardict lists
+        for key in newvardict:
+            if (key != 'time_unit' and key != 'meta'):
+                newvardict[key] = flatten(newvardict[key])
+        vardict = newvardict
 
-def apply_landmask(vardict,land_mask_resolution='l', plot=False, conservative_mask=0):
+    else:
+        # add sliding window to enhance processing performance
+        # add filter iterations
+        if kwargs.get('limits') is not None:
+            vardict = apply_limits(varalias,vardict)
+        if kwargs.get('prior_transform') is not None:
+            method = kwargs.get('method')
+            vardict = apply_prior_transform(vardict,method = method)
+        if kwargs.get('clean') is not None:
+            #output_dates = kwargs.get('output_dates')
+            method = kwargs.get('clean')
+            #date_incr = kwargs.get('date_incr')
+            vardict = apply_clean(varalias,vardict,
+                              method = method,
+                              **kwargs)
+        if kwargs.get('filter') is not None:
+            output_dates = kwargs.get('output_dates')
+            method = kwargs.get('filter')
+            vardict = apply_filter(varalias,vardict,
+                               output_dates = output_dates,
+                               method = method,
+                               **kwargs)
+        if kwargs.get('post_transform') is not None:
+            method = kwargs.get('method')
+            vardict = apply_post_transform(vardict,method = method)
+
+    return vardict
+
+def rm_nan_from_vardict(varalias,vardict):
+    stdvarname = variable_info[varalias]['standard_name']
+    nanmask = ~np.isnan(vardict[stdvarname])
+    for key in vardict.keys():
+        if (key != 'time_unit' and key != 'meta'):
+            vardict[key] = list(np.array(vardict[key])[nanmask])
+    return vardict
+
+def start_stop(a, trigger_val):
+    # "Enclose" mask with sentients to catch shifts later on
+    mask = np.r_[False,np.equal(a, trigger_val),False]
+    # Get the shifting indices
+    idx = np.flatnonzero(mask[1:] != mask[:-1])
+    # Get the start and end indices with slicing along the shifting ones
+    return zip(idx[::2], idx[1::2]-1)
+
+def apply_land_mask(vardict,**kwargs):
     """ Mask out parts covering land
 
     Args:
@@ -54,8 +137,14 @@ def apply_landmask(vardict,land_mask_resolution='l', plot=False, conservative_ma
         land_mask
 
     """
-    longitudes = vardict['longitude']
-    latitudes = vardict['latitude']
+    print('Apply land mask')
+    # query kwargs
+    land_mask_resolution = kwargs.get('land_mask_resolution','l')
+    plotkey = kwargs.get('plot',False)
+    conservative_mask = kwargs.get('conservative_mask',0)
+    # continue with land mask filter
+    longitudes = np.array(vardict['longitude'])
+    latitudes = np.array(vardict['latitude'])
     f = cfeature.GSHHSFeature(scale=land_mask_resolution, levels=[1],
                                 facecolor=cfeature.COLORS['land'])
     # Create bbox to filter out land area of interest
@@ -69,7 +158,7 @@ def apply_landmask(vardict,land_mask_resolution='l', plot=False, conservative_ma
                         (left_lon, bottom_lat))
     bbox = sgeom.Polygon((swath_extent))
     #  Find the intersecting polygons with bbox in coarse resolution
-    intersecting_geoms = list(f.intersecting_geometries([left_lon, right_lon, bottom_lat, top_lat]))#0, 12, 30, 60])
+    intersecting_geoms = list(f.intersecting_geometries([left_lon, right_lon, bottom_lat, top_lat]))
     print("Nb intersecting geometries: {} ".format(len(intersecting_geoms)))
     land_geom = unary_union(intersecting_geoms)
     # Compute land mask vectorized
@@ -80,7 +169,7 @@ def apply_landmask(vardict,land_mask_resolution='l', plot=False, conservative_ma
         lm_idxs = np.where(lm_c==True)[0]
         land_mask[lm_idxs-conservative_mask] = True
         land_mask[lm_idxs+conservative_mask] = True
-    if plot:
+    if plotkey:
         plt.figure(figsize=(12, 12))
         ax = plt.axes(projection=ccrs.PlateCarree())
         ax.add_geometries(intersecting_geoms, ccrs.PlateCarree(),
@@ -92,9 +181,17 @@ def apply_landmask(vardict,land_mask_resolution='l', plot=False, conservative_ma
         ax.scatter(longitudes[land_mask],latitudes[land_mask],s=30,c='r', transform=ccrs.PlateCarree())
         ax.set_global()
         plt.show()
-    return land_mask
+    # apply filter to vardict
+    # invert bool
+    sea_mask = np.invert(land_mask)
+    for key in vardict.keys():
+        if (key != 'time_unit' and key != 'meta'):
+            vardict[key] = list(np.array(vardict[key])[sea_mask])
+    print('Number of disregarded values:', len(sea_mask[sea_mask==False]))
+    return vardict, sea_mask
 
-def impose_limits(varalias,vardict):
+def apply_limits(varalias,vardict):
+    print('Apply limits')
     print('Crude cleaning using valid range defined in variable_info.yaml')
     stdvarname = variable_info[varalias]['standard_name']
     clean_dict = deepcopy(vardict)
@@ -123,36 +220,39 @@ def root_data(vardict):
     newdict[stdvarname] = var_root
     return newdict
 
-def apply_prior_transform(vardict,method=None,**kwargs):
+def apply_prior_transform(vardict,method=None):
     print("Prepare data prior to further treatment")
+    print('Apply ',method)
     if method is None:
         newdict = vardict
     if method == 'square':
         newdict = square_data(vardict)
     return newdict
 
-def apply_post_transform(vardict,method=None,**kwargs):
+def apply_post_transform(vardict,method=None):
     print("Transform data back after treatment")
+    print('Apply ',method)
     if method is None:
         newdict = vardict
     if method == 'root':
         newdict = root_data(vardict)
     return newdict
 
-def clean_data(varalias,vardict,method='gam',**kwargs):
+def apply_clean(varalias,vardict,method='linearGAM',**kwargs):
     # rigorous data cleaning use techniques like:
     # blockVariance, GP, GAM, (quantile regression) random forest, ...
+    print('Apply clean')
     print('Cleaning data using method:', method)
     stdvarname = variable_info[varalias]['standard_name']
     clean_dict = deepcopy(vardict)
     dt = vardict['datetime']
     x = vardict['time']
     y = vardict[stdvarname]
-    if method=='gam':
+    if method=='linearGAM':
         idx = clean_linearGAM(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
-    if method=='gp':
+    if method=='GP':
         idx = clean_GP(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
@@ -160,11 +260,11 @@ def clean_data(varalias,vardict,method='gam',**kwargs):
         idx = clean_expectileGAM(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
-    clean_dict['indices'] = idx
+    #clean_dict['indices'] = idx
     clean_dict[stdvarname] = ts_clean
     return clean_dict
 
-def filter_data(varalias,vardict,output_dates=None,method=None,date_incr=1,**kwargs):
+def apply_filter(varalias,vardict,output_dates=None,method=None,date_incr=None,**kwargs):
     """
     Applies a filter to the data
     **kwargs includes method specific input for chosen method
@@ -178,6 +278,7 @@ def filter_data(varalias,vardict,output_dates=None,method=None,date_incr=1,**kwa
     Caution:    for some smoothers much more of time series has
                 to be included.
     """
+    print('Apply filter')
     print('Filter data using method:',method)
     stdvarname = variable_info[varalias]['standard_name']
     newdict = deepcopy(vardict)
@@ -195,8 +296,9 @@ def filter_data(varalias,vardict,output_dates=None,method=None,date_incr=1,**kwa
         del tmpd
     elif output_dates is None: # original datetimes are used
         output_dates = vardict['datetime']
-    output_grid = netCDF4.date2num(output_dates,units=vardict['time_unit'])
-    filtered_ts, idx = apply_filter(varalias,newdict,output_grid,\
+    output_grid = netCDF4.date2num(output_dates,\
+                                   units=vardict['time_unit'])
+    filtered_ts, idx = filtering(varalias,newdict,output_grid,\
                                     output_dates,method=method,\
                                     date_incr=date_incr,\
                                     **kwargs)
@@ -206,15 +308,15 @@ def filter_data(varalias,vardict,output_dates=None,method=None,date_incr=1,**kwa
             newdict[key] = list(np.array(newdict[key])[idx])
     return newdict
 
-def apply_filter(varalias,vardict,output_grid,\
-output_dates, method='gam', date_incr=None,**kwargs):
+def filtering(varalias,vardict,output_grid,\
+output_dates, method='linearGAM', date_incr=None,**kwargs):
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
     x = vardict['time']
     y = vardict[stdvarname]
     X = output_grid
     idx = collocate_times(list(dt),output_dates)
-    if method=='gam':
+    if method=='linearGAM':
         # NaNs need to be removed before gam
         tmpvar = np.array(y)
         tmptime = np.array(x)
@@ -238,7 +340,7 @@ output_dates, method='gam', date_incr=None,**kwargs):
         x = tmptime
         dt = tmpdtime
         filtered_ts = filter_expectileGAM(x,y,X,varalias,**kwargs)
-    elif method=='gp':
+    elif method=='GP':
         # NaNs need to be removed before gp
         tmpvar = np.array(y)
         tmptime = np.array(x)
@@ -250,7 +352,7 @@ output_dates, method='gam', date_incr=None,**kwargs):
         x = tmptime
         dt = tmpdtime
         filtered_ts = filter_GP(x,y,X,varalias,**kwargs)
-    elif method=='nigp':
+    elif method=='NIGP':
         # NaNs need to be removed before gp
         tmpvar = np.array(y)
         tmptime = np.array(x)
@@ -347,14 +449,16 @@ def filter_linearGAM(x,y,X,varalias,**kwargs):
         X = x.reshape(len(x),1)
     else:
         X = X.reshape(len(X),1)
-    if 'n_splines' in kwargs.keys():
-        n_splines = kwargs['n_splines']
-    else:
-        # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/5)
-    gam = LinearGAM(n_splines=n_splines,\
-                    terms=s(0,basis='ps')\
-                    ).gridsearch(x, y)
+    #if 'n_splines' in kwargs.keys():
+    #    n_splines = kwargs['n_splines']
+    #else:
+    #    # This is because the automatic approach is too smooth
+    #    n_splines = int(len(y)/5)
+    #gam = LinearGAM(n_splines=n_splines,\
+    #                terms=s(0,basis='ps')\
+    #                ).gridsearch(x, y)
+    gam = LinearGAM( terms=s(0,basis='ps')\
+                    ).gridsearch(x, y )
     # sample on the input grid
     means = gam.predict(X)
     return means
@@ -369,17 +473,19 @@ def filter_expectileGAM(x,y,X,varalias,**kwargs):
         X = deepcopy(x)
     x = x.reshape(len(x),1)
     X = X.reshape(len(X),1)
-    if 'n_splines' in kwargs.keys():
-        n_splines = kwargs['n_splines']
-    else:
-        # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/5)
+    #if 'n_splines' in kwargs.keys():
+    #    n_splines = kwargs['n_splines']
+    #else:
+    #    # This is because the automatic approach is too smooth
+    #    n_splines = int(len(y)/5)
     if 'expectile' in kwargs.keys():
         expectile = kwargs['expectile']
     else:
         expectile = .5
+    #gam50 = ExpectileGAM(expectile=expectile,terms=s(0),\
+    #                    n_splines=n_splines).gridsearch(x, y)
     gam50 = ExpectileGAM(expectile=expectile,terms=s(0),\
-                        n_splines=n_splines).gridsearch(x, y)
+                        ).gridsearch(x, y)
     # This practice of copying makes the models
     # less likely to cross and much faster
     # https://pygam.readthedocs.io/en/latest/notebooks/tour_of_pygam.html
@@ -501,13 +607,15 @@ def clean_expectileGAM(x,y,varalias,**kwargs):
     if isinstance(y,list):
         y = np.array(y)
     X = x.reshape(len(x),1)
-    if 'n_splines' in kwargs.keys():
-        n_splines = kwargs['n_splines']
-    else:
-        # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/5)
+    #if 'n_splines' in kwargs.keys():
+    #    n_splines = kwargs['n_splines']
+    #else:
+    #    # This is because the automatic approach is too smooth
+    #    n_splines = int(len(y)/5)
+    #gam50 = ExpectileGAM(expectile=.5,terms=s(0),\
+    #                    n_splines=n_splines).gridsearch(X, y)
     gam50 = ExpectileGAM(expectile=.5,terms=s(0),\
-                        n_splines=n_splines).gridsearch(X, y)
+                        ).gridsearch(X, y)
     # This practice of copying makes the models
     # less likely to cross and much faster
     # https://pygam.readthedocs.io/en/latest/notebooks/tour_of_pygam.html
@@ -522,10 +630,14 @@ def clean_expectileGAM(x,y,varalias,**kwargs):
         expectile_llim = kwargs['expectile_llim']
     else:
         expectile_llim = .05
+    #gam_ulim = ExpectileGAM(expectile=expectile_ulim, lam=lam,
+    #                    terms=s(0),n_splines=n_splines).fit(X, y)
+    #gam_llim = ExpectileGAM(expectile=expectile_llim, lam=lam,
+    #                    terms=s(0),n_splines=n_splines).fit(X, y)
     gam_ulim = ExpectileGAM(expectile=expectile_ulim, lam=lam,
-                        terms=s(0),n_splines=n_splines).fit(X, y)
+                        terms=s(0)).fit(X, y)
     gam_llim = ExpectileGAM(expectile=expectile_llim, lam=lam,
-                        terms=s(0),n_splines=n_splines).fit(X, y)
+                        terms=s(0)).fit(X, y)
     ulim = gam_ulim.predict(X)
     llim = gam_llim.predict(X)
     idx = [i for i in range(len(y)) \
@@ -539,14 +651,15 @@ def clean_linearGAM(x,y,varalias,**kwargs):
     if isinstance(y,list):
         y = np.array(y)
     X = x.reshape(len(x),1)
-    if 'n_splines' in kwargs.keys():
-        n_splines = kwargs['n_splines']
-    else:
-        # This is because the automatic approach is too smooth
-        n_splines = int(len(y)/5)
-    gam = LinearGAM(n_splines=n_splines,\
-                    terms=s(0,basis='ps')\
-                    ).gridsearch(X, y)
+    #if 'n_splines' in kwargs.keys():
+    #    n_splines = kwargs['n_splines']
+    #else:
+    #    # This is because the automatic approach is too smooth
+    #    #n_splines = int(len(y)/5)
+    #gam = LinearGAM(n_splines=n_splines,\
+    #                terms=s(0,basis='ps')\
+    #                ).gridsearch(X, y)
+    gam = LinearGAM(terms=s(0,basis='ps')).gridsearch(X, y)
     #gam = LinearGAM(n_splines=n_splines,terms=s(0)).gridsearch(X, y)
     # sample on the input grid
     means = gam.predict(X)
