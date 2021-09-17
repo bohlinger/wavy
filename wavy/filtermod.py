@@ -42,9 +42,13 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
     stdvarname = variable_info[varalias]['standard_name']
     # clone vardict_in
     vardict = deepcopy(vardict_in)
-    # start checking filters
     # rm NaNs
     vardict = rm_nan_from_vardict(varalias,vardict)
+    # apply physical limits
+    if kwargs.get('limits') is not None:
+        vardict = apply_limits(varalias,vardict)
+
+    # start main filter section
     if ( kwargs.get('land_mask') is not None \
     and kwargs['land_mask'] == True ):
         del kwargs['land_mask']
@@ -53,7 +57,6 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
         # initialize newvardict with same keys
         newvardict = deepcopy(vardict)
         for key in vardict:
-            print(key)
             if (key != 'time_unit' and key != 'meta'):
                 newvardict[key] = []
         for start_idx, stop_idx in indices:
@@ -79,32 +82,67 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
         vardict = newvardict
 
     else:
-        # add sliding window to enhance processing performance
-        # add filter iterations
-        if kwargs.get('limits') is not None:
-            vardict = apply_limits(varalias,vardict)
-        if kwargs.get('prior_transform') is not None:
-            method = kwargs.get('method')
-            vardict = apply_prior_transform(vardict,method = method)
-        if kwargs.get('clean') is not None:
-            #output_dates = kwargs.get('output_dates')
-            method = kwargs.get('clean')
-            #date_incr = kwargs.get('date_incr')
-            vardict = apply_clean(varalias,vardict,
+        if kwargs.get('itr') is not None:
+           # add filter iterations
+            pass
+        else:
+            if kwargs.get('slider') is not None:
+                # create chunks with size of slider
+                vardict = filter_slider(vardict,varalias,**kwargs)
+            else:
+                if kwargs.get('priorOp') is not None:
+                    method = kwargs.get('method')
+                    vardict = apply_priorOp(vardict,method = method)
+                if kwargs.get('cleaner') is not None:
+                    #output_dates = kwargs.get('output_dates')
+                    method = kwargs.get('cleaner')
+                    #date_incr = kwargs.get('date_incr')
+                    vardict = apply_cleaner(varalias,vardict,
                               method = method,
                               **kwargs)
-        if kwargs.get('filter') is not None:
-            output_dates = kwargs.get('output_dates')
-            method = kwargs.get('filter')
-            vardict = apply_filter(varalias,vardict,
+                if kwargs.get('smoother') is not None:
+                    output_dates = kwargs.get('output_dates')
+                    method = kwargs.get('smoother')
+                    vardict = apply_smoother(varalias,vardict,
                                output_dates = output_dates,
                                method = method,
                                **kwargs)
-        if kwargs.get('post_transform') is not None:
-            method = kwargs.get('method')
-            vardict = apply_post_transform(vardict,method = method)
+                if kwargs.get('postOp') is not None:
+                    method = kwargs.get('method')
+                    vardict = apply_postOp(vardict,method = method)
 
     return vardict
+
+def filter_slider(vardict,varalias,**kwargs):
+        slider = kwargs['slider']
+        del kwargs['slider']
+        newvardict = deepcopy(vardict)
+        for key in vardict:
+            if (key != 'time_unit' and key != 'meta'):
+                newvardict[key] = []
+        for i in range(0,len(vardict['time'])+slider,slider):
+            start_idx = i
+            stop_idx = i + 1
+            if i > len(vardict['time']):
+                stop_idx = len(vardict['time']) + 1
+            tmpdict = {}
+            for key in vardict:
+                if (key != 'time_unit' and key != 'meta'):
+                    tmpdict[key] = vardict[key][start_idx:stop_idx]
+                else:
+                    tmpdict[key] = vardict[key]
+            newtmpdict = filter_main(tmpdict,
+                                     varalias=varalias,
+                                     **kwargs)
+            # append to newvardict
+            for key in tmpdict:
+                if (key != 'time_unit' and key != 'meta'):
+                    newvardict[key].append(newtmpdict[key])
+        # flatten newvardict lists
+        for key in newvardict:
+            if (key != 'time_unit' and key != 'meta'):
+                newvardict[key] = flatten(newvardict[key])
+        return newvardict
 
 def rm_nan_from_vardict(varalias,vardict):
     stdvarname = variable_info[varalias]['standard_name']
@@ -220,7 +258,7 @@ def root_data(vardict):
     newdict[stdvarname] = var_root
     return newdict
 
-def apply_prior_transform(vardict,method=None):
+def apply_priorOp(vardict,method=None):
     print("Prepare data prior to further treatment")
     print('Apply ',method)
     if method is None:
@@ -229,7 +267,7 @@ def apply_prior_transform(vardict,method=None):
         newdict = square_data(vardict)
     return newdict
 
-def apply_post_transform(vardict,method=None):
+def apply_postOp(vardict,method=None):
     print("Transform data back after treatment")
     print('Apply ',method)
     if method is None:
@@ -238,10 +276,10 @@ def apply_post_transform(vardict,method=None):
         newdict = root_data(vardict)
     return newdict
 
-def apply_clean(varalias,vardict,method='linearGAM',**kwargs):
+def apply_cleaner(varalias,vardict,method='linearGAM',**kwargs):
     # rigorous data cleaning use techniques like:
     # blockVariance, GP, GAM, (quantile regression) random forest, ...
-    print('Apply clean')
+    print('Apply cleaner')
     print('Cleaning data using method:', method)
     stdvarname = variable_info[varalias]['standard_name']
     clean_dict = deepcopy(vardict)
@@ -249,24 +287,24 @@ def apply_clean(varalias,vardict,method='linearGAM',**kwargs):
     x = vardict['time']
     y = vardict[stdvarname]
     if method=='linearGAM':
-        idx = clean_linearGAM(x,y,varalias,**kwargs)
+        idx = cleaner_linearGAM(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
     if method=='GP':
-        idx = clean_GP(x,y,varalias,**kwargs)
+        idx = cleaner_GP(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
     if method=='expectileGAM':
-        idx = clean_expectileGAM(x,y,varalias,**kwargs)
+        idx = cleaner_expectileGAM(x,y,varalias,**kwargs)
         ts_clean = np.array(y)
         ts_clean[idx] = np.nan
     #clean_dict['indices'] = idx
     clean_dict[stdvarname] = ts_clean
     return clean_dict
 
-def apply_filter(varalias,vardict,output_dates=None,method=None,date_incr=None,**kwargs):
+def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None,**kwargs):
     """
-    Applies a filter to the data
+    Applies a smoother to the data
     **kwargs includes method specific input for chosen method
     Methods are:
             block-average
@@ -278,8 +316,8 @@ def apply_filter(varalias,vardict,output_dates=None,method=None,date_incr=None,*
     Caution:    for some smoothers much more of time series has
                 to be included.
     """
-    print('Apply filter')
-    print('Filter data using method:',method)
+    print('Apply smoother')
+    print('Smooth data using method:',method)
     stdvarname = variable_info[varalias]['standard_name']
     newdict = deepcopy(vardict)
     # determine the output grid
@@ -298,17 +336,17 @@ def apply_filter(varalias,vardict,output_dates=None,method=None,date_incr=None,*
         output_dates = vardict['datetime']
     output_grid = netCDF4.date2num(output_dates,\
                                    units=vardict['time_unit'])
-    filtered_ts, idx = filtering(varalias,newdict,output_grid,\
+    smoothed_ts, idx = smoothing(varalias,newdict,output_grid,\
                                     output_dates,method=method,\
                                     date_incr=date_incr,\
                                     **kwargs)
-    newdict[stdvarname] = list(filtered_ts)
+    newdict[stdvarname] = list(smoothed_ts)
     for key in newdict:
         if (key != stdvarname and key != 'time_unit' and key != 'meta'):
             newdict[key] = list(np.array(newdict[key])[idx])
     return newdict
 
-def filtering(varalias,vardict,output_grid,\
+def smoothing(varalias,vardict,output_grid,\
 output_dates, method='linearGAM', date_incr=None,**kwargs):
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
@@ -327,7 +365,7 @@ output_dates, method='linearGAM', date_incr=None,**kwargs):
         y = tmpvar
         x = tmptime
         dt = tmpdtime
-        filtered_ts = filter_linearGAM(x,y,X,varalias,**kwargs)
+        smoothed_ts = smoother_linearGAM(x,y,X,varalias,**kwargs)
     elif method=='expectileGAM':
         # NaNs need to be removed before gam
         tmpvar = np.array(y)
@@ -339,7 +377,7 @@ output_dates, method='linearGAM', date_incr=None,**kwargs):
         y = tmpvar
         x = tmptime
         dt = tmpdtime
-        filtered_ts = filter_expectileGAM(x,y,X,varalias,**kwargs)
+        smoothed_ts = smoother_expectileGAM(x,y,X,varalias,**kwargs)
     elif method=='GP':
         # NaNs need to be removed before gp
         tmpvar = np.array(y)
@@ -351,7 +389,7 @@ output_dates, method='linearGAM', date_incr=None,**kwargs):
         y = tmpvar
         x = tmptime
         dt = tmpdtime
-        filtered_ts = filter_GP(x,y,X,varalias,**kwargs)
+        smoothed_ts = smoother_GP(x,y,X,varalias,**kwargs)
     elif method=='NIGP':
         # NaNs need to be removed before gp
         tmpvar = np.array(y)
@@ -363,21 +401,21 @@ output_dates, method='linearGAM', date_incr=None,**kwargs):
         y = tmpvar
         x = tmptime
         dt = tmpdtime
-        filtered_ts = filter_NIGP(x,y,X,varalias,**kwargs)
-    elif method=='block_mean':
+        smoothed_ts = smoother_NIGP(x,y,X,varalias,**kwargs)
+    elif method=='blockMean':
         # blocks are means from date_incr in hours
         # For each grid_input time_stamp compute mean of hour
         # if at least half of values are valid
         # else attribute NaN
-        filtered_ts = filter_block_means(dt,x,y,output_dates,date_incr)
+        smoothed_ts = smoother_blockMean(dt,x,y,output_dates,date_incr)
     elif method=='lanczos':
         y = vardict[stdvarname]
         window = kwargs['window']
         cutoff = kwargs['cutoff']
-        filtered_ts = filter_lanczos(y,window,cutoff)
-        filtered_ts = filtered_ts[idx]
+        smoothed_ts = smoother_lanczos(y,window,cutoff)
+        smoothed_ts = smoothed_ts[idx]
     else: print('Method not defined, please enter valid method')
-    return filtered_ts, idx
+    return smoothed_ts, idx
 
 def lanczos_weights(window,cutoff):
     """ Calculate weights for a low pass Lanczos filter
@@ -403,13 +441,13 @@ def lanczos_weights(window,cutoff):
     w[n+1:-1] = firstfactor * sigma
     return w[1:-1]
 
-def filter_lanczos(y,window,cutoff):
+def smoother_lanczos(y,window,cutoff):
     from utils import runmean
     weights = lanczos_weights(window,cutoff)
     ts, std = runmean(y,window,mode='centered',weights=weights)
     return ts
 
-def filter_block_means(dt,x,y,output_dates,date_incr):
+def smoother_blockMean(dt,x,y,output_dates,date_incr):
     means = []
     if isinstance(x,list):
         x = np.array(x)
@@ -436,7 +474,7 @@ def filter_block_means(dt,x,y,output_dates,date_incr):
     means = np.array(means)
     return means
 
-def filter_linearGAM(x,y,X,varalias,**kwargs):
+def smoother_linearGAM(x,y,X,varalias,**kwargs):
     from pygam import LinearGAM, l, s
     if isinstance(x,list):
         x = np.array(x)
@@ -463,7 +501,7 @@ def filter_linearGAM(x,y,X,varalias,**kwargs):
     means = gam.predict(X)
     return means
 
-def filter_expectileGAM(x,y,X,varalias,**kwargs):
+def smoother_expectileGAM(x,y,X,varalias,**kwargs):
     from pygam import s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
@@ -493,7 +531,7 @@ def filter_expectileGAM(x,y,X,varalias,**kwargs):
     pred = gam50.predict(X)
     return pred
 
-def filter_GP(x,y,X,varalias,**kwargs):
+def smoother_GP(x,y,X,varalias,**kwargs):
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
@@ -535,7 +573,7 @@ def filter_GP(x,y,X,varalias,**kwargs):
     y_pred = y_pred + np.nanmean(y)
     return y_pred
 
-def filter_NIGP(x,y,X,varalias,**kwargs):
+def smoother_NIGP(x,y,X,varalias,**kwargs):
     import numpy as np
     from GPfcts import nll_fn_nigp
     from GPfcts import posterior_predictive_nigp
@@ -555,7 +593,7 @@ def filter_NIGP(x,y,X,varalias,**kwargs):
     # create a zero mean process
     Y = y.reshape(-1,1) - np.nanmean(y)
     # initialize using using standard GP
-    mu = filter_GP(x,Y,x,varalias,**kwargs)
+    mu = smoother_GP(x,Y,x,varalias,**kwargs)
     # define inits
     inits = np.array([1,1,1,1])
     # define bounds
@@ -600,7 +638,7 @@ def filter_NIGP(x,y,X,varalias,**kwargs):
     mu += np.mean(y)
     return mu
 
-def clean_expectileGAM(x,y,varalias,**kwargs):
+def cleaner_expectileGAM(x,y,varalias,**kwargs):
     from pygam import s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
@@ -644,7 +682,7 @@ def clean_expectileGAM(x,y,varalias,**kwargs):
             if (y[i]>ulim[i] or y[i]<llim[i])]
     return idx
 
-def clean_linearGAM(x,y,varalias,**kwargs):
+def cleaner_linearGAM(x,y,varalias,**kwargs):
     from pygam import LinearGAM, l, s
     if isinstance(x,list):
         x = np.array(x)
@@ -668,7 +706,7 @@ def clean_linearGAM(x,y,varalias,**kwargs):
             if (y[i]>bounds[i,1] or y[i]<bounds[i,0])]
     return idx
 
-def clean_GP(x,y,varalias,**kwargs):
+def cleaner_GP(x,y,varalias,**kwargs):
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
