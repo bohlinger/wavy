@@ -120,11 +120,11 @@ def filter_slider(vardict,varalias,**kwargs):
         for key in vardict:
             if (key != 'time_unit' and key != 'meta'):
                 newvardict[key] = []
-        for i in range(0,len(vardict['time'])+slider,slider):
+        for i in range(0,len(vardict['time']),slider):
             start_idx = i
-            stop_idx = i + 1
-            if i > len(vardict['time']):
-                stop_idx = len(vardict['time']) + 1
+            stop_idx = i + slider
+            if i == range(0,len(vardict['time']),slider)[-1]:
+                stop_idx = len(vardict['time']) -1
             tmpdict = {}
             for key in vardict:
                 if (key != 'time_unit' and key != 'meta'):
