@@ -82,34 +82,30 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
         vardict = newvardict
 
     else:
-        if kwargs.get('itr') is not None:
-           # add filter iterations
-            pass
+        if kwargs.get('slider') is not None:
+            # create chunks with size of slider
+            vardict = filter_slider(vardict,varalias,**kwargs)
         else:
-            if kwargs.get('slider') is not None:
-                # create chunks with size of slider
-                vardict = filter_slider(vardict,varalias,**kwargs)
-            else:
-                if kwargs.get('priorOp') is not None:
-                    method = kwargs.get('method')
-                    vardict = apply_priorOp(vardict,method = method)
-                if kwargs.get('cleaner') is not None:
-                    #output_dates = kwargs.get('output_dates')
-                    method = kwargs.get('cleaner')
-                    #date_incr = kwargs.get('date_incr')
-                    vardict = apply_cleaner(varalias,vardict,
-                              method = method,
-                              **kwargs)
-                if kwargs.get('smoother') is not None:
-                    output_dates = kwargs.get('output_dates')
-                    method = kwargs.get('smoother')
-                    vardict = apply_smoother(varalias,vardict,
-                               output_dates = output_dates,
-                               method = method,
-                               **kwargs)
-                if kwargs.get('postOp') is not None:
-                    method = kwargs.get('method')
-                    vardict = apply_postOp(vardict,method = method)
+            if kwargs.get('priorOp') is not None:
+                method = kwargs.get('method')
+                vardict = apply_priorOp(vardict,method = method)
+            if kwargs.get('cleaner') is not None:
+                #output_dates = kwargs.get('output_dates')
+                method = kwargs.get('cleaner')
+                #date_incr = kwargs.get('date_incr')
+                vardict = apply_cleaner(varalias,vardict,
+                            method = method,
+                            **kwargs)
+            if kwargs.get('smoother') is not None:
+                output_dates = kwargs.get('output_dates')
+                method = kwargs.get('smoother')
+                vardict = apply_smoother(varalias,vardict,
+                            output_dates = output_dates,
+                            method = method,
+                            **kwargs)
+            if kwargs.get('postOp') is not None:
+                method = kwargs.get('method')
+                vardict = apply_postOp(vardict,method = method)
 
     return vardict
 
@@ -282,25 +278,30 @@ def apply_cleaner(varalias,vardict,method='linearGAM',**kwargs):
     print('Apply cleaner')
     print('Cleaning data using method:', method)
     stdvarname = variable_info[varalias]['standard_name']
-    clean_dict = deepcopy(vardict)
-    dt = vardict['datetime']
-    x = vardict['time']
-    y = vardict[stdvarname]
-    if method=='linearGAM':
-        idx = cleaner_linearGAM(x,y,varalias,**kwargs)
-        ts_clean = np.array(y)
-        ts_clean[idx] = np.nan
-    if method=='GP':
-        idx = cleaner_GP(x,y,varalias,**kwargs)
-        ts_clean = np.array(y)
-        ts_clean[idx] = np.nan
-    if method=='expectileGAM':
-        idx = cleaner_expectileGAM(x,y,varalias,**kwargs)
-        ts_clean = np.array(y)
-        ts_clean[idx] = np.nan
-    #clean_dict['indices'] = idx
-    clean_dict[stdvarname] = ts_clean
-    return clean_dict
+    if kwargs.get('itr') is not None:
+        itr = kwargs['itr']
+    else: itr = 1
+    for i in range(itr):
+        clean_dict = rm_nan_from_vardict(varalias,vardict)
+        dt = vardict['datetime']
+        x = vardict['time']
+        y = vardict[stdvarname]
+        if method=='linearGAM':
+            idx = cleaner_linearGAM(x,y,varalias,**kwargs)
+            ts_clean = np.array(y)
+            ts_clean[idx] = np.nan
+        if method=='GP':
+            idx = cleaner_GP(x,y,varalias,**kwargs)
+            ts_clean = np.array(y)
+            ts_clean[idx] = np.nan
+        if method=='expectileGAM':
+            idx = cleaner_expectileGAM(x,y,varalias,**kwargs)
+            ts_clean = np.array(y)
+            ts_clean[idx] = np.nan
+        #clean_dict['indices'] = idx
+        clean_dict[stdvarname] = ts_clean
+        vardict = clean_dict
+    return vardict
 
 def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None,**kwargs):
     """
