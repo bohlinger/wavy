@@ -46,6 +46,7 @@ from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.wconfig import load_or_default
+from wavy.filtermod import filter_main
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -450,6 +451,89 @@ def read_local_files(pathlst,provider,varalias):
         vardict = read_local_files_eumetsat(pathlst,provider,varalias)
     return vardict
 
+def get_sat_ts(sdate,edate,twin,region,instr,provider,sat,
+    pathlst,varalias):
+    #
+    vardict = read_local_files(pathlst,provider,varalias)
+    print('Total: ', len(vardict['time']), ' footprints found')
+    # find values for give time constraint
+    dtime = list( netCDF4.num2date(vardict['time'],
+                                    vardict['time_unit']) )
+    cidx = collocate_times(dtime,sdate=sdate,edate=edate,twin=twin)
+    cvardict = {}
+    for element in vardict:
+        if element != 'time_unit':
+            cvardict[element] = list(np.array(
+                                    vardict[element]
+                                    )[cidx])
+        else:
+            cvardict[element] = vardict[element]
+    del vardict
+    print('In chosen time period: ', len(cvardict['time']),
+        ' footprints found')
+    # find values for given region
+    ridx = matchregion(cvardict['latitude'],
+                       cvardict['longitude'],
+                       region=region,grid_date=sdate)
+    rvardict = {}
+    for element in cvardict:
+        if element != 'time_unit':
+            rvardict[element] = list(np.array(
+                                    cvardict[element]
+                                    )[ridx])
+        else:
+            rvardict[element] = cvardict[element]
+    del cvardict
+    if len(rvardict['time'])>0:
+        rvardict['datetime'] = netCDF4.num2date(
+                                    rvardict['time'],
+                                    rvardict['time_unit'])
+        print('For chosen region and time: ',
+                len(rvardict['time']),'footprints found')
+        # convert to datetime object
+        timedt = rvardict['datetime']
+        rvardict['datetime'] = [datetime(t.year,t.month,t.day,
+                    t.hour,t.minute,t.second) for t in timedt]
+    else:
+        print('For chosen region and time: 0 footprints found!')
+    # find variable name as defined in file
+    stdname = variable_info[varalias]['standard_name']
+    if provider == 'cmems':
+        ncdict = ncdumpMeta(pathlst[0])
+    if provider == 'eumetsat':
+        tmpdir = tempfile.TemporaryDirectory()
+        zipped = zipfile.ZipFile(pathlst[0])
+        enhanced_measurement = zipped.namelist()[-1]
+        extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
+        ncdict = ncdumpMeta(extracted)
+        tmpdir.cleanup()
+    filevarname = get_varname_for_cf_stdname_in_ncfile(
+                                        ncdict,stdname)
+    if (len(filevarname) or filename is None) > 1:
+        filevarname = satellite_dict[instr][provider]\
+                    ['misc']['vardef'][stdname]
+    else:
+        filevarname = get_varname_for_cf_stdname_in_ncfile(
+                                            ncdict,stdname)[0]
+    rvardict['meta'] = ncdict
+    return rvardict
+
+def crop_vardict_to_period(vardict,sdate,edate,stdvarname):
+    for key in vardict:
+        if (key != 'time_unit' and key != 'meta' and key != 'datetime'):
+            vardict[key] =  list(np.array(vardict[key])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)
+                                ) ])
+        else:
+            vardict[key] = vardict[key]
+    vardict['datetime'] =   list(np.array(vardict['datetime'])[ \
+                                ( (np.array(vardict['datetime'])>=sdate)
+                                & (np.array(vardict['datetime'])<=edate)
+                                ) ])
+    return vardict
+
+
 # flatten all lists before returning them
 # define flatten function for lists
 ''' fct does the following:
@@ -494,8 +578,9 @@ class satellite_class():
     def __init__(
         self,sdate,sat='s3a',instr='altimeter',provider='cmems',
         edate=None,twin=None,download=False,path_local=None,
-        remote_ftp_path=None,region=None,nproc=1,varalias='Hs'
-        ):
+        remote_ftp_path=None,region=None,nproc=1,varalias='Hs',
+        filterData=False,**kwargs):
+
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
         # check settings
@@ -527,51 +612,35 @@ class satellite_class():
         pathlst, filelst = get_local_files(sdate,edate,twin,
                                         instr,provider,sat,
                                         path_local=path_local)
+        stdname = variable_info[varalias]['standard_name']
         if len(pathlst) > 0:
-            vardict = read_local_files(pathlst,provider,varalias)
-            print('Total: ', len(vardict['time']), ' footprints found')
-            # find values for give time constraint
-            dtime = list( netCDF4.num2date(vardict['time'],
-                                           vardict['time_unit']) )
-            cidx = collocate_times(dtime,sdate=sdate,edate=edate,twin=twin)
-            cvardict = {}
-            for element in vardict:
-                if element != 'time_unit':
-                    cvardict[element] = list(np.array(
-                                            vardict[element]
-                                            )[cidx])
-                else:
-                    cvardict[element] = vardict[element]
-            del vardict
-            print('In chosen time period: ', len(cvardict['time']),
-                ' footprints found')
-            # find values for given region
-            ridx = self.matchregion(cvardict['latitude'],
-                                cvardict['longitude'],
-                                region=region,grid_date=sdate)
-            rvardict = {}
-            for element in cvardict:
-                if element != 'time_unit':
-                    rvardict[element] = list(np.array(
-                                            cvardict[element]
-                                            )[ridx])
-                else:
-                    rvardict[element] = cvardict[element]
-            del cvardict
-            if len(rvardict['time'])>0:
-                rvardict['datetime'] = netCDF4.num2date(
-                                            rvardict['time'],
-                                            rvardict['time_unit'])
-                print('For chosen region and time: ',
-                        len(rvardict['time']),'footprints found')
-                # convert to datetime object
-                timedt = rvardict['datetime']
-                rvardict['datetime'] = [datetime(t.year,t.month,t.day,
-                          t.hour,t.minute,t.second) for t in timedt]
+            if filterData == True:
+                # extend time period due to filter
+                if 'stwin' not in kwargs.keys():
+                    kwargs['stwin'] = 1 # needs to be changed
+                if 'etwin' not in kwargs.keys():
+                    kwargs['etwin'] = 1
+                twin_tmp = twin + kwargs['stwin'] + kwargs['etwin']
+                # retrieve data
+                rvardict = get_sat_ts( sdate,edate,
+                                       twin_tmp,region,instr,
+                                       provider,sat,pathlst,
+                                       varalias )
+                # filter data
+                rvardict = filter_main( rvardict,
+                                        varalias = varalias,
+                                        **kwargs )
+                # crop to original time period
+                sdate_tmp = sdate - timedelta(minutes=twin)
+                edate_tmp = sdate + timedelta(minutes=twin)
+                rvardict = crop_vardict_to_period(rvardict,
+                                                  sdate_tmp,
+                                                  edate_tmp,
+                                                  stdname)
             else:
-                print('For chosen region and time: 0 footprints found!')
+                rvardict = get_sat_ts(sdate,edate,twin,region,instr,
+                                      provider,sat,pathlst,varalias)
             # find variable name as defined in file
-            stdname = variable_info[varalias]['standard_name']
             if provider == 'cmems':
                 ncdict = ncdumpMeta(pathlst[0])
             if provider == 'eumetsat':
@@ -585,11 +654,13 @@ class satellite_class():
                                                 ncdict,stdname)
             if (len(filevarname) or filename is None) > 1:
                 filevarname = satellite_dict[instr][provider]\
-                            ['misc']['vardef'][stdname]
+                                            ['misc']['vardef']\
+                                            [stdname]
             else:
                 filevarname = get_varname_for_cf_stdname_in_ncfile(
                                                     ncdict,stdname)[0]
             rvardict['meta'] = ncdict
+
             # define class variables
             self.edate = edate
             self.sdate = sdate
@@ -612,166 +683,166 @@ class satellite_class():
             print ('# ----- ')
 
 
-    def matchregion(self,LATS,LONS,region,grid_date):
-        # region in region_dict[poly]:
-        # find values for given region
-        if (region not in region_dict['poly'] and \
-        region not in model_dict):
-            if region is None:
-                region = 'global'
-            if ~isinstance(region,str)==True:
-                print ("Manually specified region "
-                    + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n"
-                    + " --> Bounds: " + str(region))
-            else:
-                if region not in region_dict['rect']:
-                    sys.exit("Region is not defined")
-                else:
-                    print("Specified region: " + region + "\n"
-                      + " --> Bounds: " + str(region_dict['rect'][region]))
-            ridx = self.matchregion_rect(LATS,LONS,region=region)
-        else:
-            ridx = self.matchregion_poly(LATS,LONS,region=region,
-                                    grid_date=grid_date)
-        return ridx
-
-    def matchregion_rect(self,LATS,LONS,region):
-        if (region is None or region == "global"):
-            region = "global"
-            ridx = range(len(LATS))
-        else:
-            if isinstance(region,str)==True:
-                if "boundinglat" in region_dict['rect'][region]:
-                    boundinglat = region_dict['rect'][region]["boundinglat"]
-                else:
-                    llcrnrlat = region_dict['rect'][region]["llcrnrlat"]
-                    urcrnrlat = region_dict['rect'][region]["urcrnrlat"]
-                    llcrnrlon = region_dict['rect'][region]["llcrnrlon"]
-                    urcrnrlon = region_dict['rect'][region]["urcrnrlon"]
-            else:
-                llcrnrlat = region[0]
-                urcrnrlat = region[1]
-                llcrnrlon = region[2]
-                urcrnrlon = region[3]
-            # check if coords in region
-            ridx=[]
-            for i in range(len(LATS)):
-                if (
-                "boundinglat" in region_dict['rect'][region]
-                and LATS[i] >= boundinglat
-                    ):
-                    ridx.append(i)
-                elif(
-                not "boundinglat" in region_dict['rect'][region]
-                and LATS[i] >= llcrnrlat
-                and LATS[i] <= urcrnrlat
-                and LONS[i] >= llcrnrlon
-                and LONS[i] <= urcrnrlon
-                    ):
-                    ridx.append(i)
-        if not ridx:
-            print ("No values for chosen region and time frame!!!")
-        else:
-            print ("Values found for chosen region and time frame.")
-        return ridx
-
-    def matchregion_poly(self,LATS,LONS,region,grid_date):
-        from matplotlib.patches import Polygon
-        from matplotlib.path import Path
-        import numpy as np
-        if (region not in region_dict['poly'] \
-            and region not in model_dict):
-            sys.exit("Region polygone is not defined")
-        elif isinstance(region,dict)==True:
-            print ("Manuall specified region: \n"
+def matchregion(LATS,LONS,region,grid_date):
+    # region in region_dict[poly]:
+    # find values for given region
+    if (region not in region_dict['poly'] and \
+    region not in model_dict):
+        if region is None:
+            region = 'global'
+        if ~isinstance(region,str)==True:
+            print ("Manually specified region "
+                + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n"
                 + " --> Bounds: " + str(region))
-            poly = Polygon(list(zip(region['lons'],
-                region['lats'])), closed=True)
-        elif (isinstance(region,str)==True and region in model_dict):
-            try:
-                print('Use date for retrieving grid: ', grid_date)
-                filestr = make_model_filename_wrapper(\
-                                        region,grid_date,'best')
-                meta = ncdumpMeta(filestr)
-                flon = get_filevarname(region,\
-                                    'lons',variable_info,\
-                                    model_dict,meta)
-                flat = get_filevarname(region,\
-                                    'lats',variable_info,\
-                                    model_dict,meta)
-                M = xa.open_dataset(filestr, decode_cf=True)
-                model_lons = M[flon].data
-                model_lats = M[flat].data
-            except (KeyError,IOError,ValueError) as e:
-                print(e)
-                if 'grid_date' in model_dict[region]:
-                    grid_date = model_dict[region]['grid_date']
-                    print('Trying default date ', grid_date)
-                else:
-                    grid_date = datetime(
-                                        datetime.now().year,
-                                        datetime.now().month,
-                                        datetime.now().day
-                                        )
-                filestr = make_model_filename_wrapper(\
-                                        region,grid_date,'best')
-                meta = ncdumpMeta(filestr)
-                flon = get_filevarname(region,\
-                                    'lons',variable_info,\
-                                    model_dict,meta)
-                flat = get_filevarname(region,\
-                                    'lats',variable_info,\
-                                    model_dict,meta)
-                M = xa.open_dataset(filestr, decode_cf=True)
-                model_lons = M[flon].data
-                model_lats = M[flat].data
-            if (len(model_lons.shape)==1):
-                model_lons, model_lats = np.meshgrid(
-                                        model_lons,
-                                        model_lats
-                                        )
-            print('Check if footprints fall within the chosen domain')
-            if (region=='global'):
-                rlatlst, rlonlst = LATS, LONS
-            else:
-                ncdict = ncdumpMeta(filestr)
-                try:
-                    proj4 = find_attr_in_nc('proj',ncdict=ncdict,
-                                            subattrstr='proj4')
-                except IndexError:
-                    print('proj4 not defined in netcdf-file')
-                    print('Using proj4 from model config file')
-                    proj4 = model_dict[region]['proj4']
-                proj_model = pyproj.Proj(proj4)
-                Mx, My = proj_model(model_lons,model_lats,inverse=False)
-                Vx, Vy = proj_model(LONS,LATS,inverse=False)
-                xmax, xmin = np.max(Mx), np.min(Mx)
-                ymax, ymin = np.max(My), np.min(My)
-                ridx = list(np.where((Vx>xmin) & (Vx<xmax) &
-                                (Vy>ymin) & (Vy<ymax))[0]
-                            )
-        elif isinstance(region,str)==True:
-            print ("Specified region: " + region + "\n"
-              + " --> Bounded by polygon: \n"
-              + "lons: " + str(region_dict['poly'][region]['lons']) + "\n"
-              + "lats: " + str(region_dict['poly'][region]['lats']))
-            poly = Polygon(list(zip(region_dict['poly'][region]['lons'],
-                region_dict['poly'][region]['lats'])), closed=True)
-            # check if coords in region
-            LATS = list(LATS)
-            LONS = list(LONS)
-            latlst = LATS
-            lonlst = LONS
-            lats = np.array(LATS).ravel()
-            lons = np.array(LONS).ravel()
-            points = np.c_[lons,lats]
-            # radius seems to be important to correctly define polygone
-            # see discussion here:
-            # https://github.com/matplotlib/matplotlib/issues/9704
-            hits = Path(poly.xy).contains_points(points,radius=1e-9)
-            ridx = list(np.array(range(len(LONS)))[hits])
-        if not ridx:
-            print ("No values for chosen region and time frame!!!")
         else:
-            print ("Values found for chosen region and time frame.")
-        return ridx
+            if region not in region_dict['rect']:
+                sys.exit("Region is not defined")
+            else:
+                print("Specified region: " + region + "\n"
+                + " --> Bounds: " + str(region_dict['rect'][region]))
+        ridx = matchregion_rect(LATS,LONS,region=region)
+    else:
+        ridx = matchregion_poly(LATS,LONS,region=region,
+                                grid_date=grid_date)
+    return ridx
+
+def matchregion_rect(LATS,LONS,region):
+    if (region is None or region == "global"):
+        region = "global"
+        ridx = range(len(LATS))
+    else:
+        if isinstance(region,str)==True:
+            if "boundinglat" in region_dict['rect'][region]:
+                boundinglat = region_dict['rect'][region]["boundinglat"]
+            else:
+                llcrnrlat = region_dict['rect'][region]["llcrnrlat"]
+                urcrnrlat = region_dict['rect'][region]["urcrnrlat"]
+                llcrnrlon = region_dict['rect'][region]["llcrnrlon"]
+                urcrnrlon = region_dict['rect'][region]["urcrnrlon"]
+        else:
+            llcrnrlat = region[0]
+            urcrnrlat = region[1]
+            llcrnrlon = region[2]
+            urcrnrlon = region[3]
+        # check if coords in region
+        ridx=[]
+        for i in range(len(LATS)):
+            if (
+            "boundinglat" in region_dict['rect'][region]
+            and LATS[i] >= boundinglat
+                ):
+                ridx.append(i)
+            elif(
+            not "boundinglat" in region_dict['rect'][region]
+            and LATS[i] >= llcrnrlat
+            and LATS[i] <= urcrnrlat
+            and LONS[i] >= llcrnrlon
+            and LONS[i] <= urcrnrlon
+                ):
+                ridx.append(i)
+    if not ridx:
+        print ("No values for chosen region and time frame!!!")
+    else:
+        print ("Values found for chosen region and time frame.")
+    return ridx
+
+def matchregion_poly(LATS,LONS,region,grid_date):
+    from matplotlib.patches import Polygon
+    from matplotlib.path import Path
+    import numpy as np
+    if (region not in region_dict['poly'] \
+        and region not in model_dict):
+        sys.exit("Region polygone is not defined")
+    elif isinstance(region,dict)==True:
+        print ("Manuall specified region: \n"
+            + " --> Bounds: " + str(region))
+        poly = Polygon(list(zip(region['lons'],
+            region['lats'])), closed=True)
+    elif (isinstance(region,str)==True and region in model_dict):
+        try:
+            print('Use date for retrieving grid: ', grid_date)
+            filestr = make_model_filename_wrapper(\
+                                    region,grid_date,'best')
+            meta = ncdumpMeta(filestr)
+            flon = get_filevarname(region,\
+                                'lons',variable_info,\
+                                model_dict,meta)
+            flat = get_filevarname(region,\
+                                'lats',variable_info,\
+                                model_dict,meta)
+            M = xa.open_dataset(filestr, decode_cf=True)
+            model_lons = M[flon].data
+            model_lats = M[flat].data
+        except (KeyError,IOError,ValueError) as e:
+            print(e)
+            if 'grid_date' in model_dict[region]:
+                grid_date = model_dict[region]['grid_date']
+                print('Trying default date ', grid_date)
+            else:
+                grid_date = datetime(
+                                    datetime.now().year,
+                                    datetime.now().month,
+                                    datetime.now().day
+                                    )
+            filestr = make_model_filename_wrapper(\
+                                    region,grid_date,'best')
+            meta = ncdumpMeta(filestr)
+            flon = get_filevarname(region,\
+                                'lons',variable_info,\
+                                model_dict,meta)
+            flat = get_filevarname(region,\
+                                'lats',variable_info,\
+                                model_dict,meta)
+            M = xa.open_dataset(filestr, decode_cf=True)
+            model_lons = M[flon].data
+            model_lats = M[flat].data
+        if (len(model_lons.shape)==1):
+            model_lons, model_lats = np.meshgrid(
+                                    model_lons,
+                                    model_lats
+                                    )
+        print('Check if footprints fall within the chosen domain')
+        if (region=='global'):
+            rlatlst, rlonlst = LATS, LONS
+        else:
+            ncdict = ncdumpMeta(filestr)
+            try:
+                proj4 = find_attr_in_nc('proj',ncdict=ncdict,
+                                        subattrstr='proj4')
+            except IndexError:
+                print('proj4 not defined in netcdf-file')
+                print('Using proj4 from model config file')
+                proj4 = model_dict[region]['proj4']
+            proj_model = pyproj.Proj(proj4)
+            Mx, My = proj_model(model_lons,model_lats,inverse=False)
+            Vx, Vy = proj_model(LONS,LATS,inverse=False)
+            xmax, xmin = np.max(Mx), np.min(Mx)
+            ymax, ymin = np.max(My), np.min(My)
+            ridx = list(np.where((Vx>xmin) & (Vx<xmax) &
+                            (Vy>ymin) & (Vy<ymax))[0]
+                        )
+    elif isinstance(region,str)==True:
+        print ("Specified region: " + region + "\n"
+        + " --> Bounded by polygon: \n"
+        + "lons: " + str(region_dict['poly'][region]['lons']) + "\n"
+        + "lats: " + str(region_dict['poly'][region]['lats']))
+        poly = Polygon(list(zip(region_dict['poly'][region]['lons'],
+            region_dict['poly'][region]['lats'])), closed=True)
+        # check if coords in region
+        LATS = list(LATS)
+        LONS = list(LONS)
+        latlst = LATS
+        lonlst = LONS
+        lats = np.array(LATS).ravel()
+        lons = np.array(LONS).ravel()
+        points = np.c_[lons,lats]
+        # radius seems to be important to correctly define polygone
+        # see discussion here:
+        # https://github.com/matplotlib/matplotlib/issues/9704
+        hits = Path(poly.xy).contains_points(points,radius=1e-9)
+        ridx = list(np.array(range(len(LONS)))[hits])
+    if not ridx:
+        print ("No values for chosen region and time frame!!!")
+    else:
+        print ("Values found for chosen region and time frame.")
+    return ridx
