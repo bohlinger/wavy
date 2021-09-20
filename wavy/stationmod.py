@@ -39,7 +39,8 @@ from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import finditem
-from wavy.superobmod import superobbing
+#from wavy.superobmod import superobbing
+from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
@@ -68,15 +69,15 @@ class station_class():
     '''
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
-    def __init__(self,nID,sensor,sdate,edate,
-    varalias='Hs',superobserve = False, **kwargs):
+    def __init__(self,nID,sensor,sdate,edate,varalias='Hs',
+    filterData=False,**kwargs):
         print ('# ----- ')
         print (" ### Initializing station_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        try:
-#        for i in range(1):
+#        try:
+        for i in range(1):
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.sdate = sdate
@@ -86,7 +87,7 @@ class station_class():
             if ('tags' in insitu_dict[nID].keys() and
             len(insitu_dict[nID]['tags'])>0):
                 self.tags = insitu_dict[nID]['tags']
-            if superobserve == False:
+            if filterData == False:
                 var, time, timedt, lon, lat, fifo, pathtofile = \
                     get_insitu_ts(\
                                 nID, sensor,sdate,edate,
@@ -99,8 +100,7 @@ class station_class():
                     'longitude':lon,
                     'latitude':lat
                     }
-            elif superobserve == True:
-                print(kwargs)
+            elif filterData == True:
                 # determine start and end date
                 if 'stwin' not in kwargs.keys():
                     kwargs['stwin'] = 3
@@ -120,7 +120,10 @@ class station_class():
                     'longitude':lon,
                     'latitude':lat
                     }
-                vardict = superobbing(varalias,tmp_vardict,**kwargs)
+                #vardict = superobbing(varalias,tmp_vardict,**kwargs)
+                vardict = filter_main(tmp_vardict,
+                                      varalias=varalias,
+                                      **kwargs)
                 # cut to original sdate and edate
                 time_cut = np.array(vardict['time'])[ \
                                 ( (np.array(vardict['datetime'])>=sdate)
@@ -146,9 +149,11 @@ class station_class():
                 vardict[stdvarname] = list(var_cut)
                 vardict['longitude'] = list(lon_cut)
                 vardict['latitude'] = list(lat_cut)
-                self.superob = kwargs['superob']
-                self.outlier_detection = kwargs['outlier_detection']
-                self.missing_data = kwargs['missing_data']
+                self.filter = True
+                self.filterSpecs = kwargs
+                #self.superob = kwargs['superob']
+                #self.outlier_detection = kwargs['outlier_detection']
+                #self.missing_data = kwargs['missing_data']
             self.vars = vardict
             self.lat = np.nanmean(vardict['latitude'])
             self.lon = np.nanmean(vardict['longitude'])
@@ -160,10 +165,10 @@ class station_class():
             else:
                 self.varname = varalias
             print (" ### station_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No station_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No station_class object initialized !")
         print ('# ----- ')
 
     def write_to_monthly_nc(self,path=None,filename=None):
@@ -198,8 +203,8 @@ class station_class():
                     strsublst = station_dict['path']['platform']\
                                                     ['local']['nc']\
                                                     ['strsub']
-                    if 'superob' in vars(self).keys():
-                        file_template = 'superobbed_' + file_template
+                    if 'filter' in vars(self).keys():
+                        file_template = 'filtered_' + file_template
                     tmppath = path_template + '/' + file_template
                     pathtofile = make_pathtofile(tmppath,strsublst,
                                                 tmpdate,
