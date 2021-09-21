@@ -283,6 +283,7 @@ sat,path_local=None):
             filelst.append(tmplst)
             pathlst.append([os.path.join(path_local,e) for e in tmplst])
             tmpdate = tmpdate + relativedelta(months=+1)
+            path_local = None
         except Exception as e:
             print(e)
             tmpdate = tmpdate + relativedelta(months=+1)
@@ -493,7 +494,9 @@ def get_sat_ts(sdate,edate,twin,region,instr,provider,sat,
         # convert to datetime object
         timedt = rvardict['datetime']
         rvardict['datetime'] = [datetime(t.year,t.month,t.day,
-                    t.hour,t.minute,t.second) for t in timedt]
+                                         t.hour,t.minute,t.second,\
+                                         t.microsecond)\
+                                for t in timedt]
     else:
         print('For chosen region and time: 0 footprints found!')
     # find variable name as defined in file

@@ -13,7 +13,7 @@ e.g.:
 .. code-block:: bash
 
    $ cd ~/wavy/apps/standalone
-   $ ./download.py -h
+   $ ./wavyDownload.py -h
 
 1. **wavy** config files, a brief overview.
 ###########################################
@@ -23,11 +23,11 @@ e.g.:
 .. code-block:: bash
 
    $ ls
-   buoy_specs.yaml.default         region_specs.yaml.default
-   collocation_specs.yaml.default  satellite_specs.yaml.default
-   d22_var_dicts.yaml.default      station_specs.yaml.default
-   model_specs.yaml.default        validation_specs.yaml.default
-   quicklook_specs.yaml.default    variable_info.yaml.default
+   collocation_specs.yaml.default  region_specs.yaml.default
+   d22_var_dicts.yaml.default      satellite_specs.yaml.default
+   insitu_specs.yaml.default       validation_specs.yaml.default
+   model_specs.yaml.default        variable_info.yaml.default
+   quicklook_specs.yaml.default
 
 Another config file containing customized information to adjust the automated plotting routines is in the making.
 
@@ -35,10 +35,13 @@ Another config file containing customized information to adjust the automated pl
 
     * check if env 'WAVY_CONFIG' is set or specified in .env
     * check if a config folder exists using xdg
-    * fall back to default files within the package
+    * fall back on default files within the package
+
+For simplicity, let's assume that we have our custom config files in *~/wavy/config*.
 
 2. download L3 satellite altimetry data
 #######################################
+
 L3 satellite data is obtained from Copernicus with the product identifier WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001. User credentials are required for this task. So before you can start you have to get a Copernicus account (free of costs).
 Prepare access to Copernicus products. Enter your account credentials into the .netrc-file. Your .netrc should look something like:
 
@@ -62,7 +65,7 @@ Add your path for satellite data here under cmems
            local:
                path_template: /home/patrikb/tmp_altimeter/L3/mission
 
-You can proceed now and download L3 data using the download.py script:
+You can proceed now and download L3 data using the wavyDownload.py script:
 
 .. code-block:: bash
 
@@ -72,13 +75,13 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./download.py -h
+   $ ./wavyDownload.py -h
 
 ... then download some satellite altimeter data:
 
 .. code-block:: bash
 
-   $ ./download.py -sat s3a -sd 2020110100 -ed 2020111000 -provider cmems
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -provider cmems
 
 You can find the downloaded files in your chosen download directory.
 
@@ -101,30 +104,36 @@ Ammend the satellite config file for L2 data and add the download directory of y
             local:
                 path_template: /home/patrikb/tmp_altimeter/L2/mission
 
-... then download some satellite altimeter data:
+As you can see, this is customized to my username patrikb. Adjust this and continue with downloading some satellite altimeter data:
 
 .. code-block:: bash
 
-   $ ./download.py -sat s3a -sd 2020110100 -ed 2020111000 -provider eumetsat
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -provider eumetsat
 
-4. read L3 satellite data
-#########################
-Once the satellite data is downloaded one can access and read the data for further use in python. L3 data can be read like:
+4. read satellite data
+######################
+Once the satellite data is downloaded one can access and read the data for further use in python.
+
+L3 data from cmems
+******************
+
+L3 data can be read like:
 
 .. code-block:: python3
 
    >>> from datetime import datetime
-   >>> from wavy.satmod import satellite_class
+   >>> from wavy.satmod import satellite_class as sc
    >>> region = 'NorwegianSea'
    >>> varalias = 'Hs' # default
    >>> sat = 's3a' # default
+   >>> twin = 30 # default
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
-   >>> sa_obj = satellite_class(sdate=sd,edate=ed,region=region)
+   >>> sco = sc(sdate=sd,edate=ed,region=region)
 
 This would results in a satellite_class object and the following output message::
 
-   >>> sa_obj = satellite_class(sdate=sd,edate=ed,region=region)
+   >>> sco = sc(sdate=sd,edate=ed,region=region)
    Total:  148425  footprints found
    In chosen time period:  46661  footprints found
    Specified region: NorwegianSea
@@ -138,35 +147,41 @@ This would results in a satellite_class object and the following output message:
 
 Investigating the satellite_object you will find something like::
 
-   >>> sa_obj.
-   sa_obj.edate               sa_obj.sat
-   sa_obj.get_local_filelst(  sa_obj.sdate
-   sa_obj.matchregion(        sa_obj.stdvarname
-   sa_obj.matchregion_poly(   sa_obj.twin
-   sa_obj.matchregion_rect(   sa_obj.varalias
-   sa_obj.path_local          sa_obj.varname
-   sa_obj.read_local_files(   sa_obj.vars
-   sa_obj.region
+   >>> sco.
+   sa_obj.edate       sa_obj.sat         sa_obj.twin        sa_obj.vars
+   sa_obj.path_local  sa_obj.sdate       sa_obj.varalias
+   sa_obj.region      sa_obj.stdvarname  sa_obj.varname
 
 With the retrieved variables in sa_obj.vars::
 
-   >>> sa_obj.vars.keys()
+   >>> sco.vars.keys()
    dict_keys(['time', 'latitude', 'longitude', 'sea_surface_wave_significant_height', 'time_unit', 'datetime', 'meta'])
 
-5. read L2 satellite data
-#########################
-L2 data are not yet filtered and processed to the degree L3 data are. There are multiple advantages to use L2 data. **wavy** provides possibilities to do so and to apply basic filters to the retrieved L2 time series.
+Read pure L2 satellite data from eumetsat
+*****************************************
+
+.. code-block:: python3
+
+   >>> from wavy.satmod import satellite_class as sc
+   >>> from datetime import datetime
+   >>> sd = datetime(2020,11,1,12)
+   >>> ed = datetime(2020,11,1,12)
+   >>> region = 'mwam4'
+   >>> sat = 's3a'
+   >>> twin = 30
+
+   >>> sco = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='eumetsat')
 
 Retrieve pure L2 data and compare against L3
 ********************************************
-Having downloaded L2 data in step 3., you can do:
+
+Having downloaded the altimetry data, you can do:
 
 .. code-block:: python3
 
    >>> # imports
-   >>> from wavy.satmod import satellite_class as sa
+   >>> from wavy.satmod import satellite_class as sc
    >>> from datetime import datetime
-   >>> import matplotlib.pyplot as plt
 
    >>> # settings
    >>> sd = datetime(2020,11,1,12)
@@ -176,15 +191,16 @@ Having downloaded L2 data in step 3., you can do:
    >>> varalias = 'Hs'
 
    >>> # retrievals
-   >>> sa_obj_e = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='eumetsat')
-   >>> sa_obj_c = sa(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='cmems')
+   >>> sco_e = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='eumetsat')
+   >>> sco_c = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='cmems')
 
    >>> # plotting
-   >>> stdname = sa_obj_e.stdvarname
+   >>> import matplotlib.pyplot as plt
+   >>> stdname = sco_e.stdvarname
    >>> fig = plt.figure(figsize=(9,3.5))
    >>> ax = fig.add_subplot(111)
-   >>> ax.plot(sa_obj_e.vars['datetime'],sa_obj_e.vars[stdname],'r.',label='L2 eumetsat')
-   >>> ax.plot(sa_obj_c.vars['datetime'],sa_obj_c.vars[stdname],'k.',label='L3 cmems')
+   >>> ax.plot(sco_e.vars['datetime'],sco_e.vars[stdname],'r.',label='L2 eumetsat')
+   >>> ax.plot(sco_c.vars['datetime'],sco_c.vars[stdname],'k.',label='L3 cmems')
    >>> plt.legend(loc='upper left')
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
@@ -194,11 +210,29 @@ This yields the following figure:
 .. image:: ./docs_fig_L2_vs_L3.png
    :scale: 80
 
-Appy filter to raw L2 data
-**************************
-Coming soon ...
+Appy basic filters to raw L2 data
+*********************************
 
-6. access/read model data
+.. code-block:: python3
+
+   >>> from wavy.satmod import satellite_class as sc
+   >>> from datetime import datetime
+   >>> import matplotlib.pyplot as plt
+
+   >>> sd = datetime(2020,11,1,12)
+   >>> ed = datetime(2020,11,1,12)
+   >>> region = 'mwam4'
+   >>> sat = 's3a'
+   >>> twin = 30
+
+   >>> # landmask filter
+   >>> sco_lm = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='eumetsat',land_mask=True,filterData=True)
+
+.. note::
+
+   More examples with filters are coming soon ...
+
+5. access/read model data
 #########################
 Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read in follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
 
@@ -223,82 +257,90 @@ Often there are ambiguities due to the multiple usage of standard_names. Any suc
 .. code-block:: python3
 
    >>> from datetime import datetime
-   >>> from wavy.modelmod import model_class
+   >>> from wavy.modelmod import model_class as mc
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
-   >>> mc_obj = model_class(sdate=sd) # one time slice
-   >>> mc_obj = model_class(sdate=sd,edate=ed) # time period
-   >>> mc_obj = model_class(sdate=sd,leadtime=12) # time slice with lead time
+   >>> mco = mc(sdate=sd) # one time slice
+   >>> mco = mc(sdate=sd,edate=ed) # time period
+   >>> mco = mc(sdate=sd,leadtime=12) # time slice with lead time
 
 The output will be something like::
 
-   >>> mc_obj = model_class(sdate=sd)
+   >>> mco = mc(sdate=sd)
    Time used for retrieving model data: 1.88 seconds
     ### model_class object initialized ###
    >>> mc_obj.
    mc_obj.edate       mc_obj.leadtime    mc_obj.stdvarname  mc_obj.vars
    mc_obj.fc_date     mc_obj.model       mc_obj.varalias
    mc_obj.filestr     mc_obj.sdate       mc_obj.varname
-   >>> mc_obj.vars.keys()
+   >>> mco.vars.keys()
    dict_keys(['longitude', 'latitude', 'time', 'datetime', 'time_unit', 'sea_surface_wave_significant_height', 'meta', 'leadtime'])
 
 .. note::
 
    Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason being the ambiguous use of lead times. Whenever the keyword "leadtime" is None, a best guess is assumed and retrieved.
 
-7. read in-situ observations (.d22)
-###################################
-.d22-files can be read in by adjusting d22_var_dicts config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the station_specs.yaml. There you need to define specs related to the station at choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
+6. read in-situ observations (.d22 and netcdf/thredds)
+######################################################
+
+Currently two data types can be read .d22-files and netcdf-files.
+
+read .d22 files
+***************
+
+.d22-files can be read in by adjusting d22_var_dicts config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the insitu_specs.yaml. There you need to define specs related to the in-situ observation of choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
 
 .. code-block:: python3
 
    >>> from datetime import datetime
-   >>> from wavy.stationmod import station_class
+   >>> from wavy.insitumod import insitu_class as ic
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,1,1,0)
-   >>> ed = datetime(2020,1,2,0)
-   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs')
+   >>> ed = datetime(2020,1,5,0)
+   >>> nID = 'ekofiskL'
+   >>> sensor = 'waverider'
+   >>> ico = ic(nID,sensor,sd,ed)
 
 In contrast to the L3 satellite time series, in-situ time series are not filtered or underwent rigorous outlier detection. There are various operations that can be performed to massage the time series as you wish.It is in particular interesting to remove double reported values, which is often the case. This is done with setting unique=True.
 
 .. code-block:: python3
 
-   >>> st_obj = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',unique=True)
+   >>> ico = ic(nID,sensor,sd,ed,unique=True)
 
-Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below are a few examples:
+read .nc-files
+**************
 
 .. code-block:: python3
 
-   >>> # GAM
-   >>> st_obj_gam = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
+   >>> from datetime import datetime
+   >>> from wavy.insitumod import insitu_class as ic
+   >>> varalias = 'Hs' # default
+   >>> sd = datetime(2020,1,1,0)
+   >>> ed = datetime(2020,1,5,0)
+   >>> nID = 'D_Breisundet'
+   >>> sensor = 'wavescan'
+   >>> ico = ic(nID,sensor,sd,ed)
 
-   >>> # Expectile
-   >>> st_obj_EG = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='expectileGAM',outlier_detection=None,missing_data='impute',date_incr=1./6.,unique=True,expectile=.99)
+Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below is a example:
 
-   >>> # Lanczos
-   >>> st_obj_lancz = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='lanczos',outlier_detection=None,missing_data='impute',cutoff=1./6.,window=7,stwin=3,etwin=3,unique=True)
+.. code-block:: python3
 
-   >>> # Block Means
-   >>> st_obj_bm = station_class('ekofiskL','waverider',sd,ed,varalias='Hs',superobserve=True,superob='block_mean',outlier_detection='gam',missing_data='impute',date_incr=1,unique=True)
-
-   >>> # GP, NIGP, ...
+   >>> # blockMean filter
+   >>> ico_bm = ic(nID,sensor,sd,ed,unique=True,priorOp='square',postOp='root',smoother='blockMean',stwin=3,etwin=3,date_incr=1,filterData=True)
 
 Now, let's check how this could look like:
 
 .. code-block:: python3
 
    >>> import matplotlib.pyplot as plt
-   >>> stdname = st_obj.stdvarname
+   >>> stdname = ico.stdvarname
    >>> fig = plt.figure(figsize=(9,3.5))
    >>> ax = fig.add_subplot(111)
-   >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],'ko',label='raw')
-   >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
-   >>> ax.plot(st_obj_EG.vars['datetime'],st_obj_EG.vars[stdname],color='cadetblue',label='0.99 expectile',lw=2)
-   >>> ax.plot(st_obj_lancz.vars['datetime'],st_obj_lancz.vars[stdname],color='orange',label='lanczos',lw=2)
-   >>> ax.plot(st_obj_bm.vars['datetime'],st_obj_bm.vars[stdname],color='gray',label='block mean',lw=2)
-   >>> plt.legend(loc='lower right')
+   >>> ax.plot(ico.vars['datetime'],ico.vars[stdname],'ko',label='raw')
+   >>> ax.plot(ico_bm.vars['datetime'],ico_bm.vars[stdname],'r-',label='hourly blockMean')
+   >>> plt.legend(loc='upper left')
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
 
@@ -307,26 +349,40 @@ Now, let's check how this could look like:
 
 .. note::
 
-   NETCDF files are in the making but currently not available.
-   It is also important to note that due to different sampling frequencies there are still amibuities that will have to be removed in future fixes.
+   It is important to note that due to different sampling frequencies there are still amibiguities that will have to be removed in future fixes.
 
-8. collocating model and observations
+7. collocating model and observations
 #####################################
 One of the main focus of wavy is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped.
 
-1. Collocation of satellite and wave model:
+Collocation of satellite and wave model
+****************************************
 
 .. code-block:: python3
 
    >>> from datetime import datetime
-   >>> from wavy.satmod import satellite_class
-   >>> from wavy.collocmod import collocation_class
+   >>> from wavy.satmod import satellite_class as sc
+   >>> from wavy.collocmod import collocation_class as cc
+
    >>> model = 'mwam4' # default
    >>> sat = 's3a' # default
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,11,1,12)
-   >>> sa_obj = satellite_class(sdate=sd,region=model,sat=sat,varalias=varalias)
-   >>> col_obj = collocation_class(model=model,obs_obj_in=sa_obj,distlim=6,date_incr=1)
+   >>> sco = sc(sdate=sd,region=model,sat=sat,varalias=varalias)
+   >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
+
+   >>> # plotting
+   >>> import matplotlib.pyplot as plt
+   >>> fig = plt.figure(figsize=(9,3.5))
+   >>> ax = fig.add_subplot(111)
+   >>> ax.plot(cco.vars['datetime'],cco.vars['obs_values'],color='gray',marker='o',linestyle='None',alpha=.4,label='obs')
+   >>> ax.plot(cco.vars['datetime'],cco.vars['model_values'],'b.',label='model',lw=2)
+   >>> plt.legend(loc='upper left')
+   >>> plt.ylabel('Hs [m]')
+   >>> plt.show()
+
+.. image:: ./docs_fig_ts_sat.png
+   :scale: 80
 
 This can also be done for a time period:
 
@@ -334,47 +390,50 @@ This can also be done for a time period:
 
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
-   >>> sa_obj = satellite_class(sdate=sd,edate=ed,region=model,sat=sat,varalias=varalias)
-   >>> sa_obj = satellite_class(sdate=sd,edate=ed,region=model,sat=sat,varalias=varalias)
+   >>> sco = sc(sdate=sd,edate=ed,region=model,sat=sat,varalias=varalias)
+   >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
 
-2. Collocation of in-situ data and wave model for a given time period. The following example may take a few minutes.
+Collocation of in-situ data and wave model
+******************************************
+
+The following example may take a few minutes.
 
 .. code-block:: python3
 
    >>> # imports
    >>> from datetime import datetime
-   >>> from wavy.stationmod import station_class
-   >>> from wavy.collocmod import collocation_class
+   >>> from wavy.insitumod import insitu_class as ic
+   >>> from wavy.collocmod import collocation_class as cc
 
    >>> # settings
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,1,1,1)
    >>> ed = datetime(2020,1,4,0)
-   >>> station = 'ekofiskL'
+   >>> nID = 'ekofiskL'
    >>> sensor = 'waverider'
 
    >>> # retrievals
-   >>> st_obj_gam = station_class(station,sensor,sd,ed,varalias=varalias,superobserve=True,superob='gam',outlier_detection='gam',missing_data='impute',date_incr=1./6.,unique=True)
-   >>> st_obj = station_class(station,sensor,sd,ed,varalias=varalias)
+   >>> ico_gam = ic(nID,sensor,sd,ed,smoother='linearGAM',cleaner='linearGAM',date_incr=1./6.,unique=True,filterData=True)
+   >>> ico_raw = ic(nID,sensor,sd,ed)
 
    >>> # collocation
-   >>> col_obj_gam = collocation_class(model=model,obs_obj_in=st_obj_gam,distlim=6,date_incr=1)
-   >>> col_obj = collocation_class(model=model,obs_obj_in=st_obj,distlim=6,date_incr=1)
+   >>> cco_gam = cc(model=model,obs_obj_in=ico_gam,distlim=6,date_incr=1)
+   >>> cco_raw = cc(model=model,obs_obj_in=ico_raw,distlim=6,date_incr=1)
 
 Let's plot the results:
 
 .. code-block:: python3
 
    >>> import matplotlib.pyplot as plt
-   >>> stdname = st_obj.stdvarname
+   >>> stdname = ico_raw.stdvarname
 
    >>> fig = plt.figure(figsize=(9,3.5))
    >>> ax = fig.add_subplot(111)
-   >>> ax.plot(st_obj.vars['datetime'],st_obj.vars[stdname],color='gray',marker='o',label='raw',linestyle='None',alpha=.4)
-   >>> ax.plot(col_obj.vars['datetime'],col_obj.vars['obs_values'],'ko',label='collocated obs')
-   >>> ax.plot(st_obj_gam.vars['datetime'],st_obj_gam.vars[stdname],'b-',label='gam',lw=2)
-   >>> ax.plot(col_obj_gam.vars['datetime'],col_obj_gam.vars['model_values'],'r-',label='mwam4',lw=2)
+   >>> ax.plot(ico_raw.vars['datetime'],ico_raw.vars[stdname],color='gray',marker='o',label='raw',linestyle='None',alpha=.4)
+   >>> ax.plot(cco_raw.vars['datetime'],cco_raw.vars['obs_values'],'ko',label='collocated obs')
+   >>> ax.plot(ico_gam.vars['datetime'],ico_gam.vars[stdname],'b-',label='gam',lw=2)
+   >>> ax.plot(cco_gam.vars['datetime'],cco_gam.vars['model_values'],'r-',label='mwam4',lw=2)
    >>> plt.legend(loc='upper left')
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
@@ -382,38 +441,40 @@ Let's plot the results:
 .. image:: ./docs_fig_col_insitu.png
    :scale: 80
 
-9. dump collocation ts to a netcdf file
+8. dump collocation ts to a netcdf file
 #######################################
 The collocation results can now be dumped to a netcdf file. The path and filename can be entered as keywords but also predefined config settings can be used from collocation_specs.yaml:
 
 .. code-block:: python3
 
-   >>> col_obj.write_to_monthly_nc()
+   >>> cco_raw.write_to_monthly_nc()
 
-10. validate the collocated time series
+9. validate the collocated time series
 #######################################
 Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
 .. code-block:: python3
 
-   >>> val_dict = col_obj.validate_collocated_values()
+   >>> val_dict = cco_raw.validate_collocated_values()
 
    # ---
    Validation stats
    # ---
-   Correlation Coefficient: 0.98
-   Mean Absolute Difference: 0.38
-   Root Mean Squared Difference: 0.53
-   Debiased Root Mean Squared Difference: 0.50
-   Bias: -0.16
-   Scatter Index: 16.93
-   Mean of Model: 2.97
+   Correlation Coefficient: 0.95
+   Mean Absolute Difference: 0.22
+   Root Mean Squared Difference: 0.27
+   Normalized Root Mean Squared Difference: 0.08
+   Debiased Root Mean Squared Difference: 0.24
+   Bias: -0.13
+   Normalized Bias: -0.04
+   Scatter Index: 8.05
+   Mean of Model: 3.02
    Mean of Observations: 3.14
-   Number of Collocated Values: 2217
+   Number of Collocated Values: 72
 
 The entire validation dictionary will then be in val_dict.
 
-11. quick look examples
+10. quick look examples
 #######################
 The script "wavyQuick.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. Checkout the help:
 

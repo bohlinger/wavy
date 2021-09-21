@@ -63,7 +63,7 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 # ---------------------------------------------------------------------#
 
 
-class station_class():
+class insitu_class():
     '''
     Class to handle insitu based time series.
     '''
@@ -72,12 +72,12 @@ class station_class():
     def __init__(self,nID,sensor,sdate,edate,varalias='Hs',
     filterData=False,**kwargs):
         print ('# ----- ')
-        print (" ### Initializing station_class object ###")
+        print (" ### Initializing insitu_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        try:
-#        for i in range(1):
+#        try:
+        for i in range(1):
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.sdate = sdate
@@ -163,17 +163,17 @@ class station_class():
                                 meta,stdvarname)
             else:
                 self.varname = varalias
-            print (" ### station_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No station_class object initialized !")
+            print (" ### insitu_class object initialized ###")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def write_to_monthly_nc(self,path=None,filename=None):
         # divide time into months by loop over months from sdate to edate
         if 'error' in vars(self):
-            print('Erroneous station_class file detected')
+            print('Erroneous insitu_class file detected')
             print('--> dump to netCDF not possible !')
         else:
             tmpdate = self.sdate
@@ -298,7 +298,8 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     latlst = []
     timelst = []
     dtimelst = []
-    while tmpdate <= edate:
+    while datetime(tmpdate.year,tmpdate.month,1)\
+    <= datetime(edate.year,edate.month,1):
         # make pathtofile
         pathtofile = get_pathtofile(pathlst,strsublst,\
                                         tmpdate,nID=nID)
@@ -487,7 +488,7 @@ if __name__ == '__main__':
 This module encompasses classes and methods to read and process wave
 field related data from stations.\n
 Usage:
-from stationmod import station_class as sc
+from insitumod import insitu_class as sc
 from datetime import datetime, timedelta
 sc_obj = sc('ekofiskL',sdate,edate)
     """,

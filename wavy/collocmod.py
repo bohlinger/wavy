@@ -36,7 +36,7 @@ from wavy.modelmod import model_class,get_model
 from wavy.ncmod import dumptonc_ts_collocation
 from wavy.ncmod import find_attr_in_nc, ncdumpMeta
 from wavy.satmod import satellite_class
-from wavy.stationmod import station_class
+from wavy.insitumod import insitu_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -435,7 +435,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                         + '\n###'
                         )
     if (mc_obj is None and model is not None and obs_obj is not None\
-    and isinstance(obs_obj,station_class)):
+    and isinstance(obs_obj,insitu_class)):
         results_dict = collocate_station_ts(obs_obj=obs_obj,
                                             model=model,\
                                             distlim=distlim,\
@@ -477,7 +477,7 @@ class collocation_class():
             self.sat = obs_obj.sat
             self.obstype = "satellite_altimeter"
             self.region = obs_obj.region
-        if isinstance(obs_obj,station_class):
+        if isinstance(obs_obj,insitu_class):
             if 'twin' in insitu_dict[obs_obj.nID].keys():
                 obs_obj.twin =  insitu_dict\
                                 [obs_obj.nID]['twin']

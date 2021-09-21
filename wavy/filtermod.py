@@ -26,15 +26,15 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
 
     Tasks:
         - check if prior/post transforms are needed
-        - checks if cleaning is needed
-        - checks if filter is needed
-        - checks if land mask is needed
+        - check if cleaning is needed
+        - check if filter is needed
+        - check if land mask is needed
             - if so apply cleaning/filters to subsets
               i.e. each chunk will be fed into filter_data
               and consolidated when finished with all chunks
 
     Args:
-        - vardict
+        vardict
 
     Returns:
         vardict
@@ -87,25 +87,26 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
             vardict = filter_slider(vardict,varalias,**kwargs)
         else:
             if kwargs.get('priorOp') is not None:
-                method = kwargs.get('method')
-                vardict = apply_priorOp(vardict,method = method)
+                method = kwargs.get('priorOp')
+                vardict = apply_priorOp(varalias,vardict,
+                                        method = method)
             if kwargs.get('cleaner') is not None:
                 #output_dates = kwargs.get('output_dates')
                 method = kwargs.get('cleaner')
                 #date_incr = kwargs.get('date_incr')
                 vardict = apply_cleaner(varalias,vardict,
-                            method = method,
-                            **kwargs)
+                                        method = method,
+                                        **kwargs)
             if kwargs.get('smoother') is not None:
                 output_dates = kwargs.get('output_dates')
                 method = kwargs.get('smoother')
                 vardict = apply_smoother(varalias,vardict,
-                            output_dates = output_dates,
-                            method = method,
-                            **kwargs)
+                                         output_dates = output_dates,
+                                         method = method,
+                                         **kwargs)
             if kwargs.get('postOp') is not None:
-                method = kwargs.get('method')
-                vardict = apply_postOp(vardict,method = method)
+                method = kwargs.get('postOp')
+                vardict = apply_postOp(varalias,vardict,method = method)
 
     return vardict
 
@@ -240,36 +241,36 @@ def apply_limits(varalias,vardict):
             clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
     return clean_dict
 
-def square_data(vardict):
+def square_data(varalias,vardict):
     stdvarname = variable_info[varalias]['standard_name']
-    var_squared = list(np.array(vardict[stdvarname])**2)
     newdict = deepcopy(vardict)
+    var_squared = list(np.array(vardict[stdvarname])**2)
     newdict[stdvarname] = var_squared
     return newdict
 
-def root_data(vardict):
+def root_data(varalias,vardict):
     stdvarname = variable_info[varalias]['standard_name']
-    var_root = list(np.sqrt(np.array(vardict[stdvarname])))
     newdict = deepcopy(vardict)
+    var_root = list(np.sqrt(np.array(vardict[stdvarname])))
     newdict[stdvarname] = var_root
     return newdict
 
-def apply_priorOp(vardict,method=None):
+def apply_priorOp(varalias,vardict,method=None):
     print("Prepare data prior to further treatment")
     print('Apply ',method)
     if method is None:
         newdict = vardict
     if method == 'square':
-        newdict = square_data(vardict)
+        newdict = square_data(varalias,vardict)
     return newdict
 
-def apply_postOp(vardict,method=None):
+def apply_postOp(varalias,vardict,method=None):
     print("Transform data back after treatment")
     print('Apply ',method)
     if method is None:
         newdict = vardict
     if method == 'root':
-        newdict = root_data(vardict)
+        newdict = root_data(varalias,vardict)
     return newdict
 
 def apply_cleaner(varalias,vardict,method='linearGAM',**kwargs):
