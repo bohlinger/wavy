@@ -640,6 +640,8 @@ class satellite_class():
                                                   sdate_tmp,
                                                   edate_tmp,
                                                   stdname)
+                self.filter = True
+                self.filterSpecs = kwargs
             else:
                 rvardict = get_sat_ts(sdate,edate,twin,region,instr,
                                       provider,sat,pathlst,varalias)
