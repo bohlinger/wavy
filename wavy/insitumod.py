@@ -76,8 +76,8 @@ class insitu_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-#        try:
-        for i in range(1):
+        try:
+#        for i in range(1):
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.sdate = sdate
@@ -164,10 +164,10 @@ class insitu_class():
             else:
                 self.varname = varalias
             print (" ### insitu_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No insitu_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def write_to_monthly_nc(self,path=None,filename=None):
