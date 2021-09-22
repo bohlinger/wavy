@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import roaring_landmask
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 import shapely.vectorized
@@ -16,6 +17,8 @@ import shapely.vectorized
 from wavy.utils import find_included_times, collocate_times
 from wavy.wconfig import load_or_default
 from wavy.utils import runmean_conv
+
+ROAR = None
 
 variable_info = load_or_default('variable_info.yaml')
 
@@ -172,53 +175,17 @@ def apply_land_mask(vardict,**kwargs):
         land_mask
 
     """
+    global ROAR
+
     print('Apply land mask')
-    # query kwargs
-    land_mask_resolution = kwargs.get('land_mask_resolution','l')
-    plotkey = kwargs.get('plot',False)
-    conservative_mask = kwargs.get('conservative_mask',0)
-    # continue with land mask filter
+    if ROAR is None:
+        ROAR = roaring_landmask.RoaringLandmask.new()
+
     longitudes = np.array(vardict['longitude'])
     latitudes = np.array(vardict['latitude'])
-    f = cfeature.GSHHSFeature(scale=land_mask_resolution, levels=[1],
-                                facecolor=cfeature.COLORS['land'])
-    # Create bbox to filter out land area of interest
-    longitudes[longitudes>180]-=360
-    left_lon, right_lon = longitudes.min(), longitudes.max()
-    bottom_lat, top_lat = latitudes.min(), latitudes.max()
-    swath_extent = ((left_lon,bottom_lat),
-                        (right_lon, bottom_lat),
-                        (right_lon, top_lat),
-                        (left_lon,top_lat),
-                        (left_lon, bottom_lat))
-    bbox = sgeom.Polygon((swath_extent))
-    #  Find the intersecting polygons with bbox in coarse resolution
-    intersecting_geoms = list(f.intersecting_geometries([left_lon, right_lon, bottom_lat, top_lat]))
-    print("Nb intersecting geometries: {} ".format(len(intersecting_geoms)))
-    land_geom = unary_union(intersecting_geoms)
-    # Compute land mask vectorized
-    land_mask = shapely.vectorized.contains(land_geom,longitudes,latitudes)
-    # Extend the land mask to be conservative
-    if conservative_mask>0:
-        lm_c = land_mask.copy()
-        lm_idxs = np.where(lm_c==True)[0]
-        land_mask[lm_idxs-conservative_mask] = True
-        land_mask[lm_idxs+conservative_mask] = True
-    if plotkey:
-        plt.figure(figsize=(12, 12))
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.add_geometries(intersecting_geoms, ccrs.PlateCarree(),
-                            facecolor='none',
-                            edgecolor='black')#, alpha=0.5)
-        ax.add_geometries([bbox], ccrs.PlateCarree(),
-                            facecolor='g',alpha=0.2)
-        ax.scatter(longitudes,latitudes,s=30, c='b',transform=ccrs.PlateCarree())
-        ax.scatter(longitudes[land_mask],latitudes[land_mask],s=30,c='r', transform=ccrs.PlateCarree())
-        ax.set_global()
-        plt.show()
-    # apply filter to vardict
-    # invert bool
+    land_mask = ROAR.contains_many(longitudes, latitudes)
     sea_mask = np.invert(land_mask)
+
     for key in vardict.keys():
         if (key != 'time_unit' and key != 'meta'):
             vardict[key] = list(np.array(vardict[key])[sea_mask])

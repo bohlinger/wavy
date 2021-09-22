@@ -734,6 +734,14 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
+name = "roaring-landmask"
+version = "0.3.1"
+description = "A fast and limited-memory structure with a landmask based on GSHHG for determing whether a point on Earth is on land or in the ocean"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "scikit-learn"
 version = "0.24.2"
 description = "A set of python modules for machine learning and data mining"
@@ -1043,7 +1051,7 @@ jupyter = ["notebook", "ipytree"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8,<3.10"
-content-hash = "0b05895e73dcbd97d28ebc1a94b8c15fe29ba89adcdd910b6770154bf23577f1"
+content-hash = "3e04371c7d13fe2e11f64c55e3e949916535713fd1d0aac8024bbc6f1348f1d7"
 
 [metadata.files]
 alabaster = [
@@ -1697,6 +1705,29 @@ pyyaml = [
 requests = [
     {file = "requests-2.26.0-py2.py3-none-any.whl", hash = "sha256:6c1246513ecd5ecd4528a0906f910e8f0f9c6b8ec72030dc9fd154dc1a6efd24"},
     {file = "requests-2.26.0.tar.gz", hash = "sha256:b8aa58f8cf793ffd8782d3d8cb19e66ef36f7aba4353eec859e74678b01b07a7"},
+]
+roaring-landmask = [
+    {file = "roaring_landmask-0.3.1-cp310-cp310-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:ff48615a9e6532f6a6c6f18044af24aa47d592509afc513997afc83c01d47a9c"},
+    {file = "roaring_landmask-0.3.1-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:da907928bd0c429a4a98f19d499e76ca262320a51fdc20e0311480c50a4c510e"},
+    {file = "roaring_landmask-0.3.1-cp36-cp36m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:f826e042a3f3525e9d585481835a7bd4e3bccd6e29a2d527e6ca44d35da37b72"},
+    {file = "roaring_landmask-0.3.1-cp36-cp36m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:44c1962eeb9c0f1abd9f73211d644511b0ad5654166029579016c4001bc0ce8e"},
+    {file = "roaring_landmask-0.3.1-cp36-none-win32.whl", hash = "sha256:c8007d6aaedc097c2bc7994cf8f07db3aa1d51e3574ba25b62bfd77cbf47cf86"},
+    {file = "roaring_landmask-0.3.1-cp36-none-win_amd64.whl", hash = "sha256:42d02b7ca1c92fe3a7b7bd9b41cad988d3905771f5cbf17c4b6ecd8880b853c5"},
+    {file = "roaring_landmask-0.3.1-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:09b155f230c22f737333a556d3fb15063b294df1d518f05a20b5b04f9398f688"},
+    {file = "roaring_landmask-0.3.1-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:6230b3486740fd6b3a3e1eadfc7e1d281846ef772af3fe74f7e5b4f15c49c25d"},
+    {file = "roaring_landmask-0.3.1-cp37-none-win32.whl", hash = "sha256:e5ac95f994bbb082ee163be9c2844400a60245451504c3fd2f8acdf77272da67"},
+    {file = "roaring_landmask-0.3.1-cp37-none-win_amd64.whl", hash = "sha256:26c8deb86086af1294b1540eff305c422b9d16f98e8b8649eede287e3586d703"},
+    {file = "roaring_landmask-0.3.1-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:606ef53ec0e8695f6058a6057aedfb9db28b91bf80d1388dc1d1a5fc8298e027"},
+    {file = "roaring_landmask-0.3.1-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:62ae33dc9ad986b8510d1c47f35c1aafe30bea28fbfbeb5c653fb48925827c5c"},
+    {file = "roaring_landmask-0.3.1-cp38-none-win32.whl", hash = "sha256:1c1801438921acf518464bb72d1747d627170d5599e80422f44feb69b84ae2c0"},
+    {file = "roaring_landmask-0.3.1-cp38-none-win_amd64.whl", hash = "sha256:28294fbc7168acb728650266ba02dad693919affd605629137670e93ae7b8cbd"},
+    {file = "roaring_landmask-0.3.1-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:fbf32e4d115df15bbf95b460fa8cf5859b10aa54765511105373a125c6769c68"},
+    {file = "roaring_landmask-0.3.1-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:24702468c0563c6640e132f6189c83cdfd9073d7d07ea6bc01a021583a970b67"},
+    {file = "roaring_landmask-0.3.1-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:e7a0af0228d76275ab09cada933555a01fc9e50816d190ad2bfdc3d4ddcfac75"},
+    {file = "roaring_landmask-0.3.1-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d802e7516a0393f1bf6f598331a6e7b2100785661ff4c00bbde8b1382814776b"},
+    {file = "roaring_landmask-0.3.1-cp39-none-win32.whl", hash = "sha256:9340a4665c4aef6f842ca3df1560dc7fa44e96d76d63144afbfedc13b5bd1eb8"},
+    {file = "roaring_landmask-0.3.1-cp39-none-win_amd64.whl", hash = "sha256:e878ad52dd162e1c139de5b7d845684919346de84ac100231172d0cd8a6ba203"},
+    {file = "roaring_landmask-0.3.1.tar.gz", hash = "sha256:df76ddf508dfdb1f68ce4b45afea641f6d23e529d715963ee2bf97b4a3a45b8a"},
 ]
 scikit-learn = [
     {file = "scikit-learn-0.24.2.tar.gz", hash = "sha256:d14701a12417930392cd3898e9646cf5670c190b933625ebe7511b1f7d7b8736"},

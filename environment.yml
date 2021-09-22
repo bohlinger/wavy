@@ -29,3 +29,6 @@ dependencies:
   - python-dotenv
   - xdg
   - sentinelsat
+  - pip
+  - pip:
+    - roaring_landmask

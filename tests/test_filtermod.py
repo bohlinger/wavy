@@ -22,7 +22,7 @@ ed = datetime(2021,8,3,12)
 def test_landmask():
     vardict = { 'latitude':[60.12,62.24, 64.08,65.08, 67.65,68.95],
                 'longitude':[-23.47,-21.54, -19.32,-17.8, -13.97,-10.99]}
-    d,m = apply_land_mask(vardict,land_mask_resolution='l')
+    d,m = apply_land_mask(vardict,land_mask_resolution='f')
     assert len(m[m==False]) == int(2)
 
 def test_cleaners():
