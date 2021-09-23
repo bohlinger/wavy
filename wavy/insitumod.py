@@ -179,39 +179,37 @@ class insitu_class():
             tmpdate = self.sdate
             edate = self.edate
             while tmpdate <= edate:
-                idxtmp = collocate_times(unfiltered_t=self.vars['datetime'],
-                                     sdate = datetime(tmpdate.year,
-                                                      tmpdate.month,1),
-                                     edate = datetime(tmpdate.year,
-                                                      tmpdate.month,
-                                                      calendar.monthrange(
-                                                        tmpdate.year,
-                                                        tmpdate.month)[1],
-                                                        23,59) )
+                idxtmp = collocate_times(
+                            unfiltered_t=self.vars['datetime'],
+                            sdate = datetime(tmpdate.year,
+                                             tmpdate.month,1),
+                            edate = datetime(tmpdate.year,
+                                             tmpdate.month,
+                                             calendar.monthrange(
+                                             tmpdate.year,
+                                             tmpdate.month)[1],
+                                             23,59) )
                 if (path is not None and filename is not None):
+                    # use joinpath instead
                     pathtofile = path + '/' + filename
                 else:
                     if path is None:
-                        path_template = station_dict['path']['platform']\
-                                                    ['local']['nc']\
-                                                    ['path_template'][0]
+                        path_template = insitu_dict[self.nID]['dst']\
+                                                   ['path_template'][0]
                     if filename is None:
-                        file_template = station_dict['path']['platform']\
-                                                    ['local']['nc']\
+                        file_template = insitu_dict[self.nID]['dst']\
                                                     ['file_template']
-                    strsublst = station_dict['path']['platform']\
-                                                    ['local']['nc']\
-                                                    ['strsub']
-                    if 'filter' in vars(self).keys():
+                    strsublst = insitu_dict[self.nID]['dst']['strsub']
+                    if 'filterData' in vars(self).keys():
                         file_template = 'filtered_' + file_template
                     tmppath = path_template + '/' + file_template
                     pathtofile = make_pathtofile(tmppath,strsublst,
-                                                tmpdate,
-                                                platform=self.platform,
-                                                sensor=self.sensor,
-                                                varalias=self.varalias)
-                title = ( self.varname + ' observations from '
-                        + self.platform + ' ' + self.sensor )
+                                                 tmpdate,
+                                                 nID=self.nID,
+                                                 sensor=self.sensor,
+                                                 varalias=self.varalias)
+                title = ( self.varalias + ' observations from '
+                        + self.nID + ' ' + self.sensor )
                 dumptonc_ts_station(self,pathtofile,title)
                 tmpdate = tmpdate + relativedelta(months = +1)
         return

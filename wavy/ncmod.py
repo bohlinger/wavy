@@ -395,9 +395,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
     else:
         outpath = os.path.dirname(pathtofile)
         os.system('mkdir -p ' + outpath)
-        nc = netCDF4.Dataset(
-                        pathtofile,mode='w',
-                        )
+        nc = netCDF4.Dataset(pathtofile,mode='w')
         # dimensions
         dimsize = None
         dimtime = nc.createDimension(
@@ -421,7 +419,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
                                dimensions=('time')
                                )
         ncvar = nc.createVariable(
-                               st_obj.varname,
+                               st_obj.varalias,
                                np.float64,
                                dimensions=('time'),
                                fill_value=-999.
@@ -456,26 +454,26 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
                                 "Norwegian Meteorological Institute"
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
-        if 'superob' in vars(st_obj).keys():
-            globalAttribs['processing_level'] = 'post-processing performed'
-            globalAttribs['method_superobbing'] = str(st_obj.superob)
-            globalAttribs['method_outlier_detection'] = (\
-                                                st_obj.outlier_detection)
-            globalAttribs['missing_value_handling'] = (st_obj.missing_data)
-        else:
-            globalAttribs['processing_level'] = \
-                                "No post-processing performed"
-        globalAttribs['static_position_station'] =  \
-                            ("Latitude: "
-                            + str(station_dict\
-                                  [st_obj.nID]\
-                                  ['coords']['lat'])
-                            + ", Longitude: "
-                            + str(station_dict\
-                                  [st_obj.nID]\
-                                  ['coords']['lon']))
+        #if 'superob' in vars(st_obj).keys():
+        #    globalAttribs['processing_level'] = 'post-processing performed'
+        #    globalAttribs['method_superobbing'] = str(st_obj.superob)
+        #    globalAttribs['method_outlier_detection'] = (\
+        #                                        st_obj.outlier_detection)
+        #    globalAttribs['missing_value_handling'] = (st_obj.missing_data)
+        #else:
+        #globalAttribs['processing_level'] = \
+        #                        "No post-processing performed"
+        #globalAttribs['static_position_station'] =  \
+        #                    ("Latitude: "
+        #                    + str(insitu_dict\
+        #                          [st_obj.nID]\
+        #                          ['coords']['lat'])
+        #                    + ", Longitude: "
+        #                    + str(insitu_dict\
+        #                          [st_obj.nID]\
+        #                          ['coords']['lon']))
         globalAttribs['operator'] = \
-                            station_dict\
+                            insitu_dict\
                             [st_obj.nID]\
                             ['operator']
         nc.setncatts(globalAttribs)
