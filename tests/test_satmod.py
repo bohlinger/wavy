@@ -7,12 +7,12 @@ from wavy.wconfig import load_or_default
 import wavy.satmod
 from wavy.satmod import satellite_class
 
-sdate = datetime(2020,11,1,11)
-edate = datetime(2020,11,1,13)
+sdate = datetime(2020,11,1,12)
+edate = datetime(2020,11,1,12)
 region = 'NordicSeas'
 sat = 's3a'
 varalias = 'Hs'
-twin = 60
+twin = 30
 nproc = 1
 instr = 'altimeter'
 provider = 'cmems'
@@ -38,7 +38,9 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                              edate=edate,
                              region=region,
                              sat=sat,
+                             twin=twin,
                              varalias=varalias,
+                             provider=provider,
                              path_local=tmpdir)
     assert sa_obj.__class__.__name__ == 'satellite_class'
     assert len(vars(sa_obj).keys()) >= 10
