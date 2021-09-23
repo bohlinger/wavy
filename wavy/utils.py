@@ -8,8 +8,6 @@ from math import radians, cos, sin, asin, sqrt, floor
 import sys
 import subprocess
 import os
-from sklearn import gaussian_process
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel
 
 def block_detection(time,deltalim=None):
     if deltalim is None:
@@ -437,7 +435,13 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
     i = 0
     switch = False
     while switch is False:
-        pathtofile = date.strftime(pathlst[i])
+        try:
+            pathtofile = date.strftime(pathlst[i])
+        except IndexError as e:
+            print(e)
+            print('Index to large for pathlst')
+            print('-> returning None')
+            return None
         for strsub in strsublst:
             pathtofile = pathtofile.replace(strsub,kwargs[strsub])
         # check if thredds and if accessible using netCDF4a

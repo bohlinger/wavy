@@ -7,9 +7,8 @@ from wavy.wconfig import load_or_default
 import wavy.satmod
 from wavy.satmod import satellite_class
 
-now = datetime.now()
-edate = datetime(now.year, now.month, now.day)
-sdate = datetime(now.year, now.month, now.day) - timedelta(hours=1)
+sdate = datetime(2020,11,1,11)
+edate = datetime(2020,11,1,13)
 region = 'NordicSeas'
 sat = 's3a'
 varalias = 'Hs'
@@ -35,7 +34,8 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                 if '.nc' in filelist[i]]
     assert len(nclist) >= 1
     # init satellite_object and check for polygon region
-    sa_obj = satellite_class(sdate=sdate,edate=edate,
+    sa_obj = satellite_class(sdate=sdate,
+                             edate=edate,
                              region=region,
                              sat=sat,
                              varalias=varalias,
