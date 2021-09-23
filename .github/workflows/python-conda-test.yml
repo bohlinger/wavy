@@ -8,6 +8,9 @@ jobs:
     strategy:
       max-parallel: 5
 
+    env:
+      COVERALLS_REPO_TOKEN: xIILGI4RaHRkMSqLgZN8taBLNMaMNrBzD
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
@@ -37,3 +40,6 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
+
+    - name: Upload to Coveralls
+      run: coveralls
