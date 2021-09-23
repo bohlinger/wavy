@@ -45,6 +45,7 @@ jobs:
         poetry build
 
     - name: Upload wheels
+      if: matrix.python-version == '3.9'
       uses: actions/upload-artifact@v2
       with:
         name: wheels
