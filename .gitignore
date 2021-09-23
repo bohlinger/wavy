@@ -13,3 +13,4 @@ LC-WVF
 .eggs
 *.egg-info
 *.env
+/dist/

@@ -40,6 +40,10 @@ jobs:
       run: |
         poetry run pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
 
+    - name: Build wheels
+      run: |
+        poetry build
+
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
