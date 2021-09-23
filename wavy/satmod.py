@@ -46,7 +46,7 @@ from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.wconfig import load_or_default
-from wavy.filtermod import filter_main
+from wavy.filtermod import filter_main,vardict_unique,rm_nan_from_vardict
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -645,6 +645,10 @@ class satellite_class():
             else:
                 rvardict = get_sat_ts(sdate,edate,twin,region,instr,
                                       provider,sat,pathlst,varalias)
+                # make ts in vardict unique
+                rvardict = vardict_unique(rvardict)
+                # rm NaNs
+                rvardict = rm_nan_from_vardict(varalias,rvardict)
             # find variable name as defined in file
             if provider == 'cmems':
                 ncdict = ncdumpMeta(pathlst[0])

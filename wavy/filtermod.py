@@ -45,6 +45,8 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
     stdvarname = variable_info[varalias]['standard_name']
     # clone vardict_in
     vardict = deepcopy(vardict_in)
+    # make ts in vardict unique
+    vardict = vardict_unique(vardict)
     # rm NaNs
     vardict = rm_nan_from_vardict(varalias,vardict)
     # apply physical limits
@@ -112,6 +114,14 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
                 vardict = apply_postOp(varalias,vardict,method = method)
 
     return vardict
+
+def vardict_unique(vardict):
+    _, idx = np.unique(np.array(vardict['datetime']),return_index=True)
+    for key in vardict.keys():
+        if (key != 'time_unit' and key != 'meta'):
+            vardict[key] = list(np.array(vardict[key])[idx])
+    return vardict
+
 
 def filter_slider(vardict,varalias,**kwargs):
         slider = kwargs['slider']
