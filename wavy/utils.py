@@ -524,3 +524,17 @@ class NoStdStreams(object):
         sys.stdout = self.old_stdout
         sys.stderr = self.old_stderr
         self.devnull.close()
+
+def get_item_parent(ncdict,item,attr):
+    lst = [i for i in ncdict.keys() \
+            if (attr in ncdict[i].keys() \
+            and item in ncdict[i][attr]) \
+            ]
+    if len(lst) >= 1:
+        return lst
+    else: return None
+
+def get_item_child(ncdict,item):
+    parent = finditem(ncdict,item)
+    return parent
+
