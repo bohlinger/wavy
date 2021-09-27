@@ -3,67 +3,72 @@
 ########################################################################
 # """
 # general structure:
-#   + instrument type (altimeter/scatterometer)
 #       + provider (eumetsat/cmems)
 #           + specs
 # """
 
 # define source after the following example encompassing all options:
-#instrument type:
-#    provider:
-#        level: # processing level e.g. 3
-#        satellite: # mission name abbreviations
+# provider:
+#    level: # processing level e.g. 3
+#    satellite: # mission name abbreviations
+#    dst: # destination
 #        local:
 #            path:
+#    src: # source
 #        remote:
 #            path:
 #            server:
-#        misc:
-#            vardef: # stdname: ncfile varname
-#                stdvarname of interest: ncfile varname
+#    misc:
+#    vardef:
+#        varalias: ncfile varname
 ########################################################################
 
-altimeter:
-    eumetsat:
-        level: 2
-        satellite:
-            s3a: S3A
-            s3b: S3B
+eumetsat:
+    level: 2
+    satellite:
+        s3a: S3A
+        s3b: S3B
+    dst:
         local:
             path_template: /home/patrikb/tmp_altimeter/L2/mission
             file_template:
             strsub: ['mission']
+            date_incr: d
+    src:
         remote:
             api_url: ["https://colhub.met.no/",
                       "https://coda.eumetsat.int/search"]
-        misc:
-            kwargs: # specify dict for query
-            vardef: # varalias: varname
-                Hs: swh_ocean_20_ku
-                lats: lat_20_ku
-                lons: lon_20_ku
-                time: time_20_ku
-    cmems:
-        level: 3
-        satellite:
-            s3a: s3a
-            s3b: s3b
-            c2: c2
-            al: al
-            j3: j3
-            h2b: h2b
-            cfo: cfo
+    misc:
+        kwargs: # specify dict for query
+    vardef: # varalias: varname
+        Hs: swh_ocean_20_ku
+        lats: lat_20_ku
+        lons: lon_20_ku
+        time: time_20_ku
+cmems:
+    level: 3
+    satellite:
+        s3a: s3a
+        s3b: s3b
+        c2: c2
+        al: al
+        j3: j3
+        h2b: h2b
+        cfo: cfo
+    dst:
         local:
             path_template: /home/patrikb/tmp_altimeter/L3/mission
             file_template:
             strsub: ['mission']
+            date_incr: m
+    src:
         remote:
             path_template: "/Core/\
                     WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
                     dataset-wav-alti-l3-swh-rt-global-mission/%Y/%m/"
             server: "nrt.cmems-du.eu"
             strsub: ['mission']
-        misc:
-            vardef: # varalias: varname
-                Hs: VAVH
-                U: WIND_SPEED
+    misc:
+    vardef: # varalias: varname
+        Hs: VAVH
+        U: WIND_SPEED

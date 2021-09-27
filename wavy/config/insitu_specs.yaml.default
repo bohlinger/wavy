@@ -895,7 +895,7 @@ A_Sulafjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -924,7 +924,7 @@ B_Sulafjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -953,7 +953,7 @@ B1_Sulafjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -982,7 +982,7 @@ C_Sulafjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -1011,7 +1011,7 @@ C1_Sulafjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -1040,7 +1040,7 @@ D_Breisundet: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -1069,7 +1069,7 @@ F_Vartdalsfjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
@@ -1098,7 +1098,7 @@ G_Halsafjorden: # object nID (nameID)
                             /obs/buoy-svv-e39/%Y/%m/"]
         file_template: "%Y%m_E39_nID_wave.nc"
         strsub: ['nID']
-        date_incr: 'm' # Y,m,d
+        file_date_incr: 'm' # Y,m,d
     dst: # destination
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
