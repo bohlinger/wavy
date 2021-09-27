@@ -22,8 +22,7 @@ asgardb: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -48,8 +47,7 @@ aastahansteen: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -74,8 +72,7 @@ brage: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -105,8 +102,7 @@ draugen: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -141,8 +137,7 @@ ekofiskL: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+        vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -167,8 +162,7 @@ gjoa: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -193,8 +187,7 @@ goliat: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -219,8 +212,7 @@ grane: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -245,8 +237,7 @@ gudrun: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -271,8 +262,7 @@ oseberg: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -297,8 +287,7 @@ osebergc: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -323,8 +312,7 @@ osebergsyd: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -349,8 +337,7 @@ gullfaksc: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -380,8 +367,7 @@ heidrun: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -391,7 +377,7 @@ heimdal: # object nID (nameID)
     manufacturer:
         MKIIIradar: Miros
     coords:
-        NA_1:
+        MKIIIradar:
             lat: 59.57
             lon: 2.23
     operator: Equinor_Energy
@@ -406,8 +392,7 @@ heimdal: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -432,8 +417,7 @@ kvitebjorn: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -463,8 +447,7 @@ kristin: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -500,8 +483,7 @@ njorda: # 2004-2016
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -526,8 +508,7 @@ norne: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -552,8 +533,7 @@ ormenlange: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -578,8 +558,7 @@ snorrea: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -635,8 +614,7 @@ sleipner: # object nID (nameID)
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -672,8 +650,7 @@ stafjorda: # etsablished typo -> should be statfjorda
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -698,8 +675,7 @@ statfjordb:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -724,8 +700,7 @@ trolla:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -750,8 +725,7 @@ trollb:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -776,8 +750,7 @@ ula:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -807,8 +780,7 @@ valhall:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -833,8 +805,7 @@ veslefrikka:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -869,8 +840,7 @@ veslefrikkb:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
 
@@ -895,8 +865,7 @@ visund:
         path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
-    vardef: # stdname: abbreviation
-        #sea_surface_wave_significant_height: Hs_10min
+    vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
 
@@ -912,8 +881,10 @@ visund:
 
 ### E39 project ###
 A_Sulafjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -932,12 +903,17 @@ A_Sulafjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 B_Sulafjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -956,12 +932,17 @@ B_Sulafjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 B1_Sulafjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -980,12 +961,17 @@ B1_Sulafjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 C_Sulafjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -1004,12 +990,17 @@ C_Sulafjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 C1_Sulafjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -1028,12 +1019,17 @@ C1_Sulafjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 D_Breisundet: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -1052,12 +1048,17 @@ D_Breisundet: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 F_Vartdalsfjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -1076,12 +1077,17 @@ F_Vartdalsfjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc
 
 G_Halsafjorden: # object nID (nameID)
-    sensor: wavescan
-    manufacturer: fugro
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
     coords:
         wavescan:
             lat:
@@ -1100,5 +1106,8 @@ G_Halsafjorden: # object nID (nameID)
     vardef:
         Hs: Hm0
         Tm02: tm02
+        Tp: tp
+        Mdir: mdir
+        Pdir: thtp
     tags: ['E39']
     fifo: nc

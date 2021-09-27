@@ -38,10 +38,10 @@ altimeter:
                       "https://coda.eumetsat.int/search"]
         misc:
             kwargs: # specify dict for query
-            vardef: # stdname: abbreviation
-                sea_surface_wave_significant_height: swh_ocean_20_ku
-                latitude: lat_20_ku
-                longitude: lon_20_ku
+            vardef: # varalias: varname
+                Hs: swh_ocean_20_ku
+                lats: lat_20_ku
+                lons: lon_20_ku
                 time: time_20_ku
     cmems:
         level: 3
@@ -64,6 +64,6 @@ altimeter:
             server: "nrt.cmems-du.eu"
             strsub: ['mission']
         misc:
-            vardef: # stdname: abbreviation
-                sea_surface_wave_significant_height: VAVH
-                wind_speed: WIND_SPEED
+            vardef: # varalias: varname
+                Hs: VAVH
+                U: WIND_SPEED

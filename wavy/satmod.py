@@ -323,14 +323,14 @@ def read_local_files_cmems(pathlst,provider,varalias):
             ncvars = [v for v in f.variables]
             for ncvar in ncvars:
                 stdname = f.variables[ncvar].getncattr('standard_name')
-                if satellite_dict['altimeter'][provider]\
-                ['misc']['vardef'] is not None:
-                    if (stdname in satellite_dict['altimeter'][provider]\
-                    ['misc']['vardef']
-                    and ncvar != satellite_dict['altimeter'][provider]\
-                    ['misc']['vardef'][stdname]):
-                        ncvar = satellite_dict['altimeter'][provider]\
-                            ['misc']['vardef'][stdname]
+                #if satellite_dict['altimeter'][provider]\
+                #['misc']['vardef'] is not None:
+                #    if (varalias in satellite_dict['altimeter'][provider]\
+                #    ['misc']['vardef']
+                #    and ncvar != satellite_dict['altimeter'][provider]\
+                #    ['misc']['vardef'][varalias]):
+                #        ncvar = satellite_dict['altimeter'][provider]\
+                #            ['misc']['vardef'][varalias]
                 if stdname in varlst_cf:
                     if stdname in vardict:
                         if stdname in stdname_lst:
@@ -338,7 +338,10 @@ def read_local_files_cmems(pathlst,provider,varalias):
                                     "standard_name is not unique !!!")
                             if satellite_dict['altimeter'][provider]\
                             ['misc']['vardef'] is not None:
-                                if stdname in satellite_dict['altimeter']\
+                                tmp_varalias = varlst[\
+                                                varlst_cf.index(stdname)]
+                                if tmp_varalias in \
+                                satellite_dict['altimeter']\
                                 [provider]['misc']['vardef']:
                                     print( "As defined in "
                                     + "satellite_specs.yaml, "
@@ -362,7 +365,7 @@ def read_local_files_cmems(pathlst,provider,varalias):
         count = count + 1
     print ('\n')
     # remove redundant entries
-    time_unique,indices=np.unique(vardict['time'],return_index=True)
+    time_unique,indices = np.unique(vardict['time'],return_index=True)
     for key in vardict:
         vardict[key]=list(np.array(vardict[key])[indices])
     if (f.variables[variable_info['lons']\
@@ -402,13 +405,14 @@ def read_local_files_eumetsat(pathlst,provider,varalias):
         extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
         ncin = netCDF4.Dataset(extracted)
         for stdname in varlst_cf:
+            tmp_varalias = varlst[varlst_cf.index(stdname)]
             if (satellite_dict['altimeter'][provider]\
             ['misc']['vardef'] is not None and
-            stdname in satellite_dict['altimeter']\
+            tmp_varalias in satellite_dict['altimeter']\
             [provider]['misc']['vardef']):
                 ncvar = satellite_dict['altimeter']\
                             [provider]['misc']['vardef']\
-                            [stdname]
+                            [tmp_varalias]
                 print( "As defined in "
                      + "satellite_specs.yaml, "
                      + "the following "
@@ -419,20 +423,10 @@ def read_local_files_eumetsat(pathlst,provider,varalias):
                     vardict[stdname] += list(ncin[ncvar][:])
                 else:
                     vardict[stdname] = list(ncin[ncvar][:])
-    ncvar_lon = satellite_dict['altimeter']\
-                            [provider]['misc']['vardef']\
-                            ['longitude']
-    #if (ncin.variables[ncvar_lon].getncattr('valid_min') == 0):
     # transform to -180 to 180 degrees
     tmp = np.array(vardict['longitude'])
     vardict['longitude'] = list(((tmp - 180) % 360) - 180)
     vardict['time_unit'] = ncin['time_20_ku'].units
-    # things that should be done at some point:
-    #  - apply coarse area filter
-    #  - apply land mask filter
-    #  - divide into chunks
-    #  - apply superob/outlier to chunks
-    #  - cleanup tmpdir
     tmpdir.cleanup()
     ncin.close()
     return vardict
@@ -512,7 +506,7 @@ def get_sat_ts(sdate,edate,twin,region,instr,provider,sat,
                                         ncdict,stdname)
     if (len(filevarname) or filename is None) > 1:
         filevarname = satellite_dict[instr][provider]\
-                    ['misc']['vardef'][stdname]
+                    ['misc']['vardef'][varalias]
     else:
         filevarname = get_varname_for_cf_stdname_in_ncfile(
                                             ncdict,stdname)[0]
@@ -662,7 +656,7 @@ class satellite_class():
             if (len(filevarname) or filename is None) > 1:
                 filevarname = satellite_dict[instr][provider]\
                                             ['misc']['vardef']\
-                                            [stdname]
+                                            [varalias]
             else:
                 filevarname = get_varname_for_cf_stdname_in_ncfile(
                                                     ncdict,stdname)[0]
