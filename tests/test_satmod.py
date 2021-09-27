@@ -20,7 +20,7 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 
 
 @pytest.mark.need_credentials
-def test_ftp_files_and_init_satellite_class(tmpdir):
+def test_ftp_files_and_satellite_class_features(tmpdir):
     # evoke fct get_remote_files
     api_url = None
     sat = 's3a'
@@ -45,18 +45,8 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
     assert len(vars(sco).keys()) >= 10
     assert len(sco.vars.keys()) >= 6
     assert not 'error' in vars(sco).keys()
-
-#def test_write_sat_to_nc_and_read(tmpdir):
-#    sco = satellite_class(sdate=sdate,
-#                          edate=edate,
-#                          region=region,
-#                          sat=sat,
-#                          twin=twin,
-#                          varalias=varalias,
-#                          provider=provider,
-#                          path_local=tmpdir)
-#    # write to nc
-#    sco.write_to_nc(filefreq='m',dst=tmpdir)
-#    # check if created -> assert
-#    # read nc
-#    # check if varalias assert
+    # write to nc
+    sco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
+    # check if created -> assert
+    # read nc
+    # check if varalias assert

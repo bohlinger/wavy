@@ -38,7 +38,7 @@ import tempfile
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from wavy.ncmod import find_attr_in_nc
+from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import progress, sort_files, collocate_times
 from wavy.utils import make_pathtofile
 from wavy.credentials import get_credentials
@@ -92,16 +92,16 @@ sdate,edate,twin,nproc,sat,provider,path_local):
     from, to, creation
     '''
     # credentials
-    server = satellite_dict[provider]['src']['remote']['server']
+    server = satellite_dict[provider]['src']['server']
     user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
         # create remote path
         path_template = satellite_dict[provider]['src']\
-                                      ['remote']['path_template']
+                                      ['path_template']
         strsublst = satellite_dict[provider]['src']\
-                                  ['remote']['strsub']
+                                  ['strsub']
         path_remote = make_pathtofile(path_template,\
                                       strsublst,\
                                       tmpdate,\
@@ -109,9 +109,9 @@ sdate,edate,twin,nproc,sat,provider,path_local):
         if path_local is None:
             # create local path
             path_template = satellite_dict[provider]['dst']\
-                                      ['local']['path_template']
+                                          ['path_template']
             strsublst = satellite_dict[provider]['dst']\
-                                  ['local']['strsub']
+                                      ['strsub']
             path_local = make_pathtofile(path_template,\
                                      strsublst,\
                                      sdate,\
@@ -184,9 +184,9 @@ provider,sdate,edate,api_url,sat,path_local):
     if path_local is None:
         # create local path
         path_template = satellite_dict[provider]['dst']\
-                                  ['local']['path_template']
+                                      ['path_template']
         strsublst = satellite_dict[provider]['dst']\
-                              ['local']['strsub']
+                                  ['strsub']
         path_local = make_pathtofile(path_template,\
                                      strsublst,\
                                      sdate,\
@@ -195,7 +195,7 @@ provider,sdate,edate,api_url,sat,path_local):
     kwargs = make_query_dict(provider,sat)
     if api_url is None:
         api_url_lst = \
-            satellite_dict[provider]['src']['remote']['api_url']
+            satellite_dict[provider]['src']['api_url']
         for url in api_url_lst:
             print('Source:',url)
             try:
@@ -264,9 +264,9 @@ def get_local_files(sdate,edate,twin,provider,sat,path_local=None):
                 print('path_local is None -> checking config file')
                 # create local path
                 path_template = satellite_dict[provider]['dst']\
-                                      ['local']['path_template']
+                                              ['path_template']
                 strsublst = satellite_dict[provider]['dst']\
-                                    ['local']['strsub']
+                                          ['strsub']
                 print(path_template,strsublst)
                 path_local = make_pathtofile(path_template,\
                                              strsublst,\
@@ -580,7 +580,7 @@ class satellite_class():
         # make satpaths
         if path_local is None:
             path_template = satellite_dict[provider]['dst']\
-                                      ['local']['path_template']
+                                          ['path_template']
             self.path_local = path_template
         else:
             self.path_local = path_local
@@ -651,8 +651,8 @@ class satellite_class():
             rvardict['meta'] = ncdict
 
             # define class variables
-            self.edate = edate
             self.sdate = sdate
+            self.edate = edate
             self.vars = rvardict
             self.varalias = varalias
             self.varname = filevarname
@@ -661,6 +661,7 @@ class satellite_class():
             self.region = region
             self.sat = sat
             self.obstype = 'satellite_altimeter'
+            self.provider = provider
             t1=time.time()
             print("Time used for retrieving satellite data:",\
                     round(t1-t0,2),"seconds")
@@ -687,6 +688,53 @@ class satellite_class():
         parent = finditem(ncdict,item)
         return parent
 
+    def write_to_nc(self,pathtofile=None,file_date_incr=None):
+        # divide time into months by loop over months from sdate to edate
+        if 'error' in vars(self):
+            print('Erroneous satellite_class file detected')
+            print('--> dump to netCDF not possible !')
+        else:
+            tmpdate = self.sdate
+            edate = self.edate
+            while tmpdate <= edate:
+                idxtmp = collocate_times(
+                            unfiltered_t=self.vars['datetime'],
+                            sdate = datetime(tmpdate.year,
+                                             tmpdate.month,1),
+                            edate = datetime(tmpdate.year,
+                                             tmpdate.month,
+                                             calendar.monthrange(
+                                             tmpdate.year,
+                                             tmpdate.month)[1],
+                                             23,59) )
+                if pathtofile is None:
+                    path_template = satellite_dict[self.provider]\
+                                                ['dst']\
+                                                ['path_template'][0]
+                    file_template = satellite_dict[self.nID]['dst']\
+                                                ['file_template']
+                    strsublst = satellite_dict[self.nID]['dst']['strsub']
+                    if 'filterData' in vars(self).keys():
+                        file_template = 'filtered_' + file_template
+                    tmppath = os.path.join(path_template,file_template)
+                    pathtofile = make_pathtofile(tmppath,strsublst,
+                                                 tmpdate,
+                                                 nID=self.nID,
+                                                 sensor=self.sensor,
+                                                 varalias=self.varalias)
+                title = (self.obstype+' observations from '+ self.sat)
+                dumptonc_ts_sat(self,pathtofile,title)
+                # determine date increment
+                if file_date_incr is None:
+                    file_date_incr = satellite_dict[self.provider]\
+                                    ['src'].get('file_date_incr','m')
+                if file_date_incr == 'm':
+                    tmpdate += relativedelta(months = +1)
+                elif file_date_incr == 'Y':
+                    tmpdate += relativedelta(years = +1)
+                elif file_date_incr == 'd':
+                    tmpdate += timedelta(days = +1)
+        return
 
 def matchregion(LATS,LONS,region,grid_date):
     # region in region_dict[poly]:
