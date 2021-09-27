@@ -77,7 +77,6 @@ class insitu_class():
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
         try:
-#        for i in range(1):
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.sdate = sdate

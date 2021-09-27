@@ -323,14 +323,6 @@ def read_local_files_cmems(pathlst,provider,varalias):
             ncvars = [v for v in f.variables]
             for ncvar in ncvars:
                 stdname = f.variables[ncvar].getncattr('standard_name')
-                #if satellite_dict['altimeter'][provider]\
-                #['misc']['vardef'] is not None:
-                #    if (varalias in satellite_dict['altimeter'][provider]\
-                #    ['misc']['vardef']
-                #    and ncvar != satellite_dict['altimeter'][provider]\
-                #    ['misc']['vardef'][varalias]):
-                #        ncvar = satellite_dict['altimeter'][provider]\
-                #            ['misc']['vardef'][varalias]
                 if stdname in varlst_cf:
                     if stdname in vardict:
                         if stdname in stdname_lst:
