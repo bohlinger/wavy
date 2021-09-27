@@ -10,7 +10,7 @@
 Patrik Bohlinger, Norwegian Meteorological Institute, patrikb@met.no
 
 ## Purpose
-Package to aid wave model validation using satellite altimetry and other sources. This README only illustrates some usage examples.
+Package to aid the collocation of observations and wave model output as well as subsequent wave model validation. Observational sources can be satellite altimetry or in-situ data.
 
 ## Docs
-For more information about the package as well as documentation please refer to the [documentation](https://wavyopen.readthedocs.io/en/latest/index.html)
+For more information about the package as well as documentation please refer to the [documentation](https://wavyopen.readthedocs.io/en/latest/index.html).
