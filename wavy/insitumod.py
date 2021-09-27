@@ -33,7 +33,7 @@ from datetime import datetime
 import scipy as sp
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
-from wavy.ncmod import dumptonc_ts_station, get_varlst_from_nc_1D
+from wavy.ncmod import dumptonc_ts_insitu, get_varlst_from_nc_1D
 from wavy.ncmod import get_filevarname_from_nc
 from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
@@ -83,6 +83,7 @@ class insitu_class():
             self.edate = edate
             self.nID = nID
             self.sensor = sensor
+            self.obstype = 'insitu'
             if ('tags' in insitu_dict[nID].keys() and
             len(insitu_dict[nID]['tags'])>0):
                 self.tags = insitu_dict[nID]['tags']
@@ -158,8 +159,11 @@ class insitu_class():
             if fifo == 'nc':
                 meta = ncdumpMeta(pathtofile)
                 self.vars['meta'] = meta
-                self.varname = get_varname_for_cf_stdname_in_ncfile(
-                                meta,stdvarname)
+                varname = get_filevarname_from_nc(varalias,
+                                          variable_info,
+                                          insitu_dict[nID],
+                                          meta)
+                self.varname = varname
             else:
                 self.varname = varalias
             print (" ### insitu_class object initialized ###")
@@ -184,7 +188,7 @@ class insitu_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def write_to_monthly_nc(self,path=None,filename=None):
+    def write_to_nc(self,pathtofile=None,file_date_incr=None):
         # divide time into months by loop over months from sdate to edate
         if 'error' in vars(self):
             print('Erroneous insitu_class file detected')
@@ -203,20 +207,15 @@ class insitu_class():
                                              tmpdate.year,
                                              tmpdate.month)[1],
                                              23,59) )
-                if (path is not None and filename is not None):
-                    # use joinpath instead
-                    pathtofile = path + '/' + filename
-                else:
-                    if path is None:
-                        path_template = insitu_dict[self.nID]['dst']\
-                                                   ['path_template'][0]
-                    if filename is None:
-                        file_template = insitu_dict[self.nID]['dst']\
-                                                    ['file_template']
+                if pathtofile is None:
+                    path_template = insitu_dict[self.nID]['dst']\
+                                               ['path_template'][0]
+                    file_template = insitu_dict[self.nID]['dst']\
+                                                ['file_template']
                     strsublst = insitu_dict[self.nID]['dst']['strsub']
                     if 'filterData' in vars(self).keys():
                         file_template = 'filtered_' + file_template
-                    tmppath = path_template + '/' + file_template
+                    tmppath = os.path.join(path_template,file_template)
                     pathtofile = make_pathtofile(tmppath,strsublst,
                                                  tmpdate,
                                                  nID=self.nID,
@@ -224,8 +223,17 @@ class insitu_class():
                                                  varalias=self.varalias)
                 title = ( self.varalias + ' observations from '
                         + self.nID + ' ' + self.sensor )
-                dumptonc_ts_station(self,pathtofile,title)
-                tmpdate = tmpdate + relativedelta(months = +1)
+                dumptonc_ts_insitu(self,pathtofile,title)
+                # determine date increment
+                if file_date_incr is None:
+                    file_date_incr = insitu_dict[self.nID]\
+                                    ['src'].get('file_date_incr','m')
+                if file_date_incr == 'm':
+                    tmpdate += relativedelta(months = +1)
+                elif file_date_incr == 'Y':
+                    tmpdate += relativedelta(years = +1)
+                elif file_date_incr == 'd':
+                    tmpdate += timedelta(days = +1)
         return
 
 
@@ -333,12 +341,12 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
         timelst.append(list(vardict['time']))
         dtimelst.append(list(vardict['dtime']))
         # determine date increment
-        date_incr = insitu_dict[nID]['src']['date_incr']
-        if date_incr == 'm':
+        file_date_incr = insitu_dict[nID]['src'].get('file_date_incr','m')
+        if file_date_incr == 'm':
             tmpdate += relativedelta(months = +1)
-        elif date_incr == 'Y':
+        elif file_date_incr == 'Y':
             tmpdate += relativedelta(years = +1)
-        elif date_incr == 'd':
+        elif file_date_incr == 'd':
             tmpdate += timedelta(days = +1)
     varlst = flatten(varlst)
     lonlst = flatten(lonlst)

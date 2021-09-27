@@ -221,156 +221,22 @@ def get_var_from_nc_1D(pathtofile,var,sdate,edate):
     nc.close()
     return var
 
-def dumptonc_ts(outpath,filename,title,model_time_unit,results_dict):
-    """
-    1. check if nc file already exists
-    2. - if so use append mode
-       - if not create file
-    """
-    time_dt = results_dict['date_matches']
-    mHs = results_dict['model_matches']
-    mlons = results_dict['model_lons_matches']
-    mlats = results_dict['model_lats_matches']
-    sHs = results_dict['sat_matches']
-    slons = results_dict['sat_lons_matches']
-    slats = results_dict['sat_lats_matches']
-    dists = results_dict['dist_matches']
-
-    fullpath = outpath + filename
-    print ('Dump data to file: ' + fullpath)
-    if os.path.isfile(fullpath):
-        nc = netCDF4.Dataset(
-                        fullpath,mode='a',
-                        clobber=False
-                        )
-        # create time vector in seconds since first date
-        model_time_unit = nc.variables['time'].units
-        time = netCDF4.date2num(time_dt, model_time_unit)
-        # variables
-        startidx = len(nc['time'])
-        endidx = len(nc['time'])+len(time)
-        nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables['mHs'][startidx:endidx] = mHs[:]
-        nc.variables['mlons'][startidx:endidx] = mlons[:]
-        nc.variables['mlats'][startidx:endidx] = mlats[:]
-        nc.variables['sHs'][startidx:endidx] = sHs[:]
-        nc.variables['slons'][startidx:endidx] = slons[:]
-        nc.variables['slats'][startidx:endidx] = slats[:]
-        nc.variables['dists'][startidx:endidx] = dists[:]
-    else:
-        # create time vector in seconds since first date
-        time = netCDF4.date2num(time_dt, model_time_unit)
-        os.system('mkdir -p ' + outpath)
-        nc = netCDF4.Dataset(
-                        fullpath,mode='w',
-                        )
-        nc.title = title
-        dimsize = None
-        # dimensions
-        dimtime = nc.createDimension(
-                                'time',
-                                size=dimsize
-                                )
-        # variables
-        nctime = nc.createVariable(
-                               'time',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncmlats = nc.createVariable(
-                               'mlats',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncmlons = nc.createVariable(
-                               'mlons',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncmHs = nc.createVariable(
-                               'mHs',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncslats = nc.createVariable(
-                               'slats',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncslons = nc.createVariable(
-                               'slons',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncsHs = nc.createVariable(
-                               'sHs',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncdists = nc.createVariable(
-                               'dists',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        # generate time for netcdf file
-        # time
-        nctime.standard_name = 'time matches'
-        nctime.long_name = 'associated time steps between model and observation'
-        nctime.units = model_time_unit
-        nctime[:] = time
-        # mHs
-        ncmHs.standard_name = 'model Hs'
-        ncmHs.long_name = 'significant wave height from wave model'
-        ncmHs.units = 'm'
-        ncmHs[:] = mHs
-        # mlons
-        ncmlons.standard_name = 'model lons'
-        ncmlons.long_name = 'longitudes of associated model grid points'
-        ncmlons.units = 'degrees east'
-        ncmlons[:] = mlons
-        # mlats
-        ncmlats.standard_name = 'model lats'
-        ncmlats.long_name = 'latitudes of associated model grid points'
-        ncmlats.units = 'degrees north'
-        ncmlats[:] = mlats
-        # sHs
-        ncsHs.standard_name = 'observed Hs'
-        ncsHs.long_name = 'significant wave height from wave observation'
-        ncsHs.units = 'm'
-        ncsHs[:] = sHs
-        # slons
-        ncslons.standard_name = 'obs lons'
-        ncslons.long_name = 'longitudes of observations'
-        ncslons.units = 'degrees east'
-        ncslons[:] = slons
-        # slats
-        ncslats.standard_name = 'obs lats'
-        ncslats.long_name = 'latitudes of observations'
-        ncslats.units = 'degrees north'
-        ncslats[:] = slats
-        # dists
-        ncdists.standard_name = 'dists'
-        ncdists.long_name = 'distances between observations and model grids'
-        ncdists.units = 'km'
-        ncdists[:] = dists
-    nc.close()
-
-def dumptonc_ts_station(st_obj,pathtofile,title):
+def dumptonc_ts_insitu(ico,pathtofile,title):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file and folder structure
     """
     print('Dump data to netCDF4 file')
-    stdvarname = st_obj.stdvarname
-    time = st_obj.vars['time']
-    lon = st_obj.vars['longitude']
-    lat = st_obj.vars['latitude']
-    var = np.array(st_obj.vars[stdvarname])
-    var[var<variable_info[st_obj.varalias]['valid_range'][0]] = -999.
-    var[var>variable_info[st_obj.varalias]['valid_range'][1]] = -999.
+    stdvarname = ico.stdvarname
+    time = ico.vars['time']
+    lon = ico.vars['longitude']
+    lat = ico.vars['latitude']
+    var = np.array(ico.vars[stdvarname])
+    var[var<variable_info[ico.varalias]['valid_range'][0]] = -999.
+    var[var>variable_info[ico.varalias]['valid_range'][1]] = -999.
     var = list(var)
-    print ('Dump data to file: ' + pathtofile)
+    print ('Dump data to file: ',pathtofile)
     if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
                         pathtofile,mode='a',
@@ -390,7 +256,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         nc.variables['time'][startidx:endidx] = time[:]
         nc.variables['longitude'][startidx:endidx] = lon[:]
         nc.variables['latitude'][startidx:endidx] = lat[:]
-        nc.variables[st_obj.varname][startidx:endidx] = var[:]
+        nc.variables[ico.varalias][startidx:endidx] = var[:]
         nc.close()
     else:
         outpath = os.path.dirname(pathtofile)
@@ -419,7 +285,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
                                dimensions=('time')
                                )
         ncvar = nc.createVariable(
-                               st_obj.varalias,
+                               ico.varalias,
                                np.float64,
                                dimensions=('time'),
                                fill_value=-999.
@@ -427,7 +293,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         # generate time for netcdf file
         # time
         nctime[:] = time
-        nctime.units = str(st_obj.vars['time_unit'])
+        nctime.units = str(ico.vars['time_unit'])
         nctime.setncatts(variable_info['time'])
         # longitude
         nclon[:] = lon
@@ -437,7 +303,7 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
         nclat.setncatts(variable_info['lats'])
         # var
         ncvar[:] = var
-        ncvar.setncatts(variable_info[st_obj.varalias])
+        ncvar.setncatts(variable_info[ico.varalias])
         # coordinate system info
         nc_crs = nc.createVariable('latlon',np.int32)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
@@ -454,57 +320,40 @@ def dumptonc_ts_station(st_obj,pathtofile,title):
                                 "Norwegian Meteorological Institute"
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
-        #if 'superob' in vars(st_obj).keys():
-        #    globalAttribs['processing_level'] = 'post-processing performed'
-        #    globalAttribs['method_superobbing'] = str(st_obj.superob)
-        #    globalAttribs['method_outlier_detection'] = (\
-        #                                        st_obj.outlier_detection)
-        #    globalAttribs['missing_value_handling'] = (st_obj.missing_data)
-        #else:
-        #globalAttribs['processing_level'] = \
-        #                        "No post-processing performed"
-        #globalAttribs['static_position_station'] =  \
-        #                    ("Latitude: "
-        #                    + str(insitu_dict\
-        #                          [st_obj.nID]\
-        #                          ['coords']['lat'])
-        #                    + ", Longitude: "
-        #                    + str(insitu_dict\
-        #                          [st_obj.nID]\
-        #                          ['coords']['lon']))
         globalAttribs['operator'] = \
                             insitu_dict\
-                            [st_obj.nID]\
+                            [ico.nID]\
                             ['operator']
+        # if filter/clean append some info
         nc.setncatts(globalAttribs)
         nc.sync()
         nc.close()
 
-def dumptonc_ts_collocation(col_obj,pathtofile,title):
+def dumptonc_ts_collocation(cco,pathtofile,title):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file and folder structure
     """
     print('Dump data to netCDF4 file')
-    stdvarname = col_obj.stdvarname
-    time = col_obj.vars['time']
-    modlon = col_obj.vars['model_lons']
-    modlat = col_obj.vars['model_lats']
-    obslon = col_obj.vars['obs_lons']
-    obslat = col_obj.vars['obs_lats']
-    colidx_x = col_obj.vars['collocation_idx_x']
-    colidx_y = col_obj.vars['collocation_idx_y']
-    leadtime = col_obj.leadtime
-    varobs = np.array(col_obj.vars['obs_values'])
-    varobs[varobs<variable_info[col_obj.varalias]['valid_range'][0]] = -999.
-    varobs[varobs>variable_info[col_obj.varalias]['valid_range'][1]] = -999.
+    stdvarname = cco.stdvarname
+    time = cco.vars['time']
+    modlon = cco.vars['model_lons']
+    modlat = cco_obj.vars['model_lats']
+    obslon = cco.vars['obs_lons']
+    obslat = cco.vars['obs_lats']
+    colidx_x = cco.vars['collocation_idx_x']
+    colidx_y = cco.vars['collocation_idx_y']
+    leadtime = cco.leadtime
+    varobs = np.array(cco.vars['obs_values'])
+    varobs[varobs<variable_info[cco.varalias]['valid_range'][0]] = -999.
+    varobs[varobs>variable_info[cco.varalias]['valid_range'][1]] = -999.
     varobs = list(varobs)
-    varmod = np.array(col_obj.vars['model_values'])
-    varmod[varmod<variable_info[col_obj.varalias]['valid_range'][0]] = -999.
-    varmod[varmod>variable_info[col_obj.varalias]['valid_range'][1]] = -999.
+    varmod = np.array(cco.vars['model_values'])
+    varmod[varmod<variable_info[cco.varalias]['valid_range'][0]] = -999.
+    varmod[varmod>variable_info[cco.varalias]['valid_range'][1]] = -999.
     varmod = list(varmod)
-    dists = np.array(col_obj.vars['distance'])
+    dists = np.array(cco.vars['distance'])
     print ('Dump data to file: ' + pathtofile)
     if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
@@ -602,7 +451,7 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
         # generate time for netcdf file
         # time
         nctime[:] = time
-        nctime.units = str(col_obj.vars['time_unit'])
+        nctime.units = str(cco.vars['time_unit'])
         nctime.setncatts(variable_info['time'])
         # observation longitude
         ncobslon[:] = obslon
@@ -618,18 +467,18 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
         ncmodlat.setncatts(variable_info['lats'])
         # varobs
         ncvarobs[:] = varobs
-        dict_for_nc = deepcopy(variable_info[col_obj.varalias])
+        dict_for_nc = deepcopy(variable_info[cco.varalias])
         if 'aliases_of_vector_components' in dict_for_nc:
             del dict_for_nc['aliases_of_vector_components']
         ncvarobs.setncatts(dict_for_nc)
-        ncvarobs.observation_name = col_obj.obsname
+        ncvarobs.observation_name = cco.obsname
         # varmod
         ncvarmod[:] = varmod
-        dict_for_nc = deepcopy(variable_info[col_obj.varalias])
+        dict_for_nc = deepcopy(variable_info[cco.varalias])
         if 'aliases_of_vector_components' in dict_for_nc:
             del dict_for_nc['aliases_of_vector_components']
         ncvarobs.setncatts(dict_for_nc)
-        ncvarmod.model_name = col_obj.model
+        ncvarmod.model_name = cco.model
         # dists
         ncdist[:] = dists
         ncdist.setncatts(variable_info['dist'])
@@ -654,18 +503,7 @@ def dumptonc_ts_collocation(col_obj,pathtofile,title):
                                 "Norwegian Meteorological Institute"
         globalAttribs['history'] = nowstr + ". Created."
         globalAttribs['netcdf_version'] = "NETCDF4"
-        if 'superob' in vars(col_obj).keys():
-            globalAttribs['processing_level'] = ('superob: '
-                                                + str(col_obj.superob)
-                                                + '; '
-                                                + 'outlier_detection: '
-                                                + col_obj.outlier_detection
-                                                + '; '
-                                                + 'missing_data: '
-                                                + col_obj.missing_data)
-        else:
-            globalAttribs['processing_level'] = \
-                                "No post-processing performed"
+        # if filter/clean append some info
         globalAttribs['leadtime'] = str(leadtime) + 'h'
         nc.setncatts(globalAttribs)
         nc.sync()
@@ -825,15 +663,15 @@ def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
         ncnov[:] = nov
     nc.close()
 
-def dumptonc_sat(sa_obj,outpath,mode=None):
+def dumptonc_sat(sco,outpath,mode=None):
     """
     dump satellite altimetry data to netcdf-file
     """
-    sdate=sa_obj.sdate
-    edate=sa_obj.edate
-    filename = (sa_obj.sat
+    sdate=sco.sdate
+    edate=sco.edate
+    filename = (sco.sat
                 + "_"
-                + sa_obj.region
+                + sco.region
                 + "_"
                 + sdate.strftime("%Y%m%d%H%M%S")
                 + "_"
@@ -842,13 +680,13 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
     fullpath = outpath + filename
     os.system('mkdir -p ' + outpath)
     print ('Dump altimeter wave data from '
-            + sa_obj.sat
+            + sco.sat
             + ' to file: ' + fullpath)
     nc = netCDF4.Dataset(
                     fullpath,mode='w',
                     )
-    nc.title = sa_obj.sat + ' altimeter significant wave height'
-    timerange=len(sa_obj.vars['time'])
+    nc.title = sco.sat + ' altimeter significant wave height'
+    timerange=len(sco.vars['time'])
     dimsize = None
     # dimensions
     dimtime = nc.createDimension(
@@ -878,110 +716,27 @@ def dumptonc_sat(sa_obj,outpath,mode=None):
                            )
 
     # generate time for netcdf file
-    nctime.units = sa_obj.vars['time_unit']
-    nctime[:] = sa_obj.vars['time']
+    nctime.units = sco.vars['time_unit']
+    nctime[:] = sco.vars['time']
     nctime.standard_name = 'time'
     ncHs.units = 'm'
-    ncHs[:] = sa_obj.vars['sea_surface_wave_significant_height']
+    ncHs[:] = sco.vars['sea_surface_wave_significant_height']
     ncHs.standard_name = 'sea_surface_wave_significant_height'
     ncHs.long_name = \
         'Significant wave height estimate from altimeter wave form'
     ncHs.valid_range = 0., 25.
     nclongitude.units = 'degree_east'
-    nclongitude[:] = sa_obj.vars['longitude']
+    nclongitude[:] = sco.vars['longitude']
     nclongitude.standard_name = 'longitude'
     nclongitude.valid_min = -180.
     nclongitude.valid_max = 180.
-    nclatitude[:] = sa_obj.vars['latitude']
+    nclatitude[:] = sco.vars['latitude']
     nclatitude.standard_name = 'latitude'
     nclatitude.units = 'degree_north'
     nclatitude.valid_min = -90.
     nclatitude.valid_max = 90.
-    nc.close()
-
-def dumptonc_pointsat(sa_obj,outpath,mode=None):
-    """
-    dump satellite altimetry data to netcdf-file
-    """
-    sdate=sa_obj.sdate
-    edate=sa_obj.edate
-    filename = (sa_obj.sat
-                + "_"
-                + sa_obj.region
-                + "_"
-                + sdate.strftime("%Y%m%d%H%M%S")
-                + "_"
-                + edate.strftime("%Y%m%d%H%M%S")
-                + ".nc")
-    fullpath = outpath + filename
-    os.system('mkdir -p ' + outpath)
-    print ('Dump altimeter wave data from '
-            + sa_obj.sat
-            + ' to file: ' + fullpath)
-    nc = netCDF4.Dataset(
-                    fullpath,mode='w',
-                    )
-    nc.title = (sa_obj.sat +
-                ' altimeter significant wave height close to '
-                + sa_obj.region)
-    timerange=len(sa_obj.Hs)
-    dimsize = None
-    # dimensions
-    dimtime = nc.createDimension(
-                            'time',
-                            size=dimsize
-                            )
-    # variables
-    nctime = nc.createVariable(
-                           'time',
-                           np.float64,
-                           dimensions=('time')
-                           )
-    nclatitude = nc.createVariable(
-                           'latitude',
-                           np.float64,
-                           dimensions=('time')
-                           )
-    nclongitude = nc.createVariable(
-                           'longitude',
-                           np.float64,
-                           dimensions=('time')
-                           )
-    ncHs = nc.createVariable(
-                           'Hs',
-                           np.float64,
-                           dimensions=('time')
-                           )
-    ncdist = nc.createVariable(
-                           'dist',
-                           np.float64,
-                           dimensions=('time')
-                           )
-    # generate time for netcdf file
-    basetime=sa_obj.basetime
-    nctime.units = 'seconds since 2000-01-01 00:00:00'
-    nctime[:] = sa_obj.time
-    ncHs[:] = sa_obj.Hs
-    ncHs.units = 'm'
-    ncHs.standard_name = 'sea_surface_wave_significant_height'
-    ncHs.long_name = \
-        'Significant wave height estimate from altimeter wave form'
-    ncHs.valid_range = 0., 25.
-    nclongitude.units = 'degree_east'
-    nclongitude[:] = sa_obj.loc[1]
-    nclongitude.standard_name = 'longitude'
-    nclongitude.valid_min = -180.
-    nclongitude.valid_max = 180.
-    nclatitude[:] = sa_obj.loc[0]
-    nclatitude.standard_name = 'latitude'
-    nclatitude.units = 'degree_north'
-    nclatitude.valid_min = -90.
-    nclatitude.valid_max = 90.
-    ncdist.units = 'km'
-    ncdist[:] = sa_obj.dist
-    ncdist.long_name = ('distance from footprint '
-                    + 'to location according '
-                    + 'to haversine')
+    # if filter clean append some info
+    # append some global attr
     nc.close()
 
 def dumptonc_ts_pos(outpath,filename,title,coll_dict):

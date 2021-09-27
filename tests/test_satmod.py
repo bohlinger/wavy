@@ -14,7 +14,6 @@ sat = 's3a'
 varalias = 'Hs'
 twin = 30
 nproc = 1
-instr = 'altimeter'
 provider = 'cmems'
 
 satellite_dict = load_or_default('satellite_specs.yaml')
@@ -27,7 +26,7 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
     sat = 's3a'
     wavy.satmod.get_remote_files(tmpdir,
                             sdate, edate, twin, nproc,
-                            instr, provider,api_url,sat)
+                            provider,api_url,sat)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
     nclist = [i for i in range(len(filelist))\
