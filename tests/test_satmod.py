@@ -34,17 +34,30 @@ def test_ftp_files_and_init_satellite_class(tmpdir):
                 if '.nc' in filelist[i]]
     assert len(nclist) >= 1
     # init satellite_object and check for polygon region
-    sa_obj = satellite_class(sdate=sdate,
-                             edate=edate,
-                             region=region,
-                             sat=sat,
-                             twin=twin,
-                             varalias=varalias,
-                             provider=provider,
-                             path_local=tmpdir)
-    assert sa_obj.__class__.__name__ == 'satellite_class'
-    assert len(vars(sa_obj).keys()) >= 10
-    assert len(sa_obj.vars.keys()) >= 6
-    assert not 'error' in vars(sa_obj).keys()
-    # another one checking for error
+    sco = satellite_class(sdate=sdate,
+                          edate=edate,
+                          region=region,
+                          sat=sat,
+                          twin=twin,
+                          varalias=varalias,
+                          provider=provider,
+                          path_local=tmpdir)
+    assert sco.__class__.__name__ == 'satellite_class'
+    assert len(vars(sco).keys()) >= 10
+    assert len(sco.vars.keys()) >= 6
+    assert not 'error' in vars(sco).keys()
 
+#def test_write_sat_to_nc_and_read(tmpdir):
+#    sco = satellite_class(sdate=sdate,
+#                          edate=edate,
+#                          region=region,
+#                          sat=sat,
+#                          twin=twin,
+#                          varalias=varalias,
+#                          provider=provider,
+#                          path_local=tmpdir)
+#    # write to nc
+#    sco.write_to_nc(filefreq='m',dst=tmpdir)
+#    # check if created -> assert
+#    # read nc
+#    # check if varalias assert
