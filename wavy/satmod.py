@@ -252,15 +252,14 @@ def make_query_dict(instr,provider,sat):
                'filename': SAT + '*WAT*'}
     return kwargs
 
-def get_local_files(sdate,edate,twin,instr,provider,\
-sat,path_local=None):
+def get_local_files(sdate,edate,twin,instr,provider,sat,path_local=None):
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
     tmpdate_s = datetime(tmpdate.year,tmpdate.month,1)
-    while (tmpdate <= edate + relativedelta(months=+1)):
-        try:
-            if path_local is None:
+    if path_local is None:
+        while (tmpdate <= edate + relativedelta(months=+1)):
+            try:
                 print(tmpdate)
                 print('path_local is None -> checking config file')
                 # create local path
@@ -278,23 +277,22 @@ sat,path_local=None):
                             tmpdate.strftime('%Y'),
                             tmpdate.strftime('%m'))
                             )
-            print(path_local)
-            tmplst = np.sort(os.listdir(path_local))
-            filelst.append(tmplst)
-            pathlst.append([os.path.join(path_local,e) for e in tmplst])
-            tmpdate = tmpdate + relativedelta(months=+1)
-            path_local = None
-        except Exception as e:
-            print(e)
-            tmpdate = tmpdate + relativedelta(months=+1)
-    filelst = np.sort(flatten(filelst))
-    pathlst = np.sort(flatten(pathlst))
-    #print(pathlst)
-    #print(filelst)
+                print(path_local)
+                tmplst = np.sort(os.listdir(path_local))
+                filelst.append(tmplst)
+                pathlst.append([os.path.join(path_local,e) for e in tmplst])
+                tmpdate = tmpdate + relativedelta(months=+1)
+                path_local = None
+            except Exception as e:
+                print(e)
+                tmpdate = tmpdate + relativedelta(months=+1)
+        filelst = np.sort(flatten(filelst))
+        pathlst = np.sort(flatten(pathlst))
+    else:
+        filelst = np.sort(os.listdir(path_local))
+        pathlst = [os.path.join(path_local,e) for e in filelst]
     idx_start,tmp = check_date(filelst,sdate-timedelta(minutes=twin))
-    #print(idx_start)
     tmp,idx_end = check_date(filelst,edate+timedelta(minutes=twin))
-    #print(idx_end)
     del tmp
     pathlst = np.unique(pathlst[idx_start:idx_end+1])
     filelst = np.unique(filelst[idx_start:idx_end+1])
