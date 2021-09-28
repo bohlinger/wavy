@@ -41,6 +41,7 @@ from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import progress, sort_files, collocate_times
 from wavy.utils import make_pathtofile,make_subdict
+from wavy.utils import finditem
 from wavy.credentials import get_credentials
 from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
@@ -248,7 +249,7 @@ def make_query_dict(provider,sat):
     '''
     fct to setup queries of L2 data using SentinelAPI
     '''
-    SAT = satellite_dict[provider]['satellite'][sat]
+    SAT = satellite_dict[provider]['mission'][sat]
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
                'productlevel': 'L2',
@@ -565,7 +566,7 @@ class satellite_class():
     def __init__(
         self,sdate,mission='s3a',provider='cmems',
         edate=None,twin=None,download=False,path_local=None,
-        remote_ftp_path=None,region=None,nproc=1,varalias='Hs',
+        remote_ftp_path=None,region='mwam4',nproc=1,varalias='Hs',
         filterData=False,**kwargs):
 
         print ('# ----- ')

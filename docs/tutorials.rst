@@ -123,7 +123,8 @@ L3 data can be read like:
    >>> from wavy.satmod import satellite_class as sc
    >>> region = 'NorwegianSea'
    >>> varalias = 'Hs' # default
-   >>> sat = 's3a' # default
+   >>> mission = 's3a' # default
+   >>> provider = 'cmems' # default
    >>> twin = 30 # default
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
@@ -145,10 +146,13 @@ This would results in a satellite_class object and the following output message:
 
 Investigating the satellite_object you will find something like::
 
+
    >>> sco.
-   sa_obj.edate       sa_obj.sat         sa_obj.twin        sa_obj.vars
-   sa_obj.path_local  sa_obj.sdate       sa_obj.varalias
-   sa_obj.region      sa_obj.stdvarname  sa_obj.varname
+   sco.edate             sco.path_local        sco.twin
+   sco.get_item_child(   sco.provider          sco.varalias
+   sco.get_item_parent(  sco.region            sco.varname
+   sco.mission           sco.sdate             sco.vars
+   sco.obstype           sco.stdvarname        sco.write_to_nc(
 
 With the retrieved variables in sa_obj.vars::
 
@@ -164,11 +168,12 @@ Read pure L2 satellite data from eumetsat
    >>> from datetime import datetime
    >>> sd = datetime(2020,11,1,12)
    >>> ed = datetime(2020,11,1,12)
-   >>> region = 'mwam4'
-   >>> sat = 's3a'
-   >>> twin = 30
+   >>> region = 'mwam4' # default
+   >>> mission = 's3a' # default
+   >>> twin = 30 # default
+   >>> varalias = 'Hs' # default
 
-   >>> sco = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='eumetsat')
+   >>> sco = sc(sd,edate=ed,provider='eumetsat')
 
 Retrieve pure L2 data and compare against L3
 ********************************************
@@ -185,12 +190,13 @@ Having downloaded the altimetry data, you can do:
    >>> sd = datetime(2020,11,1,12)
    >>> ed = datetime(2020,11,1,12)
    >>> region = 'NorwegianSea'
-   >>> sat = 's3a'
-   >>> varalias = 'Hs'
+   >>> mission = 's3a' # default
+   >>> varalias = 'Hs' # default
+   >>> twin = 30 # default
 
    >>> # retrievals
-   >>> sco_e = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='eumetsat')
-   >>> sco_c = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias=varalias,provider='cmems')
+   >>> sco_e = sc(sd,edate=ed,region=region,provider='eumetsat')
+   >>> sco_c = sc(sd,edate=ed,region=region,provider='cmems')
 
    >>> # plotting
    >>> import matplotlib.pyplot as plt
@@ -219,12 +225,12 @@ Appy basic filters to raw L2 data
 
    >>> sd = datetime(2020,11,1,12)
    >>> ed = datetime(2020,11,1,12)
-   >>> region = 'mwam4'
-   >>> sat = 's3a'
-   >>> twin = 30
+   >>> region = 'mwam4' # default
+   >>> mission = 's3a' # default
+   >>> twin = 30 # default
 
    >>> # landmask filter
-   >>> sco_lm = sc(sd,sat=sat,edate=ed,twin=30,region=region,varalias='Hs',provider='eumetsat',land_mask=True,filterData=True)
+   >>> sco_lm = sc(sd,edate=ed,provider='eumetsat',land_mask=True,filterData=True)
 
 .. note::
 
@@ -269,10 +275,11 @@ The output will be something like::
    >>> mco = mc(sdate=sd)
    Time used for retrieving model data: 1.88 seconds
     ### model_class object initialized ###
-   >>> mc_obj.
-   mc_obj.edate       mc_obj.leadtime    mc_obj.stdvarname  mc_obj.vars
-   mc_obj.fc_date     mc_obj.model       mc_obj.varalias
-   mc_obj.filestr     mc_obj.sdate       mc_obj.varname
+   >>> mco.
+   mco.edate             mco.get_item_parent(  mco.stdvarname
+   mco.fc_date           mco.leadtime          mco.varalias
+   mco.filestr           mco.model             mco.varname
+   mco.get_item_child(   mco.sdate             mco.vars
    >>> mco.vars.keys()
    dict_keys(['longitude', 'latitude', 'time', 'datetime', 'time_unit', 'sea_surface_wave_significant_height', 'meta', 'leadtime'])
 
@@ -445,7 +452,7 @@ The collocation results can now be dumped to a netcdf file. The path and filenam
 
 .. code-block:: python3
 
-   >>> cco_raw.write_to_monthly_nc()
+   >>> cco_raw.write_to_nc()
 
 9. validate the collocated time series
 #######################################
@@ -530,7 +537,7 @@ Now, dump the satellite data to a netcdf-file for later use:
 
 .. code-block:: bash
 
-   $ ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/
+   $ ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/test.nc
 
 Browse for satellite data, collocate with wave model output and show footprints and model output for one time step and a given lead time (-lt 0) and time constraint (-twin 30):
 
@@ -548,8 +555,10 @@ This results in a validation summary based on the collocated values:
    Correlation Coefficient: 0.95
    Mean Absolute Difference: 0.62
    Root Mean Squared Difference: 0.70
+   Normalized Root Mean Squared Difference: 0.13
    Debiased Root Mean Squared Difference: 0.67
    Bias: 0.22
+   Normalized Bias: 0.04
    Scatter Index: 12.71
    Mean of Model: 5.26
    Mean of Observations: 5.04

@@ -69,7 +69,7 @@ def main():
     if args.sat is None:
         satlst = ['s3a']
     elif args.sat == 'all':
-        satlst = satellite_dict['altimeter']['cmems']['satellite'].keys()
+        satlst = satellite_dict['cmems']['mission'].keys()
     else:
         satlst = [args.sat]
 
@@ -102,9 +102,11 @@ def main():
             print("Attempting to download data for:", sat)
             print("Time period:", str(sdate), "to", str(edate))
             start_time = time.time()
-            sa_obj = get_remote_files(args.path, sdate, edate, twin,
-                                      args.nproc, instr, args.provider,
-                                      args.api_url, sat)
+            dict_for_sub = {'mission':sat}
+            sa_obj = get_remote_files(\
+                                args.path, sdate, edate, twin,
+                                args.nproc, args.provider,
+                                args.api_url, sat, dict_for_sub)
             time1 = time.time() - start_time
             print("Time used for collecting data: ", time1, " seconds")
 

@@ -433,7 +433,10 @@ def make_subdict(strsublst,class_object=None,class_object_dict=None):
         class_object_dict = vars(class_object)
     subdict = {}
     for strsub in strsublst:
-        subdict[strsub] = class_object_dict[strsub]
+        if strsub in class_object_dict:
+            subdict[strsub] = class_object_dict[strsub]
+        else:
+            print(strsub,'is not available and not substituted')
     return subdict
 
 def get_pathtofile(pathlst,strsublst,date,subdict):
@@ -502,7 +505,11 @@ def make_pathtofile(tmppath,strsublst,subdict,date=None):
         pathtofile = date.strftime(tmppath)
     else: pathtofile = tmppath
     for strsub in strsublst:
-        pathtofile = pathtofile.replace(strsub,subdict[strsub])
+        if strsub in subdict:
+            pathtofile = pathtofile.replace(strsub,subdict[strsub])
+        else:
+            print(strsub,
+                  'in substitutables not need for destination path')
     return pathtofile
 
 def convert_meteorologic_oceanographic(alpha):
