@@ -320,7 +320,7 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     dtimelst = []
     while datetime(tmpdate.year,tmpdate.month,1)\
     <= datetime(edate.year,edate.month,1):
-        # make pathtofile
+        # get pathtofile
         pathtofile = get_pathtofile(pathlst,strsublst,\
                                         tmpdate,nID=nID)
         # get ncdump
