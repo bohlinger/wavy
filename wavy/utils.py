@@ -428,7 +428,16 @@ def system_call(command):
     p = subprocess.Popen([command], stdout=subprocess.PIPE, shell=True)
     return p.stdout.read()
 
-def get_pathtofile(pathlst,strsublst,date,**kwargs):
+def make_subdict(strsublst,class_object=None,class_object_dict=None):
+    if class_object_dict is None:
+        class_object_dict = vars(class_object)
+    subdict = {}
+    for strsub in strsublst:
+        subdict[strsub] = class_object_dict[strsub]
+    return subdict
+
+def get_pathtofile(pathlst,strsublst,date,subdict):
+#def get_pathtofile(pathlst,strsublst,date,**kwargs):
     '''
     Finds and returns path of file given templates and keywords and date.
     '''
@@ -443,7 +452,8 @@ def get_pathtofile(pathlst,strsublst,date,**kwargs):
             print('-> returning None')
             return None
         for strsub in strsublst:
-            pathtofile = pathtofile.replace(strsub,kwargs[strsub])
+            pathtofile = pathtofile.replace(strsub,subdict[strsub])
+            #pathtofile = pathtofile.replace(strsub,kwargs[strsub])
         # check if thredds and if accessible using netCDF4a
         if ('thredds' in pathtofile and pathtofile[-3::] == '.nc'):
             # check if available
@@ -484,7 +494,7 @@ def finditem(search_dict, field):
                         fields_found.append(another_result)
     return fields_found
 
-def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
+def make_pathtofile(tmppath,strsublst,subdict,date=None):
     '''
     Creates a path given templates and keywords and date.
     '''
@@ -492,7 +502,7 @@ def make_pathtofile(tmppath,strsublst,date=None,**kwargs):
         pathtofile = date.strftime(tmppath)
     else: pathtofile = tmppath
     for strsub in strsublst:
-        pathtofile = pathtofile.replace(strsub,kwargs[strsub])
+        pathtofile = pathtofile.replace(strsub,subdict[strsub])
     return pathtofile
 
 def convert_meteorologic_oceanographic(alpha):

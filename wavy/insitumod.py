@@ -38,7 +38,7 @@ from wavy.ncmod import get_filevarname_from_nc
 from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
-from wavy.utils import finditem
+from wavy.utils import finditem, make_subdict
 #from wavy.superobmod import superobbing
 from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
@@ -76,7 +76,8 @@ class insitu_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        try:
+        for i in range(1):
+#        try:
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.sdate = sdate
@@ -91,7 +92,8 @@ class insitu_class():
                 var, time, timedt, lon, lat, fifo, pathtofile = \
                     get_insitu_ts(\
                                 nID, sensor,sdate,edate,
-                                varalias,self.basedate,**kwargs)
+                                varalias,self.basedate,vars(self),
+                                **kwargs)
                 vardict = {
                     stdvarname:var,
                     'time':time,
@@ -111,7 +113,8 @@ class insitu_class():
                 var, time, timedt, lon, lat, fifo, pathtofile = \
                     get_insitu_ts(nID,sensor,
                                 sdate_new,edate_new,
-                                varalias,self.basedate,**kwargs)
+                                varalias,self.basedate,vars(self),
+                                **kwargs)
                 tmp_vardict = {
                     stdvarname:var,
                     'time':time,
@@ -167,10 +170,10 @@ class insitu_class():
             else:
                 self.varname = varalias
             print (" ### insitu_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No insitu_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def get_item_parent(self,item,attr):
@@ -218,9 +221,7 @@ class insitu_class():
                     tmppath = os.path.join(path_template,file_template)
                     pathtofile = make_pathtofile(tmppath,strsublst,
                                                  tmpdate,
-                                                 nID=self.nID,
-                                                 sensor=self.sensor,
-                                                 varalias=self.varalias)
+                                                 vars(self))
                 title = ( self.varalias + ' observations from '
                         + self.nID + ' ' + self.sensor )
                 dumptonc_ts_insitu(self,pathtofile,title)
@@ -237,7 +238,8 @@ class insitu_class():
         return
 
 
-def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,**kwargs):
+def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
+dict_for_sub,**kwargs):
     # determine fifo
     fifo = finditem(insitu_dict[nID],'fifo')[0]
     stdvarname = variable_info[varalias]['standard_name']
@@ -250,11 +252,11 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,**kwargs):
     if fifo == 'nc':
         var, time, timedt, lons, lats, pathtofile = \
             get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,\
-                      strsublst)
+                      strsublst,dict_for_sub)
     elif fifo == 'd22':
         var, time, timedt = \
             get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,\
-                        pathlst,strsublst)
+                        pathlst,strsublst,dict_for_sub)
         if 'twin' in insitu_dict[nID]:
             idxtmp = collocate_times(unfiltered_t=timedt,\
                                 sdate=sdate,edate=edate,
@@ -299,18 +301,18 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,**kwargs):
     return var, time, timedt, lons, lats, fifo, pathtofile
 
 def get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,
-pathlst,strsublst):
+pathlst,strsublst,dict_for_sub):
     sdatetmp = sdate
     edatetmp = edate
     sl = parse_d22(nID,sensor,varalias,sdatetmp,edatetmp,
-                   pathlst,strsublst)
+                   pathlst,strsublst,dict_for_sub)
     var, timedt = extract_d22(sl,varalias,nID,sensor)
     time = np.array(
            [(t-basedate).total_seconds() for t in timedt]
            )
     return var, time, timedt
 
-def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
+def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     # loop from sdate to edate with dateincr
     tmpdate = deepcopy(sdate)
     varlst = []
@@ -318,11 +320,13 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     latlst = []
     timelst = []
     dtimelst = []
+    # make subdict
+    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
     while datetime(tmpdate.year,tmpdate.month,1)\
     <= datetime(edate.year,edate.month,1):
         # get pathtofile
         pathtofile = get_pathtofile(pathlst,strsublst,\
-                                        tmpdate,nID=nID)
+                                        tmpdate,subdict)
         # get ncdump
         ncdict = ncdumpMeta(pathtofile)
         # retrieve filevarname for varalias
@@ -356,17 +360,16 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
     #turn timedt into datetime objects
     return varlst, timelst, dtimelst, lonlst, latlst, pathtofile
 
-def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst):
+def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     """
     Read all lines in file and append to sl
     """
+    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
     sl=[]
     for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2):
         try:
             pathtofile = get_pathtofile(pathlst,strsublst,
-                                        pl.num2date(d),
-                                        varalias=varalias,
-                                        nID=nID,sensor=sensor)
+                                        pl.num2date(d),subdict)
             print('Parsing:', pathtofile)
             f = open(pathtofile, "r")
             sl = sl + f.readlines()
