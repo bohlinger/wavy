@@ -23,9 +23,10 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 def test_ftp_files_and_satellite_class_features(tmpdir):
     # evoke fct get_remote_files
     api_url = None
+    dict_for_sub = {'mission':sat}
     wavy.satmod.get_remote_files(tmpdir,
                             sdate, edate, twin, nproc,
-                            provider,api_url,sat)
+                            provider,api_url,sat,dict_for_sub)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
     nclist = [i for i in range(len(filelist))\

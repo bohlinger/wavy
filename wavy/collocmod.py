@@ -29,6 +29,7 @@ from wavy.utils import progress, make_fc_dates
 from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder
 from wavy.utils import NoStdStreams
+from wavy.utils import make_subdict
 from wavy.wconfig import load_or_default
 from wavy.modelmod import model_class, make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate, get_filevarname
@@ -447,8 +448,8 @@ class collocation_class():
         obs_obj = deepcopy(obs_obj_in)
         col_obj = deepcopy(col_obj_in)
         if isinstance(obs_obj,satellite_class):
-            self.obsname = obs_obj.sat
-            self.sat = obs_obj.sat
+            self.obsname = obs_obj.mission
+            self.mission = obs_obj.mission
             self.obstype = "satellite_altimeter"
             self.region = obs_obj.region
         if isinstance(obs_obj,insitu_class):
@@ -469,7 +470,12 @@ class collocation_class():
         self.model = model
         self.varalias = obs_obj.varalias
         self.stdvarname = obs_obj.stdvarname
+        if isinstance(leadtime,str):
+            leadtimestr=leadtime
+        else:
+            leadtimestr="{:0>3d}h".format(self.leadtime)
         self.leadtime = leadtime
+        self.leadtimestr = leadtimestr
         if leadtime is None:
             self.leadtime = 'best'
         # get vars dictionary
@@ -480,7 +486,7 @@ class collocation_class():
                                     col_obj=col_obj,
                                     model=model,
                                     distlim=distlim,
-                                    leadtime=leadtime,
+                                    leadtime=self.leadtime,
                                     date_incr=date_incr)
             t1=time.time()
             print("Time used for collocation:",round(t1-t0,2),"seconds")
@@ -496,6 +502,7 @@ class collocation_class():
             print(e)
             self.error = e
             print ("! No collocation_class object initialized !")
+        # add class variables
         print ('# ----- ')
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
@@ -525,6 +532,8 @@ class collocation_class():
                                                 ['file_template']
                     strsublst = collocation_dict[self.obstype]\
                                                 ['dst']['strsub']
+                    subdict = make_subdict(strsublst,
+                                           class_object_dict=vars(self))
                     if 'filterData' in vars(self).keys():
                         file_template = 'filtered_' + file_template
                     tmppath = os.path.join(path_template,file_template)
@@ -534,20 +543,10 @@ class collocation_class():
                         leadtimestr="{:0>3d}h".format(self.leadtime)
                     if self.obstype=='insitu':
                         pathtofile = make_pathtofile(tmppath,strsublst,
-                                            tmpdate,
-                                            varalias=self.varalias,
-                                            model=self.model,
-                                            nID=self.nID,
-                                            sensor=self.sensor,
-                                            leadtime=leadtimestr)
+                                            subdict,date=tmpdate)
                     elif self.obstype=='satellite_altimeter':
                         pathtofile = make_pathtofile(tmppath,strsublst,
-                                                tmpdate,
-                                                varalias=self.varalias,
-                                                model=self.model,
-                                                mission=self.sat,
-                                                region=self.region,
-                                                leadtime=leadtimestr)
+                                            subdict,date=tmpdate)
                 if self.obstype=='insitu':
                     title = ( 'Collocation of ' + self.stdvarname
                             + ' observations from '
@@ -555,7 +554,7 @@ class collocation_class():
                             + ' vs ' + self.model)
                 elif self.obstype=='satellite_altimeter':
                     title = ( 'Collocation of ' + self.stdvarname
-                            + ' observations from ' + self.sat
+                            + ' observations from ' + self.mission
                             + ' vs ' + self.model)
                 dumptonc_ts_collocation(self,pathtofile,title)
                 # determine date increment

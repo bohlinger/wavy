@@ -10,7 +10,7 @@
 # define source after the following example encompassing all options:
 # provider:
 #    level: # processing level e.g. 3
-#    satellite: # mission name abbreviations
+#    mission: # mission name abbreviations
 #    dst: # destination
 #        local:
 #            path:
@@ -25,7 +25,7 @@
 
 eumetsat:
     level: 2
-    satellite:
+    mission:
         s3a: S3A
         s3b: S3B
     dst:
@@ -46,7 +46,7 @@ eumetsat:
         time: time_20_ku
 cmems:
     level: 3
-    satellite:
+    mission:
         s3a: s3a
         s3b: s3b
         c2: c2

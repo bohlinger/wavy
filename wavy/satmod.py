@@ -40,7 +40,7 @@ import tempfile
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import progress, sort_files, collocate_times
-from wavy.utils import make_pathtofile
+from wavy.utils import make_pathtofile,make_subdict
 from wavy.credentials import get_credentials
 from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
@@ -84,7 +84,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         sys.exit()
 
 def get_remote_files_cmems(\
-sdate,edate,twin,nproc,sat,provider,path_local):
+sdate,edate,twin,nproc,sat,provider,path_local,dict_for_sub):
     '''
     Download swath files from CMEMS and store them at defined
     location. Time stamps in file name stand for:
@@ -102,10 +102,10 @@ sdate,edate,twin,nproc,sat,provider,path_local):
                                       ['path_template']
         strsublst = satellite_dict[provider]['src']\
                                   ['strsub']
+        subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
-                                      strsublst,\
-                                      tmpdate,\
-                                      mission=sat)
+                                      strsublst,subdict,\
+                                      date=tmpdate)
         if path_local is None:
             # create local path
             path_template = satellite_dict[provider]['dst']\
@@ -113,9 +113,8 @@ sdate,edate,twin,nproc,sat,provider,path_local):
             strsublst = satellite_dict[provider]['dst']\
                                       ['strsub']
             path_local = make_pathtofile(path_template,\
-                                     strsublst,\
-                                     sdate,\
-                                     mission=sat)
+                                     strsublst,subdict,\
+                                     date=sdate)
             filesort = True
         print ('# ----- ')
         print ('Chosen source: ')
@@ -171,7 +170,7 @@ sdate,edate,twin,nproc,sat,provider,path_local):
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files_eumetsat(\
-provider,sdate,edate,api_url,sat,path_local):
+provider,sdate,edate,api_url,sat,path_local,dict_for_sub):
     '''
     Download swath files from EUMETSAT and store them at defined
     location. This fct uses the SentinelAPI for queries.
@@ -187,10 +186,12 @@ provider,sdate,edate,api_url,sat,path_local):
                                       ['path_template']
         strsublst = satellite_dict[provider]['dst']\
                                   ['strsub']
+        subdict = make_subdict(strsublst,
+                               class_object_dict=dict_for_sub)
         path_local = make_pathtofile(path_template,\
-                                     strsublst,\
-                                     sdate,\
-                                     mission=sat)
+                                     strsublst,
+                                     subdict,\
+                                     date=sdate)
         filesort = True
     kwargs = make_query_dict(provider,sat)
     if api_url is None:
@@ -228,18 +229,20 @@ provider,sdate,edate,api_url,sat,path_local):
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files(path_local,sdate,edate,twin,
-                    nproc,provider,api_url,sat):
+                    nproc,provider,api_url,sat,dict_for_sub):
     '''
     Download swath files and store them at defined location.
     It is currently possible to download L3 altimeter data from
     CMEMS and L2 from EUMETSAT.
     '''
     if provider=='cmems':
-        get_remote_files_cmems(\
-                sdate,edate,twin,nproc,sat,provider,path_local)
+        get_remote_files_cmems(sdate,edate,twin,nproc,\
+                               sat,provider,path_local,\
+                               dict_for_sub)
     elif provider=='eumetsat':
-        get_remote_files_eumetsat(\
-                provider,sdate,edate,api_url,sat,path_local)
+        get_remote_files_eumetsat(provider,sdate,edate,\
+                                  api_url,sat,path_local,\
+                                  dict_for_sub)
 
 def make_query_dict(provider,sat):
     '''
@@ -252,7 +255,8 @@ def make_query_dict(provider,sat):
                'filename': SAT + '*WAT*'}
     return kwargs
 
-def get_local_files(sdate,edate,twin,provider,sat,path_local=None):
+def get_local_files(sdate,edate,twin,provider,sat,
+dict_for_sub,path_local=None):
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
@@ -267,10 +271,10 @@ def get_local_files(sdate,edate,twin,provider,sat,path_local=None):
                                               ['path_template']
                 strsublst = satellite_dict[provider]['dst']\
                                           ['strsub']
-                print(path_template,strsublst)
+                subdict = make_subdict(strsublst,
+                                       class_object_dict=dict_for_sub)
                 path_local = make_pathtofile(path_template,\
-                                             strsublst,\
-                                             mission=sat)
+                                             strsublst,subdict)
                 path_local = (
                             os.path.join(
                             path_local,
@@ -559,7 +563,7 @@ class satellite_class():
     '''
 
     def __init__(
-        self,sdate,sat='s3a',provider='cmems',
+        self,sdate,mission='s3a',provider='cmems',
         edate=None,twin=None,download=False,path_local=None,
         remote_ftp_path=None,region=None,nproc=1,varalias='Hs',
         filterData=False,**kwargs):
@@ -575,6 +579,17 @@ class satellite_class():
                 str(sdate) + " - " + str(edate))
         if twin is None:
             twin = int(30)
+        stdname = variable_info[varalias]['standard_name']
+        # define some class variables
+        self.sdate = sdate
+        self.edate = edate
+        self.varalias = varalias
+        self.stdvarname = stdname
+        self.twin = twin
+        self.region = region
+        self.mission = mission
+        self.obstype = 'satellite_altimeter'
+        self.provider = provider
         print('Please wait ...')
         print('Chosen time window is:', twin, 'min')
         # make satpaths
@@ -590,12 +605,11 @@ class satellite_class():
         else:
             print ("Downloading necessary files ...")
             get_remote_files(path_local,sdate,edate,twin,
-                            nproc,provider,api_url,sat)
+                            nproc,provider,api_url,mission,vars(self))
         t0=time.time()
         pathlst, filelst = get_local_files(sdate,edate,twin,
-                                        provider,sat,
+                                        provider,mission,vars(self),
                                         path_local=path_local)
-        stdname = variable_info[varalias]['standard_name']
         if len(pathlst) > 0:
             if filterData == True:
                 # extend time period due to filter
@@ -607,7 +621,7 @@ class satellite_class():
                 # retrieve data
                 rvardict = get_sat_ts( sdate,edate,
                                        twin_tmp,region,
-                                       provider,sat,pathlst,
+                                       provider,mission,pathlst,
                                        varalias )
                 # filter data
                 rvardict = filter_main( rvardict,
@@ -624,7 +638,7 @@ class satellite_class():
                 self.filterSpecs = kwargs
             else:
                 rvardict = get_sat_ts(sdate,edate,twin,region,
-                                      provider,sat,pathlst,varalias)
+                                      provider,mission,pathlst,varalias)
                 # make ts in vardict unique
                 rvardict = vardict_unique(rvardict)
                 # rm NaNs
@@ -650,18 +664,9 @@ class satellite_class():
                                                     ncdict,stdname)[0]
             rvardict['meta'] = ncdict
 
-            # define class variables
-            self.sdate = sdate
-            self.edate = edate
+            # define more class variables
             self.vars = rvardict
-            self.varalias = varalias
             self.varname = filevarname
-            self.stdvarname = stdname
-            self.twin = twin
-            self.region = region
-            self.sat = sat
-            self.obstype = 'satellite_altimeter'
-            self.provider = provider
             t1=time.time()
             print("Time used for retrieving satellite data:",\
                     round(t1-t0,2),"seconds")
@@ -718,13 +723,14 @@ class satellite_class():
                     if 'filterData' in vars(self).keys():
                         file_template = 'filtered_' + file_template
                     tmppath = os.path.join(path_template,file_template)
+                    subdict = make_subdict(strsublst,
+                                           class_object_dict=vars(self))
                     pathtofile = make_pathtofile(tmppath,strsublst,
-                                                 tmpdate,
-                                                 mission=self.sat,
-                                                 sensor=self.sensor,
-                                                 varalias=self.varalias,
-                                                 region=self.region)
-                title = (self.obstype+' observations from '+ self.sat)
+                                                 subdict,
+                                                 date=tmpdate)
+                title = (self.obstype
+                       + ' observations from '
+                       + self.mission)
                 dumptonc_ts_sat(self,pathtofile,title)
                 # determine date increment
                 if file_date_incr is None:
