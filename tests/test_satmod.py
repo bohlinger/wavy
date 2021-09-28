@@ -23,7 +23,6 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 def test_ftp_files_and_satellite_class_features(tmpdir):
     # evoke fct get_remote_files
     api_url = None
-    sat = 's3a'
     wavy.satmod.get_remote_files(tmpdir,
                             sdate, edate, twin, nproc,
                             provider,api_url,sat)
