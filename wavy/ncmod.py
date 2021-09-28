@@ -671,6 +671,8 @@ def dumptonc_ts_sat(sco,pathtofile=None,title=None):
        - if not create file and folder structure
     """
     print('Dump data to netCDF4 file')
+    if title is None:
+        title = 'quick dump of ' + sco.mission + ' data'
     stdvarname = sco.stdvarname
     time = sco.vars['time']
     lon = sco.vars['longitude']

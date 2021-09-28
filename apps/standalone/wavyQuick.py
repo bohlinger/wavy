@@ -27,7 +27,7 @@ def main():
     Check availability of satellite SWH data. Example:
     ./wavyQuick.py -sat s3a -reg mwam4 -mod mwam4 -sd 2020100112 -lt 0 -twin 30 --col --show
     ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 --show
-    ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 -dump outpath/
+    ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020100100 -ed 2020101000 -dump ./test.nc
         """,
                                      formatter_class=RawTextHelpFormatter)
     parser.add_argument("-reg", metavar='region', help="region to check")
@@ -130,7 +130,7 @@ def main():
         for sat in satlist:
             try:
                 sa_obj_tmp = sa(sdate,
-                                sat=sat,
+                                mission=sat,
                                 edate=edate,
                                 twin=twin,
                                 region=args.reg,
@@ -172,7 +172,7 @@ def main():
         for sat in satlist:
             try:
                 sa_obj_tmp = sa(sdate,
-                                sat=sat,
+                                mission=sat,
                                 edate=edate,
                                 twin=twin,
                                 region=args.reg,
@@ -204,7 +204,7 @@ def main():
         sa_obj.satname_ts = satnames
     else:
         sa_obj = sa(sdate,
-                    sat=args.sat,
+                    mission=args.sat,
                     edate=edate,
                     twin=twin,
                     region=args.reg,
@@ -228,7 +228,7 @@ def main():
                     leadtime=args.lt,
                     varalias=args.var)
         #collocation
-        coll_obj = coll(mc_obj, obs_obj_in=sa_obj, distlim=args.dist)
+        coll_obj = coll(mc_obj_in=mc_obj, obs_obj_in=sa_obj, distlim=args.dist, leadtime = args.lt)
         valid_dict = validate(coll_obj.vars)
         disp_validation(valid_dict)
         comp_fig(sa_obj=sa_obj,

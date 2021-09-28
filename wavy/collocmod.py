@@ -470,14 +470,18 @@ class collocation_class():
         self.model = model
         self.varalias = obs_obj.varalias
         self.stdvarname = obs_obj.stdvarname
-        if isinstance(leadtime,str):
-            leadtimestr=leadtime
-        else:
-            leadtimestr="{:0>3d}h".format(self.leadtime)
         self.leadtime = leadtime
-        self.leadtimestr = leadtimestr
         if leadtime is None:
             self.leadtime = 'best'
+            self.leadtimestr = 'best'
+        if isinstance(self.leadtime,str):
+            self.leadtime = leadtime
+            leadtimestr = leadtime
+            self.leadtimestr = leadtime
+        else:
+            leadtimestr="{:0>3d}".format(self.leadtime)
+            self.leadtime = leadtime
+            self.leadtimestr = leadtimestr
         # get vars dictionary
         try:
             t0=time.time()
@@ -588,7 +592,6 @@ def validate_collocated_values(dtime,obs,mods,**kwargs):
         obs = col_obj.vars['obs_values']
         dtime = col_obj.vars['datetime']
     # get idx for date and twin
-    from utils import collocate_times
     if 'target_t' in kwargs.keys():
         target_t = kwargs['target_t']
     if 'sdate' in kwargs.keys():

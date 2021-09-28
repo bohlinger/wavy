@@ -47,7 +47,7 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
         slons, slats = sa_obj.vars['longitude'],sa_obj.vars['latitude']
         svar = sa_obj.vars[sa_obj.stdvarname]
         stdvarname = sa_obj.stdvarname
-        sat = sa_obj.sat
+        sat = sa_obj.mission
     """
     If mc_obj is not None get model data for plotting
     """
@@ -536,7 +536,7 @@ def plot_sat(sa_obj,**kwargs):
                         + ']')
     cbar.ax.tick_params(labelsize=fs)
 
-    plt.title(sa_obj.sat
+    plt.title(sa_obj.mission
             + ' with '
             + str(len(sa_obj.vars[sa_obj.stdvarname]))
             + ' footprints: '
