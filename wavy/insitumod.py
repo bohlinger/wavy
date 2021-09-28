@@ -220,8 +220,8 @@ class insitu_class():
                         file_template = 'filtered_' + file_template
                     tmppath = os.path.join(path_template,file_template)
                     pathtofile = make_pathtofile(tmppath,strsublst,
-                                                 tmpdate,
-                                                 vars(self))
+                                                 vars(self),
+                                                 date=tmpdate)
                 title = ( self.varalias + ' observations from '
                         + self.nID + ' ' + self.sensor )
                 dumptonc_ts_insitu(self,pathtofile,title)
