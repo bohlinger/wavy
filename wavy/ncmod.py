@@ -340,7 +340,7 @@ def dumptonc_ts_collocation(cco,pathtofile,title):
     stdvarname = cco.stdvarname
     time = cco.vars['time']
     modlon = cco.vars['model_lons']
-    modlat = cco_obj.vars['model_lats']
+    modlat = cco.vars['model_lats']
     obslon = cco.vars['obs_lons']
     obslat = cco.vars['obs_lats']
     colidx_x = cco.vars['collocation_idx_x']
@@ -355,7 +355,7 @@ def dumptonc_ts_collocation(cco,pathtofile,title):
     varmod[varmod>variable_info[cco.varalias]['valid_range'][1]] = -999.
     varmod = list(varmod)
     dists = np.array(cco.vars['distance'])
-    print ('Dump data to file: ' + pathtofile)
+    print ('Dump data to file: ',pathtofile)
     if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
                         pathtofile,mode='a',

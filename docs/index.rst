@@ -40,6 +40,10 @@ Contents
    autoapi/index
 
 
+Credits
+=======
+* Bohlinger, P., Breivik, Ø., Economou, T., Müller, M.: `A novel approach to computing super observations for probabilistic wave model validation <https://www.sciencedirect.com/science/article/pii/S1463500319300435>`_, Ocean Modelling, 139, `<https://doi.org/10.1016/j.ocemod.2019.101404>`_, 2019.
+
 Indices and tables
 ==================
 

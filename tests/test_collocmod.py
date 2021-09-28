@@ -20,7 +20,7 @@ provider = 'cmems'
 satellite_dict = load_or_default('satellite_specs.yaml')
 
 
-def test_sat_collocation(test_data):
+def test_sat_collocation_and_validation(test_data,tmpdir):
     # read sat data
     sco = sc(sdate=sdate,edate=edate,
              region=region,sat=sat,
@@ -33,3 +33,5 @@ def test_sat_collocation(test_data):
     assert len(vars(cco).keys()) >= 12
     assert len(cco.vars.keys()) >= 13
     assert not 'error' in vars(sco).keys()
+    # write to nc
+    cco.write_to_nc(pathtofile=tmpdir.join('test.nc'))

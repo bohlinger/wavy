@@ -689,7 +689,6 @@ class satellite_class():
         return parent
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
-        # divide time into months by loop over months from sdate to edate
         if 'error' in vars(self):
             print('Erroneous satellite_class file detected')
             print('--> dump to netCDF not possible !')
@@ -711,23 +710,26 @@ class satellite_class():
                     path_template = satellite_dict[self.provider]\
                                                 ['dst']\
                                                 ['path_template'][0]
-                    file_template = satellite_dict[self.nID]['dst']\
-                                                ['file_template']
-                    strsublst = satellite_dict[self.nID]['dst']['strsub']
+                    file_template = satellite_dict[self.provider]\
+                                                  ['dst']\
+                                                  ['file_template']
+                    strsublst = satellite_dict[self.provider]\
+                                              ['dst']['strsub']
                     if 'filterData' in vars(self).keys():
                         file_template = 'filtered_' + file_template
                     tmppath = os.path.join(path_template,file_template)
                     pathtofile = make_pathtofile(tmppath,strsublst,
                                                  tmpdate,
-                                                 nID=self.nID,
+                                                 mission=self.sat,
                                                  sensor=self.sensor,
-                                                 varalias=self.varalias)
+                                                 varalias=self.varalias,
+                                                 region=self.region)
                 title = (self.obstype+' observations from '+ self.sat)
                 dumptonc_ts_sat(self,pathtofile,title)
                 # determine date increment
                 if file_date_incr is None:
                     file_date_incr = satellite_dict[self.provider]\
-                                    ['src'].get('file_date_incr','m')
+                                    ['dst'].get('file_date_incr','m')
                 if file_date_incr == 'm':
                     tmpdate += relativedelta(months = +1)
                 elif file_date_incr == 'Y':

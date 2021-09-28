@@ -498,44 +498,36 @@ class collocation_class():
             print ("! No collocation_class object initialized !")
         print ('# ----- ')
 
-    def write_to_monthly_nc(self,path=None,filename=None):
-        # divide time into months by loop over months from sdate to edate
+    def write_to_nc(self,pathtofile=None,file_date_incr=None):
         if 'error' in vars(self):
             print('Erroneous collocation_class file detected')
             print('--> dump to netCDF not possible !')
         else:
-            print('Writing collocation time series to monthly files')
             tmpdate = self.sdate
             edate = self.edate
             while tmpdate <= edate:
-                idxtmp = collocate_times(unfiltered_t=self.vars['datetime'],
-                                     sdate = datetime(tmpdate.year,
-                                                      tmpdate.month,1),
-                                     edate = datetime(tmpdate.year,
-                                                      tmpdate.month,
-                                                      calendar.monthrange(
-                                                        tmpdate.year,
-                                                        tmpdate.month)[1],
-                                                        23,59) )
-                if (path is not None and filename is not None):
-                    pathtofile = path + '/' + filename
-                else:
-                    if path is None:
-                        path_template = collocation_dict['path']\
-                                                    [self.obstype]\
-                                                    ['local']['nc']\
-                                                    ['path_template'][0]
-                    if filename is None:
-                        file_template = collocation_dict['path']\
-                                                    [self.obstype]\
-                                                    ['local']['nc']\
-                                                    ['file_template']
-                    strsublst = collocation_dict['path'][self.obstype]\
-                                                    ['local']['nc']\
-                                                    ['strsub']
-                    if 'superob' in vars(self).keys():
-                        file_template = 'superobbed_' + file_template
-                    tmppath = path_template + '/' + file_template
+                idxtmp = collocate_times(
+                            unfiltered_t=self.vars['datetime'],
+                            sdate = datetime(tmpdate.year,
+                                             tmpdate.month,1),
+                            edate = datetime(tmpdate.year,
+                                             tmpdate.month,
+                                             calendar.monthrange(
+                                             tmpdate.year,
+                                             tmpdate.month)[1],
+                                             23,59) )
+                if pathtofile is None:
+                    path_template = collocation_dict[self.obstype]\
+                                                ['dst']\
+                                                ['path_template'][0]
+                    file_template = collocation_dict[self.obstype]\
+                                                ['dst']\
+                                                ['file_template']
+                    strsublst = collocation_dict[self.obstype]\
+                                                ['dst']['strsub']
+                    if 'filterData' in vars(self).keys():
+                        file_template = 'filtered_' + file_template
+                    tmppath = os.path.join(path_template,file_template)
                     if isinstance(self.leadtime,str):
                         leadtimestr=self.leadtime
                     else:
@@ -548,10 +540,6 @@ class collocation_class():
                                             nID=self.nID,
                                             sensor=self.sensor,
                                             leadtime=leadtimestr)
-                        title = ( 'Collocation of ' + self.stdvarname
-                                + ' observations from '
-                                + self.nID + ' ' + self.sensor
-                                + ' vs ' + self.model)
                     elif self.obstype=='satellite_altimeter':
                         pathtofile = make_pathtofile(tmppath,strsublst,
                                                 tmpdate,
@@ -560,11 +548,26 @@ class collocation_class():
                                                 mission=self.sat,
                                                 region=self.region,
                                                 leadtime=leadtimestr)
-                        title = ( 'Collocation of ' + self.stdvarname
-                                + ' observations from ' + self.sat
-                                + ' vs ' + self.model)
+                if self.obstype=='insitu':
+                    title = ( 'Collocation of ' + self.stdvarname
+                            + ' observations from '
+                            + self.nID + ' ' + self.sensor
+                            + ' vs ' + self.model)
+                elif self.obstype=='satellite_altimeter':
+                    title = ( 'Collocation of ' + self.stdvarname
+                            + ' observations from ' + self.sat
+                            + ' vs ' + self.model)
                 dumptonc_ts_collocation(self,pathtofile,title)
-                tmpdate = tmpdate + relativedelta(months = +1)
+                # determine date increment
+                if file_date_incr is None:
+                    file_date_incr = collocation_dict[self.obstype]\
+                                    ['dst'].get('file_date_incr','m')
+                if file_date_incr == 'm':
+                    tmpdate += relativedelta(months = +1)
+                elif file_date_incr == 'Y':
+                    tmpdate += relativedelta(years = +1)
+                elif file_date_incr == 'd':
+                    tmpdate += timedelta(days = +1)
         return
 
     def validate_collocated_values(self,**kwargs):
