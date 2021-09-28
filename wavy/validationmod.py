@@ -8,7 +8,7 @@ import os
 from wavy.wconfig import load_or_default
 
 # read yaml config files:
-region_dict = load_or_default(t'region_specs.yaml')
+region_dict = load_or_default('region_specs.yaml')
 model_dict = load_or_default('model_specs.yaml')
 satellite_dict = load_or_default('satellite_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
