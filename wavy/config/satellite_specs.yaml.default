@@ -29,15 +29,14 @@ eumetsat:
         s3a: S3A
         s3b: S3B
     dst:
-        local:
-            path_template: /home/patrikb/tmp_altimeter/L2/mission
-            file_template:
-            strsub: ['mission']
-            date_incr: d
+        path_template: /home/patrikb/tmp_altimeter/L2/mission
+        file_template: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: d
     src:
-        remote:
-            api_url: ["https://colhub.met.no/",
-                      "https://coda.eumetsat.int/search"]
+        api_url: ["https://colhub.met.no/",
+                  "https://coda.eumetsat.int/search"]
     misc:
         kwargs: # specify dict for query
     vardef: # varalias: varname
@@ -56,18 +55,17 @@ cmems:
         h2b: h2b
         cfo: cfo
     dst:
-        local:
-            path_template: /home/patrikb/tmp_altimeter/L3/mission
-            file_template:
-            strsub: ['mission']
-            date_incr: m
+        path_template: /home/patrikb/tmp_altimeter/L3/mission
+        file_template: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
     src:
-        remote:
-            path_template: "/Core/\
-                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
-                    dataset-wav-alti-l3-swh-rt-global-mission/%Y/%m/"
-            server: "nrt.cmems-du.eu"
-            strsub: ['mission']
+        path_template: "/Core/\
+                WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                dataset-wav-alti-l3-swh-rt-global-mission/%Y/%m/"
+        server: "nrt.cmems-du.eu"
+        strsub: ['mission']
     misc:
     vardef: # varalias: varname
         Hs: VAVH
