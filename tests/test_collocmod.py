@@ -7,22 +7,22 @@ from wavy.wconfig import load_or_default
 import wavy.satmod
 from wavy.satmod import satellite_class as sc
 from wavy.collocmod import collocation_class as cc
+from wavy.insitumod import insitu_class as ic
 
-sdate = datetime(2020,11,1,12)
-edate = datetime(2020,11,1,12)
-region = 'NordicSeas'
-sat = 's3a'
 varalias = 'Hs'
-twin = 30
-nproc = 1
-provider = 'cmems'
 
 satellite_dict = load_or_default('satellite_specs.yaml')
 
 
 def test_sat_collocation_and_validation(test_data,tmpdir):
+    sd = datetime(2020,11,1,12)
+    ed = datetime(2020,11,1,12)
+    region = 'NordicSeas'
+    sat = 's3a'
+    provider = 'cmems'
+    twin = 30
     # read sat data
-    sco = sc(sdate=sdate,edate=edate,
+    sco = sc(sdate=sd,edate=ed,
              region=region,sat=sat,
              twin=twin,varalias=varalias,
              provider=provider,
@@ -35,3 +35,19 @@ def test_sat_collocation_and_validation(test_data,tmpdir):
     assert not 'error' in vars(sco).keys()
     # write to nc
     cco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
+    # test validation
+    cco.validate_collocated_values()
+
+def test_insitu_collocation_and_validation():
+    sd = datetime(2021,8,2,1)
+    ed = datetime(2021,8,2,3)
+    nID = 'D_Breisundet'
+    sensor = 'wavescan'
+    ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1)
+    # collocate
+    cco = cc(model='mwam4',obs_obj_in=ico,distlim=6,
+             leadtime='best',date_incr=1)
+    # test validation
+    cco.validate_collocated_values()
+
+

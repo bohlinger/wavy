@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from wavy.insitumod import insitu_class as ic
 
 varalias = 'Hs' # default
