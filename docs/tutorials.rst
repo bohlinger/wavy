@@ -60,10 +60,9 @@ Add your path for satellite data here under cmems
 
 .. code-block:: yaml
 
-   altimeter:
-       cmems:
-           local:
-               path_template: /home/patrikb/tmp_altimeter/L3/mission
+   cmems:
+       local:
+           path_template: /home/patrikb/tmp_altimeter/L3/mission
 
 You can proceed now and download L3 data using the wavyDownload.py script:
 
@@ -99,10 +98,9 @@ Ammend the satellite config file for L2 data and add the download directory of y
 
 .. code-block:: yaml
 
-    altimeter:
-        eumetsat:
-            local:
-                path_template: /home/patrikb/tmp_altimeter/L2/mission
+   eumetsat:
+      local:
+          path_template: /home/patrikb/tmp_altimeter/L2/mission
 
 As you can see, this is customized to my username patrikb. Adjust this and continue with downloading some satellite altimeter data:
 

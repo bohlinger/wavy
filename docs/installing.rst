@@ -19,6 +19,7 @@ Installing wavy can be done via conda. The steps are as follows:
       $ cd ~/wavy
       $ conda env create -f environment.yml
       $ conda activate wavy
-      $ pip install -e .
+
+Now, append wavy root directory to $PYTHONPATH.
 
 #. adjust config files --> done in tutorials
