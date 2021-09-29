@@ -159,29 +159,31 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     if check == False:
         print('No valid model file available!')
     else:
-        for i in range(d+1,len(fc_date)):
-#            for t in range(1):
-            try:
-                check = check_if_file_is_valid(fc_date[i],model,leadtime)
-                if check == False:
-                    raise FileNotFoundError
-                mc_obj = model_class( model=model,
-                                      fc_date=fc_date[i],
-                                      leadtime=leadtime,
-                                      varalias=obs_obj.varalias )
-                model_vals.append( mc_obj.vars[\
-                                   mc_obj.stdvarname][ \
-                                   col_obj.vars['collocation_idx_x'],\
-                                   col_obj.vars['collocation_idx_y']\
-                                   ][0] )
-                model_time.append(mc_obj.vars['time'][0])
-                model_datetime.append( datetime(\
-                                    mc_obj.vars['datetime'][0].year,
-                                    mc_obj.vars['datetime'][0].month,
-                                    mc_obj.vars['datetime'][0].day,
-                                    mc_obj.vars['datetime'][0].hour ) )
-            except FileNotFoundError as e:
-                print(e)
+        print('Collocating and appending values ...')
+        for i in tqdm(range(d+1,len(fc_date))):
+            with NoStdStreams():
+                try:
+                    check = check_if_file_is_valid(fc_date[i],model,leadtime)
+                    if check == False:
+                        raise FileNotFoundError
+                    mc_obj = model_class( model=model,
+                                          fc_date=fc_date[i],
+                                          leadtime=leadtime,
+                                          varalias=obs_obj.varalias )
+                    model_vals.append(
+                            mc_obj.vars[\
+                                mc_obj.stdvarname][ \
+                                    col_obj.vars['collocation_idx_x'],\
+                                    col_obj.vars['collocation_idx_y']\
+                                ][0] )
+                    model_time.append(mc_obj.vars['time'][0])
+                    model_datetime.append( datetime(\
+                                mc_obj.vars['datetime'][0].year,
+                                mc_obj.vars['datetime'][0].month,
+                                mc_obj.vars['datetime'][0].day,
+                                mc_obj.vars['datetime'][0].hour ) )
+                except FileNotFoundError as e:
+                    print(e)
         # potentially there are different number of values
         # for obs and model
         # double check and use only coherent datetimes

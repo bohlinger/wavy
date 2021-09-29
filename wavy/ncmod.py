@@ -26,6 +26,7 @@ import sys
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 import time
+from functools import lru_cache
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -880,6 +881,7 @@ def check_vals_in_nc(filestr,varname,pytime_in):
         idx = None
     return idx
 
+@lru_cache(maxsize=None)
 def ncdump(nc_fid, verb=True):
     '''
     Function from:

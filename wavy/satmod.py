@@ -37,7 +37,8 @@ import zipfile
 import tempfile
 
 # own imports
-from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import ncdumpMeta
+from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import progress, sort_files, collocate_times
 from wavy.utils import make_pathtofile,make_subdict
@@ -47,7 +48,8 @@ from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.wconfig import load_or_default
-from wavy.filtermod import filter_main,vardict_unique,rm_nan_from_vardict
+from wavy.filtermod import filter_main,vardict_unique
+from wavy.filtermod import rm_nan_from_vardict
 # ---------------------------------------------------------------------#
 
 # read yaml config files:

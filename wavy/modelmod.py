@@ -13,6 +13,7 @@ import netCDF4
 import numpy as np
 from datetime import datetime, timedelta
 import time
+from functools import lru_cache
 
 # own imports
 from wavy.utils import hour_rounder
@@ -105,6 +106,28 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
                     for i in range(len(fc_date))]
     return filename
 
+@lru_cache(maxsize=None)
+def read_model_nc_output_lru(filestr,lonsname,latsname,timename):
+    f = netCDF4.Dataset(filestr, 'r')
+    # get coordinates and time
+    model_lons = f.variables[lonsname][:]
+    model_lats = f.variables[latsname][:]
+    model_time = f.variables[timename]
+    model_time_dt = list(
+        netCDF4.num2date(model_time[:], units=model_time.units))
+    f.close()
+    return model_lons,model_lats,model_time_dt
+
+def read_model_nc_output(filestr,lonsname,latsname,timename):
+    f = netCDF4.Dataset(filestr, 'r')
+    # get coordinates and time
+    model_lons = f.variables[lonsname][:]
+    model_lats = f.variables[latsname][:]
+    model_time = f.variables[timename]
+    model_time_dt = list(
+        netCDF4.num2date(model_time[:], units=model_time.units))
+    f.close()
+    return model_lons,model_lats,model_time_dt
 
 def get_model_fc_mode(filestr, model, fc_date, varalias=None):
     """
@@ -114,25 +137,31 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
     print("Get model data according to selected date ....")
     print(filestr)
     meta = ncdumpMeta(filestr)
-    f = netCDF4.Dataset(filestr, 'r')
     stdvarname = variable_info[varalias]['standard_name']
-    # get coordinates and time
     lonsname = get_filevarname(model,'lons',variable_info,
                                model_dict,meta)
     latsname = get_filevarname(model,'lats',variable_info,
                                model_dict,meta)
     timename = get_filevarname(model,'time',variable_info,
                                model_dict,meta)
-    model_lons = f.variables[lonsname][:]
-    vardict[variable_info['lons']['standard_name']] = model_lons
-    model_lats = f.variables[latsname][:]
-    vardict[variable_info['lats']['standard_name']] = model_lats
-    model_time = f.variables[timename]
-    model_time_dt = list(
-        netCDF4.num2date(model_time[:], units=model_time.units))
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(model,varalias,variable_info,
                                   model_dict,meta)
+
+    try:
+        model_lons,model_lats,model_time_dt = \
+        read_model_nc_output_lru(filestr,lonsname,latsname,timename)
+    except Exception as e:
+        print(e)
+        print('continue with non-optimized retrieval')
+        model_lons,model_lats,model_time_dt = \
+        read_model_nc_output(filestr,lonsname,latsname,timename)
+
+    vardict[variable_info['lons']['standard_name']] = model_lons
+    vardict[variable_info['lats']['standard_name']] = model_lats
+
+    f = netCDF4.Dataset(filestr, 'r')
+    model_time = f.variables[timename]
     if (type(filevarname) is dict):
         print(
             'Target variable can be computed from vector \n'
