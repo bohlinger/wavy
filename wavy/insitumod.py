@@ -76,8 +76,7 @@ class insitu_class():
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
-        for i in range(1):
-#        try:
+        try:
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.sdate = sdate
@@ -153,9 +152,6 @@ class insitu_class():
                 vardict['latitude'] = list(lat_cut)
                 self.filter = True
                 self.filterSpecs = kwargs
-                #self.superob = kwargs['superob']
-                #self.outlier_detection = kwargs['outlier_detection']
-                #self.missing_data = kwargs['missing_data']
             self.vars = vardict
             self.lat = np.nanmean(vardict['latitude'])
             self.lon = np.nanmean(vardict['longitude'])
@@ -170,10 +166,10 @@ class insitu_class():
             else:
                 self.varname = varalias
             print (" ### insitu_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No insitu_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def get_item_parent(self,item,attr):
