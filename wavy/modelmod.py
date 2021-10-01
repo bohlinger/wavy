@@ -106,7 +106,7 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
                     for i in range(len(fc_date))]
     return filename
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=32)
 def read_model_nc_output_lru(filestr,lonsname,latsname,timename):
     f = netCDF4.Dataset(filestr, 'r')
     # get coordinates and time

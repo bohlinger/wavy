@@ -614,70 +614,78 @@ class satellite_class():
                                         provider,mission,vars(self),
                                         path_local=path_local)
         if len(pathlst) > 0:
-            if filterData == True:
-                # extend time period due to filter
-                if 'stwin' not in kwargs.keys():
-                    kwargs['stwin'] = 1 # needs to be changed
-                if 'etwin' not in kwargs.keys():
-                    kwargs['etwin'] = 1
-                twin_tmp = twin + kwargs['stwin'] + kwargs['etwin']
-                # retrieve data
-                rvardict = get_sat_ts( sdate,edate,
-                                       twin_tmp,region,
-                                       provider,mission,pathlst,
-                                       varalias )
-                # filter data
-                rvardict = filter_main( rvardict,
-                                        varalias = varalias,
-                                        **kwargs )
-                # crop to original time period
-                sdate_tmp = sdate - timedelta(minutes=twin)
-                edate_tmp = sdate + timedelta(minutes=twin)
-                rvardict = crop_vardict_to_period(rvardict,
-                                                  sdate_tmp,
-                                                  edate_tmp,
-                                                  stdname)
-                self.filter = True
-                self.filterSpecs = kwargs
-            else:
-                rvardict = get_sat_ts(sdate,edate,twin,region,
-                                      provider,mission,pathlst,varalias)
-                # make ts in vardict unique
-                rvardict = vardict_unique(rvardict)
-                # rm NaNs
-                rvardict = rm_nan_from_vardict(varalias,rvardict)
-            # find variable name as defined in file
-            if provider == 'cmems':
-                ncdict = ncdumpMeta(pathlst[0])
-            if provider == 'eumetsat':
-                tmpdir = tempfile.TemporaryDirectory()
-                zipped = zipfile.ZipFile(pathlst[0])
-                enhanced_measurement = zipped.namelist()[-1]
-                extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
-                ncdict = ncdumpMeta(extracted)
-                tmpdir.cleanup()
-            filevarname = get_varname_for_cf_stdname_in_ncfile(
-                                                ncdict,stdname)
-            if (len(filevarname) or filename is None) > 1:
-                filevarname = satellite_dict[provider]\
-                                            ['vardef']\
-                                            [varalias]
-            else:
+            try:
+                if filterData == True:
+                    # extend time period due to filter
+                    if 'stwin' not in kwargs.keys():
+                        kwargs['stwin'] = 1 # needs to be changed
+                    if 'etwin' not in kwargs.keys():
+                        kwargs['etwin'] = 1
+                    twin_tmp = twin + kwargs['stwin'] + kwargs['etwin']
+                    # retrieve data
+                    rvardict = get_sat_ts( sdate,edate,
+                                           twin_tmp,region,
+                                           provider,mission,pathlst,
+                                           varalias )
+                    # filter data
+                    rvardict = filter_main( rvardict,
+                                            varalias = varalias,
+                                            **kwargs )
+                    # crop to original time period
+                    sdate_tmp = sdate - timedelta(minutes=twin)
+                    edate_tmp = sdate + timedelta(minutes=twin)
+                    rvardict = crop_vardict_to_period(rvardict,
+                                                      sdate_tmp,
+                                                      edate_tmp,
+                                                      stdname)
+                    self.filter = True
+                    self.filterSpecs = kwargs
+                else:
+                    rvardict = get_sat_ts(sdate,edate,twin,region,
+                                          provider,mission,pathlst,
+                                          varalias)
+                    # make ts in vardict unique
+                    rvardict = vardict_unique(rvardict)
+                    # rm NaNs
+                    rvardict = rm_nan_from_vardict(varalias,rvardict)
+                # find variable name as defined in file
+                if provider == 'cmems':
+                    ncdict = ncdumpMeta(pathlst[0])
+                if provider == 'eumetsat':
+                    tmpdir = tempfile.TemporaryDirectory()
+                    zipped = zipfile.ZipFile(pathlst[0])
+                    enhanced_measurement = zipped.namelist()[-1]
+                    extracted = zipped.extract(enhanced_measurement,
+                                               path=tmpdir.name)
+                    ncdict = ncdumpMeta(extracted)
+                    tmpdir.cleanup()
                 filevarname = get_varname_for_cf_stdname_in_ncfile(
-                                                    ncdict,stdname)[0]
-            rvardict['meta'] = ncdict
-
-            # define more class variables
-            self.vars = rvardict
-            self.varname = filevarname
-            t1=time.time()
-            print("Time used for retrieving satellite data:",\
-                    round(t1-t0,2),"seconds")
-            print ("Satellite object initialized including "
-                + str(len(self.vars['time'])) + " footprints.")
-            #print (" ### satellite_class object initialized ###")
-            print ('# ----- ')
+                                                    ncdict,stdname)
+                if (len(filevarname) or filename is None) > 1:
+                    filevarname = satellite_dict[provider]\
+                                                ['vardef']\
+                                                [varalias]
+                else:
+                    filevarname = \
+                            get_varname_for_cf_stdname_in_ncfile(
+                                                  ncdict,stdname)[0]
+                rvardict['meta'] = ncdict
+                # define more class variables
+                self.vars = rvardict
+                self.varname = filevarname
+                t1=time.time()
+                print("Time used for retrieving satellite data:",\
+                        round(t1-t0,2),"seconds")
+                print ("Satellite object initialized including "
+                    + str(len(self.vars['time'])) + " footprints.")
+                #print (" ### satellite_class object initialized ###")
+                print ('# ----- ')
+            except Exception as e:
+                print(e)
+                print('Error encountered')
+                print('No satellite_class object initialized')
         else:
+            print('No satellite data found')
             print('No satellite_class object initialized')
             print ('# ----- ')
 
