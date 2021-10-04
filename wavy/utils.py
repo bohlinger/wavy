@@ -439,8 +439,7 @@ def make_subdict(strsublst,class_object=None,class_object_dict=None):
             print(strsub,'is not available and not substituted')
     return subdict
 
-def get_pathtofile(pathlst,strsublst,date,subdict):
-#def get_pathtofile(pathlst,strsublst,date,**kwargs):
+def get_pathtofile(pathlst,strsublst,subdict,date):
     '''
     Finds and returns path of file given templates and keywords and date.
     '''

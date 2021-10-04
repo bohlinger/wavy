@@ -322,7 +322,7 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     <= datetime(edate.year,edate.month,1):
         # get pathtofile
         pathtofile = get_pathtofile(pathlst,strsublst,\
-                                        tmpdate,subdict)
+                                        subdict,tmpdate)
         # get ncdump
         ncdict = ncdumpMeta(pathtofile)
         # retrieve filevarname for varalias
@@ -365,7 +365,7 @@ def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     for d in range(int(pl.date2num(sdate))-1,int(pl.date2num(edate))+2):
         try:
             pathtofile = get_pathtofile(pathlst,strsublst,
-                                        pl.num2date(d),subdict)
+                                        subdict,pl.num2date(d))
             print('Parsing:', pathtofile)
             f = open(pathtofile, "r")
             sl = sl + f.readlines()
