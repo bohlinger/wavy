@@ -15,7 +15,7 @@ def test_from_d22(test_data):
     assert not 'error' in vars(ico).keys()
 
 def test_from_nc():
-    nID = 'D_Breisundet'
+    nID = 'D_Breisundet_wave'
     sensor = 'wavescan'
     ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1)
     assert ico.__class__.__name__ == 'insitu_class'
@@ -24,7 +24,7 @@ def test_from_nc():
     assert not 'error' in vars(ico).keys()
 
 def test_to_nc(tmpdir):
-    nID = 'D_Breisundet'
+    nID = 'D_Breisundet_wave'
     sensor = 'wavescan'
     ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1)
     ico.write_to_nc(pathtofile=tmpdir.join('test.nc'))

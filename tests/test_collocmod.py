@@ -41,7 +41,7 @@ def test_sat_collocation_and_validation(test_data,tmpdir):
 def test_insitu_collocation_and_validation():
     sd = datetime(2021,8,2,1)
     ed = datetime(2021,8,2,3)
-    nID = 'D_Breisundet'
+    nID = 'D_Breisundet_wave'
     sensor = 'wavescan'
     ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1)
     # collocate
