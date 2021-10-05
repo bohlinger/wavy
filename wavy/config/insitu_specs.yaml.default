@@ -880,7 +880,7 @@ visund:
 # westnav (2013-2017)
 
 ### E39 project ###
-A_Sulafjorden: # object nID (nameID)
+A_Sulafjorden_wave: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -893,7 +893,7 @@ A_Sulafjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -909,7 +909,7 @@ A_Sulafjorden: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-B_Sulafjorden: # object nID (nameID)
+A_Sulafjorden_wind: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -922,7 +922,31 @@ B_Sulafjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        file_date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+    tags: ['E39']
+    fifo: nc
+
+B_Sulafjorden_wave: # object nID (nameID)
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -938,7 +962,7 @@ B_Sulafjorden: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-B1_Sulafjorden: # object nID (nameID)
+B_Sulafjorden_wind: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -951,7 +975,31 @@ B1_Sulafjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        file_date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+    tags: ['E39']
+    fifo: nc
+
+B1_Sulafjorden_wave: # object nID (nameID)
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -967,7 +1015,7 @@ B1_Sulafjorden: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-C_Sulafjorden: # object nID (nameID)
+C_Sulafjorden_wave: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -980,7 +1028,7 @@ C_Sulafjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -996,7 +1044,7 @@ C_Sulafjorden: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-C1_Sulafjorden: # object nID (nameID)
+C_Sulafjorden_wind: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -1009,7 +1057,31 @@ C1_Sulafjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        file_date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+    tags: ['E39']
+    fifo: nc
+
+C1_Sulafjorden_wave: # object nID (nameID)
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -1025,7 +1097,7 @@ C1_Sulafjorden: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-D_Breisundet: # object nID (nameID)
+D_Breisundet_wave: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -1038,7 +1110,7 @@ D_Breisundet: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -1054,7 +1126,7 @@ D_Breisundet: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-F_Vartdalsfjorden: # object nID (nameID)
+D_Breisundet_wind: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -1067,7 +1139,33 @@ F_Vartdalsfjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        file_date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+        #U: WindSpeed
+        #Udir: WindDirection
+    tags: ['E39']
+    fifo: nc
+
+F_Vartdalsfjorden_wave: # object nID (nameID)
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -1083,7 +1181,7 @@ F_Vartdalsfjorden: # object nID (nameID)
     tags: ['E39']
     fifo: nc
 
-G_Halsafjorden: # object nID (nameID)
+F_Vartdalsfjorden_wind: # object nID (nameID)
     sensor:
         wavescan:
     manufacturer:
@@ -1096,7 +1194,31 @@ G_Halsafjorden: # object nID (nameID)
     src: # source
         path_template: ["https://thredds.met.no/thredds/dodsC\
                             /obs/buoy-svv-e39/%Y/%m/"]
-        file_template: "%Y%m_E39_nID_wave.nc"
+        file_template: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        file_date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+    tags: ['E39']
+    fifo: nc
+
+G_Halsafjorden_wave: # object nID (nameID)
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID.nc"
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
@@ -1109,5 +1231,29 @@ G_Halsafjorden: # object nID (nameID)
         Tp: tp
         Mdir: mdir
         Pdir: thtp
+    tags: ['E39']
+    fifo: nc
+
+G_Halsafjorden_wind: # object nID (nameID)
+    sensor:
+        wavescan:
+    manufacturer:
+        wavescan: fugro
+    coords:
+        wavescan:
+            lat:
+            lon:
+    operator: SVV
+    src: # source
+        path_template: ["https://thredds.met.no/thredds/dodsC\
+                            /obs/buoy-svv-e39/%Y/%m/"]
+        file_template: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        file_date_incr: 'm' # Y,m,d
+    dst: # destination
+        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
     tags: ['E39']
     fifo: nc

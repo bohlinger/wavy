@@ -73,6 +73,11 @@ U:
         alt1: [ua,va]
         alt2: [ux,vy]
     valid_range: [0., 200]
+Udir:
+    standard_name: wind_from_direction
+    units: degree
+    valid_range: [0., 360.]
+    convention: meteorologic
 dist:
     standard_name: collocation_distance
     long_name: 'distance between collocated values'
