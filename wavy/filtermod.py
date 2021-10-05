@@ -12,6 +12,8 @@ import roaring_landmask
 import shapely.geometry as sgeom
 from shapely.ops import unary_union
 import shapely.vectorized
+from scipy.stats import circmean
+import math
 
 # own imports
 from wavy.utils import find_included_times, collocate_times
@@ -303,7 +305,8 @@ def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None
     # create output grid --> list of time stamps depending on choice
         sd = vardict['datetime'][0]
         ed = vardict['datetime'][-1]
-        steps = int((ed-sd).total_seconds()/(date_incr*60*60))+1
+        #steps = int((ed-sd).total_seconds()/(date_incr*60*60))+1
+        steps = int((ed-sd).total_seconds()/(60*60))+1
         tmpd = sd
         output_dates = [tmpd + timedelta(hours=i) \
                         for i in range(0,steps,date_incr) \
@@ -331,72 +334,88 @@ def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None
     return newdict
 
 def smoothing(varalias,vardict,output_grid,\
-output_dates, method='linearGAM', date_incr=None,**kwargs):
+output_dates, method='linearGAM', date_incr=None,
+**kwargs):
     stdvarname = variable_info[varalias]['standard_name']
     dt = vardict['datetime']
     x = vardict['time']
     y = vardict[stdvarname]
     X = output_grid
-    if method=='linearGAM':
-        # NaNs need to be removed before gam
-        tmpvar = np.array(y)
-        tmptime = np.array(x)
-        tmpdtime = np.array(dt)
-        tmptime = tmptime[~np.isnan(tmpvar)]
-        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
-        tmpvar = tmpvar[~np.isnan(tmpvar)]
-        y = tmpvar
-        x = tmptime
-        dt = tmpdtime
-        smoothed_ts = smoother_linearGAM(x,y,X,varalias,**kwargs)
-    elif method=='expectileGAM':
-        # NaNs need to be removed before gam
-        tmpvar = np.array(y)
-        tmptime = np.array(x)
-        tmpdtime = np.array(dt)
-        tmptime = tmptime[~np.isnan(tmpvar)]
-        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
-        tmpvar = tmpvar[~np.isnan(tmpvar)]
-        y = tmpvar
-        x = tmptime
-        dt = tmpdtime
-        smoothed_ts = smoother_expectileGAM(x,y,X,varalias,**kwargs)
-    elif method=='GP':
-        # NaNs need to be removed before gp
-        tmpvar = np.array(y)
-        tmptime = np.array(x)
-        tmpdtime = np.array(dt)
-        tmptime = tmptime[~np.isnan(tmpvar)]
-        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
-        tmpvar = tmpvar[~np.isnan(tmpvar)]
-        y = tmpvar
-        x = tmptime
-        dt = tmpdtime
-        smoothed_ts = smoother_GP(x,y,X,varalias,**kwargs)
-    elif method=='NIGP':
-        # NaNs need to be removed before gp
-        tmpvar = np.array(y)
-        tmptime = np.array(x)
-        tmpdtime = np.array(dt)
-        tmptime = tmptime[~np.isnan(tmpvar)]
-        tmpdtime = tmpdtime[~np.isnan(tmpvar)]
-        tmpvar = tmpvar[~np.isnan(tmpvar)]
-        y = tmpvar
-        x = tmptime
-        dt = tmpdtime
-        smoothed_ts = smoother_NIGP(x,y,X,varalias,**kwargs)
-    elif method=='blockMean':
-        # blocks are means from date_incr in hours
-        # For each grid_input time_stamp compute mean of hour
-        # if at least half of values are valid
-        # else attribute NaN
-        smoothed_ts = smoother_blockMean(dt,y,output_dates,date_incr)
-    elif method=='lanczos':
-        y = vardict[stdvarname]
-        window = kwargs['window']
-        cutoff = kwargs['cutoff']
-        smoothed_ts = smoother_lanczos(y,window,cutoff)
-    else: print('Method not defined, please enter valid method')
+    if kwargs.get('dataType')=='circ':
+        if method=='blockMean':
+            # blocks are means from date_incr in hours
+            # For each grid_input time_stamp compute mean of hour
+            # if at least half of values are valid
+            # else attribute NaN
+            if kwargs.get('mode') is None:
+                kwargs['mode'] = 'l'
+            smoothed_ts = smoother_blockCircMean(\
+                                        dt,y,output_dates,date_incr,
+                                        mode = kwargs['mode'])
+    else:
+        if method=='linearGAM':
+            # NaNs need to be removed before gam
+            tmpvar = np.array(y)
+            tmptime = np.array(x)
+            tmpdtime = np.array(dt)
+            tmptime = tmptime[~np.isnan(tmpvar)]
+            tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+            tmpvar = tmpvar[~np.isnan(tmpvar)]
+            y = tmpvar
+            x = tmptime
+            dt = tmpdtime
+            smoothed_ts = smoother_linearGAM(x,y,X,varalias,**kwargs)
+        elif method=='expectileGAM':
+            # NaNs need to be removed before gam
+            tmpvar = np.array(y)
+            tmptime = np.array(x)
+            tmpdtime = np.array(dt)
+            tmptime = tmptime[~np.isnan(tmpvar)]
+            tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+            tmpvar = tmpvar[~np.isnan(tmpvar)]
+            y = tmpvar
+            x = tmptime
+            dt = tmpdtime
+            smoothed_ts = smoother_expectileGAM(x,y,X,varalias,**kwargs)
+        elif method=='GP':
+            # NaNs need to be removed before gp
+            tmpvar = np.array(y)
+            tmptime = np.array(x)
+            tmpdtime = np.array(dt)
+            tmptime = tmptime[~np.isnan(tmpvar)]
+            tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+            tmpvar = tmpvar[~np.isnan(tmpvar)]
+            y = tmpvar
+            x = tmptime
+            dt = tmpdtime
+            smoothed_ts = smoother_GP(x,y,X,varalias,**kwargs)
+        elif method=='NIGP':
+            # NaNs need to be removed before gp
+            tmpvar = np.array(y)
+            tmptime = np.array(x)
+            tmpdtime = np.array(dt)
+            tmptime = tmptime[~np.isnan(tmpvar)]
+            tmpdtime = tmpdtime[~np.isnan(tmpvar)]
+            tmpvar = tmpvar[~np.isnan(tmpvar)]
+            y = tmpvar
+            x = tmptime
+            dt = tmpdtime
+            smoothed_ts = smoother_NIGP(x,y,X,varalias,**kwargs)
+        elif method=='blockMean':
+            # blocks are means from date_incr in hours
+            # For each grid_input time_stamp compute mean of hour
+            # if at least half of values are valid
+            # else attribute NaN
+            if kwargs.get('mode') is None:
+                kwargs['mode'] = 'l'
+            smoothed_ts = smoother_blockMean(dt,y,output_dates,date_incr,
+                                        mode = kwargs['mode'])
+        elif method=='lanczos':
+            y = vardict[stdvarname]
+            window = kwargs['window']
+            cutoff = kwargs['cutoff']
+            smoothed_ts = smoother_lanczos(y,window,cutoff)
+        else: print('Method not defined, please enter valid method')
     return smoothed_ts
 
 def lanczos_weights(window,cutoff):
@@ -429,17 +448,31 @@ def smoother_lanczos(y,window,cutoff):
     ts, std = runmean(y,window,mode='centered',weights=weights)
     return ts
 
-def smoother_blockMean(dt,y,output_dates,date_incr):
+def smoother_blockMean(dt,y,output_dates,date_incr,mode='l'):
     means = []
     if isinstance(y,list):
         y = np.array(y)
     for i in range(len(output_dates)):
         # check if more than 50% of values are valid
         # if so compute mean
-        idx = find_included_times(dt,\
+        if mode == 'l':
+            idx = find_included_times(dt,\
                                   sdate = output_dates[i] - \
                                           timedelta(hours=date_incr),\
                                   edate = output_dates[i], twin=0)
+        elif mode == 'c':
+            idx = find_included_times(dt,\
+                                  sdate = output_dates[i] - \
+                                          timedelta(hours=date_incr/2.),\
+                                  edate = output_dates[i] +
+                                          timedelta(hours=date_incr/2.),\
+                                  twin=0)
+        elif mode == 'r':
+            idx = find_included_times(dt,\
+                                  sdate = output_dates[i],
+                                  edate = output_dates[i] + \
+                                          timedelta(hours=date_incr),\
+                                  twin=0)
         block = y[idx]
         nominator = len(block[np.isnan(block)])
         denominator = len(block)
@@ -452,6 +485,50 @@ def smoother_blockMean(dt,y,output_dates,date_incr):
         else:
             means.append(np.nan)
     means = np.array(means)
+    return means
+
+def smoother_blockCircMean(dt,y,output_dates,date_incr,mode='l'):
+    means = []
+    if isinstance(y,list):
+        y = np.array(y)
+    # convert to radians
+    y = np.radians(y)
+    for i in range(len(output_dates)):
+        # check if more than 50% of values are valid
+        # if so compute mean
+        if mode == 'l':
+            idx = find_included_times(dt,\
+                                  sdate = output_dates[i] - \
+                                          timedelta(hours=date_incr),\
+                                  edate = output_dates[i], twin=0)
+        elif mode == 'c':
+            idx = find_included_times(dt,\
+                                  sdate = output_dates[i] - \
+                                          timedelta(hours=date_incr/2.),\
+                                  edate = output_dates[i] +
+                                          timedelta(hours=date_incr/2.),\
+                                  twin=0)
+        elif mode == 'r':
+            idx = find_included_times(dt,\
+                                  sdate = output_dates[i],
+                                  edate = output_dates[i] + \
+                                          timedelta(hours=date_incr),\
+                                  twin=0)
+        block = y[idx]
+        nominator = len(block[np.isnan(block)])
+        denominator = len(block)
+        if denominator == 0:
+            ratio = 1
+        else:
+            ratio = nominator/float(denominator)
+        if ratio < 0.5:
+            #means.append(circmean(block[~np.isnan(block)]))
+            means.append(circmean(block,nan_policy='omit'))
+        else:
+            means.append(np.nan)
+    means = np.array(means)
+    # convert to radians
+    means = np.degrees(means)
     return means
 
 def smoother_linearGAM(x,y,X,varalias,**kwargs):
