@@ -251,6 +251,7 @@ sdate,edate,twin,nproc,sat,provider,path_local,dict_for_sub):
         # sort files
         print("Data is being sorted into subdirectories " \
             + "year and month ...")
+        print(path_local)
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
         sort_files(path_local,filelst,provider,sat)
