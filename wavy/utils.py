@@ -329,8 +329,8 @@ def sort_cci_l2p(dirpath,filelst,sat):
     '''
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath,e)):
-            tmp = 'ESACCI-SEASTATE-L2P-'
-            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
+            tmp = e.split('-')[6]
+            year, month = tmp[0:4],tmp[4:6]
             folder = os.path.join(dirpath,year,month)
             cmd = 'mkdir -p ' + folder
             os.system(cmd)
