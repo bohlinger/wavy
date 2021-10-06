@@ -23,7 +23,7 @@ def main():
 
 # parser
     parser = argparse.ArgumentParser(description="""
-    Download satellite netcdf from Copernicus DU.
+    Download satellite nc-files
 
     Usage:
     ./wavyDownload.py -sat s3a -sd 2020100100 -ed 2020101000
