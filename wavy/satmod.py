@@ -192,12 +192,15 @@ sdate,edate,twin,nproc,sat,provider,path_local,dict_for_sub):
                                       ['path_template']
         strsublst = satellite_dict[provider]['src']\
                                   ['strsub']
+        dict_for_sub['mission'] =\
+                        satellite_dict[provider]['mission'][sat]
         subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
                                       strsublst,subdict,\
                                       date=tmpdate)
         if path_local is None:
             # create local path
+            subdict['mission'] = sat
             path_template = satellite_dict[provider]['dst']\
                                           ['path_template']
             strsublst = satellite_dict[provider]['dst']\
@@ -736,7 +739,9 @@ class satellite_class():
                 # find variable name as defined in file
                 if provider == 'cmems':
                     ncdict = ncdumpMeta(pathlst[0])
-                if provider == 'eumetsat':
+                elif provider == 'cci':
+                    ncdict = ncdumpMeta(pathlst[0])
+                elif provider == 'eumetsat':
                     tmpdir = tempfile.TemporaryDirectory()
                     zipped = zipfile.ZipFile(pathlst[0])
                     enhanced_measurement = zipped.namelist()[-1]
