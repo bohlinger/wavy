@@ -70,3 +70,32 @@ cmems:
     vardef: # varalias: varname
         Hs: VAVH
         U: WIND_SPEED
+
+cci:
+    level: 2P
+    mission:
+        j1: jason-1
+        j2: jason-2
+        j3: jason-3
+        c2: cryosat-2
+        env: envisat
+        ers1: ers-1
+        ers2: ers-2
+        gfo: gfo
+        al: saral
+        tpx: topex
+    dst:
+        path_template: /home/patrikb/tmp_altimeter/L2P/mission
+        file_template: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
+    src:
+        path_template: "/neodc/esacci/sea_state/data/v1.1_release/\
+                        l2p/mission/v1.1/%Y/%m/%d/"
+        #file_template: "ESACCI-SEASTATE-L2P-SWH-Jason-3-\
+        #                %Y%m%dT%H*-fv01.nc"
+        server: "ftp.ceda.ac.uk"
+        strsub: ['mission']
+    misc:
+    vardef: # varalias: varname
