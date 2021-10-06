@@ -324,7 +324,7 @@ read .nc-files
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,1,1,0)
    >>> ed = datetime(2020,1,5,0)
-   >>> nID = 'D_Breisundet'
+   >>> nID = 'D_Breisundet_wave'
    >>> sensor = 'wavescan'
    >>> ico = ic(nID,sensor,sd,ed)
 
