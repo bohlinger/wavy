@@ -96,7 +96,7 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
     '''
     # credentials
     server = satellite_dict[provider][level]['src']['server']
-    user, pw = get_credentials(remoteHostName=server)
+    user, pw = get_credentials(remoteHostName = server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
@@ -134,14 +134,8 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
         tmpdate_end = edate+timedelta(minutes=twin)
         while (tmpdate_new <= tmpdate_end):
             matchingtmp = [s for s in content
-                            if ('_'
-                            + str(tmpdate_new.year)
-                            + str(tmpdate_new)[5:7]
-                            + str(tmpdate_new)[8:10]
-                            + 'T'
-                            + str(tmpdate_new)[11:13])
-                            in s
-                            ]
+                            if tmpdate_new.strftime('%Y%m%dT%H')
+                            in s ]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = np.unique(tmplst)
@@ -182,7 +176,7 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
     '''
     # credentials
     server = satellite_dict[provider][level]['src']['server']
-    user, pw = get_credentials(remoteHostName=server)
+    user, pw = get_credentials(remoteHostName = server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
@@ -223,8 +217,13 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
         tmpdate_new = tmpdate-timedelta(minutes=twin)
         tmpdate_end = edate+timedelta(minutes=twin)
         while (tmpdate_new <= tmpdate_end):
-            matchingtmp = [s for s in content
-                            if tmpdate_new.strftime('%Y%m%dT%H')
+            if level == 'L2P':
+                matchingtmp = [s for s in content
+                            if tmpdate_new.strftime('-%Y%m%dT%H')
+                            in s ]
+            elif level == 'L3':
+                matchingtmp = [s for s in content
+                            if tmpdate_new.strftime('-%Y%m%d')
                             in s ]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
@@ -295,7 +294,7 @@ provider,sdate,edate,api_url,sat,level,path_local,dict_for_sub):
                 if isinstance(e,ss.exceptions.ServerError):
                     print(e)
     else:
-        user, pw = get_credentials(remoteHostName=api_url)
+        user, pw = get_credentials(remoteHostName = api_url)
         api = ss.SentinelAPI(user, pw, api_url)
         products = api.query(area=None, date=dates,**kwargs)
     if products is not None:

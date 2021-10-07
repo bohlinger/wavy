@@ -524,7 +524,7 @@ def make_pathtofile(tmppath,strsublst,subdict,date=None):
             pathtofile = pathtofile.replace(strsub,subdict[strsub])
         else:
             print(strsub,
-                  'in substitutables not need for destination path')
+                  'in substitutables not needed for destination path')
     return pathtofile
 
 def convert_meteorologic_oceanographic(alpha):
