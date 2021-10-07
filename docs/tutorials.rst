@@ -80,7 +80,7 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -provider cmems
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -prov cmems -lev L3
 
 You can find the downloaded files in your chosen download directory.
 
@@ -106,7 +106,7 @@ As you can see, this is customized to my username patrikb. Adjust this and conti
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -provider eumetsat
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -prov eumetsat -lev L2
 
 4. read satellite data
 ######################
@@ -125,6 +125,7 @@ L3 data can be read like:
    >>> varalias = 'Hs' # default
    >>> mission = 's3a' # default
    >>> provider = 'cmems' # default
+   >>> level = 'L3' # default
    >>> twin = 30 # default
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
@@ -170,10 +171,11 @@ Read pure L2 satellite data from eumetsat
    >>> ed = datetime(2020,11,1,12)
    >>> region = 'mwam4' # default
    >>> mission = 's3a' # default
+   >>> level = 'L2'
    >>> twin = 30 # default
    >>> varalias = 'Hs' # default
 
-   >>> sco = sc(sd,edate=ed,provider='eumetsat')
+   >>> sco = sc(sd,edate=ed,provider='eumetsat',level=level)
 
 Retrieve pure L2 data and compare against L3
 ********************************************
@@ -195,7 +197,7 @@ Having downloaded the altimetry data, you can do:
    >>> twin = 30 # default
 
    >>> # retrievals
-   >>> sco_e = sc(sd,edate=ed,region=region,provider='eumetsat')
+   >>> sco_e = sc(sd,edate=ed,region=region,provider='eumetsat',level='L2')
    >>> sco_c = sc(sd,edate=ed,region=region,provider='cmems')
 
    >>> # plotting
@@ -230,7 +232,7 @@ Appy basic filters to raw L2 data
    >>> twin = 30 # default
 
    >>> # landmask filter
-   >>> sco_lm = sc(sd,edate=ed,provider='eumetsat',land_mask=True,filterData=True)
+   >>> sco_lm = sc(sd,edate=ed,provider='eumetsat',land_mask=True,filterData=True,level='L2')
 
 .. note::
 

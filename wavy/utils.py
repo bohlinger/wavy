@@ -329,7 +329,7 @@ def sort_cci_l2p(dirpath,filelst,sat):
     '''
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath,e)):
-            tmp = e.split('-')[6]
+            tmp = e.split('-')[-2]
             year, month = tmp[0:4],tmp[4:6]
             folder = os.path.join(dirpath,year,month)
             cmd = 'mkdir -p ' + folder

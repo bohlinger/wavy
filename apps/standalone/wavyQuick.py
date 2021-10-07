@@ -46,7 +46,10 @@ def main():
             \n list - a list of chosen satellies using -l")
     parser.add_argument("-prov",
                         metavar='provider',
-                        help="data provider (cmems/eumetsat)")
+                        help="data provider (cmems/eumetsat/cci)")
+    parser.add_argument("-lev",
+                        metavar='level',
+                        help="processing level (L2/L3/L2P)")
     parser.add_argument('-l',
                         metavar='satellite list',
                         help='delimited list input for sats',
@@ -104,6 +107,9 @@ def main():
     if args.prov is None:
         args.prov = 'cmems'
 
+    if args.lev is None:
+        args.lev = 'L3'
+
     if args.twin is None:
         twin = 30
     else:
@@ -135,7 +141,8 @@ def main():
                                 twin=twin,
                                 region=args.reg,
                                 varalias=args.var,
-                                provider=args.prov)
+                                provider=args.prov,
+                                level=args.lev)
                 if ('vars' in vars(sa_obj_tmp).keys()
                         and len(sa_obj_tmp.vars['time']) > 0):
                     sa_obj = sa_obj_tmp
@@ -177,7 +184,8 @@ def main():
                                 twin=twin,
                                 region=args.reg,
                                 varalias=args.var,
-                                provider=args.prov)
+                                provider=args.prov,
+                                level=args.lev)
                 if ('vars' in vars(sa_obj_tmp).keys()
                         and len(sa_obj_tmp.vars['time']) > 0):
                     sa_obj = sa_obj_tmp
@@ -209,7 +217,8 @@ def main():
                     twin=twin,
                     region=args.reg,
                     varalias=args.var,
-                    provider=args.prov)
+                    provider=args.prov,
+                    level=args.lev)
 
 # plot
     if (args.mod is None and sa_obj.region not in model_dict):

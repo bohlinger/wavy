@@ -49,9 +49,12 @@ def main():
     parser.add_argument("-path",
                         metavar='path',
                         help="destination for downloaded data")
-    parser.add_argument("-provider",
+    parser.add_argument("-prov",
                         metavar='provider',
                         help="institution providing the data")
+    parser.add_argument("-lev",
+                        metavar='level',
+                        help="processing level")
     parser.add_argument("-api_url",
                         metavar='api_url',
                         help="source of eumetsat L2 data")
@@ -63,13 +66,11 @@ def main():
     args = parser.parse_args()
 
     # settings
-    instr = 'altimeter'
-
     now = datetime.now()
     if args.sat is None:
         satlst = ['s3a']
     elif args.sat == 'all':
-        satlst = satellite_dict['cmems']['mission'].keys()
+        satlst = satellite_dict['cmems']['L3']['mission'].keys()
     else:
         satlst = [args.sat]
 
@@ -89,8 +90,11 @@ def main():
     if args.nproc is None:
         args.nproc = 1
 
-    if args.provider is None:
-        args.provider = 'cmems'
+    if args.prov is None:
+        args.prov = 'cmems'
+
+    if args.lev is None:
+        args.lev = 'L3'
 
     print(args)
 
@@ -105,8 +109,9 @@ def main():
             dict_for_sub = {'mission':sat}
             sa_obj = get_remote_files(\
                                 args.path, sdate, edate, twin,
-                                args.nproc, args.provider,
-                                args.api_url, sat, dict_for_sub)
+                                args.nproc, args.prov,
+                                args.api_url, sat, args.lev,
+                                dict_for_sub)
             time1 = time.time() - start_time
             print("Time used for collecting data: ", time1, " seconds")
 
