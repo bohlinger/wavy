@@ -24,78 +24,103 @@
 ########################################################################
 
 eumetsat:
-    level: 2
-    mission:
-        s3a: S3A
-        s3b: S3B
-    dst:
-        path_template: /home/patrikb/tmp_altimeter/L2/mission
-        file_template: "varalias_mission_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','mission','region']
-        file_date_incr: d
-    src:
-        api_url: ["https://colhub.met.no/",
-                  "https://coda.eumetsat.int/search"]
-    misc:
-        kwargs: # specify dict for query
-    vardef: # varalias: varname
-        Hs: swh_ocean_20_ku
-        lats: lat_20_ku
-        lons: lon_20_ku
-        time: time_20_ku
+    L2:
+        mission:
+            s3a: S3A
+            s3b: S3B
+        dst:
+            path_template: /home/patrikb/tmp_altimeter/L2/mission
+            file_template: "varalias_mission_region_\
+                            %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+            strsub: ['varalias','mission','region']
+            file_date_incr: d
+        src:
+            api_url: ["https://colhub.met.no/",
+                      "https://coda.eumetsat.int/search"]
+        misc:
+            kwargs: # specify dict for query
+        vardef: # varalias: varname
+            Hs: swh_ocean_20_ku
+            lats: lat_20_ku
+            lons: lon_20_ku
+            time: time_20_ku
 cmems:
-    level: 3
-    mission:
-        s3a: s3a
-        s3b: s3b
-        c2: c2
-        al: al
-        j3: j3
-        h2b: h2b
-        cfo: cfo
-    dst:
-        path_template: /home/patrikb/tmp_altimeter/L3/mission
-        file_template: "varalias_mission_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','mission','region']
-        file_date_incr: m
-    src:
-        path_template: "/Core/\
-                WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
-                dataset-wav-alti-l3-swh-rt-global-mission/%Y/%m/"
-        server: "nrt.cmems-du.eu"
-        strsub: ['mission']
-    misc:
-    vardef: # varalias: varname
-        Hs: VAVH
-        U: WIND_SPEED
+    L3:
+        mission:
+            s3a: s3a
+            s3b: s3b
+            c2: c2
+            al: al
+            j3: j3
+            h2b: h2b
+            cfo: cfo
+        dst:
+            path_template: /home/patrikb/tmp_altimeter/L3/mission
+            file_template: "varalias_mission_region_\
+                            %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+            strsub: ['varalias','mission','region']
+            file_date_incr: m
+        src:
+            path_template: "/Core/\
+                    WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                    dataset-wav-alti-l3-swh-rt-global-mission/%Y/%m/"
+            server: "nrt.cmems-du.eu"
+            strsub: ['mission']
+        misc:
+        vardef: # varalias: varname
+            Hs: VAVH
+            U: WIND_SPEED
 
 cci:
-    level: 2P
-    mission:
-        j1: jason-1
-        j2: jason-2
-        j3: jason-3
-        c2: cryosat-2
-        env: envisat
-        ers1: ers-1
-        ers2: ers-2
-        gfo: gfo
-        al: saral
-        tpx: topex
-    dst:
-        path_template: /home/patrikb/tmp_altimeter/L2P/mission
-        file_template: "varalias_mission_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','mission','region']
-        file_date_incr: m
-    src:
-        path_template: "/neodc/esacci/sea_state/data/v1.1_release/\
-                        l2p/mission/v1.1/%Y/%m/%d/"
-        #file_template: "ESACCI-SEASTATE-L2P-SWH-Jason-3-\
-        #                %Y%m%dT%H*-fv01.nc"
-        server: "ftp.ceda.ac.uk"
-        strsub: ['mission']
-    misc:
-    vardef: # varalias: varname
+    L2P:
+        mission:
+            j1: jason-1
+            j2: jason-2
+            j3: jason-3
+            c2: cryosat-2
+            env: envisat
+            ers1: ers-1
+            ers2: ers-2
+            gfo: gfo
+            al: saral
+            tpx: topex
+        dst:
+            path_template: /home/patrikb/tmp_altimeter/L2P/mission
+            file_template: "varalias_mission_region_\
+                            %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+            strsub: ['varalias','mission','region']
+            file_date_incr: m
+        src:
+            path_template: "/neodc/esacci/sea_state/data/v1.1_release/\
+                            l2p/mission/v1.1/%Y/%m/%d/"
+            #file_template: "ESACCI-SEASTATE-L2P-SWH-Jason-3-\
+            #                %Y%m%dT%H*-fv01.nc"
+            server: "ftp.ceda.ac.uk"
+            strsub: ['mission']
+        misc:
+        vardef: # varalias: varname
+            Hs: swh_denoised # time
+            U: wind_speed_alt # time
+            time: time
+            lats: lat
+            lons: lon
+    L3:
+        mission:
+            multi: multi
+        dst:
+            path_template: /home/patrikb/tmp_altimeter/L3/mission
+            file_template: "varalias_mission_region_\
+                            %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+            strsub: ['varalias','mission','region']
+            file_date_incr: m
+        src:
+            path_template: "/neodc/esacci/sea_state/data/v1.1_release/\
+                            l3/v1.1/%Y/%m/%d/"
+            server: "ftp.ceda.ac.uk"
+        misc:
+        vardef: # varalias: varname
+            Hs: swh_denoised # time
+            U: wind_speed_alt # time
+            time: time
+            lats: lat
+            lons: lon
