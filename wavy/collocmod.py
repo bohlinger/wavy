@@ -476,7 +476,7 @@ class collocation_class():
         if leadtime is None:
             self.leadtime = 'best'
             self.leadtimestr = 'best'
-        if isinstance(self.leadtime,str):
+        elif isinstance(self.leadtime,str):
             self.leadtime = leadtime
             leadtimestr = leadtime
             self.leadtimestr = leadtime

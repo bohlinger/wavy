@@ -61,8 +61,9 @@ Add your path for satellite data here under cmems
 .. code-block:: yaml
 
    cmems:
-       local:
-           path_template: /home/patrikb/tmp_altimeter/L3/mission
+      L3:
+         dst:
+            path_template: /home/patrikb/tmp_altimeter/L3/mission
 
 You can proceed now and download L3 data using the wavyDownload.py script:
 
@@ -99,8 +100,9 @@ Ammend the satellite config file for L2 data and add the download directory of y
 .. code-block:: yaml
 
    eumetsat:
-      local:
-          path_template: /home/patrikb/tmp_altimeter/L2/mission
+      L2:
+         dst:
+             path_template: /home/patrikb/tmp_altimeter/L2/mission
 
 As you can see, this is customized to my username patrikb. Adjust this and continue with downloading some satellite altimeter data:
 
@@ -372,10 +374,10 @@ Collocation of satellite and wave model
    >>> from wavy.collocmod import collocation_class as cc
 
    >>> model = 'mwam4' # default
-   >>> sat = 's3a' # default
+   >>> mission = 's3a' # default
    >>> varalias = 'Hs' # default
    >>> sd = datetime(2020,11,1,12)
-   >>> sco = sc(sdate=sd,region=model,sat=sat,varalias=varalias)
+   >>> sco = sc(sdate=sd,region=model,sat=mission,varalias=varalias)
    >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
 
    >>> # plotting
@@ -397,7 +399,7 @@ This can also be done for a time period:
 
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
-   >>> sco = sc(sdate=sd,edate=ed,region=model,sat=sat,varalias=varalias)
+   >>> sco = sc(sdate=sd,edate=ed,region=model,mission=mission,varalias=varalias)
    >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
 
 Collocation of in-situ data and wave model
