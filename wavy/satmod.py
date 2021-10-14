@@ -279,7 +279,7 @@ provider,sdate,edate,api_url,sat,level,path_local,dict_for_sub):
                                      subdict,\
                                      date=sdate)
         filesort = True
-    kwargs = make_query_dict(provider,sat)
+    kwargs = make_query_dict(provider,sat,level)
     if api_url is None:
         api_url_lst = \
             satellite_dict[provider][level]['src']['api_url']
@@ -335,14 +335,14 @@ def get_remote_files(path_local,sdate,edate,twin,
                                sat,level,provider,path_local,\
                                dict_for_sub)
 
-def make_query_dict(provider,sat):
+def make_query_dict(provider,sat,level):
     '''
     fct to setup queries of L2 data using SentinelAPI
     '''
     SAT = satellite_dict[provider][level]['mission'][sat]
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
-               'productlevel': 'L2',
+               'productlevel': level,
                'filename': SAT + '*WAT*'}
     return kwargs
 

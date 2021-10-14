@@ -37,15 +37,35 @@ def main():
                         help="end date of time period to be downloaded")
     parser.add_argument("-sat",
                         metavar='satellite',
-                        help="satellite mission, currently available: \
-            \ns3a - Sentinel-3A\
-            \ns3b - Sentinel-3B\
-            \nj3 - Jason-3 (reference mission)\
-            \nc2 - Cryosat-2\
-            \nal - SARAL/AltiKa\
-            \ncfo - CFOSAT\
-            \nh2b - HaiYang-2B\
-            \nall - all availabe satellites")
+                        help="satellite mission, currently available\n \
+            \ncmems (L3):\
+            \n s3a - Sentinel-3A\
+            \n s3b - Sentinel-3B\
+            \n j3 - Jason-3 (reference mission)\
+            \n c2 - Cryosat-2\
+            \n al - SARAL/AltiKa\
+            \n cfo - CFOSAT\
+            \n h2b - HaiYang-2B\
+            \n\
+            \neumetsat (L2):\
+            \n s3a - Sentinel-3A\
+            \n s3b - Sentinel-3B\
+            \n\
+            \ncci (L2P):\
+            \n j1 - Jason-1\
+            \n j2 - Jason-2\
+            \n j3 - Jason-3\
+            \n c2 - Cryosat-2\
+            \n envisat - Envisat\
+            \n ers1 - European Remote-Sensing Satellite-1\
+            \n ers2 - European Remote-Sensing Satellite-2\
+            \n topex - TOPEX/Poseidon\
+            \n al - SARAL/AltiKa\
+            \n gfo - GEOSAT Follow-On\
+            \n\
+            \ncci (L3):\
+            \n multi - multimission product 1991-2018 \n\
+            \n")
     parser.add_argument("-path",
                         metavar='path',
                         help="destination for downloaded data")
@@ -69,7 +89,7 @@ def main():
     now = datetime.now()
     if args.sat is None:
         satlst = ['s3a']
-    elif args.sat == 'all':
+    elif args.sat == 'cmems':
         satlst = satellite_dict['cmems']['L3']['mission'].keys()
     else:
         satlst = [args.sat]

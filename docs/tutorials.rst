@@ -271,10 +271,10 @@ Often there are ambiguities due to the multiple usage of standard_names. Any suc
    >>> sd = datetime(2020,11,1)
    >>> ed = datetime(2020,11,2)
    >>> mco = mc(sdate=sd) # one time slice
-   >>> mco = mc(sdate=sd,edate=ed) # time period
-   >>> mco = mc(sdate=sd,leadtime=12) # time slice with lead time
+   >>> mco_p = mc(sdate=sd,edate=ed) # time period
+   >>> mco_lt = mc(sdate=sd,leadtime=12) # time slice with lead time
 
-The output will be something like::
+Whenever the keyword "leadtime" is None, a best guess is assumed and retrieved. The output will be something like::
 
    >>> mco = mc(sdate=sd)
    Time used for retrieving model data: 1.88 seconds
@@ -289,7 +289,7 @@ The output will be something like::
 
 .. note::
 
-   Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason being the ambiguous use of lead times. Whenever the keyword "leadtime" is None, a best guess is assumed and retrieved.
+   Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason being the ambiguous use of lead times.
 
 6. read in-situ observations (.d22 and netcdf/thredds)
 ######################################################
@@ -516,7 +516,7 @@ Browsing for satellite data and show footprints on map for time period would be 
 
 .. code-block:: bash
 
-   $ ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 --show
+   $ ./wavyQuick.py -sat s3a -reg NorwegianSea -sd 2020110100 -ed 2020110300 --show
 
 .. image:: ./docs_fig_sat_quicklook_003.png
    :scale: 25

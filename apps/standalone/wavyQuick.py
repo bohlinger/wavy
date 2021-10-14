@@ -33,7 +33,8 @@ def main():
     parser.add_argument("-reg", metavar='region', help="region to check")
     parser.add_argument("-sat",
                         metavar='satellite',
-                        help="satellite mission, currently available: \
+                        help="satellite mission, currently available\n \
+            \ncmems (L3):\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n j3 - Jason-3 (reference mission)\
@@ -41,9 +42,30 @@ def main():
             \n al - SARAL/AltiKa\
             \n cfo - CFOSAT\
             \n h2b - HaiYang-2B\
+            \n\
+            \neumetsat (L2):\
+            \n s3a - Sentinel-3A\
+            \n s3b - Sentinel-3B\
+            \n\
+            \ncci (L2P):\
+            \n j1 - Jason-1\
+            \n j2 - Jason-2\
+            \n j3 - Jason-3\
+            \n c2 - Cryosat-2\
+            \n envisat - Envisat\
+            \n ers1 - European Remote-Sensing Satellite-1\
+            \n ers2 - European Remote-Sensing Satellite-2\
+            \n topex - TOPEX/Poseidon\
+            \n al - SARAL/AltiKa\
+            \n gfo - GEOSAT Follow-On\
+            \n\
+            \ncci (L3):\
+            \n multi - multimission product 1991-2018\
+            \n\
             \nother options are:\
-            \n all - for all satellites\
-            \n list - a list of chosen satellies using -l")
+            \n all - for all cmems satellites\
+            \n list - a list of chosen satellites using -l\n \
+            \n")
     parser.add_argument("-prov",
                         metavar='provider',
                         help="data provider (cmems/eumetsat/cci)")
