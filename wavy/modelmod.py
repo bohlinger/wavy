@@ -18,6 +18,7 @@ from functools import lru_cache
 # own imports
 from wavy.utils import hour_rounder
 from wavy.utils import make_fc_dates
+from wavy.utils import finditem
 #from collocmod import collocation_class
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.wconfig import load_or_default
@@ -106,7 +107,7 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
                     for i in range(len(fc_date))]
     return filename
 
-@lru_cache(maxsize=32)
+@lru_cache(maxsize=64)
 def read_model_nc_output_lru(filestr,lonsname,latsname,timename):
     f = netCDF4.Dataset(filestr, 'r')
     # get coordinates and time
@@ -129,7 +130,7 @@ def read_model_nc_output(filestr,lonsname,latsname,timename):
     f.close()
     return model_lons,model_lats,model_time_dt
 
-def get_model_fc_mode(filestr, model, fc_date, varalias=None):
+def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     """
     fct to retrieve model data for correct time
     """
@@ -162,6 +163,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
 
     f = netCDF4.Dataset(filestr, 'r')
     model_time = f.variables[timename]
+    l = kwargs.get('vertical_level',0)
     if (type(filevarname) is dict):
         print(
             'Target variable can be computed from vector \n'
@@ -182,7 +184,9 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
                 break
         print('Use aliases:', filevarname[key])
         model_var_dummy = f.variables[filevarname_dummy]
-        if len(model_var_dummy.shape) > 2:  # for multiple time steps
+        if len(model_var_dummy.dimensions) == 4:
+            model_var_dummy = model_var_dummy[:,l,:,:].squeeze()
+        if len(model_var_dummy.shape) == 3: # for multiple time steps
             model_var_valid_tmp = \
                 model_var_dummy[model_time_dt.index(fc_date),:,:].squeeze()**2
             for i in range(1, len(filevarname[key])):
@@ -190,13 +194,19 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
                                         filevarname[key][i],
                                         variable_info,
                                         model_dict,meta)
-                model_var_valid_tmp += \
-                    f.variables[filevarname_dummy][
-                        model_time_dt.index(fc_date),:,:
-                        ].squeeze()**2
+                if len(f.variables[filevarname_dummy].dimensions) == 4:
+                    model_var_valid_tmp += \
+                        f.variables[filevarname_dummy][
+                            model_time_dt.index(fc_date),l,:,:
+                            ].squeeze()**2
+                elif len(f.variables[filevarname_dummy].dimensions) == 3:
+                    model_var_valid_tmp += \
+                        f.variables[filevarname_dummy][
+                            model_time_dt.index(fc_date),:,:
+                            ].squeeze()**2
             model_var_valid = np.sqrt(model_var_valid_tmp)
-        else:  # if only one time step
-            model_var_valid_tmp = model_var_dummy[:, :].squeeze()**2
+        elif len(model_var_dummy.dimensions) == 2:
+            model_var_valid_tmp = model_var_dummy[:, :]**2
             for i in range(1, len(filevarname[key])):
                 filevarname_dummy = get_filevarname(model,
                                                     filevarname[key][i],
@@ -204,8 +214,10 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
                                                     model_dict,
                                                     meta)
                 model_var_valid_tmp += \
-                    f.variables[filevarname_dummy][:,:].squeeze()**2
+                    f.variables[filevarname_dummy][:,:]**2
             model_var_valid = np.sqrt(model_var_valid_tmp)
+        else:
+            print('Dimension mismatch!')
         vardict[stdvarname] = model_var_valid
     else:
         model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
@@ -215,11 +227,15 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None):
         vardict['datetime'] = model_time_dt_valid
         vardict['time_unit'] = model_time_unit
         model_var_link = f.variables[filevarname]
-        if len(model_var_link.shape) > 2:  # for multiple time steps
+        if len(model_var_link.dimensions) == 4:
+            model_var_link = model_var_link[:,l,:,:].squeeze()
+        if len(model_var_link.shape) == 3:  # for multiple time steps
             model_var_valid = \
                 model_var_link[model_time_dt.index(fc_date),:,:].squeeze()
-        else:  # if only one time step
+        elif len(model_var_link.dimensions) == 2:
             model_var_valid = model_var_link[:, :].squeeze()
+        else:
+            print('Dimension mismatch!')
         vardict[variable_info[varalias]['standard_name']] = \
                                                     model_var_valid
     # transform masked array to numpy array with NaNs
