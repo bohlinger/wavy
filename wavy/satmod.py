@@ -40,9 +40,10 @@ import tempfile
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
-from wavy.utils import progress, sort_files, collocate_times
+from wavy.utils import find_included_times, progress, sort_files, collocate_times
 from wavy.utils import make_pathtofile,make_subdict
 from wavy.utils import finditem
+from wavy.utils import haversineA
 from wavy.credentials import get_credentials
 from wavy.modelmod import get_filevarname
 from wavy.modelmod import model_class as mc
@@ -581,8 +582,7 @@ def read_local_files(pathlst,provider,varalias,level):
     return vardict
 
 def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
-    pathlst,varalias):
-    #
+    pathlst,varalias,poi,distlim):
     vardict = read_local_files(pathlst,provider,varalias,level)
     print('Total: ', len(vardict['time']), ' footprints found')
     # find values for give time constraint
@@ -601,9 +601,10 @@ def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
     print('In chosen time period: ', len(cvardict['time']),
         ' footprints found')
     # find values for given region
-    ridx = matchregion(cvardict['latitude'],
-                       cvardict['longitude'],
-                       region=region,grid_date=sdate)
+    ridx = match_region(cvardict['latitude'],
+                        cvardict['longitude'],
+                        region=region,
+                        grid_date=sdate)
     rvardict = {}
     for element in cvardict:
         if element != 'time_unit':
@@ -627,6 +628,19 @@ def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
                                 for t in timedt]
     else:
         print('For chosen region and time: 0 footprints found!')
+    if poi is not None:
+        pvardict = {}
+        pidx = match_poi(rvardict,twin,distlim,poi)
+        for element in rvardict:
+            if element != 'time_unit':
+                pvardict[element] = list(np.array(
+                                        rvardict[element]
+                                        )[pidx])
+            else:
+                pvardict[element] = rvardict[element]
+        rvardict = pvardict
+        print('For chosen poi: ',
+                len(rvardict['time']),'footprints found')
     # find variable name as defined in file
     stdname = variable_info[varalias]['standard_name']
     if provider == 'cmems':
@@ -709,14 +723,18 @@ class satellite_class():
     '''
 
     def __init__(
-        self,sdate,mission='s3a',provider='cmems',
+        self,sdate=None,mission='s3a',provider='cmems',
         edate=None,twin=None,download=False,path_local=None,
         remote_ftp_path=None,region='mwam4',nproc=1,varalias='Hs',
-        filterData=False,level='L3',**kwargs):
+        filterData=False,level='L3',poi=None,distlim=None,
+        **kwargs):
 
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
         # check settings
+        if (sdate is None and edate is None and poi is not None):
+            sdate = poi['datetime'][0]
+            edate = poi['datetime'][-1]
         if edate is None:
             print ("Requested time: ", str(sdate))
             edate = sdate
@@ -761,7 +779,8 @@ class satellite_class():
                                         level,vars(self),
                                         path_local=path_local)
         if len(pathlst) > 0:
-            try:
+            for i in range(1):
+#            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -774,7 +793,8 @@ class satellite_class():
                                            twin_tmp,region,
                                            provider,mission,
                                            level,pathlst,
-                                           varalias )
+                                           varalias,
+                                           poi,distlim)
                     # filter data
                     rvardict = filter_main( rvardict,
                                             varalias = varalias,
@@ -791,7 +811,8 @@ class satellite_class():
                 else:
                     rvardict = get_sat_ts(sdate,edate,twin,region,
                                           provider,mission,level,
-                                          pathlst,varalias)
+                                          pathlst,varalias,poi,
+                                          distlim)
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
                     # rm NaNs
@@ -831,10 +852,10 @@ class satellite_class():
                     + str(len(self.vars['time'])) + " footprints.")
                 #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
+#            except Exception as e:
+#                print(e)
+#                print('Error encountered')
+#                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
@@ -910,7 +931,39 @@ class satellite_class():
                     tmpdate += timedelta(days = +1)
         return
 
-def matchregion(LATS,LONS,region,grid_date):
+def poi_sat(indict,twin,distlim,poi,i):
+    tidx = find_included_times(indict['datetime'],
+                               target_t=poi['datetime'][i],
+                               twin=twin)
+    slons = list(np.array(indict['longitude'])[tidx])
+    slats = list(np.array(indict['latitude'])[tidx])
+    plons = [poi['longitude'][i]]*len(slons)
+    plats = [poi['latitude'][i]]*len(slats)
+    dists = haversineA( slons,slats,plons,plats )
+    sidx = np.argwhere(np.array(dists)<=distlim).flatten()
+    return list(np.array(tidx)[sidx])
+
+def match_poi(indict, twin, distlim, poi):
+    sat_dict = deepcopy(indict)
+    idx = [poi_sat(sat_dict,twin,distlim,poi,i) \
+           for i in range(len(poi['datetime']))]
+    return flatten(idx)
+#    idx = []
+#    for i in range(len(poi['datetime'])):
+#        print(i)
+#        tidx = find_included_times(sat_dict['datetime'],
+#                                  target_t=poi['datetime'][i],
+#                                  twin=twin)
+#        slons = list(np.array(sat_dict['longitude'])[tidx])
+#        slats = list(np.array(sat_dict['latitude'])[tidx])
+#        plons = [poi['longitude'][i]]*len(slons)
+#        plats = [poi['latitude'][i]]*len(slats)
+#        dists = haversineA( slons,slats,plons,plats )
+#        sidx = np.argwhere(np.array(dists)<=distlim).flatten()
+#        idx.append(list(np.array(tidx)[sidx]))
+#    return flatten(idx)
+
+def match_region(LATS,LONS,region,grid_date):
     # region in region_dict[poly]:
     # find values for given region
     if (region not in region_dict['poly'] and \
@@ -927,13 +980,13 @@ def matchregion(LATS,LONS,region,grid_date):
             else:
                 print("Specified region: " + region + "\n"
                 + " --> Bounds: " + str(region_dict['rect'][region]))
-        ridx = matchregion_rect(LATS,LONS,region=region)
+        ridx = match_region_rect(LATS,LONS,region=region)
     else:
-        ridx = matchregion_poly(LATS,LONS,region=region,
+        ridx = match_region_poly(LATS,LONS,region=region,
                                 grid_date=grid_date)
     return ridx
 
-def matchregion_rect(LATS,LONS,region):
+def match_region_rect(LATS,LONS,region):
     if (region is None or region == "global"):
         region = "global"
         ridx = range(len(LATS))
@@ -973,7 +1026,7 @@ def matchregion_rect(LATS,LONS,region):
         print ("Values found for chosen region and time frame.")
     return ridx
 
-def matchregion_poly(LATS,LONS,region,grid_date):
+def match_region_poly(LATS,LONS,region,grid_date):
     from matplotlib.patches import Polygon
     from matplotlib.path import Path
     import numpy as np

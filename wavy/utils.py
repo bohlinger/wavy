@@ -147,7 +147,7 @@ def grab_PID():
     print ("\n")
     return
 
-def haversine(lon1, lat1, lon2, lat2):
+def haversineP(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
@@ -162,7 +162,7 @@ def haversine(lon1, lat1, lon2, lat2):
     km = 6367 * c
     return km
 
-def haversine_new(lon1, lat1, lon2, lat2):
+def haversineA(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
