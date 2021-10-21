@@ -24,7 +24,7 @@ from tqdm import tqdm
 from copy import deepcopy
 
 # own imports
-from wavy.utils import haversine, haversine_new, collocate_times
+from wavy.utils import haversineP, haversineA, collocate_times
 from wavy.utils import progress, make_fc_dates
 from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder

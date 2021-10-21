@@ -32,3 +32,4 @@ dependencies:
   - pip
   - pip:
     - roaring_landmask
+    - arrow
