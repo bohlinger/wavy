@@ -779,8 +779,7 @@ class satellite_class():
                                         level,vars(self),
                                         path_local=path_local)
         if len(pathlst) > 0:
-            for i in range(1):
-#            try:
+            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -852,10 +851,10 @@ class satellite_class():
                     + str(len(self.vars['time'])) + " footprints.")
                 #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-#            except Exception as e:
-#                print(e)
-#                print('Error encountered')
-#                print('No satellite_class object initialized')
+            except Exception as e:
+                print(e)
+                print('Error encountered')
+                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
@@ -947,21 +946,8 @@ def match_poi(indict, twin, distlim, poi):
     sat_dict = deepcopy(indict)
     idx = [poi_sat(sat_dict,twin,distlim,poi,i) \
            for i in range(len(poi['datetime']))]
-    return flatten(idx)
-#    idx = []
-#    for i in range(len(poi['datetime'])):
-#        print(i)
-#        tidx = find_included_times(sat_dict['datetime'],
-#                                  target_t=poi['datetime'][i],
-#                                  twin=twin)
-#        slons = list(np.array(sat_dict['longitude'])[tidx])
-#        slats = list(np.array(sat_dict['latitude'])[tidx])
-#        plons = [poi['longitude'][i]]*len(slons)
-#        plats = [poi['latitude'][i]]*len(slats)
-#        dists = haversineA( slons,slats,plons,plats )
-#        sidx = np.argwhere(np.array(dists)<=distlim).flatten()
-#        idx.append(list(np.array(tidx)[sidx]))
-#    return flatten(idx)
+    idx = flatten(idx)
+    return idx
 
 def match_region(LATS,LONS,region,grid_date):
     # region in region_dict[poly]:
