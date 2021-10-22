@@ -43,6 +43,22 @@ definition of some global functions
 # currently None
 # ---------------------------------------------------------------------#
 
+def read_netcdfs(paths, dim='time', transform_func=None):
+    def process_one_path(path):
+        # use a context manager, to ensure the file gets closed after use
+        with xr.open_dataset(path) as ds:
+            # transform_func should do some sort of selection or
+            # aggregation
+            if transform_func is not None:
+                ds = transform_func(ds)
+            # load all data from the transformed dataset, to ensure we can
+            # use it after closing each original file
+            ds.load()
+            return ds
+    datasets = [process_one_path(p) for p in paths]
+    combined = xr.concat(datasets, dim)
+    return combined
+
 def get_nc_time(pathtofile):
     """
     timestep: "first" or "last" time step in nc-file

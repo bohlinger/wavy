@@ -35,12 +35,15 @@ import pyproj
 from dotenv import load_dotenv
 import zipfile
 import tempfile
+import arrow
 
 # own imports
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
-from wavy.utils import find_included_times, progress, sort_files, collocate_times
+from wavy.utils import find_included_times, progress
+from wavy.utils import sort_files, collocate_times
+from wavy.ncmod import read_netcdfs
 from wavy.utils import make_pathtofile,make_subdict
 from wavy.utils import finditem
 from wavy.utils import haversineA
@@ -396,6 +399,18 @@ dict_for_sub,path_local=None):
     filelst = np.unique(filelst[idx_start:idx_end+1])
     print (str(int(len(pathlst))) + " valid files found")
     return pathlst, filelst
+
+def read_local_files_cmems_tmp(pathlst,provider,
+varalias,level,sd,ed,twin):
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+    var_cf = variable_info[varalias]['standard_name'])
+    ds = read_netcdfs(pathlst)
+    ds_var_cf = ds.filter_by_attrs(standard_name=var_cf)
+    ds_var_cf_sliced = ds_var_cf.sel(time=slice(sd, ed))
+    df = ds_var_fc_sliced.to_dataframe()
+    return df
+
 
 def read_local_files_cmems(pathlst,provider,varalias,level):
     '''
