@@ -15,6 +15,7 @@ effortless orientation. May be combined at some point.
 # standard library imports
 from netCDF4 import Dataset
 import netCDF4
+import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 import datetime as dt
