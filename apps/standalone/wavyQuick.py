@@ -175,7 +175,8 @@ def main():
                     time.append(sa_obj.vars['time'])
                     sats.append(sat)
                     satnamelst.append([sat] * len(sa_obj.vars['time']))
-            except:
+            except Exception as e:
+                print(e)
                 print(sat + ' not available')
                 pass
         lats = flatten(lats)
@@ -218,7 +219,9 @@ def main():
                     time.append(sa_obj.vars['time'])
                     sats.append(sat)
                     satnamelst.append([sat] * len(sa_obj.vars['time']))
-            except:
+            except Exception as e:
+                print(e)
+                print(sat + ' not available')
                 pass
         lats = flatten(lats)
         lons = flatten(lons)
