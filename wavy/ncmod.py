@@ -28,6 +28,7 @@ from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 import time
 from functools import lru_cache
+from tqdm import tqdm
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -56,7 +57,7 @@ def read_netcdfs(paths, dim='time', transform_func=None):
             # use it after closing each original file
             ds.load()
             return ds
-    datasets = [process_one_path(p) for p in paths]
+    datasets = [process_one_path(p) for p in tqdm(paths)]
     combined = xr.concat(datasets, dim)
     return combined
 

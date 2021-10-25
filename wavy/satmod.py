@@ -352,7 +352,7 @@ def make_query_dict(provider,sat,level):
     return kwargs
 
 def get_local_files(sdate,edate,twin,provider,sat,level,
-dict_for_sub,path_local=None):
+dict_for_sub=None,path_local=None):
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
@@ -403,14 +403,16 @@ dict_for_sub,path_local=None):
 
 def read_local_files_cmems_tmp(pathlst,provider,
 varalias,level,sd,ed,twin,variable_info):
+    # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
+    # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname_from_nc(varalias,variable_info,satellite_dict[provider][level],ncmeta)
-    print(ncvar)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
-    ds_sliced = ds.sel(time=slice(sd, ed))
+    ds_sort = ds.sortby('time')
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
     # make dict and start with stdvarname for varalias
     stdvarname = variable_info[varalias]['standard_name']
     var_sliced = ds_sliced[ncvar]
@@ -422,14 +424,7 @@ varalias,level,sd,ed,twin,variable_info):
     # 2. iterate over coords_lst
     for varname in coords_lst:
         stdcoordname = ds_sliced[varname].attrs['standard_name']
-        if stdcoordname == 'time':
-            tmp_strtime = ds_sliced['time'].values.astype('str')
-            dtime = [parse(t) for t in tmp_strtime]
-            del tmp_strtime
-            vardict['datetime'] = dtime
-            vardict['time'] = [t.timestamp() for t in dtime]
-            vardict['time_unit'] = "seconds since 1970-01-01 00:00:00.0"
-        elif stdcoordname == 'longitude':
+        if stdcoordname == 'longitude':
             vardict[stdcoordname] = \
                 list(((ds_sliced[varname].values - 180) % 360) - 180)
         else:
