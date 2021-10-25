@@ -430,7 +430,6 @@ varalias,level,sd,ed,twin,variable_info):
             vardict[stdcoordname] = list(ds_sliced[varname].values)
     return vardict
 
-
 def read_local_files_cmems(pathlst,provider,varalias,level):
     '''
     Read and concatenate all data to one timeseries for each variable.
@@ -503,6 +502,37 @@ def read_local_files_cmems(pathlst,provider,varalias,level):
     # close nc-file
     f.close()
     return vardict
+
+def read_local_files_cci_tmp(pathlst,provider,varalias,level,
+sd,ed,twin,variable_info):
+    # adjust start and end
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname_from_nc(varalias,variable_info,satellite_dict[provider][level],ncmeta)
+    # retrieve sliced data
+    ds = read_netcdfs(pathlst)
+    ds_sort = ds.sortby('time')
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    # make dict and start with stdvarname for varalias
+    stdvarname = variable_info[varalias]['standard_name']
+    var_sliced = ds_sliced[ncvar]
+    vardict = {}
+    vardict[stdvarname] = list(var_sliced.values)
+    # add coords to vardict
+    # 1. retrieve list of coordinates
+    coords_lst = list(var_sliced.coords.keys())
+    # 2. iterate over coords_lst
+    for varname in coords_lst:
+        stdcoordname = ds_sliced[varname].attrs['standard_name']
+        if stdcoordname == 'longitude':
+            vardict[stdcoordname] = \
+                list(((ds_sliced[varname].values - 180) % 360) - 180)
+        else:
+            vardict[stdcoordname] = list(ds_sliced[varname].values)
+    return vardict
+
 
 def read_local_files_cci(pathlst,provider,varalias,level):
     '''
