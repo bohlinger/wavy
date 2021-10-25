@@ -16,6 +16,7 @@ asgardb: # object nID (nameID)
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
                         "/vol/gorgon/offshore/nID/d22/"]
+                        #/opdata/offshore/fugro/csv
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination

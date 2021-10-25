@@ -506,7 +506,8 @@ def plot_sat(sa_obj,**kwargs):
             pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
             plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
             plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
-            scp = ax.scatter(plon,plat,s=20, c='b',
+            scp = ax.scatter(plon,plat,s=20,
+                    c = quicklook_dict[sa_obj.region]['poi'][poi].get('color','b'),
                     marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
                     transform = ccrs.PlateCarree())
             ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
@@ -521,7 +522,7 @@ def plot_sat(sa_obj,**kwargs):
 
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.04, pad=0.04)
+                        fraction=0.046, pad=0.04)
     cbar.ax.set_ylabel(sa_obj.stdvarname + ' [' +
                         variable_info[sa_obj.varalias]['units']
                         + ']')
