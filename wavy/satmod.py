@@ -28,6 +28,7 @@ from ftplib import FTP
 import netCDF4 as netCDF4
 import calendar
 from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse
 from joblib import Parallel, delayed
 import xarray as xa
 import pyresample
@@ -40,7 +41,9 @@ import tempfile
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
-from wavy.utils import find_included_times, progress, sort_files, collocate_times
+from wavy.utils import find_included_times, progress
+from wavy.utils import sort_files, collocate_times
+from wavy.ncmod import read_netcdfs,get_filevarname_from_nc
 from wavy.utils import make_pathtofile,make_subdict
 from wavy.utils import finditem
 from wavy.utils import haversineA
@@ -348,7 +351,7 @@ def make_query_dict(provider,sat,level):
     return kwargs
 
 def get_local_files(sdate,edate,twin,provider,sat,level,
-dict_for_sub,path_local=None):
+dict_for_sub=None,path_local=None):
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
@@ -396,6 +399,37 @@ dict_for_sub,path_local=None):
     filelst = np.unique(filelst[idx_start:idx_end+1])
     print (str(int(len(pathlst))) + " valid files found")
     return pathlst, filelst
+
+def read_local_files_cmems_tmp(pathlst,provider,
+varalias,level,sd,ed,twin,variable_info):
+    # adjust start and end
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname_from_nc(varalias,variable_info,satellite_dict[provider][level],ncmeta)
+    # retrieve sliced data
+    ds = read_netcdfs(pathlst)
+    ds_sort = ds.sortby('time')
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    # make dict and start with stdvarname for varalias
+    stdvarname = variable_info[varalias]['standard_name']
+    var_sliced = ds_sliced[ncvar]
+    vardict = {}
+    vardict[stdvarname] = list(var_sliced.values)
+    # add coords to vardict
+    # 1. retrieve list of coordinates
+    coords_lst = list(var_sliced.coords.keys())
+    # 2. iterate over coords_lst
+    for varname in coords_lst:
+        stdcoordname = ds_sliced[varname].attrs['standard_name']
+        if stdcoordname == 'longitude':
+            vardict[stdcoordname] = \
+                list(((ds_sliced[varname].values - 180) % 360) - 180)
+        else:
+            vardict[stdcoordname] = list(ds_sliced[varname].values)
+    return vardict
+
 
 def read_local_files_cmems(pathlst,provider,varalias,level):
     '''

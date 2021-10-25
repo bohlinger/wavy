@@ -188,8 +188,8 @@ def main():
         sa_obj.vars[variable_info[args.var]['standard_name']] = np.array(var)
         sa_obj.vars['time'] = time
         sa_obj.region = args.reg
-        sa_obj.sat = str(sats)
-        sa_obj.satname_ts = satnames
+        sa_obj.mission = str(sats)
+        sa_obj.mission_ts = satnames
     elif args.sat == 'list':
         satlist = args.l.split(',')
         lats = []
@@ -230,8 +230,8 @@ def main():
         sa_obj.vars['longitude'] = np.array(lons)
         sa_obj.vars[variable_info[args.var]['standard_name']] = np.array(var)
         sa_obj.region = args.reg
-        sa_obj.sat = str(sats)
-        sa_obj.satname_ts = satnames
+        sa_obj.mission = str(sats)
+        sa_obj.mission_ts = satnames
     else:
         sa_obj = sa(sdate,
                     mission=args.sat,

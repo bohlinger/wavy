@@ -1,16 +1,31 @@
 --- # quicklook figure specifications
 
-{region_name}: # some name of region/model domain e.g. mwam4
-    poi: # specs for point of interest
-        {poi_name}: # abbreviation for your poi
-            name: Some POI Name
-            lat: 60
-            lon: 0
+#{region_name}: # some name of region/model domain e.g. mwam4
+#    poi: # specs for point of interest
+#        {poi_name}: # abbreviation for your poi
+#            name: Some POI Name
+#            lat: 60
+#            lon: 0
+#            marker: x
+#    varspec: # variable specific specs
+#        Hs: # abbreviation/varalias for your chosen variable
+#            cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
+#                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5,6,7,
+#                        8,9,10,11,12]
+#            scl: 9 # solid contour lines index in cm_levels
+#            icl: 1 # scl index increment
+
+OneOcean:
+    poi:
+        SRL: # abbreviation for your poi
+            name: SRL
+            lat: 14.79
+            lon: -58.99
             marker: x
-    varspec: # variable specific specs
+            color: 'k'
+    varspec: # variable specific adjustments
         Hs: # abbreviation/varalias for your chosen variable
             cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
-                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5,6,7,
-                        8,9,10,11,12]
-            scl: 9 # solid contour lines index in cm_levels
+                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5]
+            scl: 8 # solid contour lines index in cm_levels
             icl: 1 # scl index increment

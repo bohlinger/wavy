@@ -15,6 +15,7 @@ effortless orientation. May be combined at some point.
 # standard library imports
 from netCDF4 import Dataset
 import netCDF4
+import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 import datetime as dt
@@ -27,6 +28,7 @@ from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 import time
 from functools import lru_cache
+from tqdm import tqdm
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -42,6 +44,22 @@ definition of some global functions
 """
 # currently None
 # ---------------------------------------------------------------------#
+
+def read_netcdfs(paths, dim='time', transform_func=None):
+    def process_one_path(path):
+        # use a context manager, to ensure the file gets closed after use
+        with xr.open_dataset(path) as ds:
+            # transform_func should do some sort of selection or
+            # aggregation
+            if transform_func is not None:
+                ds = transform_func(ds)
+            # load all data from the transformed dataset, to ensure we can
+            # use it after closing each original file
+            ds.load()
+            return ds
+    datasets = [process_one_path(p) for p in tqdm(paths)]
+    combined = xr.concat(datasets, dim)
+    return combined
 
 def get_nc_time(pathtofile):
     """

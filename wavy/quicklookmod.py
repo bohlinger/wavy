@@ -4,22 +4,13 @@
 import yaml
 import numpy as np
 import os
+from wavy.wconfig import load_or_default
 
 # read yaml config files:
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/region_specs.yaml'))
-with open(moddir,'r') as stream:
-    region_dict=yaml.safe_load(stream)
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/variable_info.yaml'))
-with open(moddir,'r') as stream:
-    variable_info=yaml.safe_load(stream)
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/model_specs.yaml'))
-with open(moddir,'r') as stream:
-    model_dict=yaml.safe_load(stream)
-moddir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config/quicklook_specs.yaml'))
-if os.path.exists(moddir):
-    with open(moddir,'r') as stream:
-        quicklook_dict=yaml.safe_load(stream)
-
+region_dict = load_or_default('region_specs.yaml')
+variable_info = load_or_default('variable_info.yaml')
+model_dict = load_or_default('model_specs.yaml')
+quicklook_dict = load_or_default('quicklook_specs.yaml')
 
 # define global functions
 
@@ -515,7 +506,8 @@ def plot_sat(sa_obj,**kwargs):
             pname = quicklook_dict[sa_obj.region]['poi'][poi]['name']
             plat = quicklook_dict[sa_obj.region]['poi'][poi]['lat']
             plon = quicklook_dict[sa_obj.region]['poi'][poi]['lon']
-            scp = ax.scatter(plon,plat,s=20, c='b',
+            scp = ax.scatter(plon,plat,s=20,
+                    c = quicklook_dict[sa_obj.region]['poi'][poi].get('color','b'),
                     marker = quicklook_dict[sa_obj.region]['poi'][poi]['marker'],
                     transform = ccrs.PlateCarree())
             ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
@@ -530,7 +522,7 @@ def plot_sat(sa_obj,**kwargs):
 
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.04, pad=0.04)
+                        fraction=0.046, pad=0.04)
     cbar.ax.set_ylabel(sa_obj.stdvarname + ' [' +
                         variable_info[sa_obj.varalias]['units']
                         + ']')
