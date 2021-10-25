@@ -36,7 +36,6 @@ import pyproj
 from dotenv import load_dotenv
 import zipfile
 import tempfile
-import arrow
 
 # own imports
 from wavy.ncmod import ncdumpMeta

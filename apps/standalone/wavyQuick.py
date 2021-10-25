@@ -188,8 +188,8 @@ def main():
         sa_obj.vars[variable_info[args.var]['standard_name']] = np.array(var)
         sa_obj.vars['time'] = time
         sa_obj.region = args.reg
-        sa_obj.sat = str(sats)
-        sa_obj.satname_ts = satnames
+        sa_obj.mission = str(sats)
+        sa_obj.mission_ts = satnames
     elif args.sat == 'list':
         satlist = args.l.split(',')
         lats = []
@@ -230,8 +230,8 @@ def main():
         sa_obj.vars['longitude'] = np.array(lons)
         sa_obj.vars[variable_info[args.var]['standard_name']] = np.array(var)
         sa_obj.region = args.reg
-        sa_obj.sat = str(sats)
-        sa_obj.satname_ts = satnames
+        sa_obj.mission = str(sats)
+        sa_obj.mission_ts = satnames
     else:
         sa_obj = sa(sdate,
                     mission=args.sat,
@@ -245,6 +245,8 @@ def main():
 # plot
     if (args.mod is None and sa_obj.region not in model_dict):
         #plot_sat(sa_obj,variable_info[args.var]['standard_name'],
+        print(sa_obj.mission)
+        print(sa_obj.mission_ts)
         plot_sat(sa_obj, savepath=args.savep, showfig=args.show)
     elif (args.mod is None and sa_obj.region in model_dict):
         print('Chosen region is a specified model domain')
