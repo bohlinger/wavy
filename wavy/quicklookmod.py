@@ -427,11 +427,6 @@ def plot_sat(sa_obj,**kwargs):
     if 'levels' in kwargs.keys():
         levels = kwargs['levels']
 
-    norm = mpl.colors.BoundaryNorm(levels, cmap.N)
-    extend = 'neither'
-    if 'extend' in kwargs.keys():
-        extend = kwargs['extend']
-
     # draw figure features
     mpl.rcParams['contour.negative_linestyle'] = 'solid'
     fs = 11
@@ -482,6 +477,12 @@ def plot_sat(sa_obj,**kwargs):
     # - add land color
     ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
 
+    # scale colormap
+    norm = mpl.colors.BoundaryNorm(levels, cmap.N)
+    extend = 'neither'
+    if 'extend' in kwargs.keys():
+        extend = kwargs['extend']
+
     # - add satellite
     sc = ax.scatter(slons,slats,s=10,
                 #c='k',#sa_obj.vars[sa_obj.stdvarname],
@@ -522,7 +523,7 @@ def plot_sat(sa_obj,**kwargs):
 
     # - colorbar
     cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.046, pad=0.04)
+                        fraction=0.036, pad=0.03)
     cbar.ax.set_ylabel(sa_obj.stdvarname + ' [' +
                         variable_info[sa_obj.varalias]['units']
                         + ']')
