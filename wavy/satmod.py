@@ -31,11 +31,13 @@ from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
 from joblib import Parallel, delayed
 import xarray as xa
+import pandas as pd
 import pyresample
 import pyproj
 from dotenv import load_dotenv
 import zipfile
 import tempfile
+from tqdm import tqdm
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -576,6 +578,66 @@ def read_local_files_cci(pathlst,provider,varalias,level):
     ncin.close()
     return vardict
 
+def read_local_ncfiles(pathlst,provider,varalias,level,
+sd,ed,twin,variable_info):
+    # adjust start and end
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname_from_nc(varalias,variable_info,satellite_dict[provider][level],ncmeta)
+    # retrieve sliced data
+    ds = read_netcdfs(pathlst)
+    ds_sort = ds.sortby('time')
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    # make dict and start with stdvarname for varalias
+    stdvarname = variable_info[varalias]['standard_name']
+    var_sliced = ds_sliced[ncvar]
+    vardict = {}
+    vardict[stdvarname] = list(var_sliced.values)
+    # add coords to vardict
+    # 1. retrieve list of coordinates
+    coords_lst = list(var_sliced.coords.keys())
+    # 2. iterate over coords_lst
+    for varname in coords_lst:
+        stdcoordname = ds_sliced[varname].attrs['standard_name']
+        if stdcoordname == 'longitude':
+            vardict[stdcoordname] = \
+                list(((ds_sliced[varname].values - 180) % 360) - 180)
+        elif stdcoordname == 'time':
+            # convert to unixtime
+            df_time = ds_sliced['time'].to_dataframe()
+            unxt = (pd.to_datetime(df_time['time']).view(int) / 10**9)
+            vardict[stdcoordname] = unxt.values
+            vardict['time_unit'] = variable_info[stdcoordname]['units']
+        else:
+            vardict[stdcoordname] = list(ds_sliced[varname].values)
+    return vardict
+
+def unzip_eumetsat(pathlst,tmpdir):
+    for count, f in enumerate(pathlst):
+        zipped = zipfile.ZipFile(f)
+        enhanced_measurement = zipped.namelist()[-1]
+        extracted = zipped.extract(enhanced_measurement,
+                                   path=tmpdir.name)
+        fname = extracted.split('/')[-1]
+        dignumstr = '_{num:0' + str(len(str(len(pathlst)))) + 'd}.nc'
+        # cp extracted file to parent tmp
+        cmdstr = ('cp ' + extracted + ' ' + tmpdir.name
+                + '/' + fname[0:-3]
+                + dignumstr.format(num=count))
+                #+ '_{num:04d}.nc'.format(num=count))
+        os.system(cmdstr)
+        # delete subfolder
+        cmdstr = ('rm -r '
+                 + os.path.dirname(os.path.realpath(extracted)))
+        os.system(cmdstr)
+    flst = os.listdir(tmpdir.name)
+    pathlst_new = []
+    for f in flst:
+        pathlst_new.append(os.path.join(tmpdir.name,f))
+    return pathlst_new
+
 def read_local_files_eumetsat(pathlst,provider,varalias,level):
     '''
     Read and concatenate all data to one timeseries for each variable.
@@ -594,7 +656,7 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level):
     print (pathlst[0])
     print (pathlst[-1])
     vardict = {}
-    for f in pathlst:
+    for f in tqdm(pathlst):
         path = f[0:-len(f.split('/')[-1])]
         zipped = zipfile.ZipFile(f)
         enhanced_measurement = zipped.namelist()[-1]
@@ -608,12 +670,12 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level):
                 ncvar = satellite_dict[provider][level]\
                                       ['vardef']\
                                       [tmp_varalias]
-                print( "As defined in "
-                     + "satellite_specs.yaml, "
-                     + "the following "
-                     + "nc-variable name "
-                     + "is chosen:\n", ncvar, "for "
-                     + "stdname: ", stdname )
+                #print( "As defined in "
+                #     + "satellite_specs.yaml, "
+                #     + "the following "
+                #     + "nc-variable name "
+                #     + "is chosen:\n", ncvar, "for "
+                #     + "stdname: ", stdname )
                 if stdname in vardict.keys():
                     vardict[stdname] += list(ncin[ncvar][:])
                 else:
@@ -621,13 +683,16 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level):
     # transform to -180 to 180 degrees
     tmp = np.array(vardict['longitude'])
     vardict['longitude'] = list(((tmp - 180) % 360) - 180)
+    # convert time to unix time
     vardict['time_unit'] = \
         ncin[satellite_dict[provider][level]['vardef']['time']].units
     tmpdir.cleanup()
     ncin.close()
     return vardict
 
-def read_local_files(pathlst,provider,varalias,level):
+#def read_local_files(pathlst,provider,varalias,level):
+def read_local_files(pathlst,provider,varalias,level,
+sd,ed,twin,variable_info):
     '''
     main fct to read L2/L3 altimetry files from EUMETSAT/CMEMS,
     respectively. Currently only L3 are possible to read.
@@ -635,12 +700,21 @@ def read_local_files(pathlst,provider,varalias,level):
     # read local files depending on provider
     # -> similar to get_remote_files
     if provider == 'cmems':
-        vardict = read_local_files_cmems(pathlst,provider,\
-                                         varalias,level)
+        #vardict = read_local_files_cmems(pathlst,provider,\
+        #                                 varalias,level)
+        vardict = read_local_ncfiles(pathlst,provider,varalias,level,
+sd,ed,twin,variable_info)
     elif provider == 'cci':
-        vardict = read_local_files_cci(pathlst,provider,\
-                                       varalias,level)
+        vardict = read_local_ncfiles(pathlst,provider,varalias,level,
+sd,ed,twin,variable_info)
+        #vardict = read_local_files_cci(pathlst,provider,\
+        #                               varalias,level)
     elif provider == 'eumetsat':
+        #tmpdir = tempfile.TemporaryDirectory()
+        #pathlst = unzip_eumetsat(pathlst,tmpdir)
+        #vardict = read_local_ncfiles(pathlst,provider,varalias,level,sd,ed,twin,variable_info)
+        #print('removing tmpdir')
+        #os.system('rm -r ' + tmpdir.name)
         vardict = read_local_files_eumetsat(pathlst,provider,\
                                             varalias,level)
     return vardict
