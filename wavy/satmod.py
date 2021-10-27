@@ -38,6 +38,7 @@ from dotenv import load_dotenv
 import zipfile
 import tempfile
 from tqdm import tqdm
+import xarray as xr
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -606,8 +607,8 @@ sd,ed,twin,variable_info):
                 list(((ds_sliced[varname].values - 180) % 360) - 180)
         elif stdcoordname == 'time':
             # convert to unixtime
-            df_time = ds_sliced['time'].to_dataframe()
-            unxt = (pd.to_datetime(df_time['time']).view(int) / 10**9)
+            df_time = ds_sliced[varname].to_dataframe()
+            unxt = (pd.to_datetime(df_time[varname]).view(int) / 10**9)
             vardict[stdcoordname] = unxt.values
             vardict['time_unit'] = variable_info[stdcoordname]['units']
         else:
@@ -638,61 +639,72 @@ def unzip_eumetsat(pathlst,tmpdir):
         pathlst_new.append(os.path.join(tmpdir.name,f))
     return pathlst_new
 
-def read_local_files_eumetsat(pathlst,provider,varalias,level):
+def read_local_files_eumetsat(pathlst,provider,varalias,level,satellite_dict):
     '''
     Read and concatenate all data to one timeseries for each variable.
     Fct is tailored to EUMETSAT files.
     '''
-    # --- create tmpdir --- #
-    tmpdir = tempfile.TemporaryDirectory()
-    print('tmp directory is established:',tmpdir.name)
-    # --- open file and read variables --- #
-    varlst = [varalias] + ['lons','lats','time']
-    varlst_cf = []
-    for var in varlst:
-        varlst_cf.append(variable_info[var]['standard_name'])
-    count = 0
+    # --- find variable cf names --- #
     print ("Processing " + str(int(len(pathlst))) + " files")
     print (pathlst[0])
     print (pathlst[-1])
+    # --- find ncvar cf names --- #
+    tmpdir = tempfile.TemporaryDirectory()
+    zipped = zipfile.ZipFile(pathlst[0])
+    enhanced_measurement = zipped.namelist()[-1]
+    extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
+    stdname = variable_info[varalias]['standard_name']
+    ncmeta = ncdumpMeta(extracted)
+    ncvar = get_filevarname_from_nc(varalias,variable_info,
+                satellite_dict[provider][level],ncmeta)
+    tmpdir.cleanup()
+    # --- create vardict --- #
     vardict = {}
+    tmpdir = tempfile.TemporaryDirectory()
+    print('tmp directory is established:',tmpdir.name)
     for f in tqdm(pathlst):
         path = f[0:-len(f.split('/')[-1])]
         zipped = zipfile.ZipFile(f)
         enhanced_measurement = zipped.namelist()[-1]
-        extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
-        ncin = netCDF4.Dataset(extracted)
-        for stdname in varlst_cf:
-            tmp_varalias = varlst[varlst_cf.index(stdname)]
-            if (satellite_dict[provider][level]['vardef'] is not None \
-            and tmp_varalias in \
-            satellite_dict[provider][level]['vardef']):
-                ncvar = satellite_dict[provider][level]\
-                                      ['vardef']\
-                                      [tmp_varalias]
-                #print( "As defined in "
-                #     + "satellite_specs.yaml, "
-                #     + "the following "
-                #     + "nc-variable name "
-                #     + "is chosen:\n", ncvar, "for "
-                #     + "stdname: ", stdname )
-                if stdname in vardict.keys():
-                    vardict[stdname] += list(ncin[ncvar][:])
+        extracted = zipped.extract(enhanced_measurement,
+                                   path=tmpdir.name)
+        ds = xr.open_dataset(extracted)
+        ds_var = ds[ncvar]
+        if stdname in vardict.keys():
+            vardict[stdname] += list(ds[ncvar])
+        else:
+            vardict[stdname] = list(ds[ncvar])
+        coords_lst = list(ds_var.coords.keys())
+        for varname in coords_lst:
+            stdcoordname = ds[varname].attrs['standard_name']
+            if stdcoordname == 'longitude':
+                if stdcoordname in vardict.keys():
+                    vardict[stdcoordname] += list(ds[varname].values)
                 else:
-                    vardict[stdname] = list(ncin[ncvar][:])
+                    vardict[stdcoordname] = list(ds[varname].values)
+            elif stdcoordname == 'time':
+                # convert to unixtime
+                df_time = ds[varname].to_dataframe()
+                unxt = (pd.to_datetime(df_time[varname])\
+                        .view(int) / 10**9)
+                if stdcoordname in vardict.keys():
+                    vardict[stdcoordname] += list(unxt.values)
+                else:
+                    vardict[stdcoordname] = list(unxt.values)
+            else:
+                if stdcoordname in vardict.keys():
+                    vardict[stdcoordname] += list(ds[varname].values)
+                else:
+                    vardict[stdcoordname] = list(ds[varname].values)
     # transform to -180 to 180 degrees
     tmp = np.array(vardict['longitude'])
     vardict['longitude'] = list(((tmp - 180) % 360) - 180)
-    # convert time to unix time
-    vardict['time_unit'] = \
-        ncin[satellite_dict[provider][level]['vardef']['time']].units
+    vardict['time_unit'] = variable_info[stdcoordname]['units']
     tmpdir.cleanup()
-    ncin.close()
     return vardict
 
-#def read_local_files(pathlst,provider,varalias,level):
 def read_local_files(pathlst,provider,varalias,level,
-sd,ed,twin,variable_infov):
+    sd,ed,twin,variable_info,satellite_dict):
     '''
     main fct to read L2/L3 altimetry files from EUMETSAT/CMEMS,
     respectively. Currently only L3 are possible to read.
@@ -716,16 +728,16 @@ sd,ed,twin,variable_info)
         #print('removing tmpdir')
         #os.system('rm -r ' + tmpdir.name)
         vardict = read_local_files_eumetsat(pathlst,provider,\
-                                            varalias,level)
+                                            varalias,level,\
+                                            satellite_dict)
+        #tmpdir.cleanup()
     return vardict
 
-#def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
-#    pathlst,varalias,poi,distlim):
 def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
-    pathlst,varalias,poi,distlim,variable_info):
-    #vardict = read_local_files(pathlst,provider,varalias,level)
+    pathlst,varalias,poi,distlim,variable_info,satellite_dict):
     vardict = read_local_files(pathlst,provider,varalias,level,
-sdate,edate,twin,variable_info)
+                               sdate,edate,twin,variable_info,
+                               satellite_dict)
     print('Total: ', len(vardict['time']), ' footprints found')
     # find values for give time constraint
     dtime = list( netCDF4.num2date(vardict['time'],
@@ -921,7 +933,8 @@ class satellite_class():
                                         level,vars(self),
                                         path_local=path_local)
         if len(pathlst) > 0:
-            try:
+            for i in range(1):
+#            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -954,7 +967,8 @@ class satellite_class():
                     rvardict = get_sat_ts( sdate,edate,twin,region,
                                            provider,mission,level,
                                            pathlst,varalias,poi,
-                                           distlim,variable_info )
+                                           distlim,variable_info,
+                                           satellite_dict )
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
                     # rm NaNs
@@ -994,10 +1008,10 @@ class satellite_class():
                     + str(len(self.vars['time'])) + " footprints.")
                 #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
+#            except Exception as e:
+#                print(e)
+#                print('Error encountered')
+#                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
