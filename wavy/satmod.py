@@ -692,7 +692,7 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level):
 
 #def read_local_files(pathlst,provider,varalias,level):
 def read_local_files(pathlst,provider,varalias,level,
-sd,ed,twin,variable_info):
+sd,ed,twin,variable_infov):
     '''
     main fct to read L2/L3 altimetry files from EUMETSAT/CMEMS,
     respectively. Currently only L3 are possible to read.
@@ -719,9 +719,13 @@ sd,ed,twin,variable_info)
                                             varalias,level)
     return vardict
 
+#def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
+#    pathlst,varalias,poi,distlim):
 def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
-    pathlst,varalias,poi,distlim):
-    vardict = read_local_files(pathlst,provider,varalias,level)
+    pathlst,varalias,poi,distlim,variable_info):
+    #vardict = read_local_files(pathlst,provider,varalias,level)
+    vardict = read_local_files(pathlst,provider,varalias,level,
+sdate,edate,twin,variable_info)
     print('Total: ', len(vardict['time']), ' footprints found')
     # find values for give time constraint
     dtime = list( netCDF4.num2date(vardict['time'],
@@ -931,7 +935,8 @@ class satellite_class():
                                            provider,mission,
                                            level,pathlst,
                                            varalias,
-                                           poi,distlim)
+                                           poi,distlim,
+                                           variable_info)
                     # filter data
                     rvardict = filter_main( rvardict,
                                             varalias = varalias,
@@ -946,10 +951,10 @@ class satellite_class():
                     self.filter = True
                     self.filterSpecs = kwargs
                 else:
-                    rvardict = get_sat_ts(sdate,edate,twin,region,
-                                          provider,mission,level,
-                                          pathlst,varalias,poi,
-                                          distlim)
+                    rvardict = get_sat_ts( sdate,edate,twin,region,
+                                           provider,mission,level,
+                                           pathlst,varalias,poi,
+                                           distlim,variable_info )
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
                     # rm NaNs
