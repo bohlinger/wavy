@@ -83,8 +83,9 @@ def make_model_filename(model, fc_date, leadtime):
                         + tmpstr)
         else:
             filedate = get_model_filedate(model, fc_date, leadtime)
-            filename = (filedate.strftime(model_dict[model]['path_template']) +
-                        filedate.strftime(model_dict[model]['file_template']))
+            filename =\
+                (filedate.strftime(model_dict[model]['path_template'])\
+                + filedate.strftime(model_dict[model]['file_template']))
     else:
         raise ValueError("Chosen model is not specified in model_specs.yaml")
     return filename
@@ -106,6 +107,18 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
         filename = [make_model_filename(model,fc_date[i],leadtime[i]) \
                     for i in range(len(fc_date))]
     return filename
+
+def make_list_of_model_filenames_and_times(model,fc_dates,lt):
+    """
+    returns: flst - list of model files to be opened
+             dlst - list of dates to be chosen within each file
+    """
+    #fn = make_model_filename_wrapper('mwam4',datetime(2021,1,1,1),1)
+    flst = []
+    for d in fc_dates:
+        fn = make_model_filename_wrapper(model,d,lt)
+        flst.append(fn)
+    return flst
 
 @lru_cache(maxsize=64)
 def read_model_nc_output_lru(filestr,lonsname,latsname,timename):

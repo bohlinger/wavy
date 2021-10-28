@@ -699,7 +699,7 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level,satellite_dict):
     # transform to -180 to 180 degrees
     tmp = np.array(vardict['longitude'])
     vardict['longitude'] = list(((tmp - 180) % 360) - 180)
-    vardict['time_unit'] = variable_info[stdcoordname]['units']
+    vardict['time_unit'] = variable_info['time']['units']
     tmpdir.cleanup()
     return vardict
 
