@@ -126,14 +126,18 @@ def vardict_unique(vardict):
 
 def filter_slider(vardict,varalias,**kwargs):
         slider = kwargs['slider']
+        overlap_pct = kwargs.get('overlap',0)
+        overlap = int(overlap_pct/slider * 100)
         del kwargs['slider']
         newvardict = deepcopy(vardict)
         for key in vardict:
             if (key != 'time_unit' and key != 'meta'):
                 newvardict[key] = []
         for i in range(0,len(vardict['time']),slider):
-            start_idx = i
-            stop_idx = i + slider
+            start_idx = i - overlap
+            stop_idx = i + slider + overlap
+            if i == 0:
+                start_idx = 0
             if i == range(0,len(vardict['time']),slider)[-1]:
                 stop_idx = len(vardict['time']) -1
             tmpdict = {}
@@ -153,6 +157,11 @@ def filter_slider(vardict,varalias,**kwargs):
         for key in newvardict:
             if (key != 'time_unit' and key != 'meta'):
                 newvardict[key] = flatten(newvardict[key])
+        # remove double date entries
+        _,d_idx = np.unique(newvardict['time'],return_index=True)
+        for key in newvardict:
+            if (key != 'time_unit' and key != 'meta'):
+                newvardict[key] = list(np.array(newvardict[key])[d_idx])
         return newvardict
 
 def rm_nan_from_vardict(varalias,vardict):

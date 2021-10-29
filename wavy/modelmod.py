@@ -108,7 +108,7 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
                     for i in range(len(fc_date))]
     return filename
 
-def make_list_of_model_filenames_and_times(model,fc_dates,lt):
+def make_list_of_model_filenames(model,fc_dates,lt):
     """
     returns: flst - list of model files to be opened
              dlst - list of dates to be chosen within each file
