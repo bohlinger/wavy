@@ -19,6 +19,7 @@ from functools import lru_cache
 from wavy.utils import hour_rounder
 from wavy.utils import make_fc_dates
 from wavy.utils import finditem
+from wavy.utils import parse_date
 #from collocmod import collocation_class
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.wconfig import load_or_default
@@ -391,6 +392,9 @@ class model_class():
                  distlim=6):
         print('# ----- ')
         print(" ### Initializing model_class object ###")
+        # parse and translate date input
+        sdate = parse_date(sdate)
+        edate = parse_date(edate)
         if st_obj is not None:
             sdate = st_obj.sdate
             edate = st_obj.edate
@@ -420,6 +424,7 @@ class model_class():
                             leadtime=leadtime,varalias=varalias,
                             st_obj=st_obj)
         stdname = variable_info[varalias]['standard_name']
+        units = variable_info[varalias]['units']
         varname = filevarname
         # define class variables
         self.fc_date = fc_date
@@ -430,6 +435,7 @@ class model_class():
         self.varalias = varalias
         self.varname = varname
         self.stdvarname = stdname
+        self.units = units
         self.vars = vardict
         self.filestr = filestr
         t1 = time.time()
@@ -452,3 +458,37 @@ class model_class():
         ncdict = self.vars['meta']
         parent = finditem(ncdict,item)
         return parent
+
+    def quicklook(self,projection=None):
+        import cartopy.crs as ccrs
+        import cmocean
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        lons = self.vars['longitude']
+        lats = self.vars['latitude']
+        var = self.vars[self.stdvarname]
+        if projection is None:
+            projection = ccrs.PlateCarree()
+        lonmax,lonmin = np.max(lons),np.min(lons)
+        latmax,latmin = np.max(lats),np.min(lats)
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection=projection)
+        ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+                        crs = projection )
+        cf = ax.contourf(lons,lats, var,
+                        cmap=cmocean.cm.amp,
+                        transform=ccrs.PlateCarree())
+        axins = inset_axes(ax,
+                   width="2%",  # width = 5% of parent_bbox width
+                   height="100%",  # height : 50%
+                   loc='lower left',
+                   bbox_to_anchor=(1.01, 0., 1, 1),
+                   bbox_transform=ax.transAxes,
+                   borderpad=0,
+                   )
+        fig.colorbar(cf, cax=axins, label=self.varalias
+                                    + ' [' + self.units + ']')
+        ax.coastlines()
+        ax.gridlines()
+        plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+        plt.show()

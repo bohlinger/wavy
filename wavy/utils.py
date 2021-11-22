@@ -8,6 +8,7 @@ from math import radians, cos, sin, asin, sqrt, floor
 import sys
 import subprocess
 import os
+from dateutil.parser import parse
 
 def block_detection(time,deltalim=None):
     if deltalim is None:
@@ -570,3 +571,12 @@ def get_item_child(ncdict,item):
     parent = finditem(ncdict,item)
     return parent
 
+def parse_date(indate):
+    if isinstance(indate,datetime):
+        return indate
+    elif isinstance(indate,str):
+        print('Parsing date')
+        return parse(indate)
+    else:
+        print('Not able to parse input return as is')
+        return indate

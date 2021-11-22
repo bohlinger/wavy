@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-This module encompasses classes and methods to read and process wave
-field related data from satellites. I try to mostly follow the PEP
-convention for python code style. Constructive comments on style and
-effecient programming are most welcome!
+The main task of this module is to aquire, read, and prepare
+geophysical variables related to wave height from satellite
+altimetry files for further use.
 '''
 # --- import libraries ------------------------------------------------#
 # standard library imports
@@ -13,22 +12,16 @@ import sys
 import numpy as np
 from datetime import datetime, timedelta
 import datetime as dt
-import argparse
-from argparse import RawTextHelpFormatter
 import os
 from copy import deepcopy
 import yaml
 import time
-if sys.version_info <= (3, 0):
-    from urllib import urlretrieve, urlcleanup # python2
-else:
-    from urllib.request import urlretrieve, urlcleanup # python3
+from urllib.request import urlretrieve, urlcleanup # python3
 import ftplib
 from ftplib import FTP
 import netCDF4 as netCDF4
 import calendar
 from dateutil.relativedelta import relativedelta
-from dateutil.parser import parse
 from joblib import Parallel, delayed
 #import xarray as xa
 import pandas as pd
@@ -46,8 +39,9 @@ from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import find_included_times, progress
 from wavy.utils import sort_files, collocate_times
-from wavy.ncmod import read_netcdfs,get_filevarname_from_nc
-from wavy.utils import make_pathtofile,make_subdict
+from wavy.utils import parse_date
+from wavy.ncmod import read_netcdfs, get_filevarname_from_nc
+from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem
 from wavy.utils import haversineA
 from wavy.credentials import get_credentials
@@ -685,6 +679,10 @@ class satellite_class():
 
         print ('# ----- ')
         print (" ### Initializing satellite_class object ###")
+
+        # parse and translate date input
+        sdate = parse_date(sdate)
+        edate = parse_date(edate)
         # check settings
         if (sdate is None and edate is None and poi is not None):
             sdate = poi['datetime'][0]
@@ -698,10 +696,12 @@ class satellite_class():
         if twin is None:
             twin = int(30)
         stdname = variable_info[varalias]['standard_name']
+        units = variable_info[varalias]['units']
         # define some class variables
         self.sdate = sdate
         self.edate = edate
         self.varalias = varalias
+        self.units = units
         self.stdvarname = stdname
         self.twin = twin
         self.region = region
@@ -733,8 +733,8 @@ class satellite_class():
                                         level,vars(self),
                                         path_local=path_local)
         if len(pathlst) > 0:
-#            for i in range(1):
-            try:
+            for i in range(1):
+#            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -808,10 +808,10 @@ class satellite_class():
                     + str(len(self.vars['time'])) + " footprints.")
                 #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
+#            except Exception as e:
+#                print(e)
+#                print('Error encountered')
+#                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
@@ -831,6 +831,47 @@ class satellite_class():
         ncdict = self.vars['meta']
         parent = finditem(ncdict,item)
         return parent
+
+    def quicklook(self,projection=None):
+        import cartopy.crs as ccrs
+        import cmocean
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        lons = self.vars['longitude']
+        lats = self.vars['latitude']
+        var = self.vars[self.stdvarname]
+        if projection is None:
+            projection = ccrs.PlateCarree()
+        lonmax,lonmin = np.max(lons),np.min(lons)
+        latmax,latmin = np.max(lats),np.min(lats)
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection=projection)
+        ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+                        crs = projection )
+        sc = ax.scatter(lons,lats,s=10,
+                        c = var,
+                        marker='o', edgecolor = 'face',
+                        cmap=cmocean.cm.amp,
+                        transform=ccrs.PlateCarree())
+        axins = inset_axes(ax,
+                   width="2%",  # width = 5% of parent_bbox width
+                   height="100%",  # height : 50%
+                   loc='lower left',
+                   bbox_to_anchor=(1.01, 0., 1, 1),
+                   bbox_transform=ax.transAxes,
+                   borderpad=0,
+                   )
+        fig.colorbar(sc, cax=axins, label=self.varalias
+                                    + ' [' + self.units + ']')
+        ax.coastlines()
+        gl = ax.gridlines(draw_labels=True,crs=projection,
+                          linewidth=1, color='grey', alpha=0.4,
+                          linestyle='-')
+        gl.top_labels = False
+        gl.right_labels = False
+        plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+        plt.show()
+
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
         if 'error' in vars(self):

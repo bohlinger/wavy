@@ -85,7 +85,25 @@ To get help check ...
 
 You can find the downloaded files in your chosen download directory.
 
-3. download L2 stallite altimetry data
+3. download L2P and L3 CCI multi-mission satellite altimetry data
+#################################################################
+Similarily one can download L2P and L3 mulit-mission altimetry data from the CEDA Climate Change Initiative. This spans the long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation.
+
+For instance for Jason-3:
+
+.. code-block:: bash
+
+   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -prov cci -lev L2P
+
+
+Or for instance for a multi-mission file:
+
+.. code-block:: bash
+
+   $ ./wavyDownload.py -sat multi -sd 2017112000 -ed 2017112100 -prov cci -lev L3
+
+
+4. download L2 stallite altimetry data
 ######################################
 L2 satellite data are obtained from eumetsat and colhub using the SentinelAPI. This requires user credentials for eumetsat and colhub, which are free of costs as well.
 Enter your account credentials into the .netrc-file as you did for the L3 data. Your .netrc should have included the following:
@@ -133,7 +151,7 @@ L3 data can be read like:
    >>> ed = datetime(2020,11,2)
    >>> sco = sc(sdate=sd,edate=ed,region=region)
 
-This would results in a satellite_class object and the following output message::
+This would result in a satellite_class object and the following output message::
 
    >>> sco = sc(sdate=sd,edate=ed,region=region)
    Total:  148425  footprints found

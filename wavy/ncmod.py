@@ -1002,6 +1002,7 @@ def ncdump(nc_fid, verb=True):
                 print_ncattr(var)
     return nc_attrs, nc_dims, nc_vars
 
+@lru_cache(maxsize=None)
 def ncdumpMeta(pathtofile):
     '''
     Returns dict of netcdf-file content
