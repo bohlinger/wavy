@@ -45,20 +45,58 @@ definition of some global functions
 # currently None
 # ---------------------------------------------------------------------#
 
-def read_netcdfs(paths, dim='time', transform_func=None):
+def read_netcdfs(paths, dim='time'):
     def process_one_path(path):
         # use a context manager, to ensure the file gets closed after use
         with xr.open_dataset(path) as ds:
-            # transform_func should do some sort of selection or
-            # aggregation
-            if transform_func is not None:
-                ds = transform_func(ds)
-            # load all data from the transformed dataset, to ensure we can
             # use it after closing each original file
             ds.load()
             return ds
     datasets = [process_one_path(p) for p in tqdm(paths)]
-    combined = xr.concat(datasets, dim)
+    print("Concatenate ...")
+    combined = xr.concat(datasets, dim,
+                         coords='minimal',
+                         data_vars='minimal',
+                         compat='override',
+                         combine_attrs='override')
+    print("... done concatenating")
+    return combined
+
+@lru_cache(maxsize=64)
+def process_one_path_lru(path,t,varname):
+    with xr.open_dataset(path) as ds:
+        da = ds.sel(time=t)[varname]
+        da.load()
+        return da
+
+def process_one_path(path,t,varname):
+    with xr.open_dataset(path) as ds:
+        da = ds.sel(time=t)[varname]
+        da.load()
+        return da
+
+def read_netcdfs_sel_lru(paths,dlst,varname,dim='time'):
+    dataarr = [process_one_path_lru(paths[i],dlst[i],varname)\
+                for i in tqdm(range(len(paths)))]
+    print("Concatenate ...")
+    combined = xr.concat(dataarr, dim,
+                         coords='minimal',
+                         compat='override',
+                         combine_attrs='override')
+    combined = combined.to_dataset()
+    print("... done concatenating")
+    return combined
+
+def read_netcdfs_sel(paths,dlst,varname,dim='time'):
+    dataarr = [process_one_path(paths[i],dlst[i],varname)\
+                for i in tqdm(range(len(paths)))]
+    print("Concatenate ...")
+    combined = xr.concat(dataarr, dim,
+                         coords='minimal',
+                         compat='override',
+                         combine_attrs='override')
+    combined = combined.to_dataset()
+    print("... done concatenating")
     return combined
 
 def get_nc_time(pathtofile):

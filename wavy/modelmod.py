@@ -333,11 +333,9 @@ def get_model(model=None,
         varalias = st_obj.varalias
     if (sdate is not None and edate is not None and date_incr is not None):
         fc_date = make_fc_dates(sdate, edate, date_incr)
-
     filestr = make_model_filename_wrapper(model=model,
                                           fc_date=fc_date,
                                           leadtime=leadtime)
-
     if (isinstance(filestr, list) and st_obj is None):
         vardict, \
         filevarname = get_model_fc_mode(filestr=filestr[0],model=model,
@@ -421,7 +419,6 @@ class model_class():
                             date_incr=date_incr,fc_date=fc_date,
                             leadtime=leadtime,varalias=varalias,
                             st_obj=st_obj)
-
         stdname = variable_info[varalias]['standard_name']
         varname = filevarname
         # define class variables
