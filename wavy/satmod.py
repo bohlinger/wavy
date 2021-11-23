@@ -355,11 +355,10 @@ dict_for_sub=None,path_local=None):
     tmpdate = sdate-timedelta(minutes=twin)
     tmpdate_s = datetime(tmpdate.year,tmpdate.month,1)
     if path_local is None:
+        print('path_local is None -> checking config file')
         while (tmpdate <= edate + relativedelta(months=+1)):
             try:
-                print(tmpdate)
-                print('path_local is None -> checking config file')
-                # create local path
+                # create local path for each time
                 path_template = satellite_dict[provider][level]\
                                               ['dst']\
                                               ['path_template']
@@ -377,9 +376,10 @@ dict_for_sub=None,path_local=None):
                             tmpdate.strftime('%m'))
                             )
                 print(path_local)
-                tmplst = np.sort(os.listdir(path_local))
-                filelst.append(tmplst)
-                pathlst.append([os.path.join(path_local,e) for e in tmplst])
+                if os.path.isdir(path_local):
+                    tmplst = np.sort(os.listdir(path_local))
+                    filelst.append(tmplst)
+                    pathlst.append([os.path.join(path_local,e) for e in tmplst])
                 tmpdate = tmpdate + relativedelta(months=+1)
                 path_local = None
             except Exception as e:
@@ -392,6 +392,8 @@ dict_for_sub=None,path_local=None):
         pathlst = [os.path.join(path_local,e) for e in filelst]
     idx_start,tmp = check_date(filelst,sdate-timedelta(minutes=twin))
     tmp,idx_end = check_date(filelst,edate+timedelta(minutes=twin))
+    if idx_end == 0:
+        idx_end = len(pathlst)-1
     del tmp
     pathlst = np.unique(pathlst[idx_start:idx_end+1])
     filelst = np.unique(filelst[idx_start:idx_end+1])
@@ -650,7 +652,6 @@ def check_date(filelst,date):
         element = filelst[i]
         tmp = element.find(date.strftime('%Y%m%d'))
         if tmp>=0:
-            #return first index available
             idx.append(i)
     if len(idx)<=0:
         idx=[0]
