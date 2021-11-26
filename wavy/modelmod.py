@@ -359,6 +359,7 @@ class model_class():
         # parse and translate date input
         sdate = parse_date(sdate)
         edate = parse_date(edate)
+        fc_date = parse_date(fc_date)
         if st_obj is not None:
             sdate = st_obj.sdate
             edate = st_obj.edate
@@ -443,7 +444,7 @@ class model_class():
                         cmap=cmocean.cm.amp,
                         transform=ccrs.PlateCarree())
         axins = inset_axes(ax,
-                   width="2%",  # width = 5% of parent_bbox width
+                   width="5%",  # width = 5% of parent_bbox width
                    height="100%",  # height : 50%
                    loc='lower left',
                    bbox_to_anchor=(1.01, 0., 1, 1),

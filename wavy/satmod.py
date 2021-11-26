@@ -557,7 +557,7 @@ varalias,poi,distlim,variable_info,satellite_dict):
                                     )[ridx])
         else:
             rvardict[element] = cvardict[element]
-    del cvardict
+    del cvardict,ridx
     if len(rvardict['time'])>0:
         rvardict['datetime'] = netCDF4.num2date(
                                     rvardict['time'],
@@ -724,8 +724,8 @@ class satellite_class():
                                      vars(self),
                                      path_local=path_local)
         if len(pathlst) > 0:
-#            for i in range(1):
-            try:
+            for i in range(1):
+#            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -792,10 +792,10 @@ class satellite_class():
                     + str(len(self.vars['time'])) + " footprints.")
                 #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
+#            except Exception as e:
+#                print(e)
+#                print('Error encountered')
+#                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
@@ -838,7 +838,7 @@ class satellite_class():
                         cmap=cmocean.cm.amp,
                         transform=ccrs.PlateCarree())
         axins = inset_axes(ax,
-                   width="2%",  # width = 5% of parent_bbox width
+                   width="5%",  # width = 5% of parent_bbox width
                    height="100%",  # height : 50%
                    loc='lower left',
                    bbox_to_anchor=(1.01, 0., 1, 1),
@@ -895,9 +895,6 @@ class satellite_class():
                 title = (self.obstype
                        + ' observations from '
                        + self.mission)
-                print(tmppath)
-                print(subdict)
-                print(pathtofile)
                 dumptonc_ts_sat(self,pathtofile,title)
                 # determine date increment
                 if file_date_incr is None:
@@ -911,12 +908,13 @@ class satellite_class():
                     tmpdate += timedelta(days = +1)
         return
 
-def poi_sat(indict,twin,distlim,poi,i):
-    tidx = find_included_times(indict['datetime'],
-                               target_t=poi['datetime'][i],
-                               twin=twin)
-    slons = list(np.array(indict['longitude'])[tidx])
-    slats = list(np.array(indict['latitude'])[tidx])
+def poi_sat(indict,twin,distlim,poi,ridx,i):
+    tidx = find_included_times(
+                list(np.array(indict['datetime'])[ridx]),
+                target_t=poi['datetime'][i],
+                twin=twin)
+    slons = list(np.array(indict['longitude'])[ridx][tidx])
+    slats = list(np.array(indict['latitude'])[ridx][tidx])
     plons = [poi['longitude'][i]]*len(slons)
     plats = [poi['latitude'][i]]*len(slats)
     dists = haversineA( slons,slats,plons,plats )
@@ -924,10 +922,17 @@ def poi_sat(indict,twin,distlim,poi,i):
     return list(np.array(tidx)[sidx])
 
 def match_poi(indict, twin, distlim, poi):
+    region={'llcrnrlat':np.min(poi['latitude']),
+            'urcrnrlat':np.max(poi['latitude']),
+            'llcrnrlon':np.min(poi['longitude']),
+            'urcrnrlon':np.max(poi['longitude'])}
+    ridx = match_region_rect(indict['latitude'],
+                             indict['longitude'],
+                             region=region)
     sat_dict = deepcopy(indict)
-    idx = [poi_sat(sat_dict,twin,distlim,poi,i) \
+    idx = [poi_sat(sat_dict,twin,distlim,poi,ridx,i) \
            for i in range(len(poi['datetime']))]
-    idx = flatten(idx)
+    idx = list(np.array(ridx)[flatten(idx)])
     return idx
 
 def match_region(LATS,LONS,region,grid_date):
@@ -937,13 +942,12 @@ def match_region(LATS,LONS,region,grid_date):
     region not in model_dict):
         if region is None:
             region = 'global'
-        if ~isinstance(region,str)==True:
-            print ("Manually specified region "
-                + [llcrnrlat,urcrnrlat,llcrnrlon,urcrnrlon] + ": \n"
-                + " --> Bounds: " + str(region))
         else:
-            if region not in region_dict['rect']:
+            if (region not in region_dict['rect'] \
+            and isinstance(region,dict)==False):
                 sys.exit("Region is not defined")
+            elif isinstance(region,dict):
+                print("Region bound by min/max of poi coordinates")
             else:
                 print("Specified region: " + region + "\n"
                 + " --> Bounds: " + str(region_dict['rect'][region]))
@@ -958,39 +962,15 @@ def match_region_rect(LATS,LONS,region):
         region = "global"
         ridx = range(len(LATS))
     else:
-        if isinstance(region,str)==True:
-            if "boundinglat" in region_dict['rect'][region]:
-                boundinglat = region_dict['rect'][region]["boundinglat"]
-            else:
-                llcrnrlat = region_dict['rect'][region]["llcrnrlat"]
-                urcrnrlat = region_dict['rect'][region]["urcrnrlat"]
-                llcrnrlon = region_dict['rect'][region]["llcrnrlon"]
-                urcrnrlon = region_dict['rect'][region]["urcrnrlon"]
-        else:
-            llcrnrlat = region[0]
-            urcrnrlat = region[1]
-            llcrnrlon = region[2]
-            urcrnrlon = region[3]
-        # check if coords in region
-        ridx=[]
-        for i in range(len(LATS)):
-            if (
-            "boundinglat" in region_dict['rect'][region]
-            and LATS[i] >= boundinglat
-                ):
-                ridx.append(i)
-            elif(
-            not "boundinglat" in region_dict['rect'][region]
-            and LATS[i] >= llcrnrlat
-            and LATS[i] <= urcrnrlat
-            and LONS[i] >= llcrnrlon
-            and LONS[i] <= urcrnrlon
-                ):
-                ridx.append(i)
-    if not ridx:
-        print ("No values for chosen region and time frame!!!")
-    else:
-        print ("Values found for chosen region and time frame.")
+        llcrnrlat = region["llcrnrlat"]
+        urcrnrlat = region["urcrnrlat"]
+        llcrnrlon = region["llcrnrlon"]
+        urcrnrlon = region["urcrnrlon"]
+        ridx = np.where(\
+                    (LATS>llcrnrlat)&(LATS>urcrnrlat)&\
+                    (LONS>llcrnrlon)&(LONS>urcrnrlon)\
+                    )[0]
+    print (len(ridx), " values found for chosen region and time frame.")
     return ridx
 
 def match_region_poly(LATS,LONS,region,grid_date):

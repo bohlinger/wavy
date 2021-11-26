@@ -1,9 +1,8 @@
-from datetime import datetime
 from wavy.insitumod import insitu_class as ic
 
 varalias = 'Hs' # default
-sd = datetime(2021,8,2,1)
-ed = datetime(2021,8,3,0)
+sd = "2021-8-2 01"
+ed = "2021-8-3 00"
 
 def test_from_d22(test_data):
     nID = 'draugen'

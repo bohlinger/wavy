@@ -8,8 +8,8 @@ from copy import deepcopy
 from wavy.insitumod import insitu_class as ic
 from wavy.filtermod import apply_land_mask
 
-sd = datetime(2021,8,2,1)
-ed = datetime(2021,8,3,12)
+sd = "2021-8-2 01"
+ed = "2021-8-3 12"
 
 #ico = ic(nID,sensor,sd,ed)
 #test_dict = deepcopy(ico.vars())
