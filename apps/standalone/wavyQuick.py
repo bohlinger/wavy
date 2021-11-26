@@ -34,7 +34,7 @@ def main():
     parser.add_argument("-sat",
                         metavar='satellite',
                         help="satellite mission, currently available\n \
-            \ncmems (L3):\
+            \ncmems_L3:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n j3 - Jason-3 (reference mission)\
@@ -43,11 +43,11 @@ def main():
             \n cfo - CFOSAT\
             \n h2b - HaiYang-2B\
             \n\
-            \neumetsat (L2):\
+            \neumetsat_L2:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n\
-            \ncci (L2P):\
+            \ncci_L2P:\
             \n j1 - Jason-1\
             \n j2 - Jason-2\
             \n j3 - Jason-3\
@@ -59,19 +59,16 @@ def main():
             \n al - SARAL/AltiKa\
             \n gfo - GEOSAT Follow-On\
             \n\
-            \ncci (L3):\
+            \ncci_L3:\
             \n multi - multimission product 1991-2018\
             \n\
             \nother options are:\
             \n all - for all cmems satellites\
             \n list - a list of chosen satellites using -l\n \
             \n")
-    parser.add_argument("-prov",
-                        metavar='provider',
-                        help="data provider (cmems/eumetsat/cci)")
-    parser.add_argument("-lev",
-                        metavar='level',
-                        help="processing level (L2/L3/L2P)")
+    parser.add_argument("-product",
+                        metavar='product',
+                        help="available products as specified in *_specs.yaml (cmems_L3/eumetsat_2/cci_L2P/cci_L3)")
     parser.add_argument('-l',
                         metavar='satellite list',
                         help='delimited list input for sats',
@@ -126,11 +123,8 @@ def main():
     sdate = datetime(int(args.sd[0:4]), int(args.sd[4:6]), int(args.sd[6:8]),
                      int(args.sd[8:10]))
 
-    if args.prov is None:
-        args.prov = 'cmems'
-
-    if args.lev is None:
-        args.lev = 'L3'
+    if args.product is None:
+        args.product = 'cmems_L3'
 
     if args.twin is None:
         twin = 30
@@ -163,8 +157,7 @@ def main():
                                 twin=twin,
                                 region=args.reg,
                                 varalias=args.var,
-                                provider=args.prov,
-                                level=args.lev)
+                                product=args.product)
                 if ('vars' in vars(sa_obj_tmp).keys()
                         and len(sa_obj_tmp.vars['time']) > 0):
                     sa_obj = sa_obj_tmp
@@ -207,8 +200,7 @@ def main():
                                 twin=twin,
                                 region=args.reg,
                                 varalias=args.var,
-                                provider=args.prov,
-                                level=args.lev)
+                                product=args.product)
                 if ('vars' in vars(sa_obj_tmp).keys()
                         and len(sa_obj_tmp.vars['time']) > 0):
                     sa_obj = sa_obj_tmp
@@ -242,8 +234,7 @@ def main():
                     twin=twin,
                     region=args.reg,
                     varalias=args.var,
-                    provider=args.prov,
-                    level=args.lev)
+                    product=args.product)
 
 # plot
     if (args.mod is None and sa_obj.region not in model_dict):
