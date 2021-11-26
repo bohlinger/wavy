@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-The main task of this module is to aquire, read, and prepare
+The main task of this module is to acquire, read, and prepare
 geophysical variables related to wave height from satellite
 altimetry files for further use.
 '''
@@ -11,23 +11,17 @@ altimetry files for further use.
 import sys
 import numpy as np
 from datetime import datetime, timedelta
-import datetime as dt
 import os
 from copy import deepcopy
-import yaml
 import time
 from urllib.request import urlretrieve, urlcleanup # python3
-import ftplib
 from ftplib import FTP
 import netCDF4 as netCDF4
 import calendar
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
-#import xarray as xa
 import pandas as pd
-import pyresample
 import pyproj
-from dotenv import load_dotenv
 import zipfile
 import tempfile
 from tqdm import tqdm
@@ -37,16 +31,14 @@ import xarray as xr
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
-from wavy.utils import find_included_times, progress
+from wavy.utils import find_included_times
 from wavy.utils import sort_files, collocate_times
 from wavy.utils import parse_date
-from wavy.ncmod import read_netcdfs, get_filevarname_from_nc
+from wavy.ncmod import read_netcdfs, get_filevarname
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem
 from wavy.utils import haversineA
 from wavy.credentials import get_credentials
-from wavy.modelmod import get_filevarname
-from wavy.modelmod import model_class as mc
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
@@ -89,7 +81,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
         sys.exit()
 
 def get_remote_files_cmems(\
-sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
+sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
     '''
     Download swath files from CMEMS and store them at defined
     location. Time stamps in file name stand for:
@@ -97,15 +89,15 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
     from, to, creation
     '''
     # credentials
-    server = satellite_dict[provider][level]['src']['server']
+    server = satellite_dict[product]['src']['server']
     user, pw = get_credentials(remoteHostName = server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
         # create remote path
-        path_template = satellite_dict[provider][level]['src']\
+        path_template = satellite_dict[product]['src']\
                                       ['path_template']
-        strsublst = satellite_dict[provider][level]['src']\
+        strsublst = satellite_dict[product]['src']\
                                   ['strsub']
         subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
@@ -113,9 +105,9 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
                                       date=tmpdate)
         if path_local is None:
             # create local path
-            path_template = satellite_dict[provider][level]['dst']\
+            path_template = satellite_dict[product]['dst']\
                                           ['path_template']
-            strsublst = satellite_dict[provider][level]['dst']\
+            strsublst = satellite_dict[product]['dst']\
                                       ['strsub']
             path_local = make_pathtofile(path_template,\
                                      strsublst,subdict,\
@@ -123,7 +115,7 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
             filesort = True
         print ('# ----- ')
         print ('Chosen source: ')
-        print (sat + ' values from ' + provider + ': ' + server)
+        print (sat + ' values from ' + product + ': ' + server)
         print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -148,7 +140,7 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
-        print ("Used number of simultaneous downloads "
+        print ("Used number of possible simultaneous downloads "
                 + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
@@ -165,11 +157,11 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
             + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,provider,sat)
+        sort_files(path_local,filelst,product,sat)
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files_cci(\
-sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
+sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
     '''
     Download swath files from CCI and store them at defined
     location. Time stamps in file name stand for:
@@ -177,19 +169,20 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
     from, to, creation
     '''
     # credentials
-    server = satellite_dict[provider][level]['src']['server']
+    server = satellite_dict[product]['src']['server']
+    level = satellite_dict[product]['processing_level']
     user, pw = get_credentials(remoteHostName = server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
         print(tmpdate)
         # create remote path
-        path_template = satellite_dict[provider][level]['src']\
+        path_template = satellite_dict[product]['src']\
                                       ['path_template']
-        strsublst = satellite_dict[provider][level]['src']\
+        strsublst = satellite_dict[product]['src']\
                                   ['strsub']
         dict_for_sub['mission'] =\
-                        satellite_dict[provider][level]['mission'][sat]
+                        satellite_dict[product]['mission'][sat]
         subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
                                       strsublst,subdict,\
@@ -197,9 +190,9 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
         if path_local is None:
             # create local path
             subdict['mission'] = sat
-            path_template = satellite_dict[provider][level]['dst']\
+            path_template = satellite_dict[product]['dst']\
                                           ['path_template']
-            strsublst = satellite_dict[provider][level]['dst']\
+            strsublst = satellite_dict[product]['dst']\
                                       ['strsub']
             path_local = make_pathtofile(path_template,\
                                      strsublst,subdict,\
@@ -207,7 +200,7 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
             filesort = True
         print ('# ----- ')
         print ('Chosen source: ')
-        print (sat + ' values from ' + provider + ': ' + server)
+        print (sat + ' values from ' + product + ': ' + server)
         print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -254,11 +247,11 @@ sdate,edate,twin,nproc,sat,level,provider,path_local,dict_for_sub):
         print(path_local)
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,provider,sat)
+        sort_files(path_local,filelst,product,sat)
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files_eumetsat(\
-provider,sdate,edate,api_url,sat,level,path_local,dict_for_sub):
+product,sdate,edate,api_url,sat,path_local,dict_for_sub):
     '''
     Download swath files from EUMETSAT and store them at defined
     location. This fct uses the SentinelAPI for queries.
@@ -267,12 +260,12 @@ provider,sdate,edate,api_url,sat,level,path_local,dict_for_sub):
     products = None
     dates = (sdate.strftime('%Y-%m-%dT%H:%M:%SZ'),\
              edate.strftime('%Y-%m-%dT%H:%M:%SZ'))
-    filessort = False
+    filesort = False
     if path_local is None:
         # create local path
-        path_template = satellite_dict[provider][level]['dst']\
+        path_template = satellite_dict[product]['dst']\
                                       ['path_template']
-        strsublst = satellite_dict[provider][level]['dst']\
+        strsublst = satellite_dict[product]['dst']\
                                   ['strsub']
         subdict = make_subdict(strsublst,
                                class_object_dict=dict_for_sub)
@@ -281,10 +274,10 @@ provider,sdate,edate,api_url,sat,level,path_local,dict_for_sub):
                                      subdict,\
                                      date=sdate)
         filesort = True
-    kwargs = make_query_dict(provider,sat,level)
+    kwargs = make_query_dict(product,sat)
     if api_url is None:
         api_url_lst = \
-            satellite_dict[provider][level]['src']['api_url']
+            satellite_dict[product]['src']['api_url']
         for url in api_url_lst:
             print('Source:',url)
             try:
@@ -313,42 +306,42 @@ provider,sdate,edate,api_url,sat,level,path_local,dict_for_sub):
             + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,provider,sat)
+        sort_files(path_local,filelst,product,sat)
     print ('Files downloaded to: \n', path_local)
 
 def get_remote_files(path_local,sdate,edate,twin,
-                    nproc,provider,api_url,sat,level,
-                    dict_for_sub):
+                    nproc,product,api_url,sat,dict_for_sub):
     '''
     Download swath files and store them at defined location.
     It is currently possible to download L3 altimeter data from
     CMEMS and L2 from EUMETSAT.
     '''
-    if provider=='cmems':
+    if product=='cmems_L3':
         get_remote_files_cmems(sdate,edate,twin,nproc,\
-                               sat,level,provider,path_local,\
+                               sat,product,path_local,\
                                dict_for_sub)
-    elif provider=='eumetsat':
-        get_remote_files_eumetsat(provider,sdate,edate,\
-                                  api_url,sat,level,path_local,\
+    elif product=='eumetsat_L2':
+        get_remote_files_eumetsat(product,sdate,edate,\
+                                  api_url,sat,path_local,\
                                   dict_for_sub)
-    elif provider=='cci':
+    elif product=='cci_L2P' or product=='cci_L3':
         get_remote_files_cci(sdate,edate,twin,nproc,\
-                               sat,level,provider,path_local,\
+                               sat,product,path_local,\
                                dict_for_sub)
 
-def make_query_dict(provider,sat,level):
+def make_query_dict(product,sat):
     '''
     fct to setup queries of L2 data using SentinelAPI
     '''
-    SAT = satellite_dict[provider][level]['mission'][sat]
+    level = satellite_dict[product]['mission'].get('processing')
+    SAT = satellite_dict[product]['mission'].get(sat)
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
                'productlevel': level,
                'filename': SAT + '*WAT*'}
     return kwargs
 
-def get_local_files(sdate,edate,twin,provider,sat,level,
+def get_local_files(sdate,edate,twin,product,sat,
 dict_for_sub=None,path_local=None):
     filelst = []
     pathlst = []
@@ -359,14 +352,14 @@ dict_for_sub=None,path_local=None):
         while (tmpdate <= edate + relativedelta(months=+1)):
             try:
                 # create local path for each time
-                path_template = satellite_dict[provider][level]\
-                                              ['dst']\
-                                              ['path_template']
-                strsublst = satellite_dict[provider][level]\
-                                          ['dst']\
-                                          ['strsub']
-                subdict = make_subdict(strsublst,
-                                       class_object_dict=dict_for_sub)
+                path_template = \
+                        satellite_dict[product]['dst'].get(
+                                              'path_template')
+                strsublst = \
+                        satellite_dict[product]['dst'].get('strsub')
+                subdict = \
+                        make_subdict(strsublst,
+                                     class_object_dict=dict_for_sub)
                 path_local = make_pathtofile(path_template,\
                                              strsublst,subdict)
                 path_local = (
@@ -400,14 +393,15 @@ dict_for_sub=None,path_local=None):
     print (str(int(len(pathlst))) + " valid files found")
     return pathlst, filelst
 
-def read_local_ncfiles(pathlst,provider,varalias,level,
+def read_local_ncfiles(pathlst,product,varalias,
 sd,ed,twin,variable_info):
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname_from_nc(varalias,variable_info,satellite_dict[provider][level],ncmeta)
+    ncvar = get_filevarname(varalias,variable_info,
+                            satellite_dict[product],ncmeta)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby('time')
@@ -460,7 +454,7 @@ def unzip_eumetsat(pathlst,tmpdir):
         pathlst_new.append(os.path.join(tmpdir.name,f))
     return pathlst_new
 
-def read_local_files_eumetsat(pathlst,provider,varalias,level,satellite_dict):
+def read_local_files_eumetsat(pathlst,product,varalias,satellite_dict):
     '''
     Read and concatenate all data to one timeseries for each variable.
     Fct is tailored to EUMETSAT files.
@@ -476,8 +470,8 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level,satellite_dict):
     extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
     stdname = variable_info[varalias]['standard_name']
     ncmeta = ncdumpMeta(extracted)
-    ncvar = get_filevarname_from_nc(varalias,variable_info,
-                satellite_dict[provider][level],ncmeta)
+    ncvar = get_filevarname(varalias,variable_info,
+                            satellite_dict[product],ncmeta)
     tmpdir.cleanup()
     # --- create vardict --- #
     vardict = {}
@@ -524,28 +518,28 @@ def read_local_files_eumetsat(pathlst,provider,varalias,level,satellite_dict):
     tmpdir.cleanup()
     return vardict
 
-def read_local_files(pathlst,provider,varalias,level,
+def read_local_files(pathlst,product,varalias,
     sd,ed,twin,variable_info,satellite_dict):
     '''
     main fct to read altimetry files
     '''
-    # read local files depending on provider
-    if provider == 'cmems':
-        vardict = read_local_ncfiles(pathlst,provider,varalias,level,
-sd,ed,twin,variable_info)
-    elif provider == 'cci':
-        vardict = read_local_ncfiles(pathlst,provider,varalias,level,
-sd,ed,twin,variable_info)
-    elif provider == 'eumetsat':
+    # read local files depending on product
+    if product == 'cmems_L3':
+        vardict = read_local_ncfiles(pathlst,product,varalias,
+                                     sd,ed,twin,variable_info)
+    elif (product == 'cci_L2P' or product == 'cci_L3'):
+        vardict = read_local_ncfiles(pathlst,product,varalias,
+                                     sd,ed,twin,variable_info)
+    elif (product == 'eumetsat_L2'):
         sys.exit('!!! eumetsat L2 temporarily not provided !!!')
-        vardict = read_local_files_eumetsat(pathlst,provider,\
-                                            varalias,level,\
+        vardict = read_local_files_eumetsat(pathlst,product,\
+                                            varalias,\
                                             satellite_dict)
     return vardict
 
-def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
-    pathlst,varalias,poi,distlim,variable_info,satellite_dict):
-    cvardict = read_local_files(pathlst,provider,varalias,level,
+def get_sat_ts(sdate,edate,twin,region,product,sat,pathlst,
+varalias,poi,distlim,variable_info,satellite_dict):
+    cvardict = read_local_files(pathlst,product,varalias,
                                sdate,edate,twin,variable_info,
                                satellite_dict)
     print('Total: ', len(cvardict['time']), ' footprints found')
@@ -593,29 +587,24 @@ def get_sat_ts(sdate,edate,twin,region,provider,sat,level,
                 len(rvardict['time']),'footprints found')
     # find variable name as defined in file
     stdname = variable_info[varalias]['standard_name']
-    if provider == 'cmems':
+    if product == 'cmems_L3':
         ncdict = ncdumpMeta(pathlst[0])
-    elif provider == 'cci':
+    elif (product == 'cci_L2P' or product == 'cci_L3'):
         ncdict = ncdumpMeta(pathlst[0])
-    elif provider == 'eumetsat':
+    elif product == 'eumetsat_L2':
         tmpdir = tempfile.TemporaryDirectory()
         zipped = zipfile.ZipFile(pathlst[0])
         enhanced_measurement = zipped.namelist()[-1]
-        extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
+        extracted = zipped.extract(enhanced_measurement,
+                                   path=tmpdir.name)
         ncdict = ncdumpMeta(extracted)
         tmpdir.cleanup()
-    filevarname = get_varname_for_cf_stdname_in_ncfile(
-                                        ncdict,stdname)
-    if (len(filevarname) or filename is None) > 1:
-        filevarname = satellite_dict[provider][level]\
-                                    ['vardef'][varalias]
-    else:
-        filevarname = get_varname_for_cf_stdname_in_ncfile(
-                                            ncdict,stdname)[0]
+    filevarname = get_filevarname(varalias,variable_info,
+                                  satellite_dict[product],ncdict)
     rvardict['meta'] = ncdict
     return rvardict
 
-def crop_vardict_to_period(vardict,sdate,edate,stdvarname):
+def crop_vardict_to_period(vardict,sdate,edate):
     for key in vardict:
         if (key != 'time_unit' and key != 'meta' and key != 'datetime'):
             vardict[key] =  list(np.array(vardict[key])[ \
@@ -672,10 +661,10 @@ class satellite_class():
     '''
 
     def __init__(
-        self,sdate=None,mission='s3a',provider='cmems',
+        self,sdate=None,mission='s3a',product='cmems_L3',
         edate=None,twin=None,download=False,path_local=None,
-        remote_ftp_path=None,region='mwam4',nproc=1,varalias='Hs',
-        filterData=False,level='L3',poi=None,distlim=None,
+        region='mwam4',nproc=1,varalias='Hs',api_url=None,
+        filterData=False,poi=None,distlim=None,
         **kwargs):
 
         print ('# ----- ')
@@ -696,8 +685,8 @@ class satellite_class():
                 str(sdate) + " - " + str(edate))
         if twin is None:
             twin = int(30)
-        stdname = variable_info[varalias]['standard_name']
-        units = variable_info[varalias]['units']
+        stdname = variable_info[varalias].get('standard_name')
+        units = variable_info[varalias].get('units')
         # define some class variables
         self.sdate = sdate
         self.edate = edate
@@ -708,13 +697,15 @@ class satellite_class():
         self.region = region
         self.mission = mission
         self.obstype = 'satellite_altimeter'
-        self.provider = provider
-        self.level = level
+        self.product = product
+        self.provider = satellite_dict[product].get('provider')
+        self.processing_level = \
+                satellite_dict[product].get('processing_level')
         print('Please wait ...')
         print('Chosen time window is:', twin, 'min')
         # make satpaths
         if path_local is None:
-            path_template = satellite_dict[provider][level]\
+            path_template = satellite_dict[product]\
                                           ['dst']\
                                           ['path_template']
             self.path_local = path_template
@@ -726,16 +717,15 @@ class satellite_class():
         else:
             print ("Downloading necessary files ...")
             get_remote_files(path_local,sdate,edate,twin,
-                            nproc,provider,api_url,mission,
-                            level,vars(self))
+                            nproc,product,api_url,mission,vars(self))
         t0=time.time()
-        pathlst, filelst = get_local_files(sdate,edate,twin,
-                                        provider,mission,
-                                        level,vars(self),
-                                        path_local=path_local)
+        pathlst, _ = get_local_files(sdate,edate,twin,
+                                     product,mission,
+                                     vars(self),
+                                     path_local=path_local)
         if len(pathlst) > 0:
-            for i in range(1):
-#            try:
+#            for i in range(1):
+            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -746,11 +736,12 @@ class satellite_class():
                     # retrieve data
                     rvardict = get_sat_ts( sdate,edate,
                                            twin_tmp,region,
-                                           provider,mission,
-                                           level,pathlst,
+                                           product,mission,
+                                           pathlst,
                                            varalias,
                                            poi,distlim,
-                                           variable_info)
+                                           variable_info,
+                                           satellite_dict)
                     # filter data
                     rvardict = filter_main( rvardict,
                                             varalias = varalias,
@@ -760,13 +751,12 @@ class satellite_class():
                     edate_tmp = sdate + timedelta(minutes=twin)
                     rvardict = crop_vardict_to_period(rvardict,
                                                       sdate_tmp,
-                                                      edate_tmp,
-                                                      stdname)
+                                                      edate_tmp)
                     self.filter = True
                     self.filterSpecs = kwargs
                 else:
                     rvardict = get_sat_ts( sdate,edate,twin,region,
-                                           provider,mission,level,
+                                           product,mission,
                                            pathlst,varalias,poi,
                                            distlim,variable_info,
                                            satellite_dict )
@@ -775,11 +765,11 @@ class satellite_class():
                     # rm NaNs
                     rvardict = rm_nan_from_vardict(varalias,rvardict)
                 # find variable name as defined in file
-                if provider == 'cmems':
+                if product == 'cmems_L3':
                     ncdict = ncdumpMeta(pathlst[0])
-                elif provider == 'cci':
+                elif (product == 'cci_L2P' or product == 'cci_L3'):
                     ncdict = ncdumpMeta(pathlst[0])
-                elif provider == 'eumetsat':
+                elif product == 'eumetsat_L2':
                     tmpdir = tempfile.TemporaryDirectory()
                     zipped = zipfile.ZipFile(pathlst[0])
                     enhanced_measurement = zipped.namelist()[-1]
@@ -787,17 +777,10 @@ class satellite_class():
                                                path=tmpdir.name)
                     ncdict = ncdumpMeta(extracted)
                     tmpdir.cleanup()
-                filevarname = get_varname_for_cf_stdname_in_ncfile(
-                                                    ncdict,stdname)
-                if (len(filevarname) or filename is None) > 1:
-                    filevarname = satellite_dict[provider]\
-                                                [level]\
-                                                ['vardef']\
-                                                [varalias]
-                else:
-                    filevarname = \
-                            get_varname_for_cf_stdname_in_ncfile(
-                                                  ncdict,stdname)[0]
+                filevarname = get_filevarname(varalias,
+                                              variable_info,
+                                              satellite_dict[product],
+                                              ncdict)
                 rvardict['meta'] = ncdict
                 # define more class variables
                 self.vars = rvardict
@@ -809,10 +792,10 @@ class satellite_class():
                     + str(len(self.vars['time'])) + " footprints.")
                 #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-#            except Exception as e:
-#                print(e)
-#                print('Error encountered')
-#                print('No satellite_class object initialized')
+            except Exception as e:
+                print(e)
+                print('Error encountered')
+                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
@@ -893,16 +876,13 @@ class satellite_class():
                                              tmpdate.month)[1],
                                              23,59) )
                 if pathtofile is None:
-                    path_template = satellite_dict[self.provider]\
-                                                  [self.level]\
+                    path_template = satellite_dict[self.product]\
                                                   ['dst']\
-                                                  ['path_template'][0]
-                    file_template = satellite_dict[self.provider]\
-                                                  [self.level]\
+                                                  ['path_template']
+                    file_template = satellite_dict[self.product]\
                                                   ['dst']\
                                                   ['file_template']
-                    strsublst = satellite_dict[self.provider]\
-                                              [self.level]\
+                    strsublst = satellite_dict[self.product]\
                                               ['dst']['strsub']
                     if 'filterData' in vars(self).keys():
                         file_template = 'filtered_' + file_template
@@ -915,11 +895,13 @@ class satellite_class():
                 title = (self.obstype
                        + ' observations from '
                        + self.mission)
+                print(tmppath)
+                print(subdict)
+                print(pathtofile)
                 dumptonc_ts_sat(self,pathtofile,title)
                 # determine date increment
                 if file_date_incr is None:
-                    file_date_incr = satellite_dict[self.provider]\
-                                    [self.level]\
+                    file_date_incr = satellite_dict[self.product]\
                                     ['dst'].get('file_date_incr','m')
                 if file_date_incr == 'm':
                     tmpdate += relativedelta(months = +1)
@@ -1029,15 +1011,12 @@ def match_region_poly(LATS,LONS,region,grid_date):
             filestr = make_model_filename_wrapper(\
                                     region,grid_date,'best')
             meta = ncdumpMeta(filestr)
-            flon = get_filevarname(region,\
-                                'lons',variable_info,\
-                                model_dict,meta)
-            flat = get_filevarname(region,\
-                                'lats',variable_info,\
-                                model_dict,meta)
-            time = get_filevarname(region,\
-                                'time',variable_info,\
-                                model_dict,meta)
+            flon = get_filevarname('lons',variable_info,\
+                                model_dict[region],meta)
+            flat = get_filevarname('lats',variable_info,\
+                                model_dict[region],meta)
+            time = get_filevarname('time',variable_info,\
+                                model_dict[region],meta)
             #M = xa.open_dataset(filestr, decode_cf=True)
             #model_lons = M[flon].data
             #model_lats = M[flat].data
@@ -1057,15 +1036,12 @@ def match_region_poly(LATS,LONS,region,grid_date):
             filestr = make_model_filename_wrapper(\
                                     region,grid_date,'best')
             meta = ncdumpMeta(filestr)
-            flon = get_filevarname(region,\
-                                'lons',variable_info,\
-                                model_dict,meta)
-            flat = get_filevarname(region,\
-                                'lats',variable_info,\
-                                model_dict,meta)
-            time = get_filevarname(region,\
-                                'time',variable_info,\
-                                model_dict,meta)
+            flon = get_filevarname('lons',variable_info,\
+                                model_dict[region],meta)
+            flat = get_filevarname('lats',variable_info,\
+                                model_dict[region],meta)
+            time = get_filevarname('time',variable_info,\
+                                model_dict[region],meta)
             #M = xa.open_dataset(filestr, decode_cf=True)
             #model_lons = M[flon].data
             #model_lats = M[flat].data

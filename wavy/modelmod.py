@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-This module encompasses classes and methods to read and process wave
-field from model output. I try to mostly follow the PEP convention for
-python code style. Constructive comments on style and effecient
-programming are most welcome!
+The main task of this module is to acquire, read, and prepare
+geophysical variables from model output files for further use.
 '''
 # --- import libraries ------------------------------------------------#
 # standard library imports
@@ -14,14 +12,16 @@ import numpy as np
 from datetime import datetime, timedelta
 import time
 from functools import lru_cache
+from tqdm import tqdm
 
 # own imports
 from wavy.utils import hour_rounder
 from wavy.utils import make_fc_dates
 from wavy.utils import finditem
 from wavy.utils import parse_date
-#from collocmod import collocation_class
-from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import ncdumpMeta
+from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import get_filevarname
 from wavy.wconfig import load_or_default
 
 # --- global functions ------------------------------------------------#
@@ -153,15 +153,15 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     print(filestr)
     meta = ncdumpMeta(filestr)
     stdvarname = variable_info[varalias]['standard_name']
-    lonsname = get_filevarname(model,'lons',variable_info,
-                               model_dict,meta)
-    latsname = get_filevarname(model,'lats',variable_info,
-                               model_dict,meta)
-    timename = get_filevarname(model,'time',variable_info,
-                               model_dict,meta)
+    lonsname = get_filevarname('lons',variable_info,
+                               model_dict[model],meta)
+    latsname = get_filevarname('lats',variable_info,
+                               model_dict[model],meta)
+    timename = get_filevarname('time',variable_info,
+                               model_dict[model],meta)
     # get other variables e.g. Hs [time,lat,lon]
-    filevarname = get_filevarname(model,varalias,variable_info,
-                                  model_dict,meta)
+    filevarname = get_filevarname(varalias,variable_info,
+                                  model_dict[model],meta)
 
     try:
         model_lons,model_lats,model_time_dt = \
@@ -189,10 +189,10 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
         vardict['datetime'] = model_time_dt_valid
         vardict['time_unit'] = model_time_unit
         for key in filevarname.keys():
-            filevarname_dummy = get_filevarname(model,
+            filevarname_dummy = get_filevarname(\
                                     filevarname[key][0],
                                     variable_info,
-                                    model_dict,meta)
+                                    model_dict[model],meta)
             if filevarname_dummy is not None:
                 print(filevarname[key][0], 'exists')
                 break
@@ -204,10 +204,10 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
             model_var_valid_tmp = \
                 model_var_dummy[model_time_dt.index(fc_date),:,:].squeeze()**2
             for i in range(1, len(filevarname[key])):
-                filevarname_dummy = get_filevarname(model,
+                filevarname_dummy = get_filevarname(\
                                         filevarname[key][i],
                                         variable_info,
-                                        model_dict,meta)
+                                        model_dict[model],meta)
                 if len(f.variables[filevarname_dummy].dimensions) == 4:
                     model_var_valid_tmp += \
                         f.variables[filevarname_dummy][
@@ -222,11 +222,11 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
         elif len(model_var_dummy.dimensions) == 2:
             model_var_valid_tmp = model_var_dummy[:, :]**2
             for i in range(1, len(filevarname[key])):
-                filevarname_dummy = get_filevarname(model,
-                                                    filevarname[key][i],
-                                                    variable_info,
-                                                    model_dict,
-                                                    meta)
+                filevarname_dummy = get_filevarname(\
+                                            filevarname[key][i],
+                                            variable_info,
+                                            model_dict[model],
+                                            meta)
                 model_var_valid_tmp += \
                     f.variables[filevarname_dummy][:,:]**2
             model_var_valid = np.sqrt(model_var_valid_tmp)
@@ -270,8 +270,6 @@ def generate_bestguess_leadtime(model, fc_date):
     else:
         init_times = \
             np.array(model_dict[model]['init_times']).astype('float')
-        # init_step = \
-        #     np.array(model_dict[model]['init_step']).astype('int')
         diffs = fc_date.hour - np.array(init_times)
         gtz = diffs[diffs >= 0]
         if len(gtz) == 0:
@@ -279,42 +277,7 @@ def generate_bestguess_leadtime(model, fc_date):
                                  - model_dict[model]['init_step']))
         else:
             leadtime = int(np.min(diffs[diffs >= 0]))
-        #leadtime = int(np.min(diffs[diffs >= 0]))
     return leadtime
-
-
-def get_filevarname(model, varalias, variable_info, model_dict, ncdict):
-    stdname = variable_info[varalias]['standard_name']
-    print('Get filevarname for \n' + 'stdvarname:', stdname,
-          '\n' + 'varalias:', varalias)
-    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
-    if (filevarname is None and 'alias' in variable_info[varalias]):
-        filevarname = get_varname_for_cf_stdname_in_ncfile(
-            ncdict, variable_info[varalias]['alias'])
-    if (filevarname is not None and len(filevarname) > 1):
-        print('!!! standard_name: ', stdname, ' is not unique !!!',
-              '\nThe following variables have the same standard_name:\n',
-              filevarname)
-        print('Searching model_specs.yaml config file for definition')
-        filevarname = None
-    if filevarname is not None:
-        return filevarname[0]
-    if (filevarname is None and varalias in model_dict[model]['vardef'].keys()):
-        filevarname = model_dict[model]['vardef'][varalias]
-        print('Variable defined in model_specs.yaml is:')
-        print(varalias, '=', filevarname)
-        return filevarname
-    elif (filevarname is None
-          and varalias not in model_dict[model]['vardef'].keys()
-          and 'aliases_of_vector_components' in variable_info[varalias]):
-        print('Checking variable_info if variable can be ' +
-              'computed from vector components')
-        filevarname = variable_info[varalias]['aliases_of_vector_components']
-        return filevarname
-    else:
-        print('!!! variable not defined or ' +
-              'available in model output file !!!')
-
 
 def get_model(model=None,
               sdate=None,
@@ -346,10 +309,11 @@ def get_model(model=None,
         vardict['time'] = [vardict['time']]
         vardict['datetime'] = [vardict['datetime']]
         vardict['leadtime'] = leadtime
-        for i in range(1, len(filestr)):
+        for i in tqdm(range(1, len(filestr))):
             tmpdict, \
-            filevarname = get_model_fc_mode(filestr=filestr[i],model=model,
-                                    fc_date=fc_date[i],varalias=varalias)
+            filevarname = get_model_fc_mode(\
+                            filestr=filestr[i],model=model,
+                            fc_date=fc_date[i],varalias=varalias)
             vardict[variable_info[varalias]['standard_name']].append(
                 tmpdict[variable_info[varalias]['standard_name']])
             vardict['time'].append(tmpdict['time'])

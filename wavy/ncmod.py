@@ -188,7 +188,7 @@ def get_arcmfc_stats(pathtofile):
             'SI':SI}
         return valid_dict, dtime
 
-def get_filevarname_from_nc(varalias, variable_info, srcdict, ncdict):
+def get_filevarname(varalias, variable_info, srcdict, ncdict):
     stdname = variable_info[varalias]['standard_name']
     print('Get filevarname for \n' + 'stdvarname:', stdname,
           '\n' + 'varalias:', varalias)

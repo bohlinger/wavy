@@ -38,7 +38,7 @@ def main():
     parser.add_argument("-sat",
                         metavar='satellite',
                         help="satellite mission, currently available\n \
-            \ncmems (L3):\
+            \ncmems_L3:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n j3 - Jason-3 (reference mission)\
@@ -47,11 +47,11 @@ def main():
             \n cfo - CFOSAT\
             \n h2b - HaiYang-2B\
             \n\
-            \neumetsat (L2):\
+            \neumetsat_L2:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n\
-            \ncci (L2P):\
+            \ncci_L2P:\
             \n j1 - Jason-1\
             \n j2 - Jason-2\
             \n j3 - Jason-3\
@@ -63,24 +63,21 @@ def main():
             \n al - SARAL/AltiKa\
             \n gfo - GEOSAT Follow-On\
             \n\
-            \ncci (L3):\
+            \ncci_L3:\
             \n multi - multimission product 1991-2018 \n\
             \n")
     parser.add_argument("-path",
                         metavar='path',
                         help="destination for downloaded data")
-    parser.add_argument("-prov",
-                        metavar='provider',
-                        help="institution providing the data")
-    parser.add_argument("-lev",
-                        metavar='level',
-                        help="processing level")
+    parser.add_argument("-product",
+                        metavar='product',
+                        help="product name as specified in *_specs.yaml")
     parser.add_argument("-api_url",
                         metavar='api_url',
                         help="source of eumetsat L2 data")
     parser.add_argument("-nproc",
                         metavar='nproc',
-                        help="number of simultaneous processes",
+                        help="number of possible simultaneous downloads",
                         type=int)
 
     args = parser.parse_args()
@@ -89,7 +86,7 @@ def main():
     now = datetime.now()
     if args.sat is None:
         satlst = ['s3a']
-    elif args.sat == 'cmems':
+    elif args.sat == 'cmems_L3':
         satlst = satellite_dict['cmems']['L3']['mission'].keys()
     else:
         satlst = [args.sat]
@@ -110,11 +107,8 @@ def main():
     if args.nproc is None:
         args.nproc = 1
 
-    if args.prov is None:
-        args.prov = 'cmems'
-
-    if args.lev is None:
-        args.lev = 'L3'
+    if args.product is None:
+        args.product = 'cmems_L3'
 
     print(args)
 
@@ -129,8 +123,8 @@ def main():
             dict_for_sub = {'mission':sat}
             sa_obj = get_remote_files(\
                                 args.path, sdate, edate, twin,
-                                args.nproc, args.prov,
-                                args.api_url, sat, args.lev,
+                                args.nproc, args.product,
+                                args.api_url, sat,
                                 dict_for_sub)
             time1 = time.time() - start_time
             print("Time used for collecting data: ", time1, " seconds")

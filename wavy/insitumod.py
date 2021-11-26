@@ -31,15 +31,16 @@ import time
 import pylab as pl
 from datetime import datetime
 import scipy as sp
+
 # own imports
 from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
 from wavy.ncmod import dumptonc_ts_insitu, get_varlst_from_nc_1D
-from wavy.ncmod import get_filevarname_from_nc
+from wavy.ncmod import get_filevarname
 from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import finditem, make_subdict
-#from wavy.superobmod import superobbing
+from wavy.utils import parse_date
 from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
@@ -69,8 +70,12 @@ class insitu_class():
     '''
     basedate = datetime(1970,1,1)
     time_unit = 'seconds since 1970-01-01 00:00:00.0'
+
     def __init__(self,nID,sensor,sdate,edate,varalias='Hs',
     filterData=False,**kwargs):
+        # parse and translate date input
+        sdate = parse_date(sdate)
+        edate = parse_date(edate)
         print ('# ----- ')
         print (" ### Initializing insitu_class object ###")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
@@ -158,7 +163,7 @@ class insitu_class():
             if fifo == 'nc':
                 meta = ncdumpMeta(pathtofile)
                 self.vars['meta'] = meta
-                varname = get_filevarname_from_nc(varalias,
+                varname = get_filevarname(varalias,
                                           variable_info,
                                           insitu_dict[nID],
                                           meta)
@@ -326,10 +331,10 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
         # get ncdump
         ncdict = ncdumpMeta(pathtofile)
         # retrieve filevarname for varalias
-        filevarname = get_filevarname_from_nc(varalias,
-                                          variable_info,
-                                          insitu_dict[nID],
-                                          ncdict)
+        filevarname = get_filevarname(varalias,
+                                      variable_info,
+                                      insitu_dict[nID],
+                                      ncdict)
         varstrlst = [filevarname,'longitude','latitude','time']
         # query
         vardict = get_varlst_from_nc_1D(pathtofile,

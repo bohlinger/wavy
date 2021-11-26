@@ -299,20 +299,20 @@ def hour_rounder(t):
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
                +timedelta(hours=t.minute//30))
 
-def sort_files(dirpath,filelst,provider,sat):
+def sort_files(dirpath,filelst,product,sat):
     """
     mv files to sub-folders of year and month
     """
-    if provider == 'cmems':
+    if product == 'cmems_L3':
         sort_cmems_l3(dirpath,filelst,sat)
-    elif provider == 'cci':
-        sort_cci_l2p(dirpath,filelst,sat)
-    elif provider == 'eumetsat':
+    elif (product == 'cci_L2P' or product == 'cci_L3'):
+        sort_cci(dirpath,filelst,sat)
+    elif product == 'eumetsat_L2':
         sort_eumetsat_l2(dirpath,filelst,sat)
 
 def sort_cmems_l3(dirpath,filelst,sat):
     '''
-    Sort l3 files according to year and month.
+    Sort L3 files according to year and month.
     '''
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath,e)):
@@ -324,9 +324,9 @@ def sort_cmems_l3(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cci_l2p(dirpath,filelst,sat):
+def sort_cci(dirpath,filelst,sat):
     '''
-    Sort l3 files according to year and month.
+    Sort L2P and L3 files according to year and month.
     '''
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath,e)):
@@ -340,7 +340,7 @@ def sort_cci_l2p(dirpath,filelst,sat):
 
 def sort_eumetsat_l2(dirpath,filelst,sat):
     '''
-    Sort l2 files according to year and month.
+    Sort L2 files according to year and month.
     '''
     for e in filelst:
         splits = e.split('____')
@@ -580,3 +580,36 @@ def parse_date(indate):
     else:
         print('Not able to parse input return as is')
         return indate
+
+def get_filevarname(src_name, varalias, variable_info, src_dict,
+ncdict):
+    stdname = variable_info[varalias]['standard_name']
+    print('Get filevarname for \n' + 'stdvarname:', stdname,
+          '\n' + 'varalias:', varalias)
+    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
+    if (filevarname is None and 'alias' in variable_info[varalias]):
+        filevarname = get_varname_for_cf_stdname_in_ncfile(
+            ncdict, variable_info[varalias]['alias'])
+    if (filevarname is not None and len(filevarname) > 1):
+        print('!!! standard_name: ', stdname, ' is not unique !!!',
+              '\nThe following variables have the same standard_name:\n',
+              filevarname)
+        print('Searching *_specs.yaml config file for definition')
+        filevarname = None
+    if filevarname is not None:
+        return filevarname[0]
+    if (filevarname is None and varalias in src_dict[src_name]['vardef'].keys()):
+        filevarname = src_dict[src_name]['vardef'][varalias]
+        print('Variable defined in model_specs.yaml is:')
+        print(varalias, '=', filevarname)
+        return filevarname
+    elif (filevarname is None
+          and varalias not in src_dict[src_name]['vardef'].keys()
+          and 'aliases_of_vector_components' in variable_info[varalias]):
+        print('Checking variable_info if variable can be ' +
+              'computed from vector components')
+        filevarname = variable_info[varalias]['aliases_of_vector_components']
+        return filevarname
+    else:
+        print('!!! variable not defined or ' +
+              'available in model output file !!!')

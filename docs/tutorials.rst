@@ -60,10 +60,9 @@ Add your path for satellite data here under cmems
 
 .. code-block:: yaml
 
-   cmems:
-      L3:
-         dst:
-            path_template: /home/patrikb/tmp_altimeter/L3/mission
+   cmems_L3:
+      dst:
+         path_template: /home/patrikb/tmp_altimeter/L3/mission
 
 You can proceed now and download L3 data using the wavyDownload.py script:
 
@@ -139,16 +138,14 @@ L3 data can be read like:
 
 .. code-block:: python3
 
-   >>> from datetime import datetime
    >>> from wavy.satmod import satellite_class as sc
    >>> region = 'NorwegianSea'
    >>> varalias = 'Hs' # default
    >>> mission = 's3a' # default
-   >>> provider = 'cmems' # default
-   >>> level = 'L3' # default
+   >>> product = 'cmems_L3' # default
    >>> twin = 30 # default
-   >>> sd = datetime(2020,11,1)
-   >>> ed = datetime(2020,11,2)
+   >>> sd = "2020-11-1" # can also be datetime object
+   >>> ed = "2020-11-2"
    >>> sco = sc(sdate=sd,edate=ed,region=region)
 
 This would result in a satellite_class object and the following output message::
@@ -186,16 +183,14 @@ Read pure L2 satellite data from eumetsat
 .. code-block:: python3
 
    >>> from wavy.satmod import satellite_class as sc
-   >>> from datetime import datetime
-   >>> sd = datetime(2020,11,1,12)
-   >>> ed = datetime(2020,11,1,12)
+   >>> sd = "2020-11-1 12"
+   >>> ed = "2020-11-1 12"
    >>> region = 'mwam4' # default
    >>> mission = 's3a' # default
-   >>> level = 'L2'
    >>> twin = 30 # default
    >>> varalias = 'Hs' # default
 
-   >>> sco = sc(sd,edate=ed,provider='eumetsat',level=level)
+   >>> sco = sc(sd,edate=ed,product="eumetsat_L2")
 
 Retrieve pure L2 data and compare against L3
 ********************************************
@@ -206,19 +201,18 @@ Having downloaded the altimetry data, you can do:
 
    >>> # imports
    >>> from wavy.satmod import satellite_class as sc
-   >>> from datetime import datetime
 
    >>> # settings
-   >>> sd = datetime(2020,11,1,12)
-   >>> ed = datetime(2020,11,1,12)
+   >>> sd = "2020-11-1 12"
+   >>> ed = "2020-11-1 12"
    >>> region = 'NorwegianSea'
    >>> mission = 's3a' # default
    >>> varalias = 'Hs' # default
    >>> twin = 30 # default
 
    >>> # retrievals
-   >>> sco_e = sc(sd,edate=ed,region=region,provider='eumetsat',level='L2')
-   >>> sco_c = sc(sd,edate=ed,region=region,provider='cmems')
+   >>> sco_e = sc(sd,edate=ed,region=region,product='eumetsat_L2')
+   >>> sco_c = sc(sd,edate=ed,region=region,product='cmems_L3')
 
    >>> # plotting
    >>> import matplotlib.pyplot as plt
@@ -242,17 +236,16 @@ Appy basic filters to raw L2 data
 .. code-block:: python3
 
    >>> from wavy.satmod import satellite_class as sc
-   >>> from datetime import datetime
    >>> import matplotlib.pyplot as plt
 
-   >>> sd = datetime(2020,11,1,12)
-   >>> ed = datetime(2020,11,1,12)
+   >>> sd = "2020-11-1 12"
+   >>> ed = "2020-11-1 12"
    >>> region = 'mwam4' # default
    >>> mission = 's3a' # default
    >>> twin = 30 # default
 
    >>> # landmask filter
-   >>> sco_lm = sc(sd,edate=ed,provider='eumetsat',land_mask=True,filterData=True,level='L2')
+   >>> sco_lm = sc(sd,edate=ed,product='eumetsat_L2',land_mask=True,filterData=True)
 
 .. note::
 
@@ -282,12 +275,11 @@ Often there are ambiguities due to the multiple usage of standard_names. Any suc
 
 .. code-block:: python3
 
-   >>> from datetime import datetime
    >>> from wavy.modelmod import model_class as mc
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
-   >>> sd = datetime(2020,11,1)
-   >>> ed = datetime(2020,11,2)
+   >>> sd = "2020-11-1"
+   >>> sd = "2020-11-2"
    >>> mco = mc(sdate=sd) # one time slice
    >>> mco_p = mc(sdate=sd,edate=ed) # time period
    >>> mco_lt = mc(sdate=sd,leadtime=12) # time slice with lead time
@@ -307,7 +299,7 @@ Whenever the keyword "leadtime" is None, a best guess is assumed and retrieved. 
 
 .. note::
 
-   Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason being the ambiguous use of lead times.
+   Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason, being the ambiguous use of lead times, will be improved in future versions.
 
 6. read in-situ observations (.d22 and netcdf/thredds)
 ######################################################
@@ -321,11 +313,10 @@ read .d22 files
 
 .. code-block:: python3
 
-   >>> from datetime import datetime
    >>> from wavy.insitumod import insitu_class as ic
    >>> varalias = 'Hs' # default
-   >>> sd = datetime(2020,1,1,0)
-   >>> ed = datetime(2020,1,5,0)
+   >>> sd = "2020-1-1"
+   >>> ed = "2020-1-5"
    >>> nID = 'ekofiskL'
    >>> sensor = 'waverider'
    >>> ico = ic(nID,sensor,sd,ed)
@@ -341,11 +332,10 @@ read .nc-files
 
 .. code-block:: python3
 
-   >>> from datetime import datetime
    >>> from wavy.insitumod import insitu_class as ic
    >>> varalias = 'Hs' # default
-   >>> sd = datetime(2020,1,1,0)
-   >>> ed = datetime(2020,1,5,0)
+   >>> sd = "2020-1-1"
+   >>> ed = "2020-1-5"
    >>> nID = 'D_Breisundet_wave'
    >>> sensor = 'wavescan'
    >>> ico = ic(nID,sensor,sd,ed)
@@ -387,14 +377,13 @@ Collocation of satellite and wave model
 
 .. code-block:: python3
 
-   >>> from datetime import datetime
    >>> from wavy.satmod import satellite_class as sc
    >>> from wavy.collocmod import collocation_class as cc
 
    >>> model = 'mwam4' # default
    >>> mission = 's3a' # default
    >>> varalias = 'Hs' # default
-   >>> sd = datetime(2020,11,1,12)
+   >>> sd = "2020-11-1 12"
    >>> sco = sc(sdate=sd,region=model,sat=mission,varalias=varalias)
    >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
 
@@ -415,8 +404,8 @@ This can also be done for a time period:
 
 .. code-block:: python3
 
-   >>> sd = datetime(2020,11,1)
-   >>> ed = datetime(2020,11,2)
+   >>> sd = "2020-11-1"
+   >>> ed = "2020-11-2"
    >>> sco = sc(sdate=sd,edate=ed,region=model,mission=mission,varalias=varalias)
    >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
 
@@ -428,15 +417,14 @@ The following example may take a few minutes.
 .. code-block:: python3
 
    >>> # imports
-   >>> from datetime import datetime
    >>> from wavy.insitumod import insitu_class as ic
    >>> from wavy.collocmod import collocation_class as cc
 
    >>> # settings
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
-   >>> sd = datetime(2020,1,1,1)
-   >>> ed = datetime(2020,1,4,0)
+   >>> sd = "2020-1-1 1"
+   >>> ed = "2020-1-4 0"
    >>> nID = 'ekofiskL'
    >>> sensor = 'waverider'
 
