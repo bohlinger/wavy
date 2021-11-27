@@ -10,30 +10,19 @@ effecient programming are most welcome!
 # --- import libraries ------------------------------------------------#
 # standard library imports
 import os
-import sys
-import netCDF4
 import numpy as np
 from datetime import datetime, timedelta
 import datetime
 import argparse
 from argparse import RawTextHelpFormatter
-import yaml
 import os
-import urllib
-import gzip
-import ftplib
-from ftplib import FTP
-import calendar
-import sys
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
-import time
 import pylab as pl
 from datetime import datetime
-import scipy as sp
 
 # own imports
-from wavy.ncmod import ncdumpMeta, get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import dumptonc_ts_insitu, get_varlst_from_nc_1D
 from wavy.ncmod import get_filevarname
 from wavy.utils import collocate_times
@@ -201,16 +190,6 @@ class insitu_class():
             tmpdate = self.sdate
             edate = self.edate
             while tmpdate <= edate:
-                idxtmp = collocate_times(
-                            unfiltered_t=self.vars['datetime'],
-                            sdate = datetime(tmpdate.year,
-                                             tmpdate.month,1),
-                            edate = datetime(tmpdate.year,
-                                             tmpdate.month,
-                                             calendar.monthrange(
-                                             tmpdate.year,
-                                             tmpdate.month)[1],
-                                             23,59) )
                 if pathtofile is None:
                     path_template = insitu_dict[self.nID]['dst']\
                                                ['path_template'][0]
@@ -243,7 +222,6 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
 dict_for_sub,**kwargs):
     # determine fifo
     fifo = finditem(insitu_dict[nID],'fifo')[0]
-    stdvarname = variable_info[varalias]['standard_name']
     path_template = insitu_dict[nID]['src']['path_template']
     file_template = insitu_dict[nID]['src']['file_template']
     pathlst = [p + ('/' + file_template) for p in path_template]
@@ -252,7 +230,7 @@ dict_for_sub,**kwargs):
         pathlst = [kwargs['path_local'] + '/' + file_template]
     if fifo == 'nc':
         var, time, timedt, lons, lats, pathtofile = \
-            get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,\
+            get_nc_ts(nID,varalias,sdate,edate,pathlst,\
                       strsublst,dict_for_sub)
     elif fifo == 'd22':
         var, time, timedt = \
@@ -305,15 +283,14 @@ def get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,
 pathlst,strsublst,dict_for_sub):
     sdatetmp = sdate
     edatetmp = edate
-    sl = parse_d22(nID,sensor,varalias,sdatetmp,edatetmp,
-                   pathlst,strsublst,dict_for_sub)
+    sl = parse_d22(sdatetmp,edatetmp,pathlst,strsublst,dict_for_sub)
     var, timedt = extract_d22(sl,varalias,nID,sensor)
     time = np.array(
            [(t-basedate).total_seconds() for t in timedt]
            )
     return var, time, timedt
 
-def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
+def get_nc_ts(nID,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     # loop from sdate to edate with dateincr
     tmpdate = deepcopy(sdate)
     varlst = []
@@ -361,7 +338,7 @@ def get_nc_ts(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     #turn timedt into datetime objects
     return varlst, timelst, dtimelst, lonlst, latlst, pathtofile
 
-def parse_d22(nID,sensor,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
+def parse_d22(sdate,edate,pathlst,strsublst,dict_for_sub):
     """
     Read all lines in file and append to sl
     """
@@ -433,7 +410,7 @@ def find_category(sl,category):
         if category in element:
             return True
 
-def check_sensor_availability(revised_categories,idxlst,nID,sensor):
+def check_sensor_availability(idxlst,nID,sensor):
     idxyaml = insitu_dict[nID]['sensor'][sensor]
     if idxyaml in idxlst:
         return idxlst.index(idxyaml)
@@ -465,8 +442,7 @@ def extract_d22(sl,varalias,nID,sensor):
                 + str(sensornr)
                 + ') in insitu_specs.yaml')
     # check that the defined sensors are actually the ones being found
-    check = check_sensor_availability(revised_categories,\
-                                      idxlst,nID,sensor)
+    check = check_sensor_availability(idxlst,nID,sensor)
     ts = []
     dt = []
     if check is not None:
