@@ -15,13 +15,9 @@ from functools import lru_cache
 from tqdm import tqdm
 
 # own imports
-from wavy.utils import hour_rounder
-from wavy.utils import make_fc_dates
-from wavy.utils import finditem
-from wavy.utils import parse_date
-from wavy.ncmod import ncdumpMeta
-from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
-from wavy.ncmod import get_filevarname
+from wavy.utils import hour_rounder, make_fc_dates
+from wavy.utils import finditem, parse_date
+from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
 
 # --- global functions ------------------------------------------------#
@@ -286,8 +282,7 @@ def get_model(model=None,
               fc_date=None,
               leadtime=None,
               varalias=None,
-              st_obj=None,
-              distlim=None):
+              st_obj=None):
     """
     toplevel function to get model data
     """
@@ -352,8 +347,7 @@ class model_class():
                  fc_date=None,
                  leadtime=None,
                  varalias='Hs',
-                 st_obj=None,
-                 distlim=6):
+                 st_obj=None):
         print('# ----- ')
         print(" ### Initializing model_class object ###")
         # parse and translate date input
