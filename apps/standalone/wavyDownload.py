@@ -87,7 +87,7 @@ def main():
     if args.sat is None:
         satlst = ['s3a']
     elif args.sat == 'cmems_L3':
-        satlst = satellite_dict['cmems']['L3']['mission'].keys()
+        satlst = satellite_dict['cmems_L3']['mission'].keys()
     else:
         satlst = [args.sat]
 
