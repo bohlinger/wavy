@@ -17,7 +17,6 @@ import time
 from urllib.request import urlretrieve, urlcleanup # python3
 from ftplib import FTP
 import netCDF4 as netCDF4
-import calendar
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 import pandas as pd
@@ -29,15 +28,12 @@ import xarray as xr
 
 # own imports
 from wavy.ncmod import ncdumpMeta
-from wavy.ncmod import get_varname_for_cf_stdname_in_ncfile
+from wavy.ncmod import read_netcdfs, get_filevarname
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import find_included_times
-from wavy.utils import sort_files, collocate_times
-from wavy.utils import parse_date
-from wavy.ncmod import read_netcdfs, get_filevarname
+from wavy.utils import sort_files, parse_date
 from wavy.utils import make_pathtofile, make_subdict
-from wavy.utils import finditem
-from wavy.utils import haversineA
+from wavy.utils import finditem, haversineA
 from wavy.credentials import get_credentials
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
@@ -341,12 +337,11 @@ def make_query_dict(product,sat):
                'filename': SAT + '*WAT*'}
     return kwargs
 
-def get_local_files(sdate,edate,twin,product,sat,
-dict_for_sub=None,path_local=None):
+def get_local_files(sdate,edate,twin,product,dict_for_sub=None,
+path_local=None):
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
-    tmpdate_s = datetime(tmpdate.year,tmpdate.month,1)
     if path_local is None:
         print('path_local is None -> checking config file')
         while (tmpdate <= edate + relativedelta(months=+1)):
@@ -478,7 +473,7 @@ def read_local_files_eumetsat(pathlst,product,varalias,satellite_dict):
     tmpdir = tempfile.TemporaryDirectory()
     print('tmp directory is established:',tmpdir.name)
     for f in tqdm(pathlst):
-        path = f[0:-len(f.split('/')[-1])]
+        #path = f[0:-len(f.split('/')[-1])]
         zipped = zipfile.ZipFile(f)
         enhanced_measurement = zipped.namelist()[-1]
         extracted = zipped.extract(enhanced_measurement,
@@ -537,7 +532,7 @@ def read_local_files(pathlst,product,varalias,
                                             satellite_dict)
     return vardict
 
-def get_sat_ts(sdate,edate,twin,region,product,sat,pathlst,
+def get_sat_ts(sdate,edate,twin,region,product,pathlst,
 varalias,poi,distlim,variable_info,satellite_dict):
     cvardict = read_local_files(pathlst,product,varalias,
                                sdate,edate,twin,variable_info,
@@ -586,7 +581,6 @@ varalias,poi,distlim,variable_info,satellite_dict):
         print('For chosen poi: ',
                 len(rvardict['time']),'footprints found')
     # find variable name as defined in file
-    stdname = variable_info[varalias]['standard_name']
     if product == 'cmems_L3':
         ncdict = ncdumpMeta(pathlst[0])
     elif (product == 'cci_L2P' or product == 'cci_L3'):
@@ -599,8 +593,6 @@ varalias,poi,distlim,variable_info,satellite_dict):
                                    path=tmpdir.name)
         ncdict = ncdumpMeta(extracted)
         tmpdir.cleanup()
-    filevarname = get_filevarname(varalias,variable_info,
-                                  satellite_dict[product],ncdict)
     rvardict['meta'] = ncdict
     return rvardict
 
@@ -720,12 +712,11 @@ class satellite_class():
                             nproc,product,api_url,mission,vars(self))
         t0=time.time()
         pathlst, _ = get_local_files(sdate,edate,twin,
-                                     product,mission,
-                                     vars(self),
+                                     product,vars(self),
                                      path_local=path_local)
         if len(pathlst) > 0:
-            for i in range(1):
-#            try:
+#            for i in range(1):
+            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -736,10 +727,8 @@ class satellite_class():
                     # retrieve data
                     rvardict = get_sat_ts( sdate,edate,
                                            twin_tmp,region,
-                                           product,mission,
-                                           pathlst,
-                                           varalias,
-                                           poi,distlim,
+                                           product,pathlst,
+                                           varalias,poi,distlim,
                                            variable_info,
                                            satellite_dict)
                     # filter data
@@ -756,9 +745,9 @@ class satellite_class():
                     self.filterSpecs = kwargs
                 else:
                     rvardict = get_sat_ts( sdate,edate,twin,region,
-                                           product,mission,
-                                           pathlst,varalias,poi,
-                                           distlim,variable_info,
+                                           product,pathlst,
+                                           varalias,poi,distlim,
+                                           variable_info,
                                            satellite_dict )
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
@@ -790,12 +779,11 @@ class satellite_class():
                         round(t1-t0,2),"seconds")
                 print ("Satellite object initialized including "
                     + str(len(self.vars['time'])) + " footprints.")
-                #print (" ### satellite_class object initialized ###")
                 print ('# ----- ')
-#            except Exception as e:
-#                print(e)
-#                print('Error encountered')
-#                print('No satellite_class object initialized')
+            except Exception as e:
+                print(e)
+                print('Error encountered')
+                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
@@ -865,16 +853,6 @@ class satellite_class():
             tmpdate = self.sdate
             edate = self.edate
             while tmpdate <= edate:
-                idxtmp = collocate_times(
-                            unfiltered_t=self.vars['datetime'],
-                            sdate = datetime(tmpdate.year,
-                                             tmpdate.month,1),
-                            edate = datetime(tmpdate.year,
-                                             tmpdate.month,
-                                             calendar.monthrange(
-                                             tmpdate.year,
-                                             tmpdate.month)[1],
-                                             23,59) )
                 if pathtofile is None:
                     path_template = satellite_dict[self.product]\
                                                   ['dst']\
@@ -1000,7 +978,7 @@ def match_region_poly(LATS,LONS,region,grid_date):
             #M = xa.open_dataset(filestr, decode_cf=True)
             #model_lons = M[flon].data
             #model_lats = M[flat].data
-            model_lons, model_lats, model_time_dt = \
+            model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr,flon,flat,time)
         except (KeyError,IOError,ValueError) as e:
             print(e)
@@ -1025,7 +1003,7 @@ def match_region_poly(LATS,LONS,region,grid_date):
             #M = xa.open_dataset(filestr, decode_cf=True)
             #model_lons = M[flon].data
             #model_lats = M[flat].data
-            model_lons, model_lats, model_time_dt = \
+            model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr,flon,flat,time)
         if (len(model_lons.shape)==1):
             model_lons, model_lats = np.meshgrid(
@@ -1033,25 +1011,21 @@ def match_region_poly(LATS,LONS,region,grid_date):
                                     model_lats
                                     )
         print('Check if footprints fall within the chosen domain')
-        if (region=='global'):
-            rlatlst, rlonlst = LATS, LONS
-        else:
-            ncdict = ncdumpMeta(filestr)
-            try:
-                proj4 = find_attr_in_nc('proj',ncdict=ncdict,
-                                        subattrstr='proj4')
-            except IndexError:
-                print('proj4 not defined in netcdf-file')
-                print('Using proj4 from model config file')
-                proj4 = model_dict[region]['proj4']
-            proj_model = pyproj.Proj(proj4)
-            Mx, My = proj_model(model_lons,model_lats,inverse=False)
-            Vx, Vy = proj_model(LONS,LATS,inverse=False)
-            xmax, xmin = np.max(Mx), np.min(Mx)
-            ymax, ymin = np.max(My), np.min(My)
-            ridx = list(np.where((Vx>xmin) & (Vx<xmax) &
-                            (Vy>ymin) & (Vy<ymax))[0]
-                        )
+        ncdict = ncdumpMeta(filestr)
+        try:
+            proj4 = find_attr_in_nc('proj',ncdict=ncdict,
+                                    subattrstr='proj4')
+        except IndexError:
+            print('proj4 not defined in netcdf-file')
+            print('Using proj4 from model config file')
+            proj4 = model_dict[region]['proj4']
+        proj_model = pyproj.Proj(proj4)
+        Mx, My = proj_model(model_lons,model_lats,inverse=False)
+        Vx, Vy = proj_model(LONS,LATS,inverse=False)
+        xmax, xmin = np.max(Mx), np.min(Mx)
+        ymax, ymin = np.max(My), np.min(My)
+        ridx = list( np.where((Vx>xmin) & (Vx<xmax) &
+                              (Vy>ymin) & (Vy<ymax))[0] )
     elif isinstance(region,str)==True:
         print ("Specified region: " + region + "\n"
         + " --> Bounded by polygon: \n"
@@ -1062,8 +1036,6 @@ def match_region_poly(LATS,LONS,region,grid_date):
         # check if coords in region
         LATS = list(LATS)
         LONS = list(LONS)
-        latlst = LATS
-        lonlst = LONS
         lats = np.array(LATS).ravel()
         lons = np.array(LONS).ravel()
         points = np.c_[lons,lats]
