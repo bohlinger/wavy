@@ -6,7 +6,6 @@ obtain credentials for retrieving remote file
 '''
 # --- import libraries ------------------------------------------------#
 import os.path
-import netrc
 
 def credentials_from_netrc(remoteHostName=None):
     import netrc

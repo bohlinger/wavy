@@ -580,36 +580,3 @@ def parse_date(indate):
     else:
         print('Not able to parse input return as is')
         return indate
-
-def get_filevarname(src_name, varalias, variable_info, src_dict,
-ncdict):
-    stdname = variable_info[varalias]['standard_name']
-    print('Get filevarname for \n' + 'stdvarname:', stdname,
-          '\n' + 'varalias:', varalias)
-    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
-    if (filevarname is None and 'alias' in variable_info[varalias]):
-        filevarname = get_varname_for_cf_stdname_in_ncfile(
-            ncdict, variable_info[varalias]['alias'])
-    if (filevarname is not None and len(filevarname) > 1):
-        print('!!! standard_name: ', stdname, ' is not unique !!!',
-              '\nThe following variables have the same standard_name:\n',
-              filevarname)
-        print('Searching *_specs.yaml config file for definition')
-        filevarname = None
-    if filevarname is not None:
-        return filevarname[0]
-    if (filevarname is None and varalias in src_dict[src_name]['vardef'].keys()):
-        filevarname = src_dict[src_name]['vardef'][varalias]
-        print('Variable defined in model_specs.yaml is:')
-        print(varalias, '=', filevarname)
-        return filevarname
-    elif (filevarname is None
-          and varalias not in src_dict[src_name]['vardef'].keys()
-          and 'aliases_of_vector_components' in variable_info[varalias]):
-        print('Checking variable_info if variable can be ' +
-              'computed from vector components')
-        filevarname = variable_info[varalias]['aliases_of_vector_components']
-        return filevarname
-    else:
-        print('!!! variable not defined or ' +
-              'available in model output file !!!')
