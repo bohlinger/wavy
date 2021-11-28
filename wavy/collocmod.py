@@ -8,34 +8,28 @@
 """
 # --- import libraries ------------------------------------------------#
 # standard library imports
-import sys
 import numpy as np
-import yaml
 import netCDF4
 from datetime import datetime, timedelta
 import os
 import time
-import calendar
 from dateutil.relativedelta import relativedelta
 import pyresample
-import xarray as xa
-import pyproj
 from tqdm import tqdm
 from copy import deepcopy
 
 # own imports
-from wavy.utils import haversineP, haversineA, collocate_times
-from wavy.utils import progress, make_fc_dates
+from wavy.utils import collocate_times
+from wavy.utils import make_fc_dates
 from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder
 from wavy.utils import NoStdStreams
 from wavy.utils import make_subdict
 from wavy.wconfig import load_or_default
 from wavy.modelmod import model_class, make_model_filename_wrapper
-from wavy.modelmod import get_model_filedate, get_filevarname
+from wavy.modelmod import get_model_filedate
 from wavy.modelmod import model_class,get_model
 from wavy.ncmod import dumptonc_ts_collocation
-from wavy.ncmod import find_attr_in_nc, ncdumpMeta
 from wavy.satmod import satellite_class
 from wavy.insitumod import insitu_class
 # ---------------------------------------------------------------------#
@@ -208,19 +202,19 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     col_obj.vars['valid_date'] = None
     # inflate length of constant sized variables
     col_obj.vars['distance'] = col_obj.vars['distance']*\
-                                       len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     col_obj.vars['obs_lats'] = col_obj.vars['obs_lats']*\
-                                        len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     col_obj.vars['obs_lons'] = col_obj.vars['obs_lons']*\
-                                        len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     col_obj.vars['collocation_idx_x'] = col_obj.vars['collocation_idx_x']*\
-                                        len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     col_obj.vars['collocation_idx_y'] = col_obj.vars['collocation_idx_y']*\
-                                        len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     col_obj.vars['model_lats'] = col_obj.vars['model_lats']*\
-                                       len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     col_obj.vars['model_lons'] = col_obj.vars['model_lons']*\
-                                        len(col_obj.vars['datetime'])
+                                    len(col_obj.vars['datetime'])
     results_dict = col_obj.vars
     return results_dict
 
@@ -353,7 +347,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
         print (len(obs_time_dt),"footprints to be collocated")
         print ("Perform collocation with distance limit\n",\
                 "distlim:",distlim)
-        index_array_2d, distance_array, valid_output_index =\
+        index_array_2d, distance_array, _ =\
                                 collocation_fct(
                                 obs_lons, obs_lats,
                                 model_lons, model_lats)
@@ -387,9 +381,10 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
     len(col_obj.vars['collocation_idx'][0]) > 0):
         print("Collocation idx given through collocation_class object")
         results_dict = col_obj.vars
-        results_dict['model_values'] = list(model_vals[\
-                                        col_obj.vars['collocation_idx_x'],
-                                        col_obj.vars['collocation_idx_y']])
+        results_dict['model_values'] = list(\
+                                 model_vals[\
+                                 col_obj.vars['collocation_idx_x'],
+                                 col_obj.vars['collocation_idx_y'] ])
     return results_dict
 
 def collocate(mc_obj=None,obs_obj=None,col_obj=None,
@@ -426,7 +421,6 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,
                                             leadtime=leadtime,\
                                             date_incr=date_incr)
     else:
-        datein = mc_obj.fc_date
         results_dict = collocate_field( mc_obj=mc_obj,\
                                         obs_obj=obs_obj,\
                                         col_obj=col_obj,\
@@ -519,16 +513,6 @@ class collocation_class():
             tmpdate = self.sdate
             edate = self.edate
             while tmpdate <= edate:
-                idxtmp = collocate_times(
-                            unfiltered_t=self.vars['datetime'],
-                            sdate = datetime(tmpdate.year,
-                                             tmpdate.month,1),
-                            edate = datetime(tmpdate.year,
-                                             tmpdate.month,
-                                             calendar.monthrange(
-                                             tmpdate.year,
-                                             tmpdate.month)[1],
-                                             23,59) )
                 if pathtofile is None:
                     path_template = collocation_dict[self.obstype]\
                                                 ['dst']\
