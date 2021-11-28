@@ -2,10 +2,7 @@
     Module to organize the validation procedure
     Consists mostly of functions computing validation metrics
 """
-import yaml
 import numpy as np
-import os
-from wavy.wconfig import load_or_default
 
 # define global functions
 def calc_rmsd(a,b):
@@ -53,7 +50,6 @@ def calc_drmsd(a,b):
     diff2 = (a1-b1)**2
     msd = diff2.sum()/n
     dmsd = msd - calc_bias(a,b)**2
-    rmsd = np.sqrt(msd)
     drmsd = np.sqrt(dmsd)
     return dmsd, drmsd
 
@@ -103,7 +99,6 @@ def calc_nbias(a,b):
     idx = np.array(range(len(a)))[~np.isnan(comb)]
     a1=a[idx]
     b1=b[idx]
-    N = len(a1)
     nbias = np.sum(a1-b1)/np.sum(b1)
     return nbias
 
@@ -201,7 +196,7 @@ def validate(results_dict,boot=None):
             'nbias':nbias,
             'SI':SI}
     elif boot is True:
-        from utils import bootstr, marginalize
+        from wavy.utils import bootstr, marginalize
         reps=1000
         newmodel,newobs,newidx = marginalize(model_matches,obs_matches)
         obs_boot,boot_idx=bootstr(newobs,reps)
