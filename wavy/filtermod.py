@@ -1,24 +1,14 @@
 import numpy as np
 from copy import deepcopy
-import yaml
-import os
-from datetime import datetime, timedelta
 import netCDF4
 import pandas as pd
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import roaring_landmask
-import shapely.geometry as sgeom
-from shapely.ops import unary_union
-import shapely.vectorized
 from scipy.stats import circmean
-import math
+from datetime import timedelta
 
 # own imports
 from wavy.utils import find_included_times, collocate_times
 from wavy.wconfig import load_or_default
-from wavy.utils import runmean_conv
 
 ROAR = None
 
@@ -271,19 +261,18 @@ def apply_cleaner(varalias,vardict,method='linearGAM',**kwargs):
     else: itr = 1
     for i in range(itr):
         clean_dict = rm_nan_from_vardict(varalias,vardict)
-        dt = vardict['datetime']
         x = vardict['time']
         y = vardict[stdvarname]
         if method=='linearGAM':
-            idx = cleaner_linearGAM(x,y,varalias,**kwargs)
+            idx = cleaner_linearGAM(x,y,**kwargs)
             ts_clean = np.array(y)
             ts_clean[idx] = np.nan
         if method=='GP':
-            idx = cleaner_GP(x,y,varalias,**kwargs)
+            idx = cleaner_GP(x,y,**kwargs)
             ts_clean = np.array(y)
             ts_clean[idx] = np.nan
         if method=='expectileGAM':
-            idx = cleaner_expectileGAM(x,y,varalias,**kwargs)
+            idx = cleaner_expectileGAM(x,y,**kwargs)
             ts_clean = np.array(y)
             ts_clean[idx] = np.nan
         clean_dict[stdvarname] = ts_clean
@@ -373,7 +362,7 @@ output_dates, method='linearGAM', date_incr=None,
             y = tmpvar
             x = tmptime
             dt = tmpdtime
-            smoothed_ts = smoother_linearGAM(x,y,X,varalias,**kwargs)
+            smoothed_ts = smoother_linearGAM(x,y,X,**kwargs)
         elif method=='expectileGAM':
             # NaNs need to be removed before gam
             tmpvar = np.array(y)
@@ -385,7 +374,7 @@ output_dates, method='linearGAM', date_incr=None,
             y = tmpvar
             x = tmptime
             dt = tmpdtime
-            smoothed_ts = smoother_expectileGAM(x,y,X,varalias,**kwargs)
+            smoothed_ts = smoother_expectileGAM(x,y,X,**kwargs)
         elif method=='GP':
             # NaNs need to be removed before gp
             tmpvar = np.array(y)
@@ -397,7 +386,7 @@ output_dates, method='linearGAM', date_incr=None,
             y = tmpvar
             x = tmptime
             dt = tmpdtime
-            smoothed_ts = smoother_GP(x,y,X,varalias,**kwargs)
+            smoothed_ts = smoother_GP(x,y,X,**kwargs)
         elif method=='NIGP':
             # NaNs need to be removed before gp
             tmpvar = np.array(y)
@@ -409,7 +398,7 @@ output_dates, method='linearGAM', date_incr=None,
             y = tmpvar
             x = tmptime
             dt = tmpdtime
-            smoothed_ts = smoother_NIGP(x,y,X,varalias,**kwargs)
+            smoothed_ts = smoother_NIGP(x,y,X,**kwargs)
         elif method=='blockMean':
             # blocks are means from date_incr in hours
             # For each grid_input time_stamp compute mean of hour
@@ -452,9 +441,9 @@ def lanczos_weights(window,cutoff):
     return w[1:-1]
 
 def smoother_lanczos(y,window,cutoff):
-    from utils import runmean
+    from wavy.utils import runmean
     weights = lanczos_weights(window,cutoff)
-    ts, std = runmean(y,window,mode='centered',weights=weights)
+    ts, _ = runmean(y,window,mode='centered',weights=weights)
     return ts
 
 def smoother_blockMean(dt,y,output_dates,date_incr,mode='l'):
@@ -540,7 +529,7 @@ def smoother_blockCircMean(dt,y,output_dates,date_incr,mode='l'):
     means = np.degrees(means)
     return means
 
-def smoother_linearGAM(x,y,X,varalias,**kwargs):
+def smoother_linearGAM(x,y,X,**kwargs):
     from pygam import LinearGAM, l, s
     if isinstance(x,list):
         x = np.array(x)
@@ -567,7 +556,7 @@ def smoother_linearGAM(x,y,X,varalias,**kwargs):
     means = gam.predict(X)
     return means
 
-def smoother_expectileGAM(x,y,X,varalias,**kwargs):
+def smoother_expectileGAM(x,y,X,**kwargs):
     from pygam import s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
@@ -597,7 +586,7 @@ def smoother_expectileGAM(x,y,X,varalias,**kwargs):
     pred = gam50.predict(X)
     return pred
 
-def smoother_GP(x,y,X,varalias,**kwargs):
+def smoother_GP(x,y,X,**kwargs):
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
@@ -635,14 +624,14 @@ def smoother_GP(x,y,X,varalias,**kwargs):
             n_restarts_optimizer=10)
     gp.fit(x, Y)
     print(gp.kernel_)
-    y_pred, sigma = gp.predict(X, return_std=True)
+    y_pred,_  = gp.predict(X, return_std=True)
     y_pred = y_pred + np.nanmean(y)
     return y_pred
 
-def smoother_NIGP(x,y,X,varalias,**kwargs):
+def smoother_NIGP(x,y,X,**kwargs):
     import numpy as np
-    from GPfcts import nll_fn_nigp
-    from GPfcts import posterior_predictive_nigp
+    from wavy.GPfcts import nll_fn_nigp
+    from wavy.GPfcts import posterior_predictive_nigp
     from scipy.optimize import minimize
     from scipy.optimize import Bounds
     if isinstance(x,list):
@@ -659,7 +648,7 @@ def smoother_NIGP(x,y,X,varalias,**kwargs):
     # create a zero mean process
     Y = y.reshape(-1,1) - np.nanmean(y)
     # initialize using using standard GP
-    mu = smoother_GP(x,Y,x,varalias,**kwargs)
+    mu = smoother_GP(x,Y,x,**kwargs)
     # define inits
     inits = np.array([1,1,1,1])
     # define bounds
@@ -683,7 +672,7 @@ def smoother_NIGP(x,y,X,varalias,**kwargs):
                     #method='SLSQP')
             l_opt, sigma_f_opt, sigma_y_opt, sigma_x_opt = res.x
             # compute statistics
-            mu, cov = posterior_predictive_nigp(
+            mu,_ = posterior_predictive_nigp(
                                     x,x,Y,
                                     l = l_opt,
                                     sigma_f = sigma_f_opt,
@@ -694,7 +683,7 @@ def smoother_NIGP(x,y,X,varalias,**kwargs):
             'sigma_y:',sigma_y_opt,'sigma_x:',sigma_x_opt )
     # last step is to compute predictive posterior statistics
     # for output grid and add previously substracted mean
-    mu, cov = posterior_predictive_nigp(
+    mu,_ = posterior_predictive_nigp(
                                     X,x,Y,
                                     l = l_opt,
                                     sigma_f = sigma_f_opt,
@@ -704,7 +693,7 @@ def smoother_NIGP(x,y,X,varalias,**kwargs):
     mu += np.mean(y)
     return mu
 
-def cleaner_expectileGAM(x,y,varalias,**kwargs):
+def cleaner_expectileGAM(x,y,**kwargs):
     from pygam import s, ExpectileGAM
     if isinstance(x,list):
         x = np.array(x)
@@ -748,7 +737,7 @@ def cleaner_expectileGAM(x,y,varalias,**kwargs):
             if (y[i]>ulim[i] or y[i]<llim[i])]
     return idx
 
-def cleaner_linearGAM(x,y,varalias,**kwargs):
+def cleaner_linearGAM(x,y,**kwargs):
     from pygam import LinearGAM, l, s
     if isinstance(x,list):
         x = np.array(x)
@@ -772,7 +761,7 @@ def cleaner_linearGAM(x,y,varalias,**kwargs):
             if (y[i]>bounds[i,1] or y[i]<bounds[i,0])]
     return idx
 
-def cleaner_GP(x,y,varalias,**kwargs):
+def cleaner_GP(x,y,**kwargs):
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
