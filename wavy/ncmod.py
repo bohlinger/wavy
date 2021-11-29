@@ -13,20 +13,13 @@ List of libraries needed for this class. Sorted in categories to serve
 effortless orientation. May be combined at some point.
 '''
 # standard library imports
-from netCDF4 import Dataset
 import netCDF4
 import xarray as xr
 import numpy as np
-from datetime import datetime, timedelta
-import datetime as dt
-import argparse
-from argparse import RawTextHelpFormatter
+from datetime import datetime
 import os
-import yaml
 import sys
-from dateutil.relativedelta import relativedelta
 from copy import deepcopy
-import time
 from functools import lru_cache
 from tqdm import tqdm
 
@@ -79,10 +72,8 @@ def read_netcdfs_sel_lru(paths,dlst,varname,dim='time'):
     dataarr = [process_one_path_lru(paths[i],dlst[i],varname)\
                 for i in tqdm(range(len(paths)))]
     print("Concatenate ...")
-    combined = xr.concat(dataarr, dim,
-                         coords='minimal',
-                         compat='override',
-                         combine_attrs='override')
+    combined = xr.concat(dataarr,dim,coords='minimal',
+                         compat='override',combine_attrs='override')
     combined = combined.to_dataset()
     print("... done concatenating")
     return combined
@@ -109,9 +100,7 @@ def get_nc_time(pathtofile):
     if indicator is False:
         dtime = False
     else:
-        nc = netCDF4.Dataset(
-                    pathtofile,mode='r',
-                    )
+        nc = netCDF4.Dataset(pathtofile,mode='r')
         time_var = nc.variables['time']
         dtime = netCDF4.num2date(time_var[:],time_var.units)
         nc.close()

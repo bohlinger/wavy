@@ -449,11 +449,7 @@ class collocation_class():
             self.obstype = "satellite_altimeter"
             self.region = obs_obj.region
         if isinstance(obs_obj,insitu_class):
-            if 'twin' in insitu_dict[obs_obj.nID].keys():
-                obs_obj.twin =  insitu_dict\
-                                [obs_obj.nID]['twin']
-            else:
-                obs_obj.twin = None
+            obs_obj.twin = insitu_dict[obs_obj.nID].get('twin',None)
             self.obsname = obs_obj.nID + '_' +  obs_obj.sensor
             self.obstype = 'insitu'
             self.nID = obs_obj.nID
@@ -493,10 +489,6 @@ class collocation_class():
             self.vars = results_dict
             self.fc_date = results_dict['datetime']
             print(len(self.vars['time'])," values collocated")
-            if 'superob' in vars(obs_obj).keys():
-                self.superob = obs_obj.superob
-                self.outlier_detection = obs_obj.outlier_detection
-                self.missing_data = obs_obj.missing_data
             print (" ### Collocation_class object initialized ###")
         except Exception as e:
             print(e)
