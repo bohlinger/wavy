@@ -929,6 +929,7 @@ def match_region(LATS,LONS,region,grid_date):
             else:
                 print("Specified region: " + region + "\n"
                 + " --> Bounds: " + str(region_dict['rect'][region]))
+                region = region_dict['rect'][region]
         ridx = match_region_rect(LATS,LONS,region=region)
     else:
         ridx = match_region_poly(LATS,LONS,region=region,
@@ -945,8 +946,10 @@ def match_region_rect(LATS,LONS,region):
         llcrnrlon = region["llcrnrlon"]
         urcrnrlon = region["urcrnrlon"]
         ridx = np.where(\
-                    (LATS>llcrnrlat)&(LATS>urcrnrlat)&\
-                    (LONS>llcrnrlon)&(LONS>urcrnrlon)\
+                    (np.array(LATS)>llcrnrlat)\
+                    &(np.array(LATS)<urcrnrlat)\
+                    &(np.array(LONS)>llcrnrlon)\
+                    &(np.array(LONS)<urcrnrlon)\
                     )[0]
     print (len(ridx), " values found for chosen region and time frame.")
     return ridx

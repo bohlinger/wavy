@@ -15,6 +15,7 @@ asgardb: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
                         #/opdata/offshore/fugro/csv
         file_template: '%Y%m%d.d22'
@@ -41,6 +42,7 @@ aastahansteen: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -66,6 +68,7 @@ brage: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -96,6 +99,7 @@ draugen: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -130,7 +134,8 @@ ekofiskL: # object nID (nameID)
     twin:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
-                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",\
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -156,6 +161,7 @@ gjoa: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -181,6 +187,7 @@ goliat: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -206,6 +213,7 @@ grane: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -231,6 +239,7 @@ gudrun: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -256,6 +265,7 @@ oseberg: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -281,6 +291,7 @@ osebergc: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -306,6 +317,7 @@ osebergsyd: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -331,6 +343,7 @@ gullfaksc: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -361,6 +374,7 @@ heidrun: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -386,6 +400,7 @@ heimdal: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -411,6 +426,7 @@ kvitebjorn: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -441,6 +457,7 @@ kristin: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -477,6 +494,7 @@ njorda: # 2004-2016
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -502,6 +520,7 @@ norne: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -527,6 +546,7 @@ ormenlange: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -552,6 +572,7 @@ snorrea: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -577,6 +598,7 @@ snorreb: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -608,6 +630,7 @@ sleipner: # object nID (nameID)
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -644,6 +667,7 @@ stafjorda: # etsablished typo -> should be statfjorda
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -669,6 +693,7 @@ statfjordb:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -694,6 +719,7 @@ trolla:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -719,6 +745,7 @@ trollb:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -744,6 +771,7 @@ ula:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -774,6 +802,7 @@ valhall:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -799,6 +828,7 @@ veslefrikka:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -834,6 +864,7 @@ veslefrikkb:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
@@ -859,6 +890,7 @@ visund:
     src: # source
         path_template: ["/lustre/storeB/immutable/archive/projects/\
                         metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
                         "/vol/gorgon/offshore/nID/d22/"]
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
