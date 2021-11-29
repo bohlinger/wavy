@@ -41,6 +41,8 @@ def get_model_filedate(model, fc_date, leadtime):
     date = fc_date - timedelta(hours=leadtime)
     date_hour = hour_rounder(date).hour
     if date_hour in init_times:
+        print('Leadtime', leadtime , \
+              'available for date' ,fc_date, '!')
         init_diffs = date_hour - init_times
         init_diffs[init_diffs < 0] = np.nan
         h_idx = np.where(init_diffs==\
@@ -48,8 +50,8 @@ def get_model_filedate(model, fc_date, leadtime):
         h = int(init_times[h_idx[0][0]])
         return datetime(date.year, date.month, date.day, h)
     else:
-        print('Leadtime', leadtime , \
-              'not available for date' ,fc_date, '!')
+        #print('Leadtime', leadtime , \
+        #      'not available for date' ,fc_date, '!')
         return False
 
 
@@ -369,8 +371,7 @@ class model_class():
             print("Requested time: ", str(fc_date))
         elif (sdate is not None and edate is not None
               and date_incr is not None):
-            # time frame function to access a temporal subset
-            # --> not yet in use
+            fc_date = sdate
             print("Requested time frame: " + str(sdate) + " - " + str(edate))
 
         print('Please wait ...')
@@ -450,4 +451,5 @@ class model_class():
         ax.coastlines()
         ax.gridlines()
         plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+        ax.set_title(self.model + ' for ' + str(self.fc_date))
         plt.show()

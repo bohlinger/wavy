@@ -462,6 +462,7 @@ class collocation_class():
         self.model = model
         self.varalias = obs_obj.varalias
         self.stdvarname = obs_obj.stdvarname
+        self.units = variable_info[self.varalias].get('units')
         self.leadtime = leadtime
         if leadtime is None:
             self.leadtime = 'best'
@@ -496,6 +497,21 @@ class collocation_class():
             print ("! No collocation_class object initialized !")
         # add class variables
         print ('# ----- ')
+
+    def quicklook(self,projection=None):
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        colors = ['k','orange']
+        ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                linestyle='-',color=colors[0],label='obs')
+        ax.plot(self.vars['datetime'],self.vars['model_values'],
+                linestyle='-',color=colors[1],label='model')
+        plt.ylabel(self.varalias + '[' + self.units + ']')
+        plt.legend(loc='best')
+        plt.tight_layout()
+        #ax.set_title()
+        plt.show()
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
         if 'error' in vars(self):

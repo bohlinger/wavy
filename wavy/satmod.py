@@ -842,6 +842,10 @@ class satellite_class():
         gl.top_labels = False
         gl.right_labels = False
         plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+        ax.set_title(self.mission + ' (' + self.provider + ')\n'
+                  + 'from ' + str(self.vars['datetime'][0])
+                  + ' to ' + str(self.vars['datetime'][-1]))
+        #fig.suptitle('', fontsize=16) # unused
         plt.show()
 
 
