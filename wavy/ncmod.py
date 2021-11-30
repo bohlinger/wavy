@@ -90,40 +90,6 @@ def read_netcdfs_sel(paths,dlst,varname,dim='time'):
     print("... done concatenating")
     return combined
 
-def get_nc_time(pathtofile):
-    """
-    timestep: "first" or "last" time step in nc-file
-    pathtofile: complete path to file
-    """
-    import os.path
-    indicator = os.path.isfile(pathtofile)
-    if indicator is False:
-        dtime = False
-    else:
-        nc = netCDF4.Dataset(pathtofile,mode='r')
-        time_var = nc.variables['time']
-        dtime = netCDF4.num2date(time_var[:],time_var.units)
-        nc.close()
-    return dtime
-
-def get_sat_alt_coll_var(pathtofile,varname):
-    import os.path
-    indicator = os.path.isfile(pathtofile)
-    if indicator is False:
-        dtime = False
-        sys.exit('File does not exist')
-    else:
-        nc = netCDF4.Dataset(
-            pathtofile,mode='r',
-            )
-        if varname == 'dtime':
-            time_var = nc.variables['time']
-            var = netCDF4.num2date(time_var[:],time_var.units)
-        else:
-            var = nc.variables[varname][:]
-        nc.close()
-    return var
-
 def get_arcmfc_ts(pathtofile):
     import os.path
     indicator = os.path.isfile(pathtofile)
@@ -905,23 +871,6 @@ def dumptonc_ts_pos(outpath,filename,title,coll_dict):
                 ncvar.setncatts(varAttribs)
                 ncvar[:] = coll_dict[varstr][:]
                 nc.close()
-
-def check_vals_in_nc(filestr,varname,pytime_in):
-    print('check for time: ', pytime_in)
-    if os.path.exists(filestr):
-        nc = netCDF4.Dataset(filestr,mode='r')
-        var = nc.variables[varname][:]
-        time = nc.variables['time'][:]
-        unit = nc.variables['time'].units
-        pytime_file = netCDF4.num2date(time,units = unit)
-        try:
-            idx = list(pytime_file).index(pytime_in)
-        except ValueError:
-            idx = None
-        nc.close()
-    else:
-        idx = None
-    return idx
 
 @lru_cache(maxsize=32)
 def ncdump(nc_fid, verb=True):
