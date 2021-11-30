@@ -55,7 +55,7 @@ def read_netcdfs(paths, dim='time'):
     print("... done concatenating")
     return combined
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=32)
 def process_one_path_lru(path,t,varname):
     with xr.open_dataset(path) as ds:
         da = ds.sel(time=t)[varname]
@@ -923,7 +923,7 @@ def check_vals_in_nc(filestr,varname,pytime_in):
         idx = None
     return idx
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=32)
 def ncdump(nc_fid, verb=True):
     '''
     Function from:
@@ -991,7 +991,7 @@ def ncdump(nc_fid, verb=True):
                 print_ncattr(var)
     return nc_attrs, nc_dims, nc_vars
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=32)
 def ncdumpMeta(pathtofile):
     '''
     Returns dict of netcdf-file content

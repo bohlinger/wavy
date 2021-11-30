@@ -245,7 +245,7 @@ def main():
 # plot
     if (args.mod is None and sa_obj.region not in model_dict):
         plot_sat(sa_obj, savepath=args.savep, showfig=args.show)
-    elif (args.mod is None and sa_obj.region in model_dict and sdate==edate):
+    elif (args.mod is None and sa_obj.region in model_dict):
         print('Chosen region is a specified model domain')
         mc_obj = mc(model=sa_obj.region,
                     fc_date=model_dict[sa_obj.region]['grid_date'],

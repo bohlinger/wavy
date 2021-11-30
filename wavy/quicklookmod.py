@@ -1,9 +1,13 @@
 """
     Module for quicklook fct
 """
+# imports
 import yaml
 import numpy as np
 import os
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+# own imports
 from wavy.wconfig import load_or_default
 
 # read yaml config files:
@@ -98,13 +102,14 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
     Here, a routine is needed to determine a suitable projection.
     As for now, there is Mercator as default.
     """
-    projection = ccrs.Mercator(
-                    central_longitude=(lonmin+lonmax)/2.,
-                    min_latitude=latmin, max_latitude=latmax,
-                    globe=None, latitude_true_scale=(latmin+latmax)/2.,
-                    false_easting=0.0, false_northing=0.0,
-                    scale_factor=None)
-    #projection = ccrs.NorthPolarStereo(central_longitude=-15)
+    projection_default = ccrs.Mercator(
+                         central_longitude=(lonmin+lonmax)/2.,
+                         min_latitude=latmin, max_latitude=latmax,
+                         globe=None,
+                         latitude_true_scale=(latmin+latmax)/2.,
+                         false_easting=0.0, false_northing=0.0,
+                         scale_factor=None)
+    projection = kwargs.get('projection',projection_default)
 
     land = cfeature.GSHHSFeature(scale='i', levels=[1],
                     facecolor=cfeature.COLORS['land'])
@@ -237,15 +242,23 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
             ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
 
     # - colorbar
-    cbar = fig.colorbar(im, ax=ax, orientation='vertical',
-                        fraction=0.04, pad=0.04)
+    axins = inset_axes(ax,
+                       width="5%",  # width = 5% of parent_bbox width
+                       height="100%",  # height : 50%
+                       loc='lower left',
+                       bbox_to_anchor=(1.01, 0., 1, 1),
+                       bbox_transform=ax.transAxes,
+                       borderpad=0,
+                       )
+    cbar = fig.colorbar(im, cax=axins)
     cbar.ax.set_ylabel( stdvarname + ' [' +
                         variable_info[sa_obj.varalias]['units']
                         + ']',size=fs)
     cbar.ax.tick_params(labelsize=fs)
+    plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 
     # - title
-    plt.title(model + ' model time step: '
+    ax.set_title(model + ' model time step: '
         + coll_obj.vars['valid_date'][0].strftime("%Y-%m-%d %H%M:%S UTC")
         + '\n'
         + sat
@@ -280,17 +293,6 @@ def comp_wind(model,var,Mlons,Mlats,date,region,mode=None):
         cmap = cmocean.cm.phase
         levels = range(0,360,5)
         norm = mpl.colors.BoundaryNorm(levels, cmap.N)
-
-def comp_wind_quiv(model,u,v,Mlons,Mlats,date,region):
-
-    # sort out data/coordinates for plotting
-    u = u.squeeze()
-    v = v.squeeze()
-    var = np.sqrt(u**2+v**2)
-
-    # add quivers for wind
-    qv = ax.quiver( Mlons, Mlats, u, v, color='k',
-                    transform=ccrs.PlateCarree(),scale=500)
 
 def plot_sat(sa_obj,**kwargs):
 
@@ -522,14 +524,22 @@ def plot_sat(sa_obj,**kwargs):
             )
 
     # - colorbar
-    cbar = fig.colorbar(sc, ax=ax, orientation='vertical',
-                        fraction=0.036, pad=0.03)
+    axins = inset_axes(ax,
+                       width="5%",  # width = 5% of parent_bbox width
+                       height="100%",  # height : 50%
+                       loc='lower left',
+                       bbox_to_anchor=(1.01, 0., 1, 1),
+                       bbox_transform=ax.transAxes,
+                       borderpad=0,
+                       )
+    cbar = fig.colorbar(sc, cax=axins)
     cbar.ax.set_ylabel(sa_obj.stdvarname + ' [' +
                         variable_info[sa_obj.varalias]['units']
                         + ']')
     cbar.ax.tick_params(labelsize=fs)
+    plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 
-    plt.title(sa_obj.mission
+    ax.set_title(sa_obj.mission
             + ' with '
             + str(len(sa_obj.vars[sa_obj.stdvarname]))
             + ' footprints: '

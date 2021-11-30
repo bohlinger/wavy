@@ -119,7 +119,7 @@ def make_list_of_model_filenames(model,fc_dates,lt):
         flst.append(fn)
     return flst
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=32)
 def read_model_nc_output_lru(filestr,lonsname,latsname,timename):
     f = netCDF4.Dataset(filestr, 'r')
     # get coordinates and time
@@ -166,7 +166,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
         read_model_nc_output_lru(filestr,lonsname,latsname,timename)
     except Exception as e:
         print(e)
-        print('continue with non-optimized retrieval')
+        print('continue with uncached retrieval')
         model_lons,model_lats,model_time_dt = \
         read_model_nc_output(filestr,lonsname,latsname,timename)
 

@@ -498,20 +498,69 @@ class collocation_class():
         # add class variables
         print ('# ----- ')
 
-    def quicklook(self,projection=None):
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        colors = ['k','orange']
-        ax.plot(self.vars['datetime'],self.vars['obs_values'],
-                linestyle='-',color=colors[0],label='obs')
-        ax.plot(self.vars['datetime'],self.vars['model_values'],
-                linestyle='-',color=colors[1],label='model')
-        plt.ylabel(self.varalias + '[' + self.units + ']')
-        plt.legend(loc='best')
-        plt.tight_layout()
-        #ax.set_title()
-        plt.show()
+    def quicklook(self,m=False,ts=False,projection=None):
+        if m:
+            import cartopy.crs as ccrs
+            import cmocean
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+            lons = self.vars['obs_lons']
+            lats = self.vars['obs_lats']
+            var = self.vars['obs_values']
+            if projection is None:
+                projection = ccrs.PlateCarree()
+            lonmax,lonmin = np.max(lons),np.min(lons)
+            latmax,latmin = np.max(lats),np.min(lats)
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1, projection=projection)
+            ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+                            crs = projection )
+            sc = ax.scatter(lons,lats,s=10,
+                            c = var,
+                            marker='o', edgecolor = 'face',
+                            cmap=cmocean.cm.amp,
+                            transform=ccrs.PlateCarree())
+            axins = inset_axes(ax,
+                       width="5%",  # width = 5% of parent_bbox width
+                       height="100%",  # height : 50%
+                       loc='lower left',
+                       bbox_to_anchor=(1.01, 0., 1, 1),
+                       bbox_transform=ax.transAxes,
+                       borderpad=0,
+                       )
+            fig.colorbar(sc, cax=axins, label=self.varalias
+                                        + ' [' + self.units + ']')
+            ax.coastlines()
+            gl = ax.gridlines(draw_labels=True,crs=projection,
+                              linewidth=1, color='grey', alpha=0.4,
+                              linestyle='-')
+            gl.top_labels = False
+            gl.right_labels = False
+            plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+            ax.set_title(self.obsname + ' (' + self.obstype + ')\n'
+                      + 'from ' + str(self.vars['datetime'][0])
+                      + ' to ' + str(self.vars['datetime'][-1]))
+            #fig.suptitle('', fontsize=16) # unused
+            plt.show()
+        if ts:
+            import matplotlib.pyplot as plt
+            import matplotlib.dates as mdates
+            fig = plt.figure(figsize=(9,3.5))
+            ax = fig.add_subplot(111)
+            colors = ['k','orange']
+            ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                    linestyle='None',color=colors[0],
+                    label='obs (' + self.mission + ')',
+                    marker='o',alpha=.5,ms=2)
+            ax.plot(self.vars['datetime'],self.vars['model_values'],
+                    linestyle='None',color=colors[1],
+                    label='model (' + self.model + ')',
+                    marker='o',alpha=.8,ms=2)
+            plt.ylabel(self.varalias + '[' + self.units + ']')
+            plt.legend(loc='best')
+            plt.tight_layout()
+            #ax.set_title()
+            plt.show()
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
         if 'error' in vars(self):
