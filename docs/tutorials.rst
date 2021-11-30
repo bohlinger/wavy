@@ -104,6 +104,12 @@ Or for instance for a multi-mission file:
 
 4. download L2 stallite altimetry data
 ######################################
+
+.. note::
+
+   There are currently problems with L2 from eumetsat/colhub which
+   will be fixed again hopefully soon.
+
 L2 satellite data are obtained from eumetsat and colhub using the SentinelAPI. This requires user credentials for eumetsat and colhub, which are free of costs as well.
 Enter your account credentials into the .netrc-file as you did for the L3 data. Your .netrc should have included the following:
 
@@ -179,6 +185,11 @@ With the retrieved variables in sa_obj.vars::
 
 Read pure L2 satellite data from eumetsat
 *****************************************
+
+.. note::
+
+   There are currently problems with L2 from eumetsat/colhub which
+   will be fixed again hopefully soon.
 
 .. code-block:: python3
 
