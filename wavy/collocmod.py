@@ -548,7 +548,14 @@ class collocation_class():
             fig = plt.figure(figsize=(9,3.5))
             ax = fig.add_subplot(111)
             colors = ['k','orange']
-            ax.plot(self.vars['datetime'],self.vars['obs_values'],
+            if self.obstype == 'insitu':
+                ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                    linestyle='None',color=colors[0],
+                    label='obs ( ' + self.nID + ' - '
+                                   + self.sensor + ' )',
+                    marker='o',alpha=.5,ms=2)
+            elif self.obstype == 'satellite_altimeter':
+                ax.plot(self.vars['datetime'],self.vars['obs_values'],
                     linestyle='None',color=colors[0],
                     label='obs (' + self.mission + ')',
                     marker='o',alpha=.5,ms=2)
