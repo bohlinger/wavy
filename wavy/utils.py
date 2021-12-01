@@ -572,10 +572,11 @@ def get_item_child(ncdict,item):
     return parent
 
 def parse_date(indate):
+    print("Parsing date")
     if isinstance(indate,datetime):
         return indate
     elif isinstance(indate,str):
-        print('Parsing date')
+        print('Translate to datetime')
         return parse(indate)
     else:
         print('Not able to parse input return as is')

@@ -17,7 +17,7 @@ e.g.:
 
 1. **wavy** config files, a brief overview.
 ###########################################
-**wavy** obtains custom information from config files. There are default versions which can be adjusted to user needs. The following config files exist as per now:
+**wavy** obtains custom information from config files. There are default versions which can be adjusted to user needs. The following config files exist as for now:
 
 
 .. code-block:: bash
@@ -29,15 +29,13 @@ e.g.:
    model_specs.yaml.default        variable_info.yaml.default
    quicklook_specs.yaml.default
 
-Another config file containing customized information to adjust the automated plotting routines is in the making.
-
 **wavy** browses the directory structure as follows:
 
     * check if env 'WAVY_CONFIG' is set or specified in .env
     * check if a config folder exists using xdg
     * fall back on default files within the package
 
-For simplicity, let's assume that we have our custom config files in *~/wavy/config*.
+It is probably easiest to start off copying the default config files you would like to edit to a directory of your choice. Then remove the ".default" extension. For simplicity, let's assume that you have your custom config files in *~/wavy/config/*.
 
 2. download L3 satellite altimetry data
 #######################################
@@ -80,26 +78,26 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -prov cmems -lev L3
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3
 
 You can find the downloaded files in your chosen download directory.
 
 3. download L2P and L3 CCI multi-mission satellite altimetry data
 #################################################################
-Similarily one can download L2P and L3 mulit-mission altimetry data from the CEDA Climate Change Initiative. This spans the long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation.
+Similarily one can download L2P and L3 multi-mission altimetry data from the CEDA Climate Change Initiative. This spans a long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation.
 
 For instance for Jason-3:
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -prov cci -lev L2P
+   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -product cci_L3
 
 
 Or for instance for a multi-mission file:
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat multi -sd 2017112000 -ed 2017112100 -prov cci -lev L3
+   $ ./wavyDownload.py -sat multi -sd 2017112000 -ed 2017112100 -product cci_L3
 
 
 4. download L2 stallite altimetry data
@@ -122,7 +120,7 @@ Ammend the satellite config file for L2 data and add the download directory of y
 
 .. code-block:: yaml
 
-   eumetsat:
+   eumetsat_L2:
       L2:
          dst:
              path_template: /home/patrikb/tmp_altimeter/L2/mission
@@ -131,16 +129,16 @@ As you can see, this is customized to my username patrikb. Adjust this and conti
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -prov eumetsat -lev L2
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product eumetsat_L2
 
 4. read satellite data
 ######################
-Once the satellite data is downloaded one can access and read the data for further use in python.
+Once the satellite data is downloaded one can access and read the data for further use with **wavy** or other software.
 
 L3 data from cmems
 ******************
 
-L3 data can be read like:
+In python L3 data can be read by importing the satellite_class, choosing a region of interest, the variable of interest (Hs or U), the satellite mission, which product should be used, and whether a time window should be used as well as a start and possibly an end date. This could look like:
 
 .. code-block:: python3
 
@@ -151,37 +149,73 @@ L3 data can be read like:
    >>> product = 'cmems_L3' # default
    >>> twin = 30 # default
    >>> sd = "2020-11-1" # can also be datetime object
-   >>> ed = "2020-11-2"
+   >>> ed = "2020-11-2" # not necessary if twin is specified
    >>> sco = sc(sdate=sd,edate=ed,region=region)
 
 This would result in a satellite_class object and the following output message::
 
    >>> sco = sc(sdate=sd,edate=ed,region=region)
-   Total:  148425  footprints found
-   In chosen time period:  46661  footprints found
+   # -----
+   ### Initializing satellite_class object ###
+
+   Parsing date
+   Translate to datetime
+   Parsing date
+   Translate to datetime
+   Requested time frame: 2020-11-01 00:00:00 - 2020-11-02 00:00:00
+   Chosen time window is: 30 min
+   No download initialized, checking local files
+
+    ## Find files ...
+   path_local is None -> checking config file
+   /home/patrikb/tmp_altimeter/L3/s3a/2020/10
+   /home/patrikb/tmp_altimeter/L3/s3a/2020/11
+   26 valid files found
+
+    ## Read files ...
+   Get filevarname for
+   stdvarname: sea_surface_wave_significant_height
+   varalias: Hs
+   !!! standard_name:  sea_surface_wave_significant_height  is not unique !!!
+   The following variables have the same standard_name:
+    ['VAVH', 'VAVH_UNFILTERED']
+   Searching *_specs.yaml config file for definition
+   Variable defined in *_specs.yaml is:
+   Hs = VAVH
+   100%|███████████████████████████████████████████| 26/26 [00:00<00:00, 91.45it/s]
+   Concatenate ...
+   ... done concatenating
+   Total:  46661  footprints found
+   Apply region mask
    Specified region: NorwegianSea
     --> Bounded by polygon:
    lons: [5.1, -0.8, -6.6, -9.6, -8.6, -7.5, 1.7, 8.5, 7.2, 16.8, 18.7, 22.6, 18.4, 14.7, 11.7, 5.1]
    lats: [62.1, 62.3, 63.2, 64.7, 68.5, 71.1, 72.6, 74.0, 76.9, 76.3, 74.5, 70.2, 68.3, 66.0, 64.1, 62.1]
    Values found for chosen region and time frame.
+   Region mask applied
    For chosen region and time:  351 footprints found
-   Time used for retrieving satellite data: 2.22 seconds
+
+   ## Summary:
+   Time used for retrieving satellite data: 0.34 seconds
    Satellite object initialized including 351 footprints.
+   # -----
+
 
 Investigating the satellite_object you will find something like::
 
-
    >>> sco.
-   sco.edate             sco.path_local        sco.twin
+   sco.edate             sco.product           sco.units
    sco.get_item_child(   sco.provider          sco.varalias
-   sco.get_item_parent(  sco.region            sco.varname
-   sco.mission           sco.sdate             sco.vars
-   sco.obstype           sco.stdvarname        sco.write_to_nc(
+   sco.get_item_parent(  sco.quicklook(        sco.varname
+   sco.mission           sco.region            sco.vars
+   sco.obstype           sco.sdate             sco.write_to_nc(
+   sco.path_local        sco.stdvarname
+   sco.processing_level  sco.twin
 
 With the retrieved variables in sa_obj.vars::
 
    >>> sco.vars.keys()
-   dict_keys(['time', 'latitude', 'longitude', 'sea_surface_wave_significant_height', 'time_unit', 'datetime', 'meta'])
+   dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])
 
 Read pure L2 satellite data from eumetsat
 *****************************************
@@ -205,6 +239,11 @@ Read pure L2 satellite data from eumetsat
 
 Retrieve pure L2 data and compare against L3
 ********************************************
+
+.. note::
+
+   There are currently problems with L2 from eumetsat/colhub which
+   will be fixed again hopefully soon.
 
 Having downloaded the altimetry data, you can do:
 
@@ -264,7 +303,7 @@ Appy basic filters to raw L2 data
 
 5. access/read model data
 #########################
-Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read in follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
+Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
 
 .. code-block:: yaml
 
@@ -274,15 +313,17 @@ Model output can be accessed and read using the modelmod module. The modelmod co
        init_times: []
        init_step:
 
-Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding a variable like:
+Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding the specified variable name like:
 
 .. code-block:: yaml
 
-    vars:
+    vardef:
         Hs: VHM0
         time: time
         lons: lon
         lats: lat
+
+The variable aliases (left hand side) need to be specified in the variable_info.yaml. Basic variables are already defined. All specs listed here are also used when **wavy** writes the retrieved values to netcdf.
 
 .. code-block:: python3
 
@@ -295,16 +336,17 @@ Often there are ambiguities due to the multiple usage of standard_names. Any suc
    >>> mco_p = mc(sdate=sd,edate=ed) # time period
    >>> mco_lt = mc(sdate=sd,leadtime=12) # time slice with lead time
 
-Whenever the keyword "leadtime" is None, a best guess is assumed and retrieved. The output will be something like::
+Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieved. The output will be something like::
 
    >>> mco = mc(sdate=sd)
-   Time used for retrieving model data: 1.88 seconds
-    ### model_class object initialized ###
+
    >>> mco.
-   mco.edate             mco.get_item_parent(  mco.stdvarname
-   mco.fc_date           mco.leadtime          mco.varalias
-   mco.filestr           mco.model             mco.varname
+   mco.edate             mco.leadtime          mco.units
+   mco.fc_date           mco.model             mco.varalias
+   mco.filestr           mco.quicklook(        mco.varname
    mco.get_item_child(   mco.sdate             mco.vars
+   mco.get_item_parent(  mco.stdvarname
+
    >>> mco.vars.keys()
    dict_keys(['longitude', 'latitude', 'time', 'datetime', 'time_unit', 'sea_surface_wave_significant_height', 'meta', 'leadtime'])
 
@@ -320,7 +362,11 @@ Currently two data types can be read .d22-files and netcdf-files.
 read .d22 files
 ***************
 
-.d22-files can be read in by adjusting d22_var_dicts config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the insitu_specs.yaml. There you need to define specs related to the in-situ observation of choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
+.. note::
+
+   The .d22-files used in these examples and specified here are only available to MET Norway stuff.
+
+.d22-files can be read in by adjusting d22_var_dicts.yaml config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the insitu_specs.yaml. There you need to define specs related to the in-situ observation of choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
 
 .. code-block:: python3
 
@@ -363,11 +409,10 @@ Now, let's check how this could look like:
 .. code-block:: python3
 
    >>> import matplotlib.pyplot as plt
-   >>> stdname = ico.stdvarname
    >>> fig = plt.figure(figsize=(9,3.5))
    >>> ax = fig.add_subplot(111)
-   >>> ax.plot(ico.vars['datetime'],ico.vars[stdname],'ko',label='raw')
-   >>> ax.plot(ico_bm.vars['datetime'],ico_bm.vars[stdname],'r-',label='hourly blockMean')
+   >>> ax.plot(ico.vars['datetime'],ico.vars[ico.stdvarname],'ko',label='raw')
+   >>> ax.plot(ico_bm.vars['datetime'],ico_bm.vars[ico.stdvarname],'r-',label='hourly blockMean')
    >>> plt.legend(loc='upper left')
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
@@ -375,13 +420,9 @@ Now, let's check how this could look like:
 .. image:: ./docs_fig_ts_insitu.png
    :scale: 80
 
-.. note::
-
-   It is important to note that due to different sampling frequencies there are still amibiguities that will have to be removed in future fixes.
-
 7. collocating model and observations
 #####################################
-One of the main focus of wavy is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped.
+One of the main focus of **wavy** is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them.
 
 Collocation of satellite and wave model
 ****************************************
@@ -434,8 +475,8 @@ The following example may take a few minutes.
    >>> # settings
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1 1"
-   >>> ed = "2020-1-4 0"
+   >>> sd = "2020-1-1 01"
+   >>> ed = "2020-1-4 00"
    >>> nID = 'ekofiskL'
    >>> sensor = 'waverider'
 

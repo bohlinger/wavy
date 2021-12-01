@@ -436,9 +436,9 @@ class collocation_class():
     def __init__(self,mc_obj_in=None,obs_obj_in=None,
         col_obj_in=None,model=None,distlim=None,leadtime=None,
         date_incr=None):
-        print ('# ----- ')
-        print (" ### Initializing collocation_class object ###")
-        print (" Please wait ...")
+        print('# ----- ')
+        print(" ### Initializing collocation_class object ###")
+        print(" ")
         # make clones to prevent overwriting
         mc_obj = deepcopy(mc_obj_in)
         obs_obj = deepcopy(obs_obj_in)
@@ -476,6 +476,8 @@ class collocation_class():
             self.leadtime = leadtime
             self.leadtimestr = leadtimestr
         # get vars dictionary
+        print(" ")
+        print(" ## Collocate ... ")
         try:
             t0=time.time()
             results_dict = collocate(mc_obj=mc_obj,
@@ -485,11 +487,12 @@ class collocation_class():
                                     distlim=distlim,
                                     leadtime=self.leadtime,
                                     date_incr=date_incr)
-            t1=time.time()
-            print("Time used for collocation:",round(t1-t0,2),"seconds")
             self.vars = results_dict
             self.fc_date = results_dict['datetime']
-            print(len(self.vars['time'])," values collocated")
+            t1=time.time()
+            print(" ## Summary:")
+            print("Time used for collocation:",round(t1-t0,2),"seconds")
+            print(len(self.vars['time'])," values collocated.")
             print (" ### Collocation_class object initialized ###")
         except Exception as e:
             print(e)

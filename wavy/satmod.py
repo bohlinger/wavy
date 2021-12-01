@@ -30,7 +30,7 @@ import xarray as xr
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import read_netcdfs, get_filevarname
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
-from wavy.utils import find_included_times
+from wavy.utils import find_included_times, NoStdStreams
 from wavy.utils import sort_files, parse_date
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem, haversineA
@@ -659,9 +659,9 @@ class satellite_class():
         filterData=False,poi=None,distlim=None,
         **kwargs):
 
-        print ('# ----- ')
-        print (" ### Initializing satellite_class object ###")
-
+        print('# ----- ')
+        print(" ### Initializing satellite_class object ###")
+        print(" ")
         # parse and translate date input
         sdate = parse_date(sdate)
         edate = parse_date(edate)
@@ -693,7 +693,6 @@ class satellite_class():
         self.provider = satellite_dict[product].get('provider')
         self.processing_level = \
                 satellite_dict[product].get('processing_level')
-        print('Please wait ...')
         print('Chosen time window is:', twin, 'min')
         # make satpaths
         if path_local is None:
@@ -710,10 +709,14 @@ class satellite_class():
             print ("Downloading necessary files ...")
             get_remote_files(path_local,sdate,edate,twin,
                             nproc,product,api_url,mission,vars(self))
+        print(" ")
+        print(" ## Find files ...")
         t0=time.time()
         pathlst, _ = get_local_files(sdate,edate,twin,
                                      product,vars(self),
                                      path_local=path_local)
+        print(" ")
+        print(" ## Read files ...")
         if len(pathlst) > 0:
 #            for i in range(1):
             try:
@@ -766,7 +769,8 @@ class satellite_class():
                                                path=tmpdir.name)
                     ncdict = ncdumpMeta(extracted)
                     tmpdir.cleanup()
-                filevarname = get_filevarname(varalias,
+                with NoStdStreams():
+                    filevarname = get_filevarname(varalias,
                                               variable_info,
                                               satellite_dict[product],
                                               ncdict)
@@ -775,10 +779,12 @@ class satellite_class():
                 self.vars = rvardict
                 self.varname = filevarname
                 t1=time.time()
+                print(" ")
+                print( '## Summary:')
                 print("Time used for retrieving satellite data:",\
                         round(t1-t0,2),"seconds")
-                print ("Satellite object initialized including "
-                    + str(len(self.vars['time'])) + " footprints.")
+                print ("### Satellite object initialized including "
+                    + str(len(self.vars['time'])) + " footprints. ###")
                 print ('# ----- ')
             except Exception as e:
                 print(e)

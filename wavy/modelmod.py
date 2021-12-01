@@ -42,7 +42,7 @@ def get_model_filedate(model, fc_date, leadtime):
     date_hour = hour_rounder(date).hour
     if date_hour in init_times:
         print('Leadtime', leadtime , \
-              'available for date' ,fc_date, '!')
+              'available for date' ,fc_date)
         init_diffs = date_hour - init_times
         init_diffs[init_diffs < 0] = np.nan
         h_idx = np.where(init_diffs==\
@@ -147,7 +147,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     fct to retrieve model data for correct time
     """
     vardict = {}
-    print("Get model data according to selected date ....")
+    print("Get model data according to selected date(s) ....")
     print(filestr)
     meta = ncdumpMeta(filestr)
     stdvarname = variable_info[varalias]['standard_name']
@@ -352,6 +352,7 @@ class model_class():
                  st_obj=None):
         print('# ----- ')
         print(" ### Initializing model_class object ###")
+        print(' ')
         # parse and translate date input
         sdate = parse_date(sdate)
         edate = parse_date(edate)
@@ -374,7 +375,8 @@ class model_class():
             fc_date = sdate
             print("Requested time frame: " + str(sdate) + " - " + str(edate))
 
-        print('Please wait ...')
+        print(" ")
+        print(" ## Read files ...")
         t0 = time.time()
         vardict, \
         fc_date, leadtime, \
@@ -399,6 +401,8 @@ class model_class():
         self.vars = vardict
         self.filestr = filestr
         t1 = time.time()
+        print(" ")
+        print( '## Summary:')
         print("Time used for retrieving model data:", round(t1 - t0, 2),
               "seconds")
         print(" ### model_class object initialized ###")

@@ -13,6 +13,7 @@ import os
 import numpy as np
 from datetime import datetime, timedelta
 import datetime
+import time
 import argparse
 from argparse import RawTextHelpFormatter
 import os
@@ -58,17 +59,16 @@ class insitu_class():
     Class to handle insitu based time series.
     '''
     basedate = datetime(1970,1,1)
-    time_unit = 'seconds since 1970-01-01 00:00:00.0'
 
     def __init__(self,nID,sensor,sdate,edate,varalias='Hs',
     filterData=False,**kwargs):
         # parse and translate date input
         sdate = parse_date(sdate)
         edate = parse_date(edate)
-        print ('# ----- ')
-        print (" ### Initializing insitu_class object ###")
+        print('# ----- ')
+        print(" ### Initializing insitu_class object ###")
+        print(" ")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
-        print (" Please wait ...")
         stdvarname = variable_info[varalias]['standard_name']
         try:
             self.stdvarname = stdvarname
@@ -82,20 +82,15 @@ class insitu_class():
             if ('tags' in insitu_dict[nID].keys() and
             len(insitu_dict[nID]['tags'])>0):
                 self.tags = insitu_dict[nID]['tags']
+            print(" ")
+            print(" ## Read files ...")
+            t0=time.time()
             if filterData == False:
-                var, time, timedt, lon, lat, fifo, pathtofile = \
+                vardict, fifo, pathtofile = \
                     get_insitu_ts(\
                                 nID, sensor,sdate,edate,
                                 varalias,self.basedate,vars(self),
                                 **kwargs)
-                vardict = {
-                    stdvarname:var,
-                    'time':time,
-                    'datetime':timedt,
-                    'time_unit':self.time_unit,
-                    'longitude':lon,
-                    'latitude':lat
-                    }
             elif filterData == True:
                 # determine start and end date
                 if 'stwin' not in kwargs.keys():
@@ -104,19 +99,11 @@ class insitu_class():
                     kwargs['etwin'] = 0
                 sdate_new = sdate - timedelta(hours=kwargs['stwin'])
                 edate_new = edate + timedelta(hours=kwargs['etwin'])
-                var, time, timedt, lon, lat, fifo, pathtofile = \
+                tmp_vardict, fifo, pathtofile = \
                     get_insitu_ts(nID,sensor,
                                 sdate_new,edate_new,
                                 varalias,self.basedate,vars(self),
                                 **kwargs)
-                tmp_vardict = {
-                    stdvarname:var,
-                    'time':time,
-                    'datetime':timedt,
-                    'time_unit':self.time_unit,
-                    'longitude':lon,
-                    'latitude':lat
-                    }
                 vardict = filter_main(tmp_vardict,
                                       varalias=varalias,
                                       **kwargs)
@@ -160,7 +147,13 @@ class insitu_class():
                 self.varname = varname
             else:
                 self.varname = varalias
-            print (" ### insitu_class object initialized ###")
+            t1=time.time()
+            print(" ")
+            print( '## Summary:')
+            print("Time used for retrieving insitu data:",\
+                   round(t1-t0,2),"seconds")
+            print (" ### insitu_class object initialized including "
+                    + str(len(self.vars['time'])) + " values. ###")
         except Exception as e:
             print(e)
             self.error = e
@@ -238,6 +231,7 @@ class insitu_class():
 
 def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
 dict_for_sub,**kwargs):
+    stdvarname = variable_info[varalias]['standard_name']
     # determine fifo
     fifo = finditem(insitu_dict[nID],'fifo')[0]
     path_template = insitu_dict[nID]['src']['path_template']
@@ -247,7 +241,7 @@ dict_for_sub,**kwargs):
     if 'path_local' in kwargs.keys():
         pathlst = [kwargs['path_local'] + '/' + file_template]
     if fifo == 'nc':
-        var, time, timedt, lons, lats, pathtofile = \
+        vardict, pathtofile = \
             get_nc_ts(nID,varalias,sdate,edate,pathlst,\
                       strsublst,dict_for_sub)
     elif fifo == 'd22':
@@ -295,7 +289,15 @@ dict_for_sub,**kwargs):
         lats = [insitu_dict[nID]['coords'][sensor]['lat']]\
                *len(var)
         pathtofile = path_template
-    return var, time, timedt, lons, lats, fifo, pathtofile
+        vardict = {
+                    stdvarname:var,
+                    'time':time,
+                    'datetime':timedt,
+                    'time_unit':variable_info['time']['units'],
+                    'longitude':lons,
+                    'latitude':lats
+                    }
+    return vardict, fifo, pathtofile
 
 def get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,
 pathlst,strsublst,dict_for_sub):
@@ -310,6 +312,7 @@ pathlst,strsublst,dict_for_sub):
 
 def get_nc_ts(nID,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     # loop from sdate to edate with dateincr
+    stdvarname = variable_info[varalias]['standard_name']
     tmpdate = deepcopy(sdate)
     varlst = []
     lonlst = []
@@ -353,8 +356,16 @@ def get_nc_ts(nID,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     latlst = flatten(latlst)
     timelst = flatten(timelst)
     dtimelst = flatten(dtimelst)
-    #turn timedt into datetime objects
-    return varlst, timelst, dtimelst, lonlst, latlst, pathtofile
+    vardict = {
+                stdvarname:varlst,
+                'time':timelst,
+                'datetime':dtimelst,
+                'time_unit':variable_info['time']['units'],
+                'longitude':lonlst,
+                'latitude':latlst
+                }
+    #pathtofile = insitu_dict[nID]['src']['path_template'][0]
+    return vardict, pathtofile
 
 def parse_d22(sdate,edate,pathlst,strsublst,dict_for_sub):
     """
