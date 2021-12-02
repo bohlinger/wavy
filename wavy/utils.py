@@ -309,6 +309,24 @@ def sort_files(dirpath,filelst,product,sat):
         sort_cci(dirpath,filelst,sat)
     elif product == 'eumetsat_L2':
         sort_eumetsat_l2(dirpath,filelst,sat)
+    elif product == 'cfo_swim_L2P':
+        sort_aviso_l2p(dirpath,filelst,sat)
+
+def sort_aviso_l2p(dirpath,filelst,sat):
+    '''
+    Sort AVISO files according to year and month.
+    '''
+    for e in filelst:
+        if os.path.isfile(os.path.join(dirpath,e)):
+            tmp = e.split('_')
+            d1 = parse(tmp[-2])
+            #d2 = parse(tmp[-1].split('.')[0])
+            year, month = d1.strftime("%Y"), d1.strftime("%m")
+            folder = os.path.join(dirpath,year,month)
+            cmd = 'mkdir -p ' + folder
+            os.system(cmd)
+            cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
+            os.system(cmd)
 
 def sort_cmems_l3(dirpath,filelst,sat):
     '''

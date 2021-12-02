@@ -80,6 +80,8 @@ cci_L2P:
     src:
         path_template: "/neodc/esacci/sea_state/data/v1.1_release/\
                         l2p/mission/v1.1/%Y/%m/%d/"
+        #file_template: "ESACCI-SEASTATE-L2P-SWH-Jason-3-\
+        #                %Y%m%dT%H*-fv01.nc"
         server: "ftp.ceda.ac.uk"
         strsub: ['mission']
     misc:
@@ -115,3 +117,26 @@ cci_L3:
         lons: lon
     processing_level: L3
     provider: cci
+
+cfo_swim_L2P:
+    mission:
+        cfo: cfo
+    dst:
+        path_template: /home/patrikb/tmp_SWIM/L2P/mission
+        file_template: "varalias_mission_swim_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
+    src:
+        path_template: '/cfosat/swim_l2p_box_nrt/%Y/'
+        server: "ftp-access.aviso.altimetry.fr"
+        strsub: ['mission']
+    misc:
+    vardef: # varalias: varname
+        Hs: wave_param
+        Pdir: wave_param
+        time: time_spec_l2
+        lats: lat_spec_l2
+        lons: lon_spec_l2
+    processing_level: L2P
+    provider: aviso

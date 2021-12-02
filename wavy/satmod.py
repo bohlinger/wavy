@@ -156,6 +156,84 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         sort_files(path_local,filelst,product,sat)
     print ('Files downloaded to: \n', path_local)
 
+def get_remote_files_aviso(\
+sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
+    '''
+    Download swath files from AVISO+ and store them at defined
+    location.
+    '''
+    # credentials
+    server = satellite_dict[product]['src']['server']
+    user, pw = get_credentials(remoteHostName = server)
+    tmpdate = deepcopy(sdate)
+    filesort = False
+    while (tmpdate <= edate):
+        # create remote path
+        path_template = satellite_dict[product]['src']\
+                                      ['path_template']
+        strsublst = satellite_dict[product]['src']\
+                                  ['strsub']
+        subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
+        path_remote = make_pathtofile(path_template,\
+                                      strsublst,subdict,\
+                                      date=tmpdate)
+        if path_local is None:
+            # create local path
+            path_template = satellite_dict[product]['dst']\
+                                          ['path_template']
+            strsublst = satellite_dict[product]['dst']\
+                                      ['strsub']
+            path_local = make_pathtofile(path_template,\
+                                     strsublst,subdict,\
+                                     date=sdate)
+            filesort = True
+        print ('# ----- ')
+        print ('Chosen source: ')
+        print (sat + ' values from ' + product + ': ' + server)
+        print ('# ----- ')
+        # get list of accessable files
+        ftp = FTP(server)
+        ftp.login(user, pw)
+        ftp.cwd(path_remote)
+        content=FTP.nlst(ftp)
+        #choose files according to sdate/edate
+        tmplst=[]
+        tmpdate_new = tmpdate-timedelta(minutes=twin)
+        tmpdate_end = edate+timedelta(minutes=twin)
+        while (tmpdate_new <= tmpdate_end):
+            matchingtmp = [s for s in content
+                            if tmpdate_new.strftime('%Y%m%dT%H')
+                            in s ]
+            tmplst = tmplst + matchingtmp
+            tmpdate_new = tmpdate_new + timedelta(minutes=twin)
+        matching = np.unique(tmplst)
+        # check if download path exists if not create
+        if not os.path.exists(path_local):
+            cmd = 'mkdir -p ' + path_local
+            os.system(cmd)
+        # Download matching files
+        print ('Downloading ' + str(len(matching))
+                + ' files: .... \n')
+        print ("Used number of possible simultaneous downloads "
+                + str(nproc) + "!")
+        Parallel(n_jobs=nproc)(
+                        delayed(tmploop_get_remote_files)(
+                        i,matching,user,pw,server,
+                        path_remote,path_local
+                        ) for i in range(len(matching))
+                        )
+        # update time
+        tmpdate = datetime((tmpdate + relativedelta(years=+1)).year,
+                            (tmpdate + relativedelta(years=+1)).month,1)
+    if filesort is True:
+        # sort files
+        print("Data is being sorted into subdirectories " \
+            + "year and month ...")
+        filelst = [f for f in os.listdir(path_local)
+                    if os.path.isfile(os.path.join(path_local,f))]
+        sort_files(path_local,filelst,product,sat)
+    print ('Files downloaded to: \n', path_local)
+
 def get_remote_files_cci(\
 sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
     '''
@@ -314,6 +392,10 @@ def get_remote_files(path_local,sdate,edate,twin,
     '''
     if product=='cmems_L3':
         get_remote_files_cmems(sdate,edate,twin,nproc,\
+                               sat,product,path_local,\
+                               dict_for_sub)
+    elif product=='cfo_swim_L2P':
+        get_remote_files_aviso(sdate,edate,twin,nproc,\
                                sat,product,path_local,\
                                dict_for_sub)
     elif product=='eumetsat_L2':
