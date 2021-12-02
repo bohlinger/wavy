@@ -33,4 +33,8 @@ Either create a xdg project path or an .env file in the wavy root directory and 
       WAVY_DIR=/home/patrikb/wavy/
       WAVY_CONFIG=/home/patrikb/wavy/config/
 
-#. adjust config files --> done in tutorials
+#. cp config files to WAVY_CONFIG and remove the .default suffix
+
+#. adjust config files
+
+   --> Adjustments done in tutorial

@@ -90,7 +90,7 @@ For instance for Jason-3:
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -product cci_L3
+   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -product cci_L2P
 
 
 Or for instance for a multi-mission file:
