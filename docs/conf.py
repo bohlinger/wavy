@@ -1,4 +1,8 @@
-extensions = [ 'autoapi.extension', 'sphinx.ext.intersphinx']
+extensions = [
+    'autoapi.extension',
+    'sphinx.ext.intersphinx'
+    # 'matplotlib.sphinxext.plot_directive',
+]
 
 autoapi_type = 'python'
 autoapi_dirs = ['../wavy']
