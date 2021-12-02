@@ -357,7 +357,7 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
 6. read in-situ observations (.d22 and netcdf/thredds)
 ######################################################
 
-Currently two data types can be read .d22-files and netcdf-files.
+Currently two data types can be read .d22-files and netcdf-files. Edit the insity_specs.yaml file in your config folder and adjust the directories.
 
 read .d22 files
 ***************

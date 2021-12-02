@@ -490,6 +490,7 @@ class collocation_class():
             self.vars = results_dict
             self.fc_date = results_dict['datetime']
             t1=time.time()
+            print(" ")
             print(" ## Summary:")
             print("Time used for collocation:",round(t1-t0,2),"seconds")
             print(len(self.vars['time'])," values collocated.")
