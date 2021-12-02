@@ -118,7 +118,8 @@ ww3_4km:
         Tm02: t02
         lons: longitude
         lats: latitude
-    path_template: "https://thredds.met.no/thredds/dodsC/ww3_4km_archive_files/%Y/%m/%d/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    ww3_4km_archive_files/%Y/%m/%d/"
     file_template: ww3_4km_%Y%m%dT%HZ.nc
     init_times: [0,6,12,18]
     init_step: 6
@@ -134,7 +135,8 @@ AromeArctic:
         U: wind_speed
         lons: longitude
         lats: latitude
-    path_template: "https://thredds.met.no/thredds/dodsC/aromearcticarchive/%Y/%m/%d/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    aromearcticarchive/%Y/%m/%d/"
     file_template: arome_arctic_extracted_2_5km_%Y%m%dT%HZ.nc
     init_times: [0,3,6,9,12,15,18,21]
     init_step: 3

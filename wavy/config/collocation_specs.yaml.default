@@ -2,14 +2,16 @@
 
 insitu:
     dst:
-        path_template: ["/home/patrikb/tmp_collocation/model/%Y/%m/"]
+        #path_template: ["/home/patrikb/tmp_collocation/model/%Y/%m/"]
+        path_template: []
         file_template: "varalias_model_vs_nID_sensor_coll_ts_\
                         ltleadtimestrh_%Y%m.nc"
         strsub: ['varalias','model','nID','sensor','leadtimestr']
         file_date_incr: m
 satellite_altimeter:
     dst:
-        path_template: ["/home/patrikb/tmp_collocation/model/%Y/%m/"]
+        #path_template: ["/home/patrikb/tmp_collocation/model/%Y/%m/"]
+        path_template: []
         file_template: "varalias_model_vs_mission_for_region_coll_ts_\
                         ltleadtimestrh_%Y%m.nc"
         strsub: ['varalias','model','mission','region','leadtimestr']

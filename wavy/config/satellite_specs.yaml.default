@@ -13,7 +13,8 @@ eumetsat_L2:
         s3a: S3A
         s3b: S3B
     dst:
-        path_template: /home/patrikb/tmp_altimeter/L2/mission
+        #path_template: /home/patrikb/tmp_altimeter/L2/mission
+        path_template:
         file_template: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']
@@ -41,7 +42,8 @@ cmems_L3:
         h2b: h2b
         cfo: cfo
     dst:
-        path_template: /home/patrikb/tmp_altimeter/L3/mission
+        #path_template: /home/patrikb/tmp_altimeter/L3/mission
+        path_template:
         file_template: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']
@@ -72,7 +74,8 @@ cci_L2P:
         al: saral
         tpx: topex
     dst:
-        path_template: /home/patrikb/tmp_altimeter/L2P/mission
+        #path_template: /home/patrikb/tmp_altimeter/L2P/mission
+        path_template:
         file_template: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']
@@ -98,7 +101,8 @@ cci_L3:
     mission:
         multi: multi
     dst:
-        path_template: /home/patrikb/tmp_altimeter/L3/mission
+        #path_template: /home/patrikb/tmp_altimeter/L3/mission
+        path_template:
         file_template: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']
@@ -122,7 +126,8 @@ cfo_swim_L2P:
     mission:
         cfo: cfo
     dst:
-        path_template: /home/patrikb/tmp_SWIM/L2P/mission
+        #path_template: /home/patrikb/tmp_SWIM/L2P/mission
+        path_template:
         file_template: "varalias_mission_swim_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']

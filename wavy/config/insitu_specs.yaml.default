@@ -21,7 +21,8 @@ asgardb: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        #path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -47,7 +48,7 @@ aastahansteen: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -73,7 +74,7 @@ brage: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -104,7 +105,7 @@ draugen: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -140,7 +141,7 @@ ekofiskL: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
         vardef:
@@ -166,7 +167,7 @@ gjoa: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -192,7 +193,7 @@ goliat: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -218,7 +219,7 @@ grane: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -244,7 +245,7 @@ gudrun: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -270,7 +271,7 @@ oseberg: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -296,7 +297,7 @@ osebergc: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -322,7 +323,7 @@ osebergsyd: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -348,7 +349,7 @@ gullfaksc: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -379,7 +380,7 @@ heidrun: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -405,7 +406,7 @@ heimdal: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -431,7 +432,7 @@ kvitebjorn: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -462,7 +463,7 @@ kristin: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -499,7 +500,7 @@ njorda: # 2004-2016
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -525,7 +526,7 @@ norne: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -551,7 +552,7 @@ ormenlange: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -577,7 +578,7 @@ snorrea: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -603,7 +604,7 @@ snorreb: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef: # stdname: abbreviation
@@ -635,7 +636,7 @@ sleipner: # object nID (nameID)
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -672,7 +673,7 @@ stafjorda: # etsablished typo -> should be statfjorda
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -698,7 +699,7 @@ statfjordb:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -724,7 +725,7 @@ trolla:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -750,7 +751,7 @@ trollb:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -776,7 +777,7 @@ ula:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -807,7 +808,7 @@ valhall:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -833,7 +834,7 @@ veslefrikka:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -869,7 +870,7 @@ veslefrikkb:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -895,7 +896,7 @@ visund:
         file_template: '%Y%m%d.d22'
         strsub: ['nID']
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -930,7 +931,8 @@ A_Sulafjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        #path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -959,7 +961,7 @@ A_Sulafjorden_wind: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -983,7 +985,7 @@ B_Sulafjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1012,7 +1014,7 @@ B_Sulafjorden_wind: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1036,7 +1038,7 @@ B1_Sulafjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1065,7 +1067,7 @@ C_Sulafjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1094,7 +1096,7 @@ C_Sulafjorden_wind: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1118,7 +1120,7 @@ C1_Sulafjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1147,7 +1149,7 @@ D_Breisundet_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1176,7 +1178,7 @@ D_Breisundet_wind: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1202,7 +1204,7 @@ F_Vartdalsfjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1231,7 +1233,7 @@ F_Vartdalsfjorden_wind: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1255,7 +1257,7 @@ G_Halsafjorden_wave: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
@@ -1284,7 +1286,7 @@ G_Halsafjorden_wind: # object nID (nameID)
         strsub: ['nID']
         file_date_incr: 'm' # Y,m,d
     dst: # destination
-        path_template: ["/home/patrikb/tmp_station/%Y/%m/"]
+        path_template: []
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
