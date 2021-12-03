@@ -438,11 +438,16 @@ class model_class():
         lons = self.vars['longitude']
         lats = self.vars['latitude']
         var = self.vars[self.stdvarname]
-        if datetime is not None:
+        fc_date = self.fc_date
+        if date is not None:
             # find date in self.vars and give a snapshot
             idx = self.vars['datetime'].index(dt)
             var = self.vars[self.stdvarname][idx,:]
-            # if only one time is given go to index 0
+            fc_date = self.fc_date[idx]
+        elif (date is None and len(var.shape)==3):
+            # find date in self.vars and give a snapshot
+            var = self.vars[self.stdvarname][0,:]
+            fc_date = self.fc_date[0]
         if projection is None:
             projection = ccrs.PlateCarree()
         lonmax,lonmin = np.max(lons),np.min(lons)
@@ -467,5 +472,5 @@ class model_class():
         ax.coastlines()
         ax.gridlines()
         plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-        ax.set_title(self.model + ' for ' + str(self.fc_date))
+        ax.set_title(self.model + ' for ' + str(fc_date))
         plt.show()
