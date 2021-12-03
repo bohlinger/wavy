@@ -270,7 +270,7 @@ def dumptonc_ts_insitu(ico,pathtofile,title):
         nc.close()
     else:
         outpath = os.path.dirname(pathtofile)
-        os.system('mkdir -p ' + outpath)
+        os.makedirs(outpath, exist_ok=True)
         nc = netCDF4.Dataset(pathtofile,mode='w')
         # dimensions
         dimsize = None
@@ -394,7 +394,7 @@ def dumptonc_ts_collocation(cco,pathtofile,title):
         nc.close()
     else:
         outpath = os.path.dirname(pathtofile)
-        os.system('mkdir -p ' + outpath)
+        os.makedirs(outpath, exist_ok=True)
         nc = netCDF4.Dataset(
                         pathtofile,mode='w',
                         )
@@ -557,7 +557,7 @@ def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
         nc.variables['nov'][startidx:endidx] = nov
     else:
         outpath = pathtofile[0:-len(pathtofile.split('/')[-1])]
-        os.system('mkdir -p ' + outpath)
+        os.makedirs(outpath, exist_ok=True)
         nc = netCDF4.Dataset(
                         pathtofile,mode='w',
 #                        format='NETCDF4'
@@ -711,7 +711,7 @@ def dumptonc_ts_sat(sco,pathtofile=None,title=None):
         nc.close()
     else:
         outpath = os.path.dirname(pathtofile)
-        os.system('mkdir -p ' + outpath)
+        os.makedirs(outpath, exist_ok=True)
         nc = netCDF4.Dataset(pathtofile,mode='w')
         # dimensions
         dimsize = None
@@ -806,7 +806,7 @@ def dumptonc_ts_pos(outpath,filename,title,coll_dict):
         nc.variables['time'][startidx:endidx] = time[:]
         nc.variables[varname][startidx:endidx] = var_model[:]
     else:
-        os.system('mkdir -p ' + outpath)
+        os.makedirs(outpath, exist_ok=True)
         # create nc-file
         nc = netCDF4.Dataset(fullpath,mode='w')
         # create dimension time

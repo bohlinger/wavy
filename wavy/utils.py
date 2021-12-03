@@ -323,8 +323,7 @@ def sort_aviso_l2p(dirpath,filelst,sat):
             #d2 = parse(tmp[-1].split('.')[0])
             year, month = d1.strftime("%Y"), d1.strftime("%m")
             folder = os.path.join(dirpath,year,month)
-            cmd = 'mkdir -p ' + folder
-            os.system(cmd)
+            os.makedir(folder,exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -337,8 +336,7 @@ def sort_cmems_l3(dirpath,filelst,sat):
             tmp = 'global_vavh_l3_rt_' + sat + '_'
             year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
             folder = os.path.join(dirpath,year,month)
-            cmd = 'mkdir -p ' + folder
-            os.system(cmd)
+            os.makedir(folder,exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -351,8 +349,7 @@ def sort_cci(dirpath,filelst,sat):
             tmp = e.split('-')[-2]
             year, month = tmp[0:4],tmp[4:6]
             folder = os.path.join(dirpath,year,month)
-            cmd = 'mkdir -p ' + folder
-            os.system(cmd)
+            os.makedir(folder,exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -367,8 +364,7 @@ def sort_eumetsat_l2(dirpath,filelst,sat):
             print(year,month)
             folder = os.path.join(dirpath,year,month)
             print(folder)
-            cmd = 'mkdir -p ' + folder
-            os.system(cmd)
+            os.makedir(folder,exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 

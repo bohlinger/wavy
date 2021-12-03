@@ -131,8 +131,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            cmd = 'mkdir -p ' + path_local
-            os.system(cmd)
+            os.makedir(path_local,exist_ok=True)
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
@@ -209,8 +208,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            cmd = 'mkdir -p ' + path_local
-            os.system(cmd)
+            os.makedir(path_local,exist_ok=True)
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
@@ -299,8 +297,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            cmd = 'mkdir -p ' + path_local
-            os.system(cmd)
+            os.makedir(path_local,exist_ok=True)
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
@@ -369,8 +366,7 @@ product,sdate,edate,api_url,sat,path_local,dict_for_sub):
     if products is not None:
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            cmd = 'mkdir -p ' + path_local
-            os.system(cmd)
+            os.makedir(path_local,exist_ok=True)
         api.download_all(products,directory_path=path_local)
         #api.download(product_id)
     else: print('No products found!')
