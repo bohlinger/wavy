@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 # own imports
 from wavy.utils import hour_rounder, make_fc_dates
-from wavy.utils import finditem, parse_date
+from wavy.utils import finditem, parse_date, NoStdStreams
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
 
@@ -324,6 +324,11 @@ def get_model(model=None,
         vardict['time'] = [vardict['time']]
         vardict['datetime'] = [vardict['datetime']]
         vardict['leadtime'] = leadtime
+    # transform to datetime
+    with NoStdStreams():
+        tmpd = [parse_date(str(d)) for d in vardict['datetime']]
+    vardict['datetime'] = tmpd
+    del tmpd
     return vardict, fc_date, leadtime, filestr, filevarname
 
 
@@ -405,6 +410,7 @@ class model_class():
         print( '## Summary:')
         print("Time used for retrieving model data:", round(t1 - t0, 2),
               "seconds")
+        print(" ")
         print(" ### model_class object initialized ###")
         print('# ----- ')
 
@@ -423,14 +429,20 @@ class model_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,projection=None):
+    def quicklook(self,projection=None,date=None):
         import cartopy.crs as ccrs
         import cmocean
         import matplotlib.pyplot as plt
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        dt = parse_date(date)
         lons = self.vars['longitude']
         lats = self.vars['latitude']
         var = self.vars[self.stdvarname]
+        if datetime is not None:
+            # find date in self.vars and give a snapshot
+            idx = self.vars['datetime'].index(dt)
+            var = self.vars[self.stdvarname][idx,:]
+            # if only one time is given go to index 0
         if projection is None:
             projection = ccrs.PlateCarree()
         lonmax,lonmin = np.max(lons),np.min(lons)

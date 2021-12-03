@@ -150,10 +150,11 @@ class insitu_class():
             t1=time.time()
             print(" ")
             print( '## Summary:')
+            print(str(len(self.vars['time'])) + " values retrieved.")
             print("Time used for retrieving insitu data:",\
                    round(t1-t0,2),"seconds")
-            print (" ### insitu_class object initialized including "
-                    + str(len(self.vars['time'])) + " values. ###")
+            print(" ")
+            print (" ### insitu_class object initialized ### ")
         except Exception as e:
             print(e)
             self.error = e

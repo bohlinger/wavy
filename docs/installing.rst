@@ -12,6 +12,7 @@ Installing wavy can be done via conda. The steps are as follows:
       or for one single branch try:
       $ git clone --single-branch --branch master https://github.com/bohlinger/wavy.git
 
+
 #. install wavy:
 
    .. code-block:: bash
@@ -33,8 +34,7 @@ Either create a xdg project path or an .env file in the wavy root directory and 
       WAVY_DIR=/home/patrikb/wavy/
       WAVY_CONFIG=/home/patrikb/wavy/config/
 
-#. cp config files to WAVY_CONFIG and remove the .default suffix
 
-#. edit config files
+#. prepare config files
 
-   --> edits done in tutorial
+   Copy config files to WAVY_CONFIG and remove the .default suffix. Now edit the config files you will be using --> edits done in tutorial

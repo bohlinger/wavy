@@ -217,6 +217,11 @@ With the retrieved variables in sa_obj.vars::
    >>> sco.vars.keys()
    dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])
 
+Using the quicklook fct you can quickly visualize the data you have retrieved::
+
+   >>> sco.quicklook(ts=True) # for time series
+   >>> sco.quicklook(m=True) # for a map
+
 Read pure L2 satellite data from eumetsat
 *****************************************
 
@@ -331,7 +336,7 @@ The variable aliases (left hand side) need to be specified in the variable_info.
    >>> model = 'mwam4' # default
    >>> varalias = 'Hs' # default
    >>> sd = "2020-11-1"
-   >>> sd = "2020-11-2"
+   >>> ed = "2020-11-2"
    >>> mco = mc(sdate=sd) # one time slice
    >>> mco_p = mc(sdate=sd,edate=ed) # time period
    >>> mco_lt = mc(sdate=sd,leadtime=12) # time slice with lead time
@@ -349,6 +354,11 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
 
    >>> mco.vars.keys()
    dict_keys(['longitude', 'latitude', 'time', 'datetime', 'time_unit', 'sea_surface_wave_significant_height', 'meta', 'leadtime'])
+
+For the modelclass objects a quicklook fct exists to depict a certain time step of what you loaded::
+
+   >>> mco.quicklook(m=True) # for a map
+
 
 .. note::
 
@@ -420,6 +430,10 @@ Now, let's check how this could look like:
 .. image:: ./docs_fig_ts_insitu.png
    :scale: 80
 
+Again, for the insitu class there is also a quicklook fct available::
+
+   >>> ico.quicklook()
+
 7. collocating model and observations
 #####################################
 One of the main focus of **wavy** is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them.
@@ -460,6 +474,11 @@ This can also be done for a time period:
    >>> ed = "2020-11-2"
    >>> sco = sc(sdate=sd,edate=ed,region=model,mission=mission,varalias=varalias)
    >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
+
+For the collocation class object there is also a quicklook fct implemented which allows to view both the time series and a map as for the satellite class object::
+
+   >>> cco.quicklook(ts=True)
+   >>> cco.quicklook(m=True)
 
 Collocation of in-situ data and wave model
 ******************************************

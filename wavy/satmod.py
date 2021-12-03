@@ -863,10 +863,11 @@ class satellite_class():
                 t1=time.time()
                 print(" ")
                 print( '## Summary:')
+                print(str(len(self.vars['time'])) + " footprints retrieved.")
                 print("Time used for retrieving satellite data:",\
                         round(t1-t0,2),"seconds")
-                print ("### Satellite object initialized including "
-                    + str(len(self.vars['time'])) + " footprints. ###")
+                print(" ")
+                print ("### Satellite object initialized ###")
                 print ('# ----- ')
             except Exception as e:
                 print(e)

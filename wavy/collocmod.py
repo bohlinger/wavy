@@ -492,8 +492,9 @@ class collocation_class():
             t1=time.time()
             print(" ")
             print(" ## Summary:")
-            print("Time used for collocation:",round(t1-t0,2),"seconds")
             print(len(self.vars['time'])," values collocated.")
+            print("Time used for collocation:",round(t1-t0,2),"seconds")
+            print(" ")
             print (" ### Collocation_class object initialized ###")
         except Exception as e:
             print(e)
