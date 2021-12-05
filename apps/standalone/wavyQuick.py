@@ -292,8 +292,11 @@ def main():
                     showfig=args.show)
     elif (args.mod is not None and args.col is True and args.sat is not None):
         #collocation
-        coll_obj = coll(model=args.mod, obs_obj_in=sa_obj, distlim=args.dist, leadtime = args.lt, date_incr = 1)
+        date_incr = model_dict[args.mod].get('date_incr',1)
+        coll_obj = coll(model=args.mod, obs_obj_in=sa_obj, distlim=args.dist, leadtime = args.lt, date_incr = date_incr)
         valid_dict = coll_obj.validate_collocated_values()
+        if args.show is True:
+            print("Figure not shown! Request is ambiguous for multiple model time steps.")
 
 # dump to .ncfile
     if args.dump is not None:

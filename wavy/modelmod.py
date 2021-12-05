@@ -17,6 +17,7 @@ from tqdm import tqdm
 # own imports
 from wavy.utils import hour_rounder, make_fc_dates
 from wavy.utils import finditem, parse_date, NoStdStreams
+from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
 
@@ -98,6 +99,14 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
     elif (isinstance(fc_date, datetime) and leadtime == 'best'):
         leadtime = generate_bestguess_leadtime(model, fc_date)
         filename = make_model_filename(model, fc_date, leadtime)
+        # check if file is accessible
+        switch = check_if_ncfile_accessible(filename)
+        if switch is False:
+            print("Desired file:", filename , " not accessible")
+            print("Continue to look for date with extended leadtime")
+            leadtime = leadtime + model_dict[model]['init_step']
+            filename = make_model_filename(model, fc_date, leadtime)
+        # if not make filename with unlimited leadtime
     elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
         filename = [make_model_filename(model,date,leadtime) \
                     for date in fc_date]
@@ -255,10 +264,16 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     vardict[variable_info[varalias]['standard_name']] = \
         vardict[variable_info[varalias]['standard_name']].filled(np.nan)
     vardict['meta'] = meta
+    # make lats,lons 2D if only 1D (regular grid)
+    if len(vardict['longitude'].shape)==1:
+        LATS,LONS = np.meshgrid(vardict['latitude'],
+                                vardict['longitude'])
+        vardict['longitude']=np.transpose(LONS)
+        vardict['latitude']=np.transpose(LATS)
     return vardict, filevarname
 
 
-def generate_bestguess_leadtime(model, fc_date):
+def generate_bestguess_leadtime(model, fc_date, lidx=None):
     """
     fct to return leadtimes for bestguess
     """
@@ -272,7 +287,9 @@ def generate_bestguess_leadtime(model, fc_date):
         gtz = diffs[diffs >= 0]
         if len(gtz) == 0:
             leadtime = int(np.abs( np.min(np.abs(diffs)) \
-                                 - model_dict[model]['init_step']))
+                                 - model_dict[model]['init_step'] ))
+        elif (len(gtz)>0 and lidx is not None):
+            leadtime = int(np.sort(diffs[diffs >= 0])[lidx])
         else:
             leadtime = int(np.min(diffs[diffs >= 0]))
     return leadtime
@@ -292,7 +309,9 @@ def get_model(model=None,
         sdate = st_obj.sdate
         edate = st_obj.edate
         varalias = st_obj.varalias
-    if (sdate is not None and edate is not None and date_incr is not None):
+    if (sdate is not None
+        and edate is not None
+        and date_incr is not None):
         fc_date = make_fc_dates(sdate, edate, date_incr)
     filestr = make_model_filename_wrapper(model=model,
                                           fc_date=fc_date,

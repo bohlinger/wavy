@@ -59,7 +59,7 @@ def collocation_fct(obs_lons,obs_lats,model_lons,model_lats):
     # get_neighbour_info() returns indices in the
     # flattened lat/lon grid. Compute the 2D grid indices:
     index_array_2d = np.unravel_index(index_array, grid.shape)
-    return  index_array_2d, distance_array, valid_output_index,
+    return  index_array_2d, distance_array, valid_output_index
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
     '''
@@ -242,7 +242,10 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             'collocation_idx_y':[],
             }
     for i in tqdm(range(len(fc_date))):
+#    for i in range(len(fc_date)):
+#        for f in range(1):
         with NoStdStreams():
+#            for t in range(1):
             try:
                 # filter needed obs within time period
                 idx = collocate_times( obs_obj.vars['datetime'],
@@ -287,7 +290,10 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                                 results_dict_tmp['collocation_idx_y'])
                 if 'results_dict_tmp' in locals():
                     del results_dict_tmp
-            except ValueError as e:
+            except (ValueError,FileNotFoundError,OSError) as e:
+                # ValueError, pass if no collocation
+                # FileNotFoundError, pass if file not accessible
+                # OSError, pass if file not accessible from thredds
                 print(e)
     # flatten all aggregated entries
     results_dict['time'] = flatten(results_dict['time'])
@@ -316,8 +322,6 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
         model_lats = mc_obj.vars['latitude']
         model_lons = mc_obj.vars['longitude']
         model_vals = mc_obj.vars[mc_obj.stdvarname]
-        if len(model_lats.shape)==1:
-            model_lons,model_lats = np.meshgrid(model_lons,model_lats)
     dtime = netCDF4.num2date(obs_obj.vars['time'],
                              obs_obj.vars['time_unit'])
     if isinstance(dtime,np.ndarray):
@@ -328,9 +332,11 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
         datein = [datein]
     cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.twin)
     obs_time_dt = np.array(dtime)[cidx]
-    obs_time_dt = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)\
+    obs_time_dt = [datetime(t.year,t.month,t.day,
+                            t.hour,t.minute,t.second)
                    for t in obs_time_dt]
-    datein = [datetime(t.year,t.month,t.day,t.hour,t.minute,t.second)\
+    datein = [datetime(t.year,t.month,t.day,
+                       t.hour,t.minute,t.second)
                    for t in datein]
     obs_time = np.array(obs_obj.vars['time'])[cidx]
     obs_time_unit = obs_obj.vars['time_unit']
@@ -478,7 +484,8 @@ class collocation_class():
         # get vars dictionary
         print(" ")
         print(" ## Collocate ... ")
-        try:
+        for t in range(1):
+#        try:
             t0=time.time()
             results_dict = collocate(mc_obj=mc_obj,
                                     obs_obj=obs_obj,
@@ -496,10 +503,10 @@ class collocation_class():
             print("Time used for collocation:",round(t1-t0,2),"seconds")
             print(" ")
             print (" ### Collocation_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No collocation_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No collocation_class object initialized !")
         # add class variables
         print ('# ----- ')
 

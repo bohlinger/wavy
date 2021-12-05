@@ -38,6 +38,15 @@ definition of some global functions
 # currently None
 # ---------------------------------------------------------------------#
 
+def check_if_ncfile_accessible(fstr):
+    try:
+        xs=xr.open_dataset(fstr)
+        return True
+    except (OSError,FileNotFoundError) as e:
+        print("Desired file not accessible")
+        print(e)
+        return False
+
 def read_netcdfs(paths, dim='time'):
     def process_one_path(path):
         # use a context manager, to ensure the file gets closed after use
