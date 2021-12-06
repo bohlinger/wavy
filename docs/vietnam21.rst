@@ -485,8 +485,13 @@ Now, download satellite data for your time period e.g.:
 .. code-block:: bash
 
    $ cd ~/wavy/apps/standalone
-   $ ./wavyDownload.py -sat s3a -sd 2021112600 -ed 2021113000 -product cmems_L3 -nproc 4
-
+   $ ./wavyDownload.py -sat s3a -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
+   $ ./wavyDownload.py -sat s3b -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
+   $ ./wavyDownload.py -sat c2 -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
+   $ ./wavyDownload.py -sat j3 -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
+   $ ./wavyDownload.py -sat al -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
+   $ ./wavyDownload.py -sat cfo -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
+   $ ./wavyDownload.py -sat h2b -sd 2021112600 -ed 2021120300 -product cmems_L3 -nproc 4
 
 Usage in python
 ***************
@@ -499,7 +504,7 @@ Open python and run **wavy** similar to the example from 4. with your model doma
 
    >>> mission = 'j3'
    >>> sd = "2021-11-26"
-   >>> ed = "2021-11-30"
+   >>> ed = "2021-12-03"
    >>> twin = 30
    >>> sco_Hs = sc(sdate=sd,edate=ed,region='swan_vietnam',mission=mission,varalias='Hs',twin=30)
    >>> sco_U = sc(sdate=sd,edate=ed,region='ecifs_vietnam',mission=mission,varalias='U',twin=30)
