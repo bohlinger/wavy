@@ -131,7 +131,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedir(path_local,exist_ok=True)
+            os.makedirs(path_local,exist_ok=True)
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
@@ -208,7 +208,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedir(path_local,exist_ok=True)
+            os.makedirs(path_local,exist_ok=True)
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
@@ -297,7 +297,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedir(path_local,exist_ok=True)
+            os.makedirs(path_local,exist_ok=True)
         # Download matching files
         print ('Downloading ' + str(len(matching))
                 + ' files: .... \n')
@@ -366,7 +366,7 @@ product,sdate,edate,api_url,sat,path_local,dict_for_sub):
     if products is not None:
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedir(path_local,exist_ok=True)
+            os.makedirs(path_local,exist_ok=True)
         api.download_all(products,directory_path=path_local)
         #api.download(product_id)
     else: print('No products found!')
@@ -445,7 +445,8 @@ path_local=None):
                 if os.path.isdir(path_local):
                     tmplst = np.sort(os.listdir(path_local))
                     filelst.append(tmplst)
-                    pathlst.append([os.path.join(path_local,e) for e in tmplst])
+                    pathlst.append([os.path.join(path_local,e)
+                                    for e in tmplst])
                 tmpdate = tmpdate + relativedelta(months=+1)
                 path_local = None
             except Exception as e:
@@ -736,7 +737,6 @@ class satellite_class():
         region='mwam4',nproc=1,varalias='Hs',api_url=None,
         filterData=False,poi=None,distlim=None,
         **kwargs):
-
         print('# ----- ')
         print(" ### Initializing satellite_class object ###")
         print(" ")

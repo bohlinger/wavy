@@ -37,6 +37,7 @@ Contents
 
    installing
    tutorials
+   vietnam21
    autoapi/index
 
 

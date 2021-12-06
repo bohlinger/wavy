@@ -1,33 +1,16 @@
-Tutorials
-==========
-The following tutorials describe how to setup the wavy config files, to perform collocation and validation tasks. **wavy** is intended to be fleksibel such that customization can be achieved with minimal changes in the code. The **wavy** config files build the fundament for this approach and serve a similar purpose as namelist files often used for runtime changes in numerical modelling.
+Vietnam Validation Workshop 2021
+================================
+The following examples are tailored to the 3. **wavy** Vietnam Validation Workshop 2021.
 
-In general, executable files usually have help function which can be read using e.g.:
-
-.. code-block:: bash
-
-   $ ./{Executable}.py -h
-
-e.g.:
+1. **wavy** config files
+########################
+For this work shop you will need the following config files:
 
 .. code-block:: bash
 
-   $ cd ~/wavy/apps/standalone
-   $ ./wavyDownload.py -h
-
-1. **wavy** config files, a brief overview.
-###########################################
-**wavy** obtains custom information from config files. There are default versions which can be adjusted to user needs. The following config files exist as for now:
-
-
-.. code-block:: bash
-
-   $ ls
    collocation_specs.yaml.default  region_specs.yaml.default
-   d22_var_dicts.yaml.default      satellite_specs.yaml.default
-   insitu_specs.yaml.default       validation_specs.yaml.default
+   satellite_specs.yaml.default    quicklook_specs.yaml.default
    model_specs.yaml.default        variable_info.yaml.default
-   quicklook_specs.yaml.default
 
 **wavy** browses the directory structure as follows:
 
@@ -35,7 +18,12 @@ e.g.:
     * check if a config folder exists using xdg
     * fall back on default files within the package
 
-It is probably easiest to start off copying the default config files you would like to edit to a directory of your choice. Then remove the ".default" extension. For simplicity, let's assume that you have your custom config files in *~/wavy/config/*.
+We will start off copying the default config files listed above to a directory of your choice. Then remove the ".default" extension. For simplicity, let's assume that you have your custom config files in *~/wavy/config/*.
+
+The main changes that will occur in this workshop are:
+
+   * adjusting the path
+   * adding you model
 
 2. download L3 satellite altimetry data
 #######################################
@@ -84,52 +72,28 @@ You can find the downloaded files in your chosen download directory.
 
 3. download L2P and L3 CCI multi-mission satellite altimetry data
 #################################################################
-Similarily one can download L2P and L3 multi-mission altimetry data from the CEDA Climate Change Initiative. This spans a long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation.
+Similarily one can download L2P and L3 multi-mission altimetry data from the CEDA Climate Change Initiative. This spans a long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation. Retrieving this data under https://data.ceda.ac.uk/neodc/esacci/sea_state/data/v1.1_release/{l2p/l3} requires a user account for the CEDA archive at: https://archive.ceda.ac.uk/. This account is free!
 
-For instance for Jason-3:
+In your .netrc you need to add:
+
+.. code::
+
+   machine ftp.ceda.ac.uk login {USER} password {PASSWORD}
+
+
+For instance for Jason-3 L2P:
 
 .. code-block:: bash
 
    $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -product cci_L2P
 
 
-Or for instance for a multi-mission file:
+Or for instance for a multi-mission L3 file:
 
 .. code-block:: bash
 
    $ ./wavyDownload.py -sat multi -sd 2017112000 -ed 2017112100 -product cci_L3
 
-
-4. download L2 stallite altimetry data
-######################################
-
-.. note::
-
-   There are currently problems with L2 from eumetsat/colhub which
-   will be fixed again hopefully soon.
-
-L2 satellite data are obtained from eumetsat and colhub using the SentinelAPI. This requires user credentials for eumetsat and colhub, which are free of costs as well.
-Enter your account credentials into the .netrc-file as you did for the L3 data. Your .netrc should have included the following:
-
-.. code::
-
-   machine https://colhub.met.no/ login {USER} password {PASSWORD}
-   machine https://coda.eumetsat.int/search login {USER} password {PASSWORD}
-
-Ammend the satellite config file for L2 data and add the download directory of your choice like:
-
-.. code-block:: yaml
-
-   eumetsat_L2:
-      L2:
-         dst:
-             path_template: /home/patrikb/tmp_altimeter/L2/mission
-
-As you can see, this is customized to my username patrikb. Adjust this and continue with downloading some satellite altimeter data:
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product eumetsat_L2
 
 4. read satellite data
 ######################
@@ -222,90 +186,6 @@ Using the quicklook fct you can quickly visualize the data you have retrieved::
    >>> sco.quicklook(ts=True) # for time series
    >>> sco.quicklook(m=True) # for a map
 
-Read pure L2 satellite data from eumetsat
-*****************************************
-
-.. note::
-
-   There are currently problems with L2 from eumetsat/colhub which
-   will be fixed again hopefully soon.
-
-.. code-block:: python3
-
-   >>> from wavy.satmod import satellite_class as sc
-   >>> sd = "2020-11-1 12"
-   >>> ed = "2020-11-1 12"
-   >>> region = 'mwam4' # default
-   >>> mission = 's3a' # default
-   >>> twin = 30 # default
-   >>> varalias = 'Hs' # default
-
-   >>> sco = sc(sd,edate=ed,product="eumetsat_L2")
-
-Retrieve pure L2 data and compare against L3
-********************************************
-
-.. note::
-
-   There are currently problems with L2 from eumetsat/colhub which
-   will be fixed again hopefully soon.
-
-Having downloaded the altimetry data, you can do:
-
-.. code-block:: python3
-
-   >>> # imports
-   >>> from wavy.satmod import satellite_class as sc
-
-   >>> # settings
-   >>> sd = "2020-11-1 12"
-   >>> ed = "2020-11-1 12"
-   >>> region = 'NorwegianSea'
-   >>> mission = 's3a' # default
-   >>> varalias = 'Hs' # default
-   >>> twin = 30 # default
-
-   >>> # retrievals
-   >>> sco_e = sc(sd,edate=ed,region=region,product='eumetsat_L2')
-   >>> sco_c = sc(sd,edate=ed,region=region,product='cmems_L3')
-
-   >>> # plotting
-   >>> import matplotlib.pyplot as plt
-   >>> stdname = sco_e.stdvarname
-   >>> fig = plt.figure(figsize=(9,3.5))
-   >>> ax = fig.add_subplot(111)
-   >>> ax.plot(sco_e.vars['datetime'],sco_e.vars[stdname],'r.',label='L2 eumetsat')
-   >>> ax.plot(sco_c.vars['datetime'],sco_c.vars[stdname],'k.',label='L3 cmems')
-   >>> plt.legend(loc='upper left')
-   >>> plt.ylabel('Hs [m]')
-   >>> plt.show()
-
-This yields the following figure:
-
-.. image:: ./docs_fig_L2_vs_L3.png
-   :scale: 80
-
-Appy basic filters to raw L2 data
-*********************************
-
-.. code-block:: python3
-
-   >>> from wavy.satmod import satellite_class as sc
-   >>> import matplotlib.pyplot as plt
-
-   >>> sd = "2020-11-1 12"
-   >>> ed = "2020-11-1 12"
-   >>> region = 'mwam4' # default
-   >>> mission = 's3a' # default
-   >>> twin = 30 # default
-
-   >>> # landmask filter
-   >>> sco_lm = sc(sd,edate=ed,product='eumetsat_L2',land_mask=True,filterData=True)
-
-.. note::
-
-   More examples with filters are coming soon ...
-
 5. access/read model data
 #########################
 Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
@@ -364,77 +244,8 @@ For the modelclass objects a quicklook fct exists to depict a certain time step 
 
    Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason, being the ambiguous use of lead times, will be improved in future versions.
 
-6. read in-situ observations (.d22 and netcdf/thredds)
-######################################################
 
-Currently two data types can be read .d22-files and netcdf-files. Edit the insity_specs.yaml file in your config folder and adjust the directories.
-
-read .d22 files
-***************
-
-.. note::
-
-   The .d22-files used in these examples and specified here are only available to MET Norway stuff.
-
-.d22-files can be read in by adjusting d22_var_dicts.yaml config file. Currently, there are wave related variables included. Other variables like wind are about to be included. Another config-file that needs adjustment is the insitu_specs.yaml. There you need to define specs related to the in-situ observation of choice as well as path and filename. A call for the retrieval of an in-situ time series could be like:
-
-.. code-block:: python3
-
-   >>> from wavy.insitumod import insitu_class as ic
-   >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1"
-   >>> ed = "2020-1-5"
-   >>> nID = 'ekofiskL'
-   >>> sensor = 'waverider'
-   >>> ico = ic(nID,sensor,sd,ed)
-
-In contrast to the L3 satellite time series, in-situ time series are not filtered or underwent rigorous outlier detection. There are various operations that can be performed to massage the time series as you wish.It is in particular interesting to remove double reported values, which is often the case. This is done with setting unique=True.
-
-.. code-block:: python3
-
-   >>> ico = ic(nID,sensor,sd,ed,unique=True)
-
-read .nc-files
-**************
-
-.. code-block:: python3
-
-   >>> from wavy.insitumod import insitu_class as ic
-   >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1"
-   >>> ed = "2020-1-5"
-   >>> nID = 'D_Breisundet_wave'
-   >>> sensor = 'wavescan'
-   >>> ico = ic(nID,sensor,sd,ed)
-
-Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below is a example:
-
-.. code-block:: python3
-
-   >>> # blockMean filter
-   >>> ico_bm = ic(nID,sensor,sd,ed,unique=True,priorOp='square',postOp='root',smoother='blockMean',stwin=3,etwin=3,date_incr=1,filterData=True)
-
-Now, let's check how this could look like:
-
-.. code-block:: python3
-
-   >>> import matplotlib.pyplot as plt
-   >>> fig = plt.figure(figsize=(9,3.5))
-   >>> ax = fig.add_subplot(111)
-   >>> ax.plot(ico.vars['datetime'],ico.vars[ico.stdvarname],'ko',label='raw')
-   >>> ax.plot(ico_bm.vars['datetime'],ico_bm.vars[ico.stdvarname],'r-',label='hourly blockMean')
-   >>> plt.legend(loc='upper left')
-   >>> plt.ylabel('Hs [m]')
-   >>> plt.show()
-
-.. image:: ./docs_fig_ts_insitu.png
-   :scale: 80
-
-Again, for the insitu class there is also a quicklook fct available::
-
-   >>> ico.quicklook()
-
-7. collocating model and observations
+6. collocating model and observations
 #####################################
 One of the main focus of **wavy** is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them.
 
@@ -480,54 +291,7 @@ For the collocation class object there is also a quicklook fct implemented which
    >>> cco.quicklook(ts=True)
    >>> cco.quicklook(m=True)
 
-Collocation of in-situ data and wave model
-******************************************
-
-The following example may take a few minutes.
-
-.. code-block:: python3
-
-   >>> # imports
-   >>> from wavy.insitumod import insitu_class as ic
-   >>> from wavy.collocmod import collocation_class as cc
-
-   >>> # settings
-   >>> model = 'mwam4' # default
-   >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1 01"
-   >>> ed = "2020-1-4 00"
-   >>> nID = 'ekofiskL'
-   >>> sensor = 'waverider'
-
-   >>> # retrievals
-   >>> ico_gam = ic(nID,sensor,sd,ed,smoother='linearGAM',cleaner='linearGAM',date_incr=1./6.,unique=True,filterData=True)
-   >>> ico_raw = ic(nID,sensor,sd,ed)
-
-   >>> # collocation
-   >>> cco_gam = cc(model=model,obs_obj_in=ico_gam,distlim=6,date_incr=1)
-   >>> cco_raw = cc(model=model,obs_obj_in=ico_raw,distlim=6,date_incr=1)
-
-Let's plot the results:
-
-.. code-block:: python3
-
-   >>> import matplotlib.pyplot as plt
-   >>> stdname = ico_raw.stdvarname
-
-   >>> fig = plt.figure(figsize=(9,3.5))
-   >>> ax = fig.add_subplot(111)
-   >>> ax.plot(ico_raw.vars['datetime'],ico_raw.vars[stdname],color='gray',marker='o',label='raw',linestyle='None',alpha=.4)
-   >>> ax.plot(cco_raw.vars['datetime'],cco_raw.vars['obs_values'],'ko',label='collocated obs')
-   >>> ax.plot(ico_gam.vars['datetime'],ico_gam.vars[stdname],'b-',label='gam',lw=2)
-   >>> ax.plot(cco_gam.vars['datetime'],cco_gam.vars['model_values'],'r-',label='mwam4',lw=2)
-   >>> plt.legend(loc='upper left')
-   >>> plt.ylabel('Hs [m]')
-   >>> plt.show()
-
-.. image:: ./docs_fig_col_insitu.png
-   :scale: 80
-
-8. dump collocation ts to a netcdf file
+7. dump collocation ts to a netcdf file
 #######################################
 The collocation results can now be dumped to a netcdf file. The path and filename can be entered as keywords but also predefined config settings can be used from collocation_specs.yaml:
 
@@ -535,7 +299,7 @@ The collocation results can now be dumped to a netcdf file. The path and filenam
 
    >>> cco_raw.write_to_nc()
 
-9. validate the collocated time series
+8. validate the collocated time series
 #######################################
 Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
@@ -560,7 +324,7 @@ Having collocated a quick validation can be performed using the validationmod. v
 
 The entire validation dictionary will then be in val_dict.
 
-10. quick look examples
+9. quick look examples
 #######################
 The script "wavyQuick.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. Checkout the help:
 
@@ -649,3 +413,160 @@ And of course the figure:
 
 .. image:: ./docs_fig_sat_quicklook_005.png
    :scale: 40
+
+10. Vietnam examples
+####################
+
+Add model
+*********
+On order to gather satellite data for your region you need to either specify a region in region_specs.yaml or add your model to model_specs.yaml. For the exercises we will do the latter.
+
+Open your model_specs.yaml file and add:
+
+.. code::
+
+   swan_vietnam:
+       vardef:
+           Hs: hs
+           time: time
+           lons: longitude
+           lats: latitude
+       path_template: "/path/to/your/files/"
+       file_template: "SWAN%Y%m%d%H.nc"
+       init_times: [0,12]
+       init_step: 12
+       date_incr: 3
+       grid_date: 2021-11-26 00:00:00
+       proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
+   ecwam_vietnam:
+       vardef:
+           Hs: significant_wave_height
+           time: time
+           lons: longitude
+           lats: latitude
+       path_template: "/path/to/your/files/"
+       file_template: "vietnam_wave_%Y%m%d_%H.nc"
+       init_times: [0,12]
+       init_step: 12
+       date_incr: 3
+       proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+       grid_date: 2021-11-26 00:00:00
+
+   ecifs_vietnam:
+       vardef:
+           ux: u10m
+           vy: v10m
+           time: time
+           lons: lon
+           lats: lat
+       path_template: "/path/to/your/files/"
+       file_template: "ECIFS%Y%m%d%H.nc"
+       init_times: [0,12]
+       init_step: 12
+       date_incr: 6
+       proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+       grid_date: 2021-11-26 00:00:00
+
+
+As path_template I used:
+
+.. code::
+
+   path_template: "/home/patrikb/Documents/Vietnam/%Y/"
+
+Note that date_incr is necessary for wavyQuick.py in order to understand the time steps you have in your model. date_incr is in [h].
+
+Download satellite data
+***********************
+
+Now, download satellite data for your time period e.g.:
+
+.. code-block:: bash
+
+   $ cd ~/wavy/apps/standalone
+   $ ./wavyDownload.py -sat s3a -sd 2021112600 -ed 2021113000 -product cmems_L3 -nproc 4
+
+
+Usage in python
+***************
+
+Open python and run **wavy** similar to the example from 4. with your model domain and time period. I tried e.g.:
+
+.. code-block:: python3
+
+   >>> from wavy.satmod import satellite_class as sc
+
+   >>> mission = 'j3'
+   >>> sd = "2021-11-26"
+   >>> ed = "2021-11-30"
+   >>> twin = 30
+   >>> sco_Hs = sc(sdate=sd,edate=ed,region='swan_vietnam',mission=mission,varalias='Hs',twin=30)
+   >>> sco_U = sc(sdate=sd,edate=ed,region='ecifs_vietnam',mission=mission,varalias='U',twin=30)
+
+   >>> # explore using quicklook fct
+   >>> sco_Hs.quicklook(ts=True,m=True)
+   >>> sco_U.quicklook(ts=True,m=True)
+
+Now collocate ...
+
+.. code-block:: python3
+
+   >>> from wavy.collocmod import collocation_class as cc
+   >>> cco_Hs = cc(model='swan_vietnam',obs_obj_in=sco_Hs,distlim=6,date_incr=3)
+
+   >>> # for winds choose correct model and adjust date_incr
+   >>> cco_U = cc(model='ecifs_vietnam',obs_obj_in=sco_U,distlim=6,date_incr=6)
+
+   >>> # explore results
+   >>> cco_Hs.quicklook(ts=True)
+   >>> cco_U.quicklook(ts=True)
+
+And validate ...
+
+.. code-block:: python3
+
+   >>> cco_Hs.validate_collocated_values()
+   >>> cco_U.validate_collocated_values()
+
+Dump collocated files to netcdf ...
+
+.. code-block:: python3
+
+   >>> cco_Hs.write_to_nc() # path from collocation_specs.yaml
+   >>> cco_Hs.write_to_nc(pathtofile='/path/to/your/file/file.nc')
+
+Dump to validation file is (still) based on single validation dicts that are handed to dumptonc_stats function. This means that e.g. each satellite pass gives one validation number that can be added to one netcdf file. A validation time series file can be established building a loop around.
+
+.. code-block:: python3
+
+   >>> from wavy.satmod import satellite_class as sc
+
+   >>> mission = 'j3'
+   >>> sd = "2021-11-26"
+   >>> twin = 30
+   >>> sco_Hs = sc(sdate=sd,region='swan_vietnam',mission=mission,varalias='Hs',twin=30)
+
+   >>> from wavy.collocmod import collocation_class as cc
+   >>> cco_Hs = cc(model='swan_vietnam',obs_obj_in=sco_Hs,distlim=6,date_incr=3)
+
+   >>> from wavy.ncmod import dumptonc_stats
+   >>> pathtofile = '/home/patrikb/tmp_validation/test.nc'
+   >>> title = 'validation file'
+   >>> date = sco_Hs.sdate
+   >>> time_unit = sco_Hs.vars['time_unit']
+   >>> validation_dict = cco_Hs.validate_collocated_values()
+   >>> dumptonc_stats(pathtofile,title,date,time_unit,validation_dict)
+
+
+The functionality will be expanded in the future such that validation time series can be written based on a collocation object.
+
+wavyQuick use for vietnam model
+*******************************
+
+.. code::
+
+   $ ./wavyQuick.py -sat all -reg ecwam_vietnam -sd 2021112600 -ed 2021120300 -var Hs -twin 30 --show
+
+   $ ./wavyQuick.py -sat all -reg ecwam_vietnam -mod ecwam_vietnam -sd 2021112600 -ed 2021120300 -var Hs -twin 30 --col --show
+
