@@ -27,6 +27,10 @@ Now, append wavy root directory to $PYTHONPATH, for instance add the following t
 
       export PYTHONPATH=$PYTHONPATH:/home/patrikb/wavy
 
+.. note::
+
+   My user *patrikb* was used in this example. This will be the case in more examples and needs to be adjusted for other users.
+
 Either create a xdg project path or an .env file in the wavy root directory and point to the location wher you plan to store your custom config files. This could look like:
 
    .. code-block:: bash

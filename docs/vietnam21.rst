@@ -297,7 +297,7 @@ The collocation results can now be dumped to a netcdf file. The path and filenam
 
 .. code-block:: python3
 
-   >>> cco_raw.write_to_nc()
+   >>> cco.write_to_nc()
 
 8. validate the collocated time series
 #######################################
