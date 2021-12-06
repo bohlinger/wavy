@@ -23,7 +23,7 @@ We will start off copying the default config files listed above to a directory o
 The main changes that will occur in this workshop are:
 
    * adjusting the path
-   * adding you model
+   * adding your model
 
 2. download L3 satellite altimetry data
 #######################################
@@ -66,7 +66,7 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3 -nproc 4
 
 You can find the downloaded files in your chosen download directory.
 
@@ -85,7 +85,7 @@ For instance for Jason-3 L2P:
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -product cci_L2P
+   $ ./wavyDownload.py -sat j3 -sd 2017112000 -ed 2017112100 -product cci_L2P -nproc 4
 
 
 Or for instance for a multi-mission L3 file:
@@ -113,7 +113,7 @@ In python L3 data can be read by importing the satellite_class, choosing a regio
    >>> product = 'cmems_L3' # default
    >>> twin = 30 # default
    >>> sd = "2020-11-1" # can also be datetime object
-   >>> ed = "2020-11-2" # not necessary if twin is specified
+   >>> ed = "2020-11-10" # not necessary if twin is specified
    >>> sco = sc(sdate=sd,edate=ed,region=region)
 
 This would result in a satellite_class object and the following output message::
@@ -237,7 +237,7 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
 
 For the modelclass objects a quicklook fct exists to depict a certain time step of what you loaded::
 
-   >>> mco.quicklook(m=True) # for a map
+   >>> mco.quicklook() # for a map
 
 
 .. note::
@@ -305,22 +305,22 @@ Having collocated a quick validation can be performed using the validationmod. v
 
 .. code-block:: python3
 
-   >>> val_dict = cco_raw.validate_collocated_values()
+   >>> val_dict = cco.validate_collocated_values()
 
    # ---
    Validation stats
    # ---
-   Correlation Coefficient: 0.95
-   Mean Absolute Difference: 0.22
-   Root Mean Squared Difference: 0.27
-   Normalized Root Mean Squared Difference: 0.08
-   Debiased Root Mean Squared Difference: 0.24
-   Bias: -0.13
-   Normalized Bias: -0.04
-   Scatter Index: 8.05
-   Mean of Model: 3.02
+   Correlation Coefficient: 0.98
+   Mean Absolute Difference: 0.38
+   Root Mean Squared Difference: 0.53
+   Normalized Root Mean Squared Difference: 0.13
+   Debiased Root Mean Squared Difference: 0.50
+   Bias: -0.16
+   Normalized Bias: -0.05
+   Scatter Index: 16.93
+   Mean of Model: 2.97
    Mean of Observations: 3.14
-   Number of Collocated Values: 72
+   Number of Collocated Values: 2217
 
 The entire validation dictionary will then be in val_dict.
 

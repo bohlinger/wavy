@@ -357,7 +357,7 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
 
 For the modelclass objects a quicklook fct exists to depict a certain time step of what you loaded::
 
-   >>> mco.quicklook(m=True) # for a map
+   >>> mco.quicklook() # for a map
 
 
 .. note::

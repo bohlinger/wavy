@@ -441,7 +441,7 @@ class collocation_class():
 
     def __init__(self,mc_obj_in=None,obs_obj_in=None,
         col_obj_in=None,model=None,distlim=None,leadtime=None,
-        date_incr=None):
+        date_incr=1):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")

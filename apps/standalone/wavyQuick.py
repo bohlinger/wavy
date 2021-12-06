@@ -300,7 +300,7 @@ def main():
 
 # dump to .ncfile
     if args.dump is not None:
-        if args.coll is not None:
+        if args.col is not None:
             coll_obj.write_to_nc(pathtofile=args.dump)
         else:
             sa_obj.write_to_nc(pathtofile=args.dump)
