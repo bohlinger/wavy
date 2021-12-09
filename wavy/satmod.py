@@ -1022,11 +1022,13 @@ def match_region(LATS,LONS,region,grid_date):
     # region in region_dict[poly]:
     # find values for given region
     if (region not in region_dict['poly'] and \
-    region not in model_dict):
+    region not in model_dict and \
+    region not in region_dict['geojson']):
         if region is None:
             region = 'global'
         else:
             if (region not in region_dict['rect'] \
+            and region not in region_dict['geojson'] \
             and isinstance(region,dict)==False):
                 sys.exit("Region is not defined")
             elif isinstance(region,dict):
@@ -1036,6 +1038,9 @@ def match_region(LATS,LONS,region,grid_date):
                 + " --> Bounds: " + str(region_dict['rect'][region]))
                 region = region_dict['rect'][region]
         ridx = match_region_rect(LATS,LONS,region=region)
+    elif region in region_dict['geojson']:
+        print("Region is defined as geojson")
+        ridx = match_region_geojson(LATS,LONS,region=region)
     else:
         ridx = match_region_poly(LATS,LONS,region=region,
                                 grid_date=grid_date)
@@ -1057,6 +1062,43 @@ def match_region_rect(LATS,LONS,region):
                     &(np.array(LONS)<urcrnrlon)\
                     )[0]
     print (len(ridx), " values found for chosen region and time frame.")
+    return ridx
+
+def match_region_geojson(LATS,LONS,region):
+    import geojson
+    from matplotlib.patches import Polygon
+    from matplotlib.path import Path
+    LATS = list(LATS)
+    LONS = list(LONS)
+    lats = np.array(LATS).ravel()
+    lons = np.array(LONS).ravel()
+    points = np.c_[lons,lats]
+    ridx = []
+    fstr = region_dict['geojson'][region]['fstr']
+    with open(fstr) as f:
+        gj = geojson.load(f)
+    fidx = region_dict['geojson'][region].get('fidx')
+    if fidx is not None:
+        geo = {'type': 'Polygon',
+           'coordinates':\
+                gj['features'][fidx]['geometry']['coordinates'][0]}
+        poly = Polygon([tuple(l)
+                        for l in geo['coordinates'][0]],
+                        closed=True)
+        hits = Path(poly.xy).contains_points(points,radius=1e-9)
+        ridx_tmp = list(np.array(range(len(LONS)))[hits])
+        ridx += ridx_tmp
+    else:
+        for i in range(len(gj['features'])):
+            geo = {'type': 'Polygon',
+               'coordinates':\
+                    gj['features'][i]['geometry']['coordinates'][0]}
+            poly = Polygon([tuple(l)
+                            for l in geo['coordinates'][0]],
+                            closed=True)
+            hits = Path(poly.xy).contains_points(points,radius=1e-9)
+            ridx_tmp = list(np.array(range(len(LONS)))[hits])
+            ridx += ridx_tmp
     return ridx
 
 def match_region_poly(LATS,LONS,region,grid_date):
