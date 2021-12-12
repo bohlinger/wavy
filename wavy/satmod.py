@@ -1000,8 +1000,9 @@ def poi_sat(indict,twin,distlim,poi,ridx,i):
     slats = list(np.array(indict['latitude'])[ridx][tidx])
     plons = [poi['longitude'][i]]*len(slons)
     plats = [poi['latitude'][i]]*len(slats)
-    dists = haversineA( slons,slats,plons,plats )
-    sidx = np.argwhere(np.array(dists)<=distlim).flatten()
+    dists_tmp = haversineA( slons,slats,plons,plats )
+    sidx = np.argwhere(np.array(dists_tmp)<=distlim).flatten()
+    dists = list(np.array(dists_tmp)[sidx])
     return list(np.array(tidx)[sidx])
 
 def match_poi(indict, twin, distlim, poi):
@@ -1014,7 +1015,7 @@ def match_poi(indict, twin, distlim, poi):
                              region=region)
     sat_dict = deepcopy(indict)
     idx = [poi_sat(sat_dict,twin,distlim,poi,ridx,i) \
-           for i in range(len(poi['datetime']))]
+                  for i in range(len(poi['datetime']))]
     idx = list(np.array(ridx)[flatten(idx)])
     return idx
 

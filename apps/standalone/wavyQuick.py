@@ -154,7 +154,7 @@ def main():
         satnamelst = []
         for sat in satlist:
             try:
-                sa_obj_tmp = sa(sdate,
+                sa_obj_tmp = sa(sdate=sdate,
                                 mission=sat,
                                 edate=edate,
                                 twin=args.twin,
@@ -200,7 +200,7 @@ def main():
         satnamelst = []
         for sat in satlist:
             try:
-                sa_obj_tmp = sa(sdate,
+                sa_obj_tmp = sa(sdate=sdate,
                                 mission=sat,
                                 edate=edate,
                                 twin=args.twin,
@@ -234,7 +234,7 @@ def main():
         sa_obj.mission = str(sats)
         sa_obj.mission_ts = satnames
     else:
-        sa_obj = sa(sdate,
+        sa_obj = sa(sdate=sdate,
                     mission=args.sat,
                     edate=edate,
                     twin=args.twin,
