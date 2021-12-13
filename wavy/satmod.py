@@ -53,7 +53,9 @@ variable_info = load_or_default('variable_info.yaml')
 def tmploop_get_remote_files(i,matching,user,pw,
                             server,remote_path,
                             path_local):
-    #for element in matching:
+    """
+    Function to download files using ftp. Tries 10 times before failing.
+    """
     print("File: ",matching[i])
     dlstr=('ftp://' + user + ':' + pw + '@'
                 + server + remote_path + matching[i])
@@ -236,9 +238,7 @@ def get_remote_files_cci(\
 sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
     '''
     Download swath files from CCI and store them at defined
-    location. Time stamps in file name stand for:
-
-    from, to, creation
+    location.
     '''
     # credentials
     server = satellite_dict[product]['src']['server']
@@ -384,7 +384,8 @@ def get_remote_files(path_local,sdate,edate,twin,
     '''
     Download swath files and store them at defined location.
     It is currently possible to download L3 altimeter data from
-    CMEMS and L2 from EUMETSAT.
+    CMEMS, L3 and L2P from CEDA CCI, and L2 from EUMETSAT,
+    as well as L2P from aviso+ for cfosat swim data.
     '''
     if product=='cmems_L3':
         get_remote_files_cmems(sdate,edate,twin,nproc,\
@@ -417,6 +418,23 @@ def make_query_dict(product,sat):
 
 def get_local_files(sdate,edate,twin,product,dict_for_sub=None,
 path_local=None):
+    """
+    Function to retrieve list of files/paths for available
+    locally stored satellite data. This list is used for
+    other functions to query and parsing.
+
+    param:
+        sdate - start date (datetime object)
+        edate - end date (datetime object)
+        twin - time window (temporal constraint) in minutes
+        product - roduct as of satellite_specs.yaml
+        dict_for_sub - dictionary for substitution in templates
+        local_path - a path if defined
+
+    return:
+        pathlst - list of paths
+        filelst - list of files
+    """
     filelst = []
     pathlst = []
     tmpdate = sdate-timedelta(minutes=twin)
@@ -457,8 +475,8 @@ path_local=None):
     else:
         filelst = np.sort(os.listdir(path_local))
         pathlst = [os.path.join(path_local,e) for e in filelst]
-    idx_start,tmp = check_date(filelst,sdate-timedelta(minutes=twin))
-    tmp,idx_end = check_date(filelst,edate+timedelta(minutes=twin))
+    idx_start,tmp = check_date(filelst, sdate - timedelta(minutes=twin))
+    tmp,idx_end = check_date(filelst, edate + timedelta(minutes=twin))
     if idx_end == 0:
         idx_end = len(pathlst)-1
     del tmp
@@ -469,6 +487,21 @@ path_local=None):
 
 def read_local_ncfiles(pathlst,product,varalias,
 sd,ed,twin,variable_info):
+    """
+    Wrapping function to read satellite netcdf files.
+
+    param:
+        pathlst - list of paths to be parsed
+        product - product as specified in satellite_specs.yaml
+        varalias
+        sd - start date (datetime object)
+        ed - start date (datetime object)
+        twin - time window (temporal constraint) in minutes
+        variable_info - from variable_info.yaml
+
+    return:
+        dictionary of variables for the satellite_class object
+    """
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
@@ -505,6 +538,16 @@ sd,ed,twin,variable_info):
     return vardict
 
 def unzip_eumetsat(pathlst,tmpdir):
+    """
+    Function to unzip eumetsat files prior to reading
+
+    param:
+        pathlst - list of paths to zipped files
+        tmpdir - temporary folder to unzipped files
+
+    return:
+        pathlst_new - new list of paths to unzipped files
+    """
     for count, f in enumerate(pathlst):
         zipped = zipfile.ZipFile(f)
         enhanced_measurement = zipped.namelist()[-1]
@@ -595,7 +638,10 @@ def read_local_files_eumetsat(pathlst,product,varalias,satellite_dict):
 def read_local_files(pathlst,product,varalias,
     sd,ed,twin,variable_info,satellite_dict):
     '''
-    main fct to read altimetry files
+    wrapping function to read altimetry files
+
+    return:
+        vardict - dictionary of variables for altimeter data
     '''
     # read local files depending on product
     if product == 'cmems_L3':
@@ -613,6 +659,13 @@ def read_local_files(pathlst,product,varalias,
 
 def get_sat_ts(sdate,edate,twin,region,product,pathlst,
 varalias,poi,distlim,variable_info,satellite_dict):
+    """
+    Main function to obtain data from satellite missions.
+    reads files, apply region and temporal filter
+
+    return: adjusted dictionary according to spatial and
+            temporal contarinst
+    """
     cvardict = read_local_files(pathlst,product,varalias,
                                sdate,edate,twin,variable_info,
                                satellite_dict)
@@ -676,6 +729,9 @@ varalias,poi,distlim,variable_info,satellite_dict):
     return rvardict
 
 def crop_vardict_to_period(vardict,sdate,edate):
+    """
+    Function to crop the variable dictionary to a given period
+    """
     for key in vardict:
         if (key != 'time_unit' and key != 'meta' and key != 'datetime'):
             vardict[key] =  list(np.array(vardict[key])[ \
@@ -704,9 +760,10 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 def check_date(filelst,date):
     '''
-    returns idx for file
+    Checks if str in lst according to desired date (sdate,edate)
+
+    return: idx for file
     '''
-    # check if str in lst according to desired date (sdate,edate)
     idx = []
     for i in range(len(filelst)):
         element = filelst[i]
@@ -724,11 +781,13 @@ class satellite_class():
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
+
     This class offers the following added functionality:
      - get swaths of desired days and read
      - get the closest time stamp(s)
      - get the location (lon, lat) for this time stamp
      - get Hs or 10m wind value for this time
+     - region mask
     '''
 
     def __init__(
@@ -875,6 +934,26 @@ class satellite_class():
             print ('# ----- ')
 
     def get_item_parent(self,item,attr):
+        """
+        Offers possibility to explore netcdf meta info.
+        by specifying what you are looking for (item),
+        e.g. part of a string, and in which attribute (attr),
+        e.g. standard_name, this function returns the
+        parent parameter name of the query string.
+
+        param:
+            item - (partial) string e.g. [m]
+            attr - attribute e.g. units
+
+        return: list of matching parameter strings
+
+        e.g. for satellite_class object sco:
+
+        .. code ::
+
+            sco.get_item_parent('m','units')
+        """
+
         ncdict = self.vars['meta']
         lst = [i for i in ncdict.keys() \
                 if (attr in ncdict[i].keys() \
@@ -885,11 +964,38 @@ class satellite_class():
         else: return None
 
     def get_item_child(self,item):
+        """
+        Gets all attributes connected to given parameter name.
+
+        param:
+            item - (partial) string e.g. [m]
+
+        return: matching parameter string
+
+        e.g. for satellite_class object sco:
+
+        .. code ::
+
+            sco.get_item_child('time')
+        """
+
         ncdict = self.vars['meta']
         parent = finditem(ncdict,item)
         return parent
 
     def quicklook(self,m=False,ts=False,projection=None):
+        """
+        Enables to explore the class object (and retrieved results)
+        by plotting time series and map.
+
+        param:
+            m - map figure (True/False)
+            ts - time series (True/False)
+            projection - specified projection for cartopy
+
+        return:
+            figures
+        """
         if m:
             import cartopy.crs as ccrs
             import cmocean
@@ -951,6 +1057,13 @@ class satellite_class():
             plt.show()
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
+        """
+        Write class variables to netcdf files.
+
+        param:
+            pathtofile
+            file_date_incr - what date increment to use for files
+        """
         if 'error' in vars(self):
             print('Erroneous satellite_class file detected')
             print('--> dump to netCDF not possible !')
@@ -992,6 +1105,10 @@ class satellite_class():
         return
 
 def poi_sat(indict,twin,distlim,poi,ridx,i):
+    """
+    return: indices for values matching the spatial and
+            temporal constraints
+    """
     tidx = find_included_times(
                 list(np.array(indict['datetime'])[ridx]),
                 target_t=poi['datetime'][i],
@@ -1006,6 +1123,9 @@ def poi_sat(indict,twin,distlim,poi,ridx,i):
     return list(np.array(tidx)[sidx])
 
 def match_poi(indict, twin, distlim, poi):
+    """
+    return: idx that match to region
+    """
     region={'llcrnrlat':np.min(poi['latitude']),
             'urcrnrlat':np.max(poi['latitude']),
             'llcrnrlon':np.min(poi['longitude']),
@@ -1020,6 +1140,12 @@ def match_poi(indict, twin, distlim, poi):
     return idx
 
 def match_region(LATS,LONS,region,grid_date):
+    """
+    Function to filter satellite data according to region
+
+    return:
+        indices that match the region
+    """
     # region in region_dict[poly]:
     # find values for given region
     if (region not in region_dict['poly'] and \
@@ -1048,6 +1174,9 @@ def match_region(LATS,LONS,region,grid_date):
     return ridx
 
 def match_region_rect(LATS,LONS,region):
+    """
+    Takes care of regular grid regions
+    """
     if (region is None or region == "global"):
         region = "global"
         ridx = range(len(LATS))
@@ -1066,6 +1195,9 @@ def match_region_rect(LATS,LONS,region):
     return ridx
 
 def match_region_geojson(LATS,LONS,region):
+    """
+    Takes care of regions defines as geojson
+    """
     import geojson
     from matplotlib.patches import Polygon
     from matplotlib.path import Path
@@ -1103,6 +1235,9 @@ def match_region_geojson(LATS,LONS,region):
     return ridx
 
 def match_region_poly(LATS,LONS,region,grid_date):
+    """
+    Takes care of region defined as polygon
+    """
     from matplotlib.patches import Polygon
     from matplotlib.path import Path
     import numpy as np

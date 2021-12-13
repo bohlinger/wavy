@@ -14,7 +14,7 @@ def __get_confdir__():
     Configuration directory is specified through:
 
     .env
-    WAVY_CONNFIG environment variable
+    WAVY_CONFIG environment variable
     XDG configuration directory (wavy)
     """
     c = os.getenv('WAVY_CONFIG', None)
