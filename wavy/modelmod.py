@@ -448,48 +448,49 @@ class model_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,projection=None,date=None):
-        import cartopy.crs as ccrs
-        import cmocean
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-        dt = parse_date(date)
-        lons = self.vars['longitude']
-        lats = self.vars['latitude']
-        var = self.vars[self.stdvarname]
-        fc_date = self.fc_date
-        if date is not None:
-            # find date in self.vars and give a snapshot
-            idx = self.vars['datetime'].index(dt)
-            var = self.vars[self.stdvarname][idx,:]
-            fc_date = self.fc_date[idx]
-        elif (date is None and len(var.shape)==3):
-            # find date in self.vars and give a snapshot
-            var = self.vars[self.stdvarname][0,:]
-            fc_date = self.fc_date[0]
-        if projection is None:
-            projection = ccrs.PlateCarree()
-        lonmax,lonmin = np.max(lons),np.min(lons)
-        latmax,latmin = np.max(lats),np.min(lats)
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1, projection=projection)
-        ax.set_extent(  [lonmin, lonmax,latmin, latmax],
-                        crs = projection )
-        cf = ax.contourf(lons,lats, var,
-                        cmap=cmocean.cm.amp,
-                        transform=ccrs.PlateCarree())
-        axins = inset_axes(ax,
-                   width="5%",  # width = 5% of parent_bbox width
-                   height="100%",  # height : 50%
-                   loc='lower left',
-                   bbox_to_anchor=(1.01, 0., 1, 1),
-                   bbox_transform=ax.transAxes,
-                   borderpad=0,
-                   )
-        fig.colorbar(cf, cax=axins, label=self.varalias
-                                    + ' [' + self.units + ']')
-        ax.coastlines()
-        ax.gridlines()
-        plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-        ax.set_title(self.model + ' for ' + str(fc_date))
-        plt.show()
+    def quicklook(self,m=True,projection=None,date=None):
+        if m is True:
+            import cartopy.crs as ccrs
+            import cmocean
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+            dt = parse_date(date)
+            lons = self.vars['longitude']
+            lats = self.vars['latitude']
+            var = self.vars[self.stdvarname]
+            fc_date = self.fc_date
+            if date is not None:
+                # find date in self.vars and give a snapshot
+                idx = self.vars['datetime'].index(dt)
+                var = self.vars[self.stdvarname][idx,:]
+                fc_date = self.fc_date[idx]
+            elif (date is None and len(var.shape)==3):
+                # find date in self.vars and give a snapshot
+                var = self.vars[self.stdvarname][0,:]
+                fc_date = self.fc_date[0]
+            if projection is None:
+                projection = ccrs.PlateCarree()
+            lonmax,lonmin = np.max(lons),np.min(lons)
+            latmax,latmin = np.max(lats),np.min(lats)
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1, projection=projection)
+            ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+                            crs = projection )
+            cf = ax.contourf(lons,lats, var,
+                            cmap=cmocean.cm.amp,
+                            transform=ccrs.PlateCarree())
+            axins = inset_axes(ax,
+                       width="5%",  # width = 5% of parent_bbox width
+                       height="100%",  # height : 50%
+                       loc='lower left',
+                       bbox_to_anchor=(1.01, 0., 1, 1),
+                       bbox_transform=ax.transAxes,
+                       borderpad=0,
+                       )
+            fig.colorbar(cf, cax=axins, label=self.varalias
+                                        + ' [' + self.units + ']')
+            ax.coastlines()
+            ax.gridlines()
+            plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+            ax.set_title(self.model + ' for ' + str(fc_date))
+            plt.show()

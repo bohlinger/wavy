@@ -176,22 +176,23 @@ class insitu_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self):
-        import matplotlib.pyplot as plt
-        import matplotlib.dates as mdates
-        fig = plt.figure(figsize=(9,3.5))
-        ax = fig.add_subplot(111)
-        colors = ['k']
-        ax.plot(self.vars['datetime'],
-                self.vars[self.stdvarname],
-                linestyle='None',color=colors[0],
-                label=self.nID + ' ( ' + self.sensor + ' )',
-                marker='o',alpha=.5,ms=2)
-        plt.ylabel(self.varalias + '[' + self.units + ']')
-        plt.legend(loc='best')
-        plt.tight_layout()
-        #ax.set_title()
-        plt.show()
+    def quicklook(self,ts=True):
+        if ts is True:
+            import matplotlib.pyplot as plt
+            import matplotlib.dates as mdates
+            fig = plt.figure(figsize=(9,3.5))
+            ax = fig.add_subplot(111)
+            colors = ['k']
+            ax.plot(self.vars['datetime'],
+                    self.vars[self.stdvarname],
+                    linestyle='None',color=colors[0],
+                    label=self.nID + ' ( ' + self.sensor + ' )',
+                    marker='o',alpha=.5,ms=2)
+            plt.ylabel(self.varalias + '[' + self.units + ']')
+            plt.legend(loc='best')
+            plt.tight_layout()
+            #ax.set_title()
+            plt.show()
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
         # divide time into months by loop over months from sdate to edate

@@ -988,7 +988,7 @@ class satellite_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,m=False,ts=False,projection=None):
+    def quicklook(self,m=True,ts=True,projection=None):
         """
         Enables to explore the class object (and retrieved results)
         by plotting time series and map.

@@ -484,8 +484,8 @@ class collocation_class():
         # get vars dictionary
         print(" ")
         print(" ## Collocate ... ")
-        for t in range(1):
-#        try:
+#        for t in range(1):
+        try:
             t0=time.time()
             results_dict = collocate(mc_obj=mc_obj,
                                     obs_obj=obs_obj,
@@ -503,14 +503,14 @@ class collocation_class():
             print("Time used for collocation:",round(t1-t0,2),"seconds")
             print(" ")
             print (" ### Collocation_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No collocation_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No collocation_class object initialized !")
         # add class variables
         print ('# ----- ')
 
-    def quicklook(self,m=False,ts=False,projection=None):
+    def quicklook(self,m=True,ts=True,projection=None):
         if m:
             import cartopy.crs as ccrs
             import cmocean
