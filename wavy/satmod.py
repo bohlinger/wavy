@@ -806,9 +806,14 @@ class satellite_class():
         if (sdate is None and edate is None and poi is not None):
             sdate = poi['datetime'][0]
             edate = poi['datetime'][-1]
-        if edate is None:
+        elif (edate is None and sdate is not None):
             print ("Requested time: ", str(sdate))
             edate = sdate
+        elif (edate is None and sdate is None):
+            now = datetime.now()
+            sdate = datetime(now.year,now.month,now.day,now.hour)
+            edate = sdate
+            print ("Requested time: ", str(sdate))
         else:
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
