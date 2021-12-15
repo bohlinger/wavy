@@ -39,8 +39,11 @@ definition of some global functions
 # ---------------------------------------------------------------------#
 
 def check_if_ncfile_accessible(fstr):
+    # remove escape character because xarray handles white spaces
+    # but cannot handle escape characters (apparently)
+    fstr_repl=fstr.replace('\\','')
     try:
-        xs=xr.open_dataset(fstr)
+        xs=xr.open_dataset(fstr_repl)
         return True
     except (OSError,FileNotFoundError) as e:
         print("Desired file not accessible")
@@ -956,6 +959,9 @@ def ncdumpMeta(pathtofile):
     Input: str pointing to netcdf-file
     Output: dict of attributes
     '''
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    pathtofile=pathtofile.replace('\\','')
     # init netCDF4 instance
     nc = netCDF4.Dataset(pathtofile,mode='r')
     # init empty dict

@@ -88,6 +88,15 @@ def make_model_filename(model, fc_date, leadtime):
                 + filedate.strftime(model_dict[model]['file_template']))
     else:
         raise ValueError("Chosen model is not specified in model_specs.yaml")
+    # replace/escape special characters
+    filename = filename.replace(" ", "\\ ")\
+                       .replace("?", "\\?")\
+                       .replace("&", "\\&")\
+                       .replace("(", "\\(")\
+                       .replace(")", "\\)")\
+                       .replace("*", "\\*")\
+                       .replace("<", "\\<")\
+                       .replace(">", "\\>")
     return filename
 
 
@@ -130,6 +139,9 @@ def make_list_of_model_filenames(model,fc_dates,lt):
 
 @lru_cache(maxsize=32)
 def read_model_nc_output_lru(filestr,lonsname,latsname,timename):
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    filestr=filestr.replace('\\','')
     f = netCDF4.Dataset(filestr, 'r')
     # get coordinates and time
     model_lons = f.variables[lonsname][:]
@@ -141,6 +153,9 @@ def read_model_nc_output_lru(filestr,lonsname,latsname,timename):
     return model_lons,model_lats,model_time_dt
 
 def read_model_nc_output(filestr,lonsname,latsname,timename):
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    filestr=filestr.replace('\\','')
     f = netCDF4.Dataset(filestr, 'r')
     # get coordinates and time
     model_lons = f.variables[lonsname][:]
@@ -169,7 +184,6 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     # get other variables e.g. Hs [time,lat,lon]
     filevarname = get_filevarname(varalias,variable_info,
                                   model_dict[model],meta)
-
     try:
         model_lons,model_lats,model_time_dt = \
         read_model_nc_output_lru(filestr,lonsname,latsname,timename)
@@ -182,6 +196,9 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     vardict[variable_info['lons']['standard_name']] = model_lons
     vardict[variable_info['lats']['standard_name']] = model_lats
 
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    filestr=filestr.replace('\\','')
     f = netCDF4.Dataset(filestr, 'r')
     model_time = f.variables[timename]
     l = kwargs.get('vertical_level',0)
