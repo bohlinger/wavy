@@ -5,6 +5,20 @@
 import numpy as np
 
 # define global functions
+
+def calc_model_activity_ratio(a,b):
+    """
+    computes the model activity ratio of input a (mode) and input b (obs)
+    if nans exist the prinziple of marginalization is applied
+    input: np.arrays with np.nan for invalids
+    """
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1=a[idx]
+    b1=b[idx]
+    mar = np.std(a1)/np.std(b1)
+    return mar
+
 def calc_rmsd(a,b):
     '''
     root mean square deviation
@@ -136,6 +150,7 @@ def disp_validation(valid_dict):
     print('Bias: ' + '{:0.2f}'.format(valid_dict['bias']))
     print('Normalized Bias: ' + '{:0.2f}'.format(valid_dict['nbias']))
     print('Scatter Index: ' + '{:0.2f}'.format(valid_dict['SI'][1]))
+    print('Model Activity Ratio: ' + '{:0.2f}'.format(valid_dict['mar']))
     print('Mean of Model: ' + '{:0.2f}'.format(valid_dict['mop']))
     print('Mean of Observations: ' + '{:0.2f}'.format(valid_dict['mor']))
     print('Number of Collocated Values: ' + str(valid_dict['nov']))
@@ -182,6 +197,7 @@ def validate(results_dict,boot=None):
         bias = calc_bias(model_matches,obs_matches)
         nbias = calc_nbias(model_matches,obs_matches)
         SI = calc_scatter_index(model_matches,obs_matches)
+        mar = calc_model_activity_ratio(model_matches,obs_matches)
         validation_dict = {
             'mop':mop,
             'mor':mor,
@@ -194,7 +210,8 @@ def validate(results_dict,boot=None):
             'mad':mad,
             'bias':bias,
             'nbias':nbias,
-            'SI':SI}
+            'SI':SI,
+            'mar':mar}
     elif boot is True:
         from wavy.utils import bootstr, marginalize
         reps=1000
