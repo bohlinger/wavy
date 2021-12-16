@@ -30,6 +30,14 @@ definition of some global functions
 def get_model_filedate(model, fc_date, leadtime):
     '''
     get init_date for latest model output file and checks if available
+
+    param:
+        model - modelname type(str)
+        fc_date - datetime object
+        leadtime - integer in hours
+
+    return:
+        suitable datetime to create model filename
     '''
     if ('init_times' in model_dict[model].keys()
             and model_dict[model]['init_times'] is not None):
@@ -59,6 +67,19 @@ def get_model_filedate(model, fc_date, leadtime):
 def make_model_filename(model, fc_date, leadtime):
     """
     creates/returns filename based on fc_date,leadtime
+
+        param:
+        model - modelname type(str)
+        fc_date - datetime object
+        leadtime - integer in hours
+
+    return:
+        filename (consists of path + filename)
+
+    comment:
+            - special characters are escaped by adding "\\"
+            - the escapes need to be removed for certain libraries
+              like xarray and netCDF4
     """
     if model in model_dict:
         if 'xtra_h' in model_dict[model]:
@@ -101,6 +122,17 @@ def make_model_filename(model, fc_date, leadtime):
 
 
 def make_model_filename_wrapper(model, fc_date, leadtime):
+    """
+    Wrapper function of make_model_filename. Organizes various cases.
+
+    param:
+        model - modelname type(str)
+        fc_date - datetime object
+        leadtime - integer in hours
+
+    return:
+        filename
+    """
     if leadtime is None:
         leadtime = 'best'
     if (isinstance(fc_date, datetime) and leadtime != 'best'):
@@ -127,8 +159,8 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
 
 def make_list_of_model_filenames(model,fc_dates,lt):
     """
-    returns: flst - list of model files to be opened
-             dlst - list of dates to be chosen within each file
+    return: flst - list of model files to be opened
+            dlst - list of dates to be chosen within each file
     """
     #fn = make_model_filename_wrapper('mwam4',datetime(2021,1,1,1),1)
     flst = []
@@ -198,7 +230,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
 
     # remove escape character because netCDF4 handles white spaces
     # but cannot handle escape characters (apparently)
-    filestr=filestr.replace('\\','')
+    filestr = filestr.replace('\\','')
     f = netCDF4.Dataset(filestr, 'r')
     model_time = f.variables[timename]
     l = kwargs.get('vertical_level',0)
