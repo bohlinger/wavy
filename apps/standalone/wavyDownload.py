@@ -12,7 +12,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 
 # own import
-from wavy.satmod import get_remote_files
+from wavy.collectors import get_remote_files
 from wavy.wconfig import load_or_default
 # -------------------------------------------------------------------- #
 
@@ -86,8 +86,8 @@ def main():
     now = datetime.now()
     if args.sat is None:
         satlst = ['s3a']
-    elif args.sat == 'cmems_L3':
-        satlst = satellite_dict['cmems_L3']['mission'].keys()
+    elif args.sat == 'cmems_L3_NRT':
+        satlst = satellite_dict['cmems_L3_NRT']['mission'].keys()
     else:
         satlst = [args.sat]
 
@@ -108,7 +108,7 @@ def main():
         args.nproc = 1
 
     if args.product is None:
-        args.product = 'cmems_L3'
+        args.product = 'cmems_L3_NRT'
 
     print(args)
 

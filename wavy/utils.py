@@ -303,8 +303,10 @@ def sort_files(dirpath,filelst,product,sat):
     """
     mv files to sub-folders of year and month
     """
-    if product == 'cmems_L3':
-        sort_cmems_l3(dirpath,filelst,sat)
+    if product == 'cmems_L3_NRT':
+        sort_cmems_l3_nrt(dirpath,filelst,sat)
+    elif product == 'cmems_L3_MY':
+        sort_cmems_l3_my(dirpath,filelst,sat)
     elif (product == 'cci_L2P' or product == 'cci_L3'):
         sort_cci(dirpath,filelst,sat)
     elif product == 'eumetsat_L2':
@@ -327,13 +329,26 @@ def sort_aviso_l2p(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cmems_l3(dirpath,filelst,sat):
+def sort_cmems_l3_nrt(dirpath,filelst,sat):
     '''
     Sort L3 files according to year and month.
     '''
     for e in filelst:
         if os.path.isfile(os.path.join(dirpath,e)):
             tmp = 'global_vavh_l3_rt_' + sat + '_'
+            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
+            folder = os.path.join(dirpath,year,month)
+            os.makedirs(folder,exist_ok=True)
+            cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
+            os.system(cmd)
+
+def sort_cmems_l3_my(dirpath,filelst,sat):
+    '''
+    Sort L3 files according to year and month.
+    '''
+    for e in filelst:
+        if os.path.isfile(os.path.join(dirpath,e)):
+            tmp = 'global_vavh_l3_rep_' + sat + '_'
             year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
             folder = os.path.join(dirpath,year,month)
             os.makedirs(folder,exist_ok=True)
