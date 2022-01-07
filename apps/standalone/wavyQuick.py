@@ -34,7 +34,7 @@ def main():
     parser.add_argument("-sat",
                         metavar='satellite',
                         help="satellite mission, currently available\n \
-            \ncmems_L3:\
+            \ncmems_L3_NRT:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n j3 - Jason-3 (reference mission)\
@@ -124,7 +124,7 @@ def main():
                         int(args.sd[8:10]))
 
     if args.product is None:
-        args.product = 'cmems_L3'
+        args.product = 'cmems_L3_NRT'
 
     if args.twin is None:
         args.twin = 30
