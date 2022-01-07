@@ -57,26 +57,33 @@ def tmploop_get_remote_files(i,matching,user,pw,
         print ('Exit program')
         sys.exit()
 
-def get_remote_files_cmems(\
-sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
+def get_remote_files_cmems(**kwargs):
     '''
     Download swath files from CMEMS and store them at defined
     location. Time stamps in file name stand for:
 
     from, to, creation
     '''
+    product = kwargs.get('product')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    twin = kwargs.get('twin',30)
+    nproc = kwargs.get('nproc',1)
+    mission = kwargs.get('mission','s3a')
+    path_local = kwargs.get('path_local')
+    dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
     server = satellite_dict[product]['src']['server']
     user, pw = get_credentials(remoteHostName = server)
     tmpdate = deepcopy(sdate)
     filesort = False
+    path_template = satellite_dict[product]['src']\
+                                  ['path_template']
+    strsublst = satellite_dict[product]['src']\
+                              ['strsub']
+    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
     while (tmpdate <= edate):
         # create remote path
-        path_template = satellite_dict[product]['src']\
-                                      ['path_template']
-        strsublst = satellite_dict[product]['src']\
-                                  ['strsub']
-        subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
                                       strsublst,subdict,\
                                       date=tmpdate)
@@ -95,7 +102,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         print(path_local)
         print ('# ----- ')
         print ('Chosen source: ')
-        print (sat + ' values from ' + product + ': ' + server)
+        print (mission + ' values from ' + product + ': ' + server)
         print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -136,15 +143,22 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
             + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,sat)
+        sort_files(path_local,filelst,product,mission)
     print ('Files downloaded to: \n', path_local)
 
-def get_remote_files_aviso(\
-sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
+def get_remote_files_aviso(**kwargs):
     '''
     Download swath files from AVISO+ and store them at defined
     location.
     '''
+    product = kwargs.get('product')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    twin = kwargs.get('twin',30)
+    nproc = kwargs.get('nproc',1)
+    mission = kwargs.get('mission','s3a')
+    path_local = kwargs.get('path_local')
+    dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
     server = satellite_dict[product]['src']['server']
     user, pw = get_credentials(remoteHostName = server)
@@ -172,7 +186,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
             filesort = True
         print ('# ----- ')
         print ('Chosen source: ')
-        print (sat + ' values from ' + product + ': ' + server)
+        print (mission + ' values from ' + product + ': ' + server)
         print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -213,15 +227,22 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
             + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,sat)
+        sort_files(path_local,filelst,product,mission)
     print ('Files downloaded to: \n', path_local)
 
-def get_remote_files_cci(\
-sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
+def get_remote_files_cci(**kwargs):
     '''
     Download swath files from CCI and store them at defined
     location.
     '''
+    product = kwargs.get('product')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    twin = kwargs.get('twin',30)
+    nproc = kwargs.get('nproc',1)
+    mission = kwargs.get('mission','s3a')
+    path_local = kwargs.get('path_local')
+    dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
     server = satellite_dict[product]['src']['server']
     level = satellite_dict[product]['processing_level']
@@ -236,14 +257,14 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         strsublst = satellite_dict[product]['src']\
                                   ['strsub']
         dict_for_sub['mission'] =\
-                        satellite_dict[product]['mission'][sat]
+                        satellite_dict[product]['mission'][mission]
         subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
                                       strsublst,subdict,\
                                       date=tmpdate)
         if path_local is None:
             # create local path
-            subdict['mission'] = sat
+            subdict['mission'] = mission
             path_template = satellite_dict[product]['dst']\
                                           ['path_template']
             strsublst = satellite_dict[product]['dst']\
@@ -254,7 +275,7 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
             filesort = True
         print ('# ----- ')
         print ('Chosen source: ')
-        print (sat + ' values from ' + product + ': ' + server)
+        print (mission + ' values from ' + product + ': ' + server)
         print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -300,15 +321,21 @@ sdate,edate,twin,nproc,sat,product,path_local,dict_for_sub):
         print(path_local)
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,sat)
+        sort_files(path_local,filelst,product,mission)
     print ('Files downloaded to: \n', path_local)
 
-def get_remote_files_eumetsat(\
-product,sdate,edate,api_url,sat,path_local,dict_for_sub):
+def get_remote_files_eumetsat(**kwargs):
     '''
     Download swath files from EUMETSAT and store them at defined
     location. This fct uses the SentinelAPI for queries.
     '''
+    product = kwargs.get('product')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    mission = kwargs.get('mission','s3a')
+    path_local = kwargs.get('path_local')
+    dict_for_sub = kwargs.get('dict_for_sub')
+    api_url = kwargs.get('api_url')
     import sentinelsat as ss
     products = None
     dates = (sdate.strftime('%Y-%m-%dT%H:%M:%SZ'),\
@@ -327,7 +354,7 @@ product,sdate,edate,api_url,sat,path_local,dict_for_sub):
                                      subdict,\
                                      date=sdate)
         filesort = True
-    kwargs = make_query_dict(product,sat)
+    kwargs = make_query_dict(product,mission)
     if api_url is None:
         api_url_lst = \
             satellite_dict[product]['src']['api_url']
@@ -358,42 +385,36 @@ product,sdate,edate,api_url,sat,path_local,dict_for_sub):
             + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,sat)
+        sort_files(path_local,filelst,product,mission)
     print ('Files downloaded to: \n', path_local)
 
-def make_query_dict(product,sat):
+def make_query_dict(product,mission):
     '''
     fct to setup queries of L2 data using SentinelAPI
     '''
     level = satellite_dict[product]['mission'].get('processing')
-    SAT = satellite_dict[product]['mission'].get(sat)
+    SAT = satellite_dict[product]['mission'].get(mission)
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
                'productlevel': level,
                'filename': SAT + '*WAT*'}
     return kwargs
 
-def get_remote_files(path_local,sdate,edate,twin,
-                    nproc,product,api_url,sat,dict_for_sub):
+def get_remote_files(**kwargs):
     '''
     Download swath files and store them at defined location.
     It is currently possible to download L3 altimeter data from
     CMEMS, L3 and L2P from CEDA CCI, and L2 from EUMETSAT,
     as well as L2P from aviso+ for cfosat swim data.
     '''
-    if (product=='cmems_L3_NRT' or product=='cmems_L3_MY'):
-        get_remote_files_cmems(sdate,edate,twin,nproc,\
-                               sat,product,path_local,\
-                               dict_for_sub)
-    elif product=='cfo_swim_L2P':
-        get_remote_files_aviso(sdate,edate,twin,nproc,\
-                               sat,product,path_local,\
-                               dict_for_sub)
-    elif product=='eumetsat_L2':
-        get_remote_files_eumetsat(product,sdate,edate,\
-                                  api_url,sat,path_local,\
-                                  dict_for_sub)
-    elif product=='cci_L2P' or product=='cci_L3':
-        get_remote_files_cci(sdate,edate,twin,nproc,\
-                               sat,product,path_local,\
-                               dict_for_sub)
+    dispatch = {
+                'cmems_L3_NRT':get_remote_files_cmems,
+                'cmems_L3_MY':get_remote_files_cmems,
+                'cfo_swim_L2P':get_remote_files_aviso,
+                'eumetsat_L2':get_remote_files_eumetsat,
+                'cci_L2P':get_remote_files_cci,
+                'cci_L3':get_remote_files_cci,
+                None:print('Error: Product not defined!')
+                }
+    product = kwargs.get('product')
+    dispatch[product](**kwargs)

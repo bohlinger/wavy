@@ -306,8 +306,14 @@ class satellite_class():
             print ("No download initialized, checking local files")
         else:
             print ("Downloading necessary files ...")
-            get_remote_files(path_local,sdate,edate,twin,
-                            nproc,product,api_url,mission,vars(self))
+            get_remote_files(\
+                            path_local=path_local,
+                            sdate=sdate,edate=edate,
+                            twin=twin,nproc=nproc,
+                            product=product,
+                            api_url=api_url,
+                            mission=mission,
+                            dict_for_sub=vars(self))
         print(" ")
         print(" ## Find files ...")
         t0=time.time()

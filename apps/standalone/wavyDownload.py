@@ -121,11 +121,20 @@ def main():
             print("Time period:", str(sdate), "to", str(edate))
             start_time = time.time()
             dict_for_sub = {'mission':sat}
+            #path_local,sdate,edate,twin,nproc,product,api_url,sat,dict_for_sub
+            #sa_obj = get_remote_files(\
+            #                    args.path, sdate, edate, twin,
+            #                    args.nproc, args.product,
+            #                    args.api_url, sat,
+            #                    dict_for_sub)
             sa_obj = get_remote_files(\
-                                args.path, sdate, edate, twin,
-                                args.nproc, args.product,
-                                args.api_url, sat,
-                                dict_for_sub)
+                                path_local=args.path,
+                                sdate=sdate,edate=edate,
+                                twin=twin,nproc=args.nproc,
+                                product=args.product,
+                                api_url=args.api_url,
+                                mission=sat,
+                                dict_for_sub=dict_for_sub)
             time1 = time.time() - start_time
             print("Time used for collecting data: ", time1, " seconds")
 

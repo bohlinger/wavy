@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 
 from wavy.wconfig import load_or_default
-import wavy.satmod
+import wavy.collectors
 from wavy.satmod import satellite_class as sc
 
 sdate = "2020-11-1 12"
@@ -12,11 +12,11 @@ sdate_dt = datetime(2020,11,1,12)
 edate = "2020-11-1 12"
 edate_dt = datetime(2020,11,1,12)
 region = 'NordicSeas'
-sat = 's3a'
+mission = 's3a'
 varalias = 'Hs'
 twin = 30
 nproc = 1
-product = 'cmems_L3'
+product = 'cmems_L3_NRT'
 
 satellite_dict = load_or_default('satellite_specs.yaml')
 
@@ -25,10 +25,14 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 def test_ftp_files_and_satellite_class_features(tmpdir):
     # evoke fct get_remote_files
     api_url = None
-    dict_for_sub = {'mission':sat}
-    wavy.satmod.get_remote_files(tmpdir,
-                            sdate_dt,edate_dt,twin,nproc,
-                            product,api_url,sat,dict_for_sub)
+    dict_for_sub = {'mission':mission}
+    wavy.collectors.get_remote_files(
+                            path_local=tmpdir,
+                            sdate=sdate_dt,edate=edate_dt,
+                            twin=twin,nproc=nproc,
+                            product=product,api_url=api_url,
+                            mission=mission,
+                            dict_for_sub=dict_for_sub)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
     nclist = [i for i in range(len(filelist))\
@@ -36,7 +40,7 @@ def test_ftp_files_and_satellite_class_features(tmpdir):
     assert len(nclist) >= 1
     # init satellite_object and check for polygon region
     sco = sc(sdate=sdate,edate=edate,region=region,
-             sat=sat,twin=twin,varalias=varalias,
+             mission=mission,twin=twin,varalias=varalias,
              product=product,path_local=tmpdir)
     assert sco.__class__.__name__ == 'satellite_class'
     assert len(vars(sco).keys()) >= 11

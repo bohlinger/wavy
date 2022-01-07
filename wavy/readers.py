@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-The main task of this module is to read files from satellite
-altimetry files for further use.
+The main task of this module is to read satellite altimetry
+files for further use.
 '''
 # --- import libraries ------------------------------------------------#
 # standard library igports
