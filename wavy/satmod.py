@@ -115,7 +115,7 @@ path_local=None):
     return pathlst, filelst
 
 def get_sat_ts(sdate,edate,twin,region,product,pathlst,
-varalias,poi,distlim,variable_info,satellite_dict):
+varalias,poi,distlim):
     """
     Main function to obtain data from satellite missions.
     reads files, apply region and temporal filter
@@ -123,9 +123,14 @@ varalias,poi,distlim,variable_info,satellite_dict):
     return: adjusted dictionary according to spatial and
             temporal contarinst
     """
-    cvardict = read_local_files(pathlst,product,varalias,
-                               sdate,edate,twin,variable_info,
-                               satellite_dict)
+    cvardict = read_local_files(\
+                                pathlst = pathlst,
+                                product = product,
+                                varalias = varalias,
+                                sdate = sdate,
+                                edate = edate,
+                                twin = twin
+                                )
     print('Total: ', len(cvardict['time']), ' footprints found')
     print('Apply region mask')
     ridx = match_region(cvardict['latitude'],
@@ -336,9 +341,9 @@ class satellite_class():
                     rvardict = get_sat_ts( sdate,edate,
                                            twin_tmp,region,
                                            product,pathlst,
-                                           varalias,poi,distlim,
-                                           variable_info,
-                                           satellite_dict)
+                                           varalias,poi,distlim)
+                                           #variable_info,
+                                           #satellite_dict)
                     # filter data
                     rvardict = filter_main( rvardict,
                                             varalias = varalias,
@@ -354,9 +359,9 @@ class satellite_class():
                 else:
                     rvardict = get_sat_ts( sdate,edate,twin,region,
                                            product,pathlst,
-                                           varalias,poi,distlim,
-                                           variable_info,
-                                           satellite_dict )
+                                           varalias,poi,distlim)
+                                           #variable_info,
+                                           #satellite_dict )
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
                     # rm NaNs

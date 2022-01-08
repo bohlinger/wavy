@@ -7,7 +7,6 @@ files for further use.
 '''
 # --- import libraries ------------------------------------------------#
 # standard library igports
-import sys
 import numpy as np
 import os
 import pandas as pd
@@ -61,11 +60,15 @@ def unzip_eumetsat(pathlst,tmpdir):
         pathlst_new.append(os.path.join(tmpdir.name,f))
     return pathlst_new
 
-def read_local_files_eumetsat(pathlst,product,varalias,satellite_dict):
+def read_local_files_eumetsat(**kwargs):
     '''
     Read and concatenate all data to one timeseries for each variable.
     Fct is tailored to EUMETSAT files.
     '''
+    pathlst = kwargs.get('pathlst')
+    product = kwargs.get('product')
+    varalias = kwargs.get('varalias')
+
     # --- find variable cf names --- #
     print ("Processing " + str(int(len(pathlst))) + " files")
     print (pathlst[0])
@@ -125,8 +128,7 @@ def read_local_files_eumetsat(pathlst,product,varalias,satellite_dict):
     tmpdir.cleanup()
     return vardict
 
-def read_local_ncfiles(pathlst,product,varalias,
-sd,ed,twin,variable_info):
+def read_local_ncfiles(**kwargs):
     """
     Wrapping function to read satellite netcdf files.
 
@@ -137,14 +139,20 @@ sd,ed,twin,variable_info):
         sd - start date (datetime object)
         ed - start date (datetime object)
         twin - time window (temporal constraint) in minutes
-        variable_info - from variable_info.yaml
 
     return:
         dictionary of variables for the satellite_class object
     """
+    pathlst = kwargs.get('pathlst')
+    product = kwargs.get('product')
+    varalias = kwargs.get('varalias')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    twin = kwargs.get('twin')
+
     # adjust start and end
-    sd = sd - timedelta(minutes=twin)
-    ed = ed + timedelta(minutes=twin)
+    sdate = sdate - timedelta(minutes=twin)
+    edate = edate + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname(varalias,variable_info,
@@ -152,7 +160,7 @@ sd,ed,twin,variable_info):
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby('time')
-    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    ds_sliced = ds_sort.sel(time=slice(sdate, edate))
     # make dict and start with stdvarname for varalias
     stdvarname = variable_info[varalias]['standard_name']
     var_sliced = ds_sliced[ncvar]
@@ -177,24 +185,21 @@ sd,ed,twin,variable_info):
             vardict[stdcoordname] = list(ds_sliced[varname].values)
     return vardict
 
-def read_local_files(pathlst,product,varalias,
-    sd,ed,twin,variable_info,satellite_dict):
+def read_local_files(**kwargs):
     '''
     wrapping function to read altimetry files
 
     return:
         vardict - dictionary of variables for altimeter data
     '''
-    # read local files depending on product
-    if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY'):
-        vardict = read_local_ncfiles(pathlst,product,varalias,
-                                     sd,ed,twin,variable_info)
-    elif (product == 'cci_L2P' or product == 'cci_L3'):
-        vardict = read_local_ncfiles(pathlst,product,varalias,
-                                     sd,ed,twin,variable_info)
-    elif (product == 'eumetsat_L2'):
-        sys.exit('!!! eumetsat L2 temporarily not provided !!!')
-        vardict = read_local_files_eumetsat(pathlst,product,\
-                                            varalias,\
-                                            satellite_dict)
+    dispatch_reader = {
+                'cmems_L3_NRT':read_local_ncfiles,
+                'cmems_L3_MY':read_local_ncfiles,
+                'cci_L2P':read_local_ncfiles,
+                'cci_L3':read_local_ncfiles,
+                'eumetsat_L2':read_local_files_eumetsat,
+                None:print('Error: Product not defined!')
+                }
+    product = kwargs.get('product')
+    vardict = dispatch_reader[product](**kwargs)
     return vardict

@@ -407,7 +407,7 @@ def get_remote_files(**kwargs):
     CMEMS, L3 and L2P from CEDA CCI, and L2 from EUMETSAT,
     as well as L2P from aviso+ for cfosat swim data.
     '''
-    dispatch = {
+    dispatch_collector = {
                 'cmems_L3_NRT':get_remote_files_cmems,
                 'cmems_L3_MY':get_remote_files_cmems,
                 'cfo_swim_L2P':get_remote_files_aviso,
@@ -417,4 +417,4 @@ def get_remote_files(**kwargs):
                 None:print('Error: Product not defined!')
                 }
     product = kwargs.get('product')
-    dispatch[product](**kwargs)
+    dispatch_collector[product](**kwargs)
