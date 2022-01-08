@@ -414,7 +414,6 @@ def get_remote_files(**kwargs):
                 'eumetsat_L2':get_remote_files_eumetsat,
                 'cci_L2P':get_remote_files_cci,
                 'cci_L3':get_remote_files_cci,
-                None:print('Error: Product not defined!')
                 }
     product = kwargs.get('product')
     dispatch_collector[product](**kwargs)

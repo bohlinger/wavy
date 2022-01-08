@@ -198,7 +198,6 @@ def read_local_files(**kwargs):
                 'cci_L2P':read_local_ncfiles,
                 'cci_L3':read_local_ncfiles,
                 'eumetsat_L2':read_local_files_eumetsat,
-                None:print('Error: Product not defined!')
                 }
     product = kwargs.get('product')
     vardict = dispatch_reader[product](**kwargs)
