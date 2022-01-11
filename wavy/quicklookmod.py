@@ -2,6 +2,7 @@
     Module for quicklook fct
 """
 # imports
+from shapely import geometry
 import yaml
 import numpy as np
 import os
@@ -79,10 +80,10 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
             lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
             lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
         elif sa_obj.region in region_dict['geojson']:
-            latmin = np.min(sa_obj.vars['latitude'])
-            latmax = np.max(sa_obj.vars['latitude'])
-            lonmin = np.min(sa_obj.vars['longitude'])
-            lonmax = np.max(sa_obj.vars['longitude'])
+            latmin = np.min(sa_obj.vars['latitude']) - .5
+            latmax = np.max(sa_obj.vars['latitude']) + .5
+            lonmin = np.min(sa_obj.vars['longitude']) - .5
+            lonmax = np.max(sa_obj.vars['longitude']) + .5
         elif sa_obj.region in region_dict['poly']:
             latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
             latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
@@ -143,6 +144,46 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
                 region_dict['poly'][sa_obj.region]['lats'],
                 '-', transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
+    # plot polygon from geojson if defined
+    if sa_obj.region in region_dict['geojson']:
+        import geojson
+        import matplotlib.patches as patches
+        from matplotlib.patches import Polygon
+        fstr = region_dict['geojson'][sa_obj.region]['fstr']
+        with open(fstr) as f:
+            gj = geojson.load(f)
+        fidx = region_dict['geojson'][sa_obj.region].get('fidx')
+        if fidx is not None:
+            geo = {'type': 'Polygon',
+                   'coordinates':\
+                    gj['features'][fidx]['geometry']['coordinates'][0]}
+            poly = Polygon([tuple(l)
+                            for l in geo['coordinates'][0]],
+                            closed=True)
+            ax.add_patch(\
+                patches.Polygon(\
+                    poly.get_path().to_polygons()[0],
+                    transform=ccrs.PlateCarree(),
+                    facecolor='None',
+                    edgecolor='red',
+                    lw = 3,
+                    alpha=0.2))
+        else:
+            for i in range(len(gj['features'])):
+                geo = {'type': 'Polygon',
+                        'coordinates':\
+                        gj['features'][i]['geometry']['coordinates'][0]}
+                poly = Polygon([tuple(l)
+                                for l in geo['coordinates'][0]],
+                                closed=True)
+                ax.add_patch(\
+                    patches.Polygon(\
+                        poly.get_path().to_polygons()[0],
+                        transform=ccrs.PlateCarree(),
+                        facecolor='None',
+                        edgecolor='red',
+                        lw = 3,
+                        alpha=0.2))
 
     # colors
     if stdvarname == 'sea_surface_wave_significant_height':
@@ -310,6 +351,7 @@ def plot_sat(sa_obj,**kwargs):
     import cmocean
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
     import matplotlib.ticker as mticker
+    import descartes
 
     stdvarname = sa_obj.stdvarname
     # sort out data/coordinates for plotting
@@ -341,15 +383,15 @@ def plot_sat(sa_obj,**kwargs):
             lonmin = region_dict['rect'][sa_obj.region]['llcrnrlon']
             lonmax = region_dict['rect'][sa_obj.region]['urcrnrlon']
         elif sa_obj.region in region_dict['geojson']:
-            latmin = np.min(sa_obj.vars['latitude'])
-            latmax = np.max(sa_obj.vars['latitude'])
-            lonmin = np.min(sa_obj.vars['longitude'])
-            lonmax = np.max(sa_obj.vars['longitude'])
+            latmin = np.min(sa_obj.vars['latitude']) - .5
+            latmax = np.max(sa_obj.vars['latitude']) + .5
+            lonmin = np.min(sa_obj.vars['longitude']) -.5
+            lonmax = np.max(sa_obj.vars['longitude']) + .5
         elif sa_obj.region in region_dict['poly']:
-            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])
-            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])
-            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])
-            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])
+            latmin = np.min(region_dict['poly'][sa_obj.region]['lats'])-.5
+            latmax = np.max(region_dict['poly'][sa_obj.region]['lats'])+.5
+            lonmin = np.min(region_dict['poly'][sa_obj.region]['lons'])-.5
+            lonmax = np.max(region_dict['poly'][sa_obj.region]['lons'])+.5
         elif sa_obj.region in model_dict:
             # model bounds
             latmin = np.min(model_var_dict['latitude'])
@@ -422,7 +464,6 @@ def plot_sat(sa_obj,**kwargs):
                 region_dict['poly'][sa_obj.region]['lats'],
                 '-', transform= ccrs.PlateCarree(),
                 color = 'gray', linewidth =2)
-
     # colors
     cmap = cmocean.cm.amp
     if stdvarname == 'sea_surface_wave_significant_height':
@@ -532,6 +573,47 @@ def plot_sat(sa_obj,**kwargs):
             region_dict['poly'][sa_obj.region]['lats'],
             'k:',transform=ccrs.PlateCarree()
             )
+
+    # plot polygon from geojson if defined
+    if sa_obj.region in region_dict['geojson']:
+        import geojson
+        import matplotlib.patches as patches
+        from matplotlib.patches import Polygon
+        fstr = region_dict['geojson'][sa_obj.region]['fstr']
+        with open(fstr) as f:
+            gj = geojson.load(f)
+        fidx = region_dict['geojson'][sa_obj.region].get('fidx')
+        if fidx is not None:
+            geo = {'type': 'Polygon',
+                   'coordinates':\
+                    gj['features'][fidx]['geometry']['coordinates'][0]}
+            poly = Polygon([tuple(l)
+                            for l in geo['coordinates'][0]],
+                            closed=True)
+            ax.add_patch(\
+                patches.Polygon(\
+                    poly.get_path().to_polygons()[0],
+                    transform=ccrs.PlateCarree(),
+                    facecolor='None',
+                    edgecolor='red',
+                    lw = 3,
+                    alpha=0.2))
+        else:
+            for i in range(len(gj['features'])):
+                geo = {'type': 'Polygon',
+                        'coordinates':\
+                        gj['features'][i]['geometry']['coordinates'][0]}
+                poly = Polygon([tuple(l)
+                                for l in geo['coordinates'][0]],
+                                closed=True)
+                ax.add_patch(\
+                    patches.Polygon(\
+                        poly.get_path().to_polygons()[0],
+                        transform=ccrs.PlateCarree(),
+                        facecolor='None',
+                        edgecolor='red',
+                        lw = 3,
+                        alpha=0.2))
 
     # - colorbar
     axins = inset_axes(ax,

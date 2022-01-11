@@ -328,8 +328,8 @@ class satellite_class():
         print(" ")
         print(" ## Read files ...")
         if len(pathlst) > 0:
-            for i in range(1):
-#            try:
+#            for i in range(1):
+            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -394,10 +394,10 @@ class satellite_class():
                 print(" ")
                 print ("### Satellite object initialized ###")
                 print ('# ----- ')
-#            except Exception as e:
-#                print(e)
-#                print('Error encountered')
-#                print('No satellite_class object initialized')
+            except Exception as e:
+                print(e)
+                print('Error encountered')
+                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')

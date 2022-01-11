@@ -29,6 +29,7 @@ dependencies:
   - python-dotenv
   - xdg
   - sentinelsat
+  - geojson
   - pip
   - pip:
     - roaring_landmask
