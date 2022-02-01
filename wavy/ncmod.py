@@ -84,8 +84,10 @@ def read_netcdfs_sel_lru(paths,dlst,varname,dim='time'):
     dataarr = [process_one_path_lru(paths[i],dlst[i],varname)\
                 for i in tqdm(range(len(paths)))]
     print("Concatenate ...")
-    combined = xr.concat(dataarr,dim,coords='minimal',
-                         compat='override',combine_attrs='override')
+    combined = xr.concat(dataarr,dim,
+                         coords='minimal',
+                         compat='override',
+                         combine_attrs='override')
     combined = combined.to_dataset()
     print("... done concatenating")
     return combined

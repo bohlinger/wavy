@@ -25,6 +25,7 @@ from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder
 from wavy.utils import NoStdStreams
 from wavy.utils import make_subdict
+from wavy.utils import parse_date
 from wavy.wconfig import load_or_default
 from wavy.modelmod import model_class, make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate
@@ -100,6 +101,108 @@ def get_closest_date(overdetermined_lst,target_lst):
         mindiff= np.min(diffs)
         idx.append(list(diffs).index(mindiff))
     return idx
+
+#def collocate_location_ts(location=None,model=None,distlim=None,\
+#    leadtime=None,date_incr=None):
+#    """
+#    Some info
+#    """
+#    location_dtimes = [ parse_date(t) for t in location['time'] ]
+#    fc_date = location_dtimes
+#    # find valid dates for given leadtime and model
+#    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
+#                                    fc_date,model,leadtime)
+#    # check if file exists and if it includes desired time
+#    # if not check next possible file
+#    check = False
+#    for d in range(len(fc_date)):
+#        check = check_if_file_is_valid(fc_date[d],model,leadtime)
+#        if check == True:
+#            break
+#    if check == True:
+#        mc_obj = model_class( model=model,
+#                              fc_date=fc_date[d],
+#                              leadtime=leadtime,
+#                              varalias=obs_obj.varalias)
+#        col_obj = collocation_class( mc_obj_in=mc_obj,
+#                                     obs_obj_in=obs_obj,
+#                                     distlim=distlim )
+#        model_vals = [col_obj.vars['model_values'][0]]
+#        tmpdate = hour_rounder(col_obj.vars['datetime'][0])
+#        model_datetime = [ datetime(tmpdate.year,
+#                                    tmpdate.month,
+#                                    tmpdate.day,
+#                                    tmpdate.hour) ]
+#        model_time = [netCDF4.date2num(model_datetime[0],
+#                        units=col_obj.vars['time_unit'])]
+#    if check == False:
+#        print('No valid model file available!')
+#    else:
+#        print('Collocating and appending values ...')
+#        for i in tqdm(range(d+1,len(fc_date))):
+#            with NoStdStreams():
+#                try:
+#                    check = check_if_file_is_valid(fc_date[i],model,leadtime)
+#                    if check == False:
+#                        raise FileNotFoundError
+#                    mc_obj = model_class( model=model,
+#                                          fc_date=fc_date[i],
+#                                          leadtime=leadtime,
+#                                          varalias=obs_obj.varalias )
+#                    model_vals.append(
+#                            mc_obj.vars[\
+#                                mc_obj.stdvarname][ \
+#                                    col_obj.vars['collocation_idx_x'],\
+#                                    col_obj.vars['collocation_idx_y']\
+#                                ][0] )
+#                    model_time.append(mc_obj.vars['time'][0])
+#                    model_datetime.append( datetime(\
+#                                mc_obj.vars['datetime'][0].year,
+#                                mc_obj.vars['datetime'][0].month,
+#                                mc_obj.vars['datetime'][0].day,
+#                                mc_obj.vars['datetime'][0].hour ) )
+#                except FileNotFoundError as e:
+#                    print(e)
+#        # potentially there are different number of values
+#        # for obs and model
+#        # double check and use only coherent datetimes
+#        idx2 = collocate_times( model_datetime,
+#                                target_t = obs_obj.vars['datetime'],
+#                                twin = obs_obj.twin)
+#        col_obj.vars['model_values'] = list(np.array(\
+#                                                    model_vals)[idx2])
+#        col_obj.vars['time'] = list(np.array(model_time)\
+#                                            [idx2])
+#        col_obj.vars['datetime'] = list(np.array(\
+#                                            model_datetime)[idx2])
+#        idx3 = collocate_times(  \
+#                            unfiltered_t = obs_obj.vars['datetime'],
+#                            target_t = col_obj.vars['datetime'],
+#                            twin = obs_obj.twin)
+#        col_obj.vars['obs_values'] = list(np.array(
+#                                        obs_obj.vars[
+#                                            obs_obj.stdvarname
+#                                                    ])[idx3])
+#    # valid_date is meaningless for ts application and set to None
+#    col_obj.vars['valid_date'] = None
+#    # inflate length of constant sized variables
+#    col_obj.vars['distance'] = col_obj.vars['distance']*\
+#                                    len(col_obj.vars['datetime'])
+#    col_obj.vars['obs_lats'] = col_obj.vars['obs_lats']*\
+#                                    len(col_obj.vars['datetime'])
+#    col_obj.vars['obs_lons'] = col_obj.vars['obs_lons']*\
+#                                    len(col_obj.vars['datetime'])
+#    col_obj.vars['collocation_idx_x'] = col_obj.vars['collocation_idx_x']*\
+#                                    len(col_obj.vars['datetime'])
+#    col_obj.vars['collocation_idx_y'] = col_obj.vars['collocation_idx_y']*\
+#                                    len(col_obj.vars['datetime'])
+#    col_obj.vars['model_lats'] = col_obj.vars['model_lats']*\
+#                                    len(col_obj.vars['datetime'])
+#    col_obj.vars['model_lons'] = col_obj.vars['model_lons']*\
+#                                    len(col_obj.vars['datetime'])
+#    results_dict = col_obj.vars
+#    return results_dict
+
 
 def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     leadtime=None,date_incr=None):
@@ -393,7 +496,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
                                  col_obj.vars['collocation_idx_y'] ])
     return results_dict
 
-def collocate(mc_obj=None,obs_obj=None,col_obj=None,
+def collocate(mc_obj=None,obs_obj=None,col_obj=None,location=None,
     model=None,distlim=None,leadtime=None,date_incr=None):
     """
     get obs value for model value for given
@@ -439,7 +542,7 @@ class collocation_class():
     draft of envisioned collocation class object
     '''
 
-    def __init__(self,mc_obj_in=None,obs_obj_in=None,
+    def __init__(self,mc_obj_in=None,obs_obj_in=None,location=None,
         col_obj_in=None,model=None,distlim=None,leadtime=None,
         date_incr=1):
         print('# ----- ')
@@ -460,6 +563,9 @@ class collocation_class():
             self.obstype = 'insitu'
             self.nID = obs_obj.nID
             self.sensor = obs_obj.sensor
+        if location is not None:
+            # location is of type dict
+            self.nID = location['nID']
         if mc_obj is not None:
             model = mc_obj.model
         # define class variables
@@ -490,6 +596,7 @@ class collocation_class():
             results_dict = collocate(mc_obj=mc_obj,
                                     obs_obj=obs_obj,
                                     col_obj=col_obj,
+                                    location=location,
                                     model=model,
                                     distlim=distlim,
                                     leadtime=self.leadtime,

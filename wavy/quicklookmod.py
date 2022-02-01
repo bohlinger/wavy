@@ -2,8 +2,6 @@
     Module for quicklook fct
 """
 # imports
-from shapely import geometry
-import yaml
 import numpy as np
 import os
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -351,7 +349,6 @@ def plot_sat(sa_obj,**kwargs):
     import cmocean
     from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
     import matplotlib.ticker as mticker
-    import descartes
 
     stdvarname = sa_obj.stdvarname
     # sort out data/coordinates for plotting
