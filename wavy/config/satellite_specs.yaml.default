@@ -32,7 +32,7 @@ eumetsat_L2:
     processing_level: L2
     provider: eumetsat
 
-cmems_L3:
+cmems_L3_NRT:
     mission:
         s3a: s3a
         s3b: s3b
@@ -58,6 +58,32 @@ cmems_L3:
     vardef: # varalias: varname
         Hs: VAVH
         U: WIND_SPEED
+    processing_level: L3
+    provider: cmems
+
+cmems_L3_MY:
+    mission:
+        c2: c2
+        al: al
+        j1: j1
+        j2: j2
+        j3: j3
+        cfo: cfo
+        env: en
+    dst:
+        #path_template: /home/patrikb/tmp_altimeter/L3/MY/mission
+        path_template:
+        file_template: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
+    src:
+        path_template: "/Core/WAVE_GLO_PHY_SWH_L3_MY_014_005/cci_obs-wave_glo_phy-swh_my_mission-l3_PT1S/%Y/%m/"
+        server: "my.cmems-du.eu"
+        strsub: ['mission']
+    misc:
+    vardef: # varalias: varname
+        Hs: VAVH
     processing_level: L3
     provider: cmems
 
