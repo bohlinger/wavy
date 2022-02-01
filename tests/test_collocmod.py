@@ -19,7 +19,7 @@ def test_sat_collocation_and_validation(test_data,tmpdir):
     ed = "2020-11-1 12"
     region = 'NordicSeas'
     sat = 's3a'
-    product = 'cmems_L3'
+    product = 'cmems_L3_NRT'
     twin = 30
     # read sat data
     sco = sc(sdate=sd,edate=ed,
