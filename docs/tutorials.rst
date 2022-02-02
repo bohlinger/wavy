@@ -58,7 +58,7 @@ Add your path for satellite data here under cmems
 
 .. code-block:: yaml
 
-   cmems_L3:
+   cmems_L3_NRT:
       dst:
          path_template: /home/patrikb/tmp_altimeter/L3/mission
 
@@ -78,7 +78,7 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3
+   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3_NRT
 
 You can find the downloaded files in your chosen download directory.
 
@@ -146,7 +146,7 @@ In python L3 data can be read by importing the satellite_class, choosing a regio
    >>> region = 'NorwegianSea'
    >>> varalias = 'Hs' # default
    >>> mission = 's3a' # default
-   >>> product = 'cmems_L3' # default
+   >>> product = 'cmems_L3_NRT' # default
    >>> twin = 30 # default
    >>> sd = "2020-11-1" # can also be datetime object
    >>> ed = "2020-11-2" # not necessary if twin is specified
@@ -267,7 +267,7 @@ Having downloaded the altimetry data, you can do:
 
    >>> # retrievals
    >>> sco_e = sc(sd,edate=ed,region=region,product='eumetsat_L2')
-   >>> sco_c = sc(sd,edate=ed,region=region,product='cmems_L3')
+   >>> sco_c = sc(sd,edate=ed,region=region,product='cmems_L3_NRT')
 
    >>> # plotting
    >>> import matplotlib.pyplot as plt
