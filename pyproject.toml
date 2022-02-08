@@ -30,7 +30,7 @@ tqdm = "^4.62.2"
 python-dotenv = "^0.19.0"
 sentinelsat = "^1.1.0"
 xdg = "^5.1.1"
-roaring-landmask = "^0.3.1"
+roaring-landmask = ">=0.4.1"
 geojson = "^2.5.0"
 
 [tool.poetry.dev-dependencies]

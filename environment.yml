@@ -9,7 +9,7 @@ dependencies:
   - netCDF4
   - pyyaml
   - pyproj>=2.3
-  - cartopy>=0.18.0
+  - cartopy>=0.19.0
   - cmocean
   - joblib
   - scikit-learn>=0.19
@@ -32,4 +32,4 @@ dependencies:
   - geojson
   - pip
   - pip:
-    - roaring_landmask
+    - roaring_landmask>=0.4.1
