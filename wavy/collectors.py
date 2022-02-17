@@ -77,32 +77,33 @@ def get_remote_files_cmems(**kwargs):
     user, pw = get_credentials(remoteHostName = server)
     tmpdate = deepcopy(sdate)
     filesort = False
-    path_template = satellite_dict[product]['src']\
+    path_template_src = satellite_dict[product]['src']\
                                   ['path_template']
-    strsublst = satellite_dict[product]['src']\
+    strsublst_src = satellite_dict[product]['src']\
                               ['strsub']
-    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
+    subdict_src = make_subdict(strsublst_src,
+                               class_object_dict=dict_for_sub)
     while (tmpdate <= edate):
         # create remote path
-        path_remote = make_pathtofile(path_template,\
-                                      strsublst,subdict,\
+        path_remote = make_pathtofile(path_template_src,\
+                                      strsublst_src,subdict_src,\
                                       date=tmpdate)
-        print(path_remote)
-        if path_local is None:
-            # create local path
-            path_template = satellite_dict[product]['dst']\
+        # create local path
+        path_template_dst = satellite_dict[product]['dst']\
                                           ['path_template']
-            strsublst = satellite_dict[product]['dst']\
+        strsublst_dst = satellite_dict[product]['dst']\
                                       ['strsub']
-            path_local = make_pathtofile(path_template,\
-                                     strsublst,subdict,\
-                                     date=sdate)
-            filesort = True
+        subdict_dst = make_subdict(strsublst_dst,
+                                       class_object_dict=dict_for_sub)
+        path_local = make_pathtofile(path_template_dst,\
+                                     strsublst_dst,subdict_dst,\
+                                     date=tmpdate)
+        filesort = True
 
-        print(path_local)
         print ('# ----- ')
         print ('Chosen source: ')
         print (mission + ' values from ' + product + ': ' + server)
+        print(path_remote)
         print ('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -120,6 +121,7 @@ def get_remote_files_cmems(**kwargs):
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = np.unique(tmplst)
+        print(matching)
         # check if download path exists if not create
         if not os.path.exists(path_local):
             os.makedirs(path_local,exist_ok=True)
