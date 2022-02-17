@@ -329,7 +329,7 @@ def dumptonc_ts_insitu(ico,pathtofile,title):
         ncvar[:] = var
         ncvar.setncatts(variable_info[ico.varalias])
         # coordinate system info
-        nc_crs = nc.createVariable('latlon',np.int32)
+        nc_crs = nc.createVariable('latlon',int)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
         nc_crs.grid_mapping_name = 'latitude_longitude'
         # close file
@@ -512,7 +512,7 @@ def dumptonc_ts_collocation(cco,pathtofile,title):
         nccolidx_y[:] = colidx_y
         nccolidx_y.setncatts(variable_info['colidx_y'])
         # coordinate system info
-        nc_crs = nc.createVariable('latlon',np.int32)
+        nc_crs = nc.createVariable('latlon',int)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
         nc_crs.grid_mapping_name = 'latitude_longitude'
         # close file
@@ -769,7 +769,7 @@ def dumptonc_ts_sat(sco,pathtofile=None,title=None):
         ncvar[:] = var
         ncvar.setncatts(variable_info[sco.varalias])
         # coordinate system info
-        nc_crs = nc.createVariable('latlon',np.int32)
+        nc_crs = nc.createVariable('latlon',int)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
         nc_crs.grid_mapping_name = 'latitude_longitude'
         # close file
@@ -831,7 +831,7 @@ def dumptonc_ts_pos(outpath,filename,title,coll_dict):
         nctime.units = 'seconds since ' + str(basetime)
         nctime[:] = time
         # coordinate system info
-        nc_crs = nc.createVariable('latlon',np.int32)
+        nc_crs = nc.createVariable('latlon',int)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
         nc_crs.grid_mapping_name = 'latitude_longitude'
         # close file
