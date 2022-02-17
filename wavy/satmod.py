@@ -256,8 +256,7 @@ class satellite_class():
         self,sdate=None,mission='s3a',product='cmems_L3_NRT',
         edate=None,twin=None,download=False,path_local=None,
         region='mwam4',nproc=1,varalias='Hs',api_url=None,
-        filterData=False,poi=None,distlim=None,
-        **kwargs):
+        filterData=False,poi=None,distlim=None,**kwargs):
         print('# ----- ')
         print(" ### Initializing satellite_class object ###")
         print(" ")
@@ -572,6 +571,15 @@ class satellite_class():
                 elif file_date_incr == 'd':
                     tmpdate += timedelta(days = +1)
         return
+
+    def write_to_pickle(self,pathtofile=None):
+        import pickle
+        # writing
+        pickle.dump( self, open( pathtofile, "wb" ) )
+        print('satellite_class object written to:',pathtofile)
+        # for reading
+        # sco = pickle.load( open( pathtofile, "rb" ) )
+
 
 def poi_sat(indict,twin,distlim,poi,ridx,i):
     """

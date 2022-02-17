@@ -742,6 +742,14 @@ class collocation_class():
                     tmpdate += timedelta(days = +1)
         return
 
+    def write_to_pickle(self,pathtofile=None):
+        import pickle
+        # writing
+        pickle.dump( self, open( pathtofile, "wb" ) )
+        print('collocation_class object written to:',pathtofile)
+        # for reading
+        # cco = pickle.load( open( pathtofile, "rb" ) )
+
     def validate_collocated_values(self,**kwargs):
         dtime = self.vars['datetime']
         mods = self.vars['model_values']

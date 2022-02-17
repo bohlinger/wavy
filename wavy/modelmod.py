@@ -543,3 +543,11 @@ class model_class():
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
             ax.set_title(self.model + ' for ' + str(fc_date))
             plt.show()
+
+    def write_to_pickle(self,pathtofile=None):
+        import pickle
+        # writing
+        pickle.dump( self, open( pathtofile, "wb" ) )
+        print('model_class object written to:',pathtofile)
+        # for reading
+        # mco = pickle.load( open( pathtofile, "rb" ) )

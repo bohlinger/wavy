@@ -230,6 +230,14 @@ class insitu_class():
                     tmpdate += timedelta(days = +1)
         return
 
+    def write_to_pickle(self,pathtofile=None):
+        import pickle
+        # writing
+        pickle.dump( self, open( pathtofile, "wb" ) )
+        print('insitu_class object written to:',pathtofile)
+        # for reading
+        # ico = pickle.load( open( pathtofile, "rb" ) )
+
 
 def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
 dict_for_sub,**kwargs):

@@ -88,17 +88,18 @@ def get_remote_files_cmems(**kwargs):
         path_remote = make_pathtofile(path_template_src,\
                                       strsublst_src,subdict_src,\
                                       date=tmpdate)
-        # create local path
-        path_template_dst = satellite_dict[product]['dst']\
+        if path_local is None:
+            # create local path
+            path_template_dst = satellite_dict[product]['dst']\
                                           ['path_template']
-        strsublst_dst = satellite_dict[product]['dst']\
-                                      ['strsub']
-        subdict_dst = make_subdict(strsublst_dst,
-                                       class_object_dict=dict_for_sub)
-        path_local = make_pathtofile(path_template_dst,\
-                                     strsublst_dst,subdict_dst,\
-                                     date=tmpdate)
-        filesort = True
+            strsublst_dst = satellite_dict[product]['dst']\
+                                          ['strsub']
+            subdict_dst = make_subdict(strsublst_dst,
+                                           class_object_dict=dict_for_sub)
+            path_local = make_pathtofile(path_template_dst,\
+                                         strsublst_dst,subdict_dst,\
+                                         date=tmpdate)
+            filesort = True
 
         print ('# ----- ')
         print ('Chosen source: ')
