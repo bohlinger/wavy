@@ -310,6 +310,8 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
                                                     model_var_valid
     # transform masked array to numpy array with NaNs
     f.close()
+    vardict['longitude'] = vardict['longitude'].filled(np.nan)
+    vardict['latitude'] = vardict['latitude'].filled(np.nan)
     vardict[variable_info[varalias]['standard_name']] = \
         vardict[variable_info[varalias]['standard_name']].filled(np.nan)
     vardict['meta'] = meta
@@ -350,7 +352,8 @@ def get_model(model=None,
               fc_date=None,
               leadtime=None,
               varalias=None,
-              st_obj=None):
+              st_obj=None,
+              transform_lons=None):
     """
     toplevel function to get model data
     """
@@ -397,6 +400,11 @@ def get_model(model=None,
         tmpd = [parse_date(str(d)) for d in vardict['datetime']]
     vardict['datetime'] = tmpd
     del tmpd
+    if transform_lons==180:
+        # transform longitudes from -180 to 180
+        vardict['longitude'] = ((vardict['longitude'] - 180) % 360) - 180
+    elif transform_lons==360:
+        print('not yet implemented !!')
     return vardict, fc_date, leadtime, filestr, filevarname
 
 
@@ -422,7 +430,8 @@ class model_class():
                  fc_date=None,
                  leadtime=None,
                  varalias='Hs',
-                 st_obj=None):
+                 st_obj=None,
+                 transform_lons=None):
         print('# ----- ')
         print(" ### Initializing model_class object ###")
         print(' ')
@@ -457,7 +466,7 @@ class model_class():
         filevarname = get_model(model=model,sdate=sdate,edate=edate,
                             date_incr=date_incr,fc_date=fc_date,
                             leadtime=leadtime,varalias=varalias,
-                            st_obj=st_obj)
+                            st_obj=st_obj,transform_lons=transform_lons)
         stdname = variable_info[varalias]['standard_name']
         units = variable_info[varalias]['units']
         varname = filevarname
