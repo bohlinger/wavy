@@ -506,7 +506,7 @@ class model_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,m=True,projection=None,date=None):
+    def quicklook(self,m=True,projection=None,date=None,**kwargs):
         if m is True:
             import cartopy.crs as ccrs
             import cmocean
@@ -528,6 +528,13 @@ class model_class():
                 fc_date = self.fc_date[0]
             if projection is None:
                 projection = ccrs.PlateCarree()
+            # parse kwargs
+            cflevels = kwargs.get('cflevels',10)
+            clevels = kwargs.get('clevels',10)
+            if kwargs.get('cmap') is None:
+                cmap = cmocean.cm.amp
+            else:
+                cmap = kwargs.get('cmap')
             lonmax,lonmin = np.max(lons),np.min(lons)
             latmax,latmin = np.max(lats),np.min(lats)
             fig = plt.figure()
@@ -535,8 +542,11 @@ class model_class():
             ax.set_extent(  [lonmin, lonmax,latmin, latmax],
                             crs = projection )
             cf = ax.contourf(lons,lats, var,
-                            cmap=cmocean.cm.amp,
+                            cmap=cmap,levels=cflevels,
                             transform=ccrs.PlateCarree())
+            c = ax.contour(lons,lats, var,
+                           cmap=cmap,levels=clevels,
+                           transform=ccrs.PlateCarree())
             axins = inset_axes(ax,
                        width="5%",  # width = 5% of parent_bbox width
                        height="100%",  # height : 50%
