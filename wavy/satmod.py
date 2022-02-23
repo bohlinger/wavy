@@ -254,7 +254,7 @@ class satellite_class():
 
     def __init__(
         self,sdate=None,mission='s3a',product='cmems_L3_NRT',
-        edate=None,twin=None,download=False,path_local=None,
+        edate=None,twin=30,download=False,path_local=None,
         region='mwam4',nproc=1,varalias='Hs',api_url=None,
         filterData=False,poi=None,distlim=None,**kwargs):
         print('# ----- ')
@@ -278,8 +278,6 @@ class satellite_class():
         else:
             print ("Requested time frame: " +
                 str(sdate) + " - " + str(edate))
-        if twin is None:
-            twin = int(30)
         stdname = variable_info[varalias].get('standard_name')
         units = variable_info[varalias].get('units')
         # define some class variables
@@ -580,7 +578,6 @@ class satellite_class():
         # for reading
         # sco = pickle.load( open( pathtofile, "rb" ) )
 
-
 def poi_sat(indict,twin,distlim,poi,ridx,i):
     """
     return: indices for values matching the spatial and
@@ -603,6 +600,8 @@ def match_poi(indict, twin, distlim, poi):
     """
     return: idx that match to region
     """
+    from tqdm import tqdm
+    print('Match up poi locations')
     region={'llcrnrlat':np.min(poi['latitude']),
             'urcrnrlat':np.max(poi['latitude']),
             'llcrnrlon':np.min(poi['longitude']),
@@ -612,7 +611,7 @@ def match_poi(indict, twin, distlim, poi):
                              region=region)
     sat_dict = deepcopy(indict)
     idx = [poi_sat(sat_dict,twin,distlim,poi,ridx,i) \
-                  for i in range(len(poi['datetime']))]
+                  for i in tqdm(range(len(poi['datetime'])))]
     idx = list(np.array(ridx)[flatten(idx)])
     return idx
 

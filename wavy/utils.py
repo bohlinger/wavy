@@ -408,6 +408,13 @@ def get_size(obj, seen=None):
         size += sum([get_size(i, seen) for i in obj])
     return size
 
+def find_included_times_pd(unfiltered_t,sdate,edate):
+    import pandas as pd
+    idx = np.array(range(len(unfiltered_t)))
+    df = pd.to_datetime(unfiltered_t)
+    mask = ((df >= sdate.isoformat()) & (df <= edate.isoformat()))
+    return list(idx[mask])
+
 def find_included_times(unfiltered_t,target_t=None,
     sdate=None,edate=None,twin=0):
     """
