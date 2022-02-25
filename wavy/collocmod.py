@@ -579,6 +579,7 @@ class collocation_class():
             self.obsname = obs_obj.mission
             self.mission = obs_obj.mission
             self.obstype = "satellite_altimeter"
+            self.stdvarname = obs_obj.stdvarname
             self.region = obs_obj.region
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
