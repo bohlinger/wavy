@@ -157,15 +157,6 @@ def disp_validation(valid_dict):
     print('\n')
     pass
 
-
-class validation_class():
-
-
-    def __init__(self,date):
-        print ('# ----- ')
-        print (" ### Initializing validation_class instance ###")
-        print ('# ----- ')
-
 def validate(results_dict,boot=None):
     import numpy as np
     """
