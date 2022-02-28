@@ -331,6 +331,23 @@ def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None
             newdict[key] = list(np.array(newdict[key])[idx])
     return newdict
 
+dispatch_smoother = {
+        'blockMean':smoother_blockMean,
+        'linearGam':smoother_linearGam,
+        'expectileGam':smoother_expectileGam,
+        'GP':smoother_GP,
+        'NIGP':smoother_NIGP,
+        'lanczos':smoother_lanczos,
+        }
+
+dispatch_cleaner = {
+        'blockStd':cleaner_blockStd,
+        'linearGam':cleaner_linearGam,
+        'expectileGam':cleaner_expectileGam,
+        'GP':cleaner_GP,
+        'NIGP':cleaner_NIGP,
+        }
+
 def smoothing(varalias,vardict,output_grid,\
 output_dates, method='linearGAM', date_incr=None,
 **kwargs):
