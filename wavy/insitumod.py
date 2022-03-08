@@ -70,7 +70,8 @@ class insitu_class():
         print(" ")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         stdvarname = variable_info[varalias]['standard_name']
-        try:
+        for i in range(1):
+#        try:
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.units = variable_info[varalias].get('units')
@@ -147,6 +148,8 @@ class insitu_class():
                 self.varname = varname
             else:
                 self.varname = varalias
+            if fifo == 'frost':
+                self.sensor = 'N/A'
             t1=time.time()
             print(" ")
             print( '## Summary:')
@@ -155,10 +158,10 @@ class insitu_class():
                    round(t1-t0,2),"seconds")
             print(" ")
             print (" ### insitu_class object initialized ### ")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No insitu_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def get_item_parent(self,item,attr):
@@ -243,7 +246,7 @@ def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
 dict_for_sub,**kwargs):
     stdvarname = variable_info[varalias]['standard_name']
     # determine fifo
-    fifo = finditem(insitu_dict[nID],'fifo')[0]
+    fifo = kwargs.get('fifo', finditem(insitu_dict[nID],'fifo')[0])
     path_template = insitu_dict[nID]['src']['path_template']
     file_template = insitu_dict[nID]['src']['file_template']
     pathlst = [p + ('/' + file_template) for p in path_template]
@@ -254,6 +257,9 @@ dict_for_sub,**kwargs):
         vardict, pathtofile = \
             get_nc_ts(nID,varalias,sdate,edate,pathlst,\
                       strsublst,dict_for_sub)
+    elif fifo == 'frost':
+        vardict = get_frost_ts(sdate,edate,nID,varalias)
+        pathtofile = 'frost.api.no'
     elif fifo == 'd22':
         var, time, timedt = \
             get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,\
@@ -319,6 +325,52 @@ pathlst,strsublst,dict_for_sub):
            [(t-basedate).total_seconds() for t in timedt]
            )
     return var, time, timedt
+
+def make_frost_reference_time_period(sdate,edate):
+    sdate = parse_date(sdate)
+    edate = parse_date(edate)
+    formatstr = '%Y-%m-%dT%H:%M:00.000Z'
+    refstr = '{}/{}'.format(sdate.strftime(formatstr),
+                            edate.strftime(formatstr))
+    return refstr
+
+def get_frost_ts(sdate,edate,nID,varalias):
+    import dotenv
+    import netCDF4
+    import requests
+    import pandas as pd
+    dotenv.load_dotenv()
+    client_id = os.getenv('CLIENT_ID', None)
+    if client_id is None:
+        print("No Frost CLIENT_ID given!")
+    stdvarname = variable_info[varalias]['standard_name']
+    ID = insitu_dict[nID]['ID']
+    frost_reference_time = make_frost_reference_time_period(sdate,edate)
+    endpoint = 'https://frost.met.no/observations/v0.jsonld'
+    parameters = {
+                    'sources': ID,
+                    'elements': stdvarname,
+                    'referencetime': frost_reference_time,
+                }
+    r = requests.get(endpoint, parameters, auth=(client_id,client_id))
+    df = pd.json_normalize( r.json()['data'],
+                            ['observations'],
+                            ['sourceId','referenceTime'])
+    var = df['value'].values
+    timedt = [parse_date(d) for d in df['referenceTime'].values]
+    time = netCDF4.date2num(timedt,variable_info['time']['units'])
+    sensor = list(insitu_dict[nID]['sensor'].keys())[0]
+    lons = [insitu_dict[nID]['coords'][sensor]['lon']]*len(var)
+    lats = [insitu_dict[nID]['coords'][sensor]['lat']]*len(var)
+    vardict = {
+                stdvarname:var,
+                'time':time,
+                'datetime':timedt,
+                'time_unit':variable_info['time']['units'],
+                'longitude':lons,
+                'latitude':lats
+                }
+    return vardict
 
 def get_nc_ts(nID,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
     # loop from sdate to edate with dateincr
