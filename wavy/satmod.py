@@ -33,8 +33,8 @@ from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
 from wavy.filtermod import filter_main,vardict_unique
 from wavy.filtermod import rm_nan_from_vardict
-from wavy.collectors import get_remote_files
-from wavy.readers import read_local_files
+from wavy.sat_collectors import get_remote_files
+from wavy.sat_readers import read_local_files
 # ---------------------------------------------------------------------#
 
 # read yaml config files:

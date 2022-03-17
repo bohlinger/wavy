@@ -12,7 +12,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 
 # own import
-from wavy.collectors import get_remote_files
+from wavy.sat_collectors import get_remote_files
 from wavy.wconfig import load_or_default
 # -------------------------------------------------------------------- #
 

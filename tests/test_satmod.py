@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 
 from wavy.wconfig import load_or_default
-import wavy.collectors
+import wavy.sat_collectors
 from wavy.satmod import satellite_class as sc
 
 sdate = "2020-11-1 12"
@@ -26,7 +26,7 @@ def test_ftp_files_and_satellite_class_features(tmpdir):
     # evoke fct get_remote_files
     api_url = None
     dict_for_sub = {'mission':mission}
-    wavy.collectors.get_remote_files(
+    wavy.sat_collectors.get_remote_files(
                             path_local=tmpdir,
                             sdate=sdate_dt,edate=edate_dt,
                             twin=twin,nproc=nproc,
