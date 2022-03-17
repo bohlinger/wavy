@@ -21,6 +21,8 @@ from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 import pylab as pl
 from datetime import datetime
+import pandas as pd
+import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -333,6 +335,64 @@ def make_frost_reference_time_period(sdate,edate):
     refstr = '{}/{}'.format(sdate.strftime(formatstr),
                             edate.strftime(formatstr))
     return refstr
+
+def call_frost_api_v1(nID, varalias, frost_reference_time, client_id):
+    import requests
+    import dotenv
+    dotenv.load_dotenv()
+    client_id = os.getenv('CLIENT_ID', None)
+    if client_id is None:
+        print("No Frost CLIENT_ID given!")
+    stdvarname = variable_info[varalias]['standard_name']
+    ID = insitu_dict[nID]['ID']
+    endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/filter/get?'
+    #endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/kvkafka/get?'
+    parameters = {
+                'stationids': ID,
+                'elementids': stdvarname,
+                'time': frost_reference_time,
+                'timeoffsets': 'default', # handled by filter
+                'levels': 0,
+                'incobs': 'true'
+                }
+    return requests.get(endpoint, parameters, auth=(client_id, client_id))
+
+def get_frost_df_v1(r,nID,sensor,varalias):
+    # base df
+    df = pd.json_normalize(r.json()['data']['tseries'])
+    # df to be concatenated initialized with time
+    dfc = pd.json_normalize(r.json()
+      ['data']['tseries'][0]['observations'])['time'].to_frame()
+    stdvarname = variable_info[varalias]['standard_name']
+    sensoridx = insitu_dict[nID]['sensor'][sensor]
+    idx = df['header.extra.element.id']\
+            [df['header.extra.element.id']==stdvarname]\
+            .index.to_list()
+    idxs = df['header.id.sensor']\
+            [df['header.id.sensor']==sensoridx]\
+            .index.to_list()
+    dftmp = pd.json_normalize(r.json()\
+                    ['data']['tseries'][idxs[sensoridx]]['observations'])\
+                    ['body.data'].to_frame()
+    dftmp = dftmp.rename(columns={ dftmp.columns[0]: stdvarname })
+    dftmp[stdvarname] = dftmp[stdvarname].mask(dftmp[stdvarname] < 0, np.nan)
+    dfc = pd.concat([dfc, dftmp.reindex(dfc.index)], axis=1)
+    var = list(dfc[stdvarname].values)
+    timedt = [parse_date(d) for d in dfc['time'].values]
+    time = netCDF4.date2num(timedt,variable_info['time']['units'])
+    sensor = list(insitu_dict[nID]['sensor'].keys())[0]
+    lons = [insitu_dict[nID]['coords'][sensor]['lon']]*len(var)
+    lats = [insitu_dict[nID]['coords'][sensor]['lat']]*len(var)
+    vardict = {
+                stdvarname:var,
+                'time':time,
+                'datetime':timedt,
+                'time_unit':variable_info['time']['units'],
+                'longitude':lons,
+                'latitude':lats
+                }
+    return vardict
+    #return dfc
 
 def get_frost_ts(sdate,edate,nID,varalias):
     import dotenv
