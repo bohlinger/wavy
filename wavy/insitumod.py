@@ -151,7 +151,7 @@ class insitu_class():
             else:
                 self.varname = varalias
             if fifo == 'frost':
-                self.sensor = 'N/A'
+                self.sensor = sensor
             t1=time.time()
             print(" ")
             print( '## Summary:')
@@ -260,7 +260,7 @@ dict_for_sub,**kwargs):
             get_nc_ts(nID,varalias,sdate,edate,pathlst,\
                       strsublst,dict_for_sub)
     elif fifo == 'frost':
-        vardict = get_frost_ts(sdate,edate,nID,varalias)
+        vardict = get_frost_ts(sdate,edate,nID,sensor,varalias)
         pathtofile = 'frost.api.no'
     elif fifo == 'd22':
         var, time, timedt = \
@@ -336,7 +336,7 @@ def make_frost_reference_time_period(sdate,edate):
                             edate.strftime(formatstr))
     return refstr
 
-def call_frost_api_v1(nID, varalias, frost_reference_time, client_id):
+def call_frost_api_v1(nID, varalias, frost_reference_time):
     import requests
     import dotenv
     dotenv.load_dotenv()
@@ -391,45 +391,13 @@ def get_frost_df_v1(r,nID,sensor,varalias):
                 'longitude':lons,
                 'latitude':lats
                 }
-    return vardict
     #return dfc
+    return vardict
 
-def get_frost_ts(sdate,edate,nID,varalias):
-    import dotenv
-    import netCDF4
-    import requests
-    import pandas as pd
-    dotenv.load_dotenv()
-    client_id = os.getenv('CLIENT_ID', None)
-    if client_id is None:
-        print("No Frost CLIENT_ID given!")
-    stdvarname = variable_info[varalias]['standard_name']
-    ID = insitu_dict[nID]['ID']
-    frost_reference_time = make_frost_reference_time_period(sdate,edate)
-    endpoint = 'https://frost.met.no/observations/v0.jsonld'
-    parameters = {
-                    'sources': ID,
-                    'elements': stdvarname,
-                    'referencetime': frost_reference_time,
-                }
-    r = requests.get(endpoint, parameters, auth=(client_id,client_id))
-    df = pd.json_normalize( r.json()['data'],
-                            ['observations'],
-                            ['sourceId','referenceTime'])
-    var = df['value'].values
-    timedt = [parse_date(d) for d in df['referenceTime'].values]
-    time = netCDF4.date2num(timedt,variable_info['time']['units'])
-    sensor = list(insitu_dict[nID]['sensor'].keys())[0]
-    lons = [insitu_dict[nID]['coords'][sensor]['lon']]*len(var)
-    lats = [insitu_dict[nID]['coords'][sensor]['lat']]*len(var)
-    vardict = {
-                stdvarname:var,
-                'time':time,
-                'datetime':timedt,
-                'time_unit':variable_info['time']['units'],
-                'longitude':lons,
-                'latitude':lats
-                }
+def get_frost_ts(sdate,edate,nID,sensor,varalias):
+    reftp = make_frost_reference_time_period(sdate,edate)
+    r = call_frost_api_v1(nID,varalias,reftp)
+    vardict = get_frost_df_v1(r,nID,sensor,varalias)
     return vardict
 
 def get_nc_ts(nID,varalias,sdate,edate,pathlst,strsublst,dict_for_sub):
