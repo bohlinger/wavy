@@ -14,23 +14,15 @@ import numpy as np
 from datetime import datetime, timedelta
 import datetime
 import time
-import argparse
-from argparse import RawTextHelpFormatter
 import os
 from dateutil.relativedelta import relativedelta
-from copy import deepcopy
-import pylab as pl
 from datetime import datetime
-import pandas as pd
-import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta
-from wavy.ncmod import dumptonc_ts_insitu, get_varlst_from_nc_1D
+from wavy.ncmod import dumptonc_ts_insitu
 from wavy.ncmod import get_filevarname
-from wavy.utils import collocate_times
 from wavy.utils import make_pathtofile, get_pathtofile
-from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
 from wavy.filtermod import filter_main
@@ -73,8 +65,8 @@ class insitu_class():
         print(" ")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         stdvarname = variable_info[varalias]['standard_name']
-#        for i in range(1):
-        try:
+        for i in range(1):
+#        try:
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.units = variable_info[varalias].get('units')
@@ -112,8 +104,8 @@ class insitu_class():
                     get_insitu_ts(
                                 nID = nID,
                                 sensor = sensor,
-                                sdate = sdate,
-                                edate = edate,
+                                sdate = sdate_new,
+                                edate = edate_new,
                                 varalias = varalias,
                                 basedate = self.basedate,
                                 dict_for_sub = vars(self),
@@ -172,10 +164,10 @@ class insitu_class():
                    round(t1-t0,2),"seconds")
             print(" ")
             print (" ### insitu_class object initialized ### ")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No insitu_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def get_item_parent(self,item,attr):
@@ -196,7 +188,6 @@ class insitu_class():
     def quicklook(self,ts=True):
         if ts is True:
             import matplotlib.pyplot as plt
-            import matplotlib.dates as mdates
             fig = plt.figure(figsize=(9,3.5))
             ax = fig.add_subplot(111)
             colors = ['k']
@@ -258,7 +249,6 @@ class insitu_class():
 
 def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
 dict_for_sub,**kwargs):
-    stdvarname = variable_info[varalias]['standard_name']
     # determine fifo
     #fifo = kwargs.get('fifo', finditem(insitu_dict[nID],'fifo')[0])
     fifo = kwargs.get('fifo', insitu_dict[nID]['fifo'])
@@ -274,7 +264,8 @@ dict_for_sub,**kwargs):
     else:
         subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
         pathtofile = get_pathtofile(pathlst,strsublst,subdict,sdate)
-    vardict = insitu_reader(nID = nID, sensor = sensor,
+    vardict = insitu_reader(nID = nID,
+                            sensor = sensor,
                             sdate = sdate,
                             edate = edate,
                             varalias = varalias,

@@ -10,9 +10,6 @@ import os
 import numpy as np
 from datetime import datetime, timedelta
 import datetime
-import time
-import argparse
-from argparse import RawTextHelpFormatter
 import os
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
@@ -23,14 +20,13 @@ import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta
-from wavy.ncmod import dumptonc_ts_insitu, get_varlst_from_nc_1D
+from wavy.ncmod import get_varlst_from_nc_1D
 from wavy.ncmod import get_filevarname
 from wavy.utils import collocate_times
-from wavy.utils import make_pathtofile, get_pathtofile
+from wavy.utils import get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
-from wavy.utils import finditem, make_subdict
+from wavy.utils import make_subdict
 from wavy.utils import parse_date
-from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 # read yaml config files:
