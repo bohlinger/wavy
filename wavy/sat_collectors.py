@@ -159,7 +159,7 @@ def get_remote_files_aviso(**kwargs):
     edate = kwargs.get('edate')
     twin = kwargs.get('twin',30)
     nproc = kwargs.get('nproc',1)
-    mission = kwargs.get('mission','s3a')
+    mission = kwargs.get('mission','cfo')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
@@ -243,7 +243,7 @@ def get_remote_files_cci(**kwargs):
     edate = kwargs.get('edate')
     twin = kwargs.get('twin',30)
     nproc = kwargs.get('nproc',1)
-    mission = kwargs.get('mission','s3a')
+    mission = kwargs.get('mission','multi')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
     # credentials

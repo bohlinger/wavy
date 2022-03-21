@@ -82,13 +82,13 @@ def check_if_file_is_valid(fc_date,model,leadtime):
         time = nc.variables['time']
         dt = netCDF4.num2date(time[:],time.units)
         if fc_date in list(dt):
-            print('File is available')
+            print('File is available and contains requested date')
             return True
         else:
             print('Desired date ' + str(fc_date) +  ' is not in', fname)
             return False
     except (FileNotFoundError, OSError) as e:
-        print('File is not available')
+        print('File is not available or does not contain requested date')
         print(e)
         return False
 
@@ -166,6 +166,8 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
             check = check_if_file_is_valid(fc_date[d],model,leadtime)
             if check == True:
                 # retrieve model
+                fname = make_model_filename_wrapper(
+                            model,fc_date[d],leadtime)
                 vardict,_,_,_,_ = get_model(model=model,
                                     fc_date=fc_date[d],
                                     varalias=varalias,
