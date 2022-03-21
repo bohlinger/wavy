@@ -5,6 +5,7 @@ import pandas as pd
 import roaring_landmask
 from scipy.stats import circmean
 from datetime import timedelta
+from wavy.utils import flatten
 
 # own imports
 from wavy.utils import find_included_times, collocate_times
@@ -13,8 +14,6 @@ from wavy.wconfig import load_or_default
 ROAR = None
 
 variable_info = load_or_default('variable_info.yaml')
-
-flatten = lambda l: [item for sublist in l for item in sublist]
 
 def filter_main(vardict_in,varalias='Hs',**kwargs):
     """ Governing function of filtermod

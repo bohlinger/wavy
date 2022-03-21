@@ -22,6 +22,15 @@ def test_from_nc():
     assert len(ico.vars.keys()) >= 6
     assert not 'error' in vars(ico).keys()
 
+def test_from_thredds():
+    nID = 'D_Breisundet_wave'
+    sensor = 'wavescan'
+    ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1,fifo='thredds')
+    assert ico.__class__.__name__ == 'insitu_class'
+    assert len(vars(ico).keys()) >= 10
+    assert len(ico.vars.keys()) >= 6
+    assert not 'error' in vars(ico).keys()
+
 def test_to_nc(tmpdir):
     nID = 'D_Breisundet_wave'
     sensor = 'wavescan'

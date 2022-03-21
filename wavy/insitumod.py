@@ -25,6 +25,7 @@ from wavy.ncmod import get_filevarname
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
+from wavy.utils import flatten
 from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
 from wavy.insitu_readers import insitu_reader
@@ -34,18 +35,6 @@ from wavy.insitu_readers import insitu_reader
 insitu_dict = load_or_default('insitu_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
-# --- global functions ------------------------------------------------#
-
-# define flatten function for lists
-''' fct does the following:
-flat_list = [item for sublist in TIME for item in sublist]
-or:
-for sublist in TIME:
-for item in sublist:
-flat_list.append(item)
-'''
-flatten = lambda l: [item for sublist in l for item in sublist]
-
 # ---------------------------------------------------------------------#
 
 

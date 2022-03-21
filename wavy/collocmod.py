@@ -27,6 +27,7 @@ from wavy.utils import NoStdStreams
 from wavy.utils import make_subdict
 from wavy.utils import parse_date
 from wavy.utils import haversineA
+from wavy.utils import flatten
 from wavy.wconfig import load_or_default
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate
@@ -41,8 +42,6 @@ model_dict = load_or_default('model_specs.yaml')
 insitu_dict = load_or_default('insitu_specs.yaml')
 collocation_dict = load_or_default('collocation_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
-
-flatten = lambda l: [item for sublist in l for item in sublist]
 
 def collocation_fct(obs_lons,obs_lats,model_lons,model_lats):
     grid = pyresample.geometry.GridDefinition(\

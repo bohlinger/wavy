@@ -28,6 +28,7 @@ from wavy.utils import find_included_times, NoStdStreams
 from wavy.utils import parse_date
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem, haversineA
+from wavy.utils import flatten
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
@@ -208,17 +209,6 @@ def crop_vardict_to_period(vardict,sdate,edate):
                                 ) ])
     return vardict
 
-
-# flatten all lists before returning them
-# define flatten function for lists
-''' fct does the following:
-flat_list = [item for sublist in TIME for item in sublist]
-or:
-for sublist in TIME:
-for item in sublist:
-flat_list.append(item)
-'''
-flatten = lambda l: [item for sublist in l for item in sublist]
 
 def check_date(filelst,date):
     '''
