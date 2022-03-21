@@ -357,7 +357,8 @@ def get_remote_files_eumetsat(**kwargs):
                                      subdict,\
                                      date=sdate)
         filesort = True
-    kwargs = make_query_dict(product,mission)
+    query_dict = make_query_dict(product,mission)
+    print(query_dict)
     if api_url is None:
         api_url_lst = \
             satellite_dict[product]['src']['api_url']
@@ -366,7 +367,7 @@ def get_remote_files_eumetsat(**kwargs):
             try:
                 user, pw = get_credentials(remoteHostName=url)
                 api = ss.SentinelAPI(user, pw, url)
-                products = api.query(area=None, date=dates,**kwargs)
+                products = api.query(area=None, date=dates,**query_dict)
                 break
             except Exception as e:
                 if isinstance(e,ss.exceptions.ServerError):
@@ -374,7 +375,7 @@ def get_remote_files_eumetsat(**kwargs):
     else:
         user, pw = get_credentials(remoteHostName = api_url)
         api = ss.SentinelAPI(user, pw, api_url)
-        products = api.query(area=None, date=dates,**kwargs)
+        products = api.query(area=None, date=dates,**query_dict)
     if products is not None:
         # check if download path exists if not create
         if not os.path.exists(path_local):
@@ -395,12 +396,12 @@ def make_query_dict(product,mission):
     '''
     fct to setup queries of L2 data using SentinelAPI
     '''
-    level = satellite_dict[product]['mission'].get('processing')
+    level = satellite_dict[product]['mission'].get('processing_level')
     SAT = satellite_dict[product]['mission'].get(mission)
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
-               'productlevel': level,
-               'filename': SAT + '*WAT*'}
+               'productlevel': level}
+               #'filename': SAT + '*WAT*'}
     return kwargs
 
 def get_remote_files(**kwargs):
