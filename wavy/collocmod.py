@@ -17,6 +17,7 @@ from dateutil.relativedelta import relativedelta
 import pyresample
 from tqdm import tqdm
 from copy import deepcopy
+import xarray as xr
 
 # own imports
 from wavy.utils import collocate_times
@@ -33,6 +34,7 @@ from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate
 from wavy.modelmod import model_class, get_model
 from wavy.ncmod import dumptonc_ts_collocation
+from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.satmod import satellite_class
 from wavy.insitumod import insitu_class
 # ---------------------------------------------------------------------#
@@ -160,7 +162,9 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
     distance = []
     time_lst = []
     dtimes = []
+    switch = 0
     for d in tqdm(range(len(fc_date))):
+#        for t in range(1):
         with NoStdStreams():
             check = False
             check = check_if_file_is_valid(fc_date[d],model,leadtime)
@@ -168,25 +172,40 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                 # retrieve model
                 fname = make_model_filename_wrapper(
                             model,fc_date[d],leadtime)
-                vardict,_,_,_,_ = get_model(model=model,
-                                    fc_date=fc_date[d],
-                                    varalias=varalias,
-                                    leadtime=leadtime,
-                                    transform_lons=180)
-                # collocate
-                mlons= vardict['longitude']
-                mlats= vardict['latitude']
+                # get hold of variable names (done only once)
+                if switch == 0:
+                    meta = ncdumpMeta(fname)
+                    lonsname = get_filevarname('lons',variable_info,
+                                        model_dict[model],meta)
+                    latsname = get_filevarname('lats',variable_info,
+                                        model_dict[model],meta)
+                    filevarname = get_filevarname(varalias,variable_info,
+                                        model_dict[model],meta)
+                    mlons = xr.open_dataset(fname)[lonsname].values
+                    mlons = ((mlons - 180) % 360) - 180
+                    mlats = xr.open_dataset(fname)[latsname].values
+                    # ensure matching dimension
+                    if len(mlons.shape) == 1:
+                        Mlons,Mlats = np.meshgrid(mlons,mlats)
+                    else: Mlons,Mlats = mlons,mlats
+                    switch = 1
                 plon = [indict['longitude'][d]]
                 plat = [indict['latitude'][d]]
                 index_array_2d, distance_array, _ = \
-                        collocation_fct(plon,plat,mlons,mlats)
+                        collocation_fct(plon,plat,Mlons,Mlats)
+                timename = get_filevarname('time',variable_info,
+                                        model_dict[model],meta)
+                dst = xr.open_dataset(fname)[timename].values
+                tidx = list(dst).index(np.datetime64(fc_date[d]))
                 # impose distlim
                 if distance_array[0]< distlim*1000:
                     idx_x = index_array_2d[0]
                     idx_y = index_array_2d[1]
-                    model_vals.append(vardict[stdvarname][idx_x,idx_y])
-                    model_lons.append(vardict['longitude'][idx_x,idx_y])
-                    model_lats.append(vardict['latitude'][idx_x,idx_y])
+                    model_lons.append(Mlons[idx_x,idx_y])
+                    model_lats.append(Mlats[idx_x,idx_y])
+                    vals = xr.open_dataset(fname)[filevarname]\
+                                        [tidx,idx_x,idx_y].values
+                    model_vals.append(vals)
                     obs_vals.append(indict['obs'][d])
                     obs_lons.append(indict['longitude'][d])
                     obs_lats.append(indict['latitude'][d])
