@@ -179,6 +179,8 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                                         model_dict[model],meta)
                     latsname = get_filevarname('lats',variable_info,
                                         model_dict[model],meta)
+                    timename = get_filevarname('time',variable_info,
+                                        model_dict[model],meta)
                     filevarname = get_filevarname(varalias,variable_info,
                                         model_dict[model],meta)
                     mlons = xr.open_dataset(fname)[lonsname].values
@@ -194,8 +196,6 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                 plat = [indict['latitude'][d]]
                 index_array_2d, distance_array, _ = \
                         collocation_fct(plon,plat,Mlons,Mlats)
-                timename = get_filevarname('time',variable_info,
-                                        model_dict[model],meta)
                 dst = xr.open_dataset(fname)[timename].values
                 tidx = list(dst).index(np.datetime64(fc_date[d]))
                 # impose distlim
