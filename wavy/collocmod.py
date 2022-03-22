@@ -200,8 +200,8 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                 tidx = list(dst).index(np.datetime64(fc_date[d]))
                 # impose distlim
                 if distance_array[0]< distlim*1000:
-                    idx_x = index_array_2d[0]
-                    idx_y = index_array_2d[1]
+                    idx_x = index_array_2d[0][0]
+                    idx_y = index_array_2d[1][0]
                     model_lons.append(Mlons[idx_x,idx_y])
                     model_lats.append(Mlats[idx_x,idx_y])
                     vals = xr.open_dataset(fname)[filevarname]\
