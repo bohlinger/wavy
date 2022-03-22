@@ -182,6 +182,7 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                     filevarname = get_filevarname(varalias,variable_info,
                                         model_dict[model],meta)
                     mlons = xr.open_dataset(fname)[lonsname].values
+                    # secure lons from -180 to 180
                     mlons = ((mlons - 180) % 360) - 180
                     mlats = xr.open_dataset(fname)[latsname].values
                     # ensure matching dimension
