@@ -400,7 +400,8 @@ def make_query_dict(product,mission):
     SAT = satellite_dict[product]['mission'].get(mission)
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
-               'productlevel': level}
+               'productlevel': level,
+               'filename': SAT + '*'}
                #'filename': SAT + '*WAT*'}
     return kwargs
 

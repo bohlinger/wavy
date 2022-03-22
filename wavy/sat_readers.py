@@ -15,11 +15,13 @@ import tempfile
 from tqdm import tqdm
 import xarray as xr
 from datetime import timedelta
+import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import read_netcdfs, get_filevarname
 from wavy.wconfig import load_or_default
+from wavy.utils import parse_date
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -61,6 +63,76 @@ def unzip_eumetsat(pathlst,tmpdir):
     return pathlst_new
 
 def read_local_files_eumetsat(**kwargs):
+    '''
+    Read and concatenate all data to one timeseries for each variable.
+    Fct is tailored to EUMETSAT files.
+    '''
+    pathlst = kwargs.get('pathlst')
+    product = kwargs.get('product')
+    varalias = kwargs.get('varalias')
+
+    # --- find variable cf names --- #
+    print ("Processing " + str(int(len(pathlst))) + " files")
+    print (pathlst[0])
+    print (pathlst[-1])
+    # --- find ncvar cf names --- #
+    tmpdir = tempfile.TemporaryDirectory()
+    zipped = zipfile.ZipFile(pathlst[0])
+    enhanced_measurement = zipped.namelist()[-1]
+    extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
+    stdname = variable_info[varalias]['standard_name']
+    ncmeta = ncdumpMeta(extracted)
+    ncvar = get_filevarname(varalias,variable_info,
+                            satellite_dict[product],ncmeta)
+    latname = get_filevarname('lats',variable_info,
+                            satellite_dict[product],ncmeta)
+    lonname = get_filevarname('lons',variable_info,
+                            satellite_dict[product],ncmeta)
+    timename = get_filevarname('time',variable_info,
+                            satellite_dict[product],ncmeta)
+    tmpdir.cleanup()
+    # --- create vardict --- #
+    vardict = {}
+    tmpdir = tempfile.TemporaryDirectory()
+    print('tmp directory is established:',tmpdir.name)
+    for f in tqdm(pathlst):
+        #path = f[0:-len(f.split('/')[-1])]
+        zipped = zipfile.ZipFile(f)
+        enhanced_measurement = zipped.namelist()[-1]
+        extracted = zipped.extract(enhanced_measurement,
+                                   path=tmpdir.name)
+        nc = netCDF4.Dataset(extracted)
+        if stdname in vardict.keys():
+            vardict[stdname] += list(nc.variables[ncvar][:])
+        else:
+            vardict[stdname] = list(nc.variables[ncvar][:])
+        if 'longitude' in vardict.keys():
+            vardict['longitude'] += list(nc.variables[lonname][:])
+        else:
+            vardict['longitude'] = list(nc.variables[lonname][:])
+        if 'latitude' in vardict.keys():
+            vardict['latitude'] += list(nc.variables[latname][:])
+        else:
+            vardict['latitude'] = list(nc.variables[latname][:])
+        time_obj = nc.variables[timename]
+        dtime_tmp = netCDF4.num2date(time_obj[:],time_obj.units)
+        dtime = [parse_date(str(d)) for d in dtime_tmp]
+        time = netCDF4.date2num(dtime,variable_info['time']['units'])
+        if timename in vardict.keys():
+            vardict['time'] += list(time)
+            vardict['datetime'] += list(dtime)
+        else:
+            vardict['time'] = list(time)
+            vardict['datetime'] = list(dtime)
+        # transform to datetime
+    # transform to -180 to 180 degrees
+    tmp = np.array(vardict['longitude'])
+    vardict['longitude'] = list(((tmp - 180) % 360) - 180)
+    vardict['time_unit'] = variable_info['time']['units']
+    tmpdir.cleanup()
+    return vardict
+
+def read_local_files_eumetsat_old(**kwargs):
     '''
     Read and concatenate all data to one timeseries for each variable.
     Fct is tailored to EUMETSAT files.
