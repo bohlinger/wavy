@@ -18,6 +18,7 @@ Those need to be formulated in a dictionary such that **wavy** can parse it.
 Now load the satellite class from wavy and hit play:
 
 .. code-block:: python3
+
    >>> from wavy.satmod import satellite_class as sc
    >>> sco = sc(twin=30,distlim=50,mission='j3',region='global',poi=poi_dict)
 
