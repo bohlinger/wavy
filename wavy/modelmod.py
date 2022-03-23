@@ -21,11 +21,7 @@ from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
 
-# --- global functions ------------------------------------------------#
-"""
-definition of some global functions
-"""
-
+# ---------------------------------------------------------------------#
 
 def get_model_filedate(model, fc_date, leadtime):
     '''
