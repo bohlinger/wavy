@@ -10,118 +10,6 @@ import subprocess
 import os
 from dateutil.parser import parse
 
-def block_detection(time,deltalim=None):
-    if deltalim is None:
-        deltalim = 1
-    # forward check
-    idx_a = []
-    for i in range(1,len(time)):
-        delta_t = time[i]-time[i-1]
-        if delta_t>deltalim:
-            idx_a.append(i)
-    # backward check
-    idx_b = []
-    for i in range(0,len(time)-1):
-        delta_t = time[i+1]-time[i]
-        if delta_t>deltalim:
-            idx_b.append(i)
-    blocklst = []
-    for i in range(len(idx_a)):
-        if i == 0:
-            tmp = [0,idx_b[i]]
-            blocklst.append(tmp)
-        if i < len(idx_a)-1:
-            tmp = [idx_a[i],idx_b[i+1]]
-            blocklst.append(tmp)
-        if i == len(idx_a)-1:
-            tmp = [idx_a[i],len(time)-1]
-            blocklst.append(tmp)
-    return idx_a, idx_b, blocklst
-
-def identify_outliers(time,ts,ts_ref=None,hs_ll=None,hs_ul=None,dt=None,block=None):
-    """
-    fct to identify outliers based on within block variance
-    time -> time series to check neighbour values
-    ts -> time series to be checked for outliers
-    ts_ref -> time series to compare to (optional)
-    hs_ll -> hs lower limit over which values are checked
-    hs_ul -> values over limit are being rejected
-    block -> blocksize used for detection
-    """
-    if hs_ll is None:
-        hs_ll = 1.
-    if hs_ul is None:
-        hs_ul = 30.
-    if block is None:
-        block = 25
-    std_ts = np.nanstd(ts)
-    mean_ts = np.nanmean(ts)
-    # forward check
-    idx_a = []
-    for i in range(1,len(ts)):
-        # transform to z
-        if len(ts)<block:
-            z = (ts[i] - np.nanmean(ts[:]))/np.nanstd(ts[:])
-        elif i<block:
-            z = (ts[i] - np.nanmean(ts[0:block]))/np.nanstd(ts[0:block])
-        elif (i>=int(block/2)+1 and i<(len(ts)-int(block/2))):
-            z = (ts[i] - np.nanmean(ts[i-int(block/2):i+int(block/2)]))/np.nanstd(ts[i-int(block/2):i+int(block/2)])
-        elif i>len(ts)-int(block/2):
-            z = ((ts[i] - np.nanmean(ts[(len(ts-1)-block):-1]))
-                /np.nanstd(ts[(len(ts-1)-block):-1]))
-        if dt == True:
-            delta_t = (time[i]-time[i-1]).total_seconds()
-        else:
-            delta_t = time[i]-time[i-1]
-        if delta_t<2:
-            #reject if value triples compared to neighbor
-            # reject if greater than twice std (>2z)
-            if ( ts[i] > hs_ll and ((ts[i-1] >= 3. * ts[i]) or (z>2)) ):
-                idx_a.append(i)
-        elif (ts[i] > hs_ll and z>2):
-            idx_a.append(i)
-    print (len(idx_a))
-    # backward check
-    idx_b = []
-    for i in range(0,len(ts)-1):
-        # transform to z
-        if len(ts)<block:
-            z = (ts[i] - np.nanmean(ts[:]))/np.nanstd(ts[:])
-        elif i<int(block/2)+1:
-            z = (ts[i] - np.nanmean(ts[0:block]))/np.nanstd(ts[0:block])
-        elif (i>=int(block/2)+1 and i<len(ts)-int(block/2)):
-            z = (ts[i] - np.nanmean(ts[i-int(block/2):i+int(block/2)]))/np.nanstd(ts[i-int(block/2):i+int(block/2)])
-        elif i>len(ts)-int(block/2):
-            z = ((ts[i] - np.nanmean(ts[(len(ts-1)-block):-1]))
-                /np.nanstd(ts[(len(ts-1)-block):-1]))
-        if dt == True:
-            delta_t = (time[i+1]-time[i]).total_seconds()
-        else:
-            delta_t = time[i+1]-time[i]
-        if delta_t<2:
-            #reject if value triples compared to neighbor
-            # reject if greater than twice std (>2z)
-            if ( ts[i] > hs_ll and ((ts[i+1] <= 1/3. * ts[i]) or (z>2)) ):
-                idx_b.append(i)
-        elif (ts[i] > hs_ll and z>2):
-            idx_b.append(i)
-    print (len(idx_b))
-    idx_c = []
-    for i in range(len(ts)):
-        # reject if hs>hs_ul
-        if ts[i]>hs_ul:
-            idx_c.append(i)
-    idx = np.unique(np.array(idx_a + idx_b + idx_c))
-    if len(idx)>0:
-        print(str(len(idx))
-                + ' outliers detected of '
-                + str(len(time))
-                + ' values')
-        return idx
-    else:
-        print('no outliers detected')
-        return []
-
 def progress(count, total, status=''):
     '''
     Create a progress bar:
@@ -333,7 +221,7 @@ def sort_files(dirpath,filelst,product,sat):
     elif product == 'cfo_swim_L2P':
         sort_aviso_l2p(dirpath,filelst,sat)
 
-def sort_aviso_l2p(dirpath,filelst,sat):
+def sort_aviso_l2p(dirpath,filelst):
     '''
     Sort AVISO files according to year and month.
     '''
@@ -374,7 +262,7 @@ def sort_cmems_l3_my(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cci(dirpath,filelst,sat):
+def sort_cci(dirpath,filelst):
     '''
     Sort L2P and L3 files according to year and month.
     '''
@@ -387,7 +275,7 @@ def sort_cci(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_eumetsat_l2(dirpath,filelst,sat):
+def sort_eumetsat_l2(dirpath,filelst):
     '''
     Sort L2 files according to year and month.
     '''
