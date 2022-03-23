@@ -22,6 +22,8 @@ import sys
 from copy import deepcopy
 from functools import lru_cache
 from tqdm import tqdm
+import zipfile
+import tempfile
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -68,6 +70,17 @@ def read_netcdfs(paths, dim='time'):
     return combined
 
 @lru_cache(maxsize=32)
+def process_one_path_zipped_lru(path,varname,tmpdir):
+    # unzip
+    zipped = zipfile.ZipFile(path)
+    enhanced_measurement = zipped.namelist()[-1]
+    extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
+    with xr.open_dataset(extracted) as ds:
+        da = ds[varname]
+        da.load()
+        return da
+
+@lru_cache(maxsize=32)
 def process_one_path_lru(path,t,varname):
     with xr.open_dataset(path) as ds:
         da = ds.sel(time=t)[varname]
@@ -79,6 +92,21 @@ def process_one_path(path,t,varname):
         da = ds.sel(time=t)[varname]
         da.load()
         return da
+
+def read_netcdfs_zipped_lru(paths,varname,dim='time'):
+    # establish tmpdir
+    tmpdir = tempfile.TemporaryDirectory()
+    dataarr = [process_one_path_zipped_lru(paths[i],varname,tmpdir)\
+                for i in tqdm(range(len(paths)))]
+    print("Concatenate ...")
+    combined = xr.concat(dataarr,dim,
+                         coords='minimal',
+                         compat='override',
+                         combine_attrs='override')
+    combined = combined.to_dataset()
+    tmpdir.cleanup()
+    print("... done concatenating")
+    return combined
 
 def read_netcdfs_sel_lru(paths,dlst,varname,dim='time'):
     dataarr = [process_one_path_lru(paths[i],dlst[i],varname)\
