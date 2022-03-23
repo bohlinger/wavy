@@ -1,6 +1,6 @@
 One Ocean Expedition
 ====================
-The following examples are drawn from work related to the `One Ocean Expedition <https://oneoceanexpedition.com/>`_.
+The following examples are drawn from work where **wavy** was used  related to the `One Ocean Expedition <https://oneoceanexpedition.com/>`_.
 
 1. Collocating satellite tracks with drifter
 ############################################
