@@ -215,11 +215,11 @@ def sort_files(dirpath,filelst,product,sat):
     elif product == 'cmems_L3_MY':
         sort_cmems_l3_my(dirpath,filelst,sat)
     elif (product == 'cci_L2P' or product == 'cci_L3'):
-        sort_cci(dirpath,filelst,sat)
+        sort_cci(dirpath,filelst)
     elif product == 'eumetsat_L2':
-        sort_eumetsat_l2(dirpath,filelst,sat)
+        sort_eumetsat_l2(dirpath,filelst)
     elif product == 'cfo_swim_L2P':
-        sort_aviso_l2p(dirpath,filelst,sat)
+        sort_aviso_l2p(dirpath,filelst)
 
 def sort_aviso_l2p(dirpath,filelst):
     '''
