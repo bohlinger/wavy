@@ -206,7 +206,7 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                     model_lats.append(Mlats[idx_x,idx_y])
                     vals = xr.open_dataset(fname)[filevarname]\
                                         [tidx,idx_x,idx_y].values
-                    model_vals.append(vals)
+                    model_vals.append(vals.item())
                     obs_vals.append(indict['obs'][d])
                     obs_lons.append(indict['longitude'][d])
                     obs_lats.append(indict['latitude'][d])
