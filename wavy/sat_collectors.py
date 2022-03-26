@@ -36,6 +36,8 @@ def tmploop_get_remote_files(i,matching,user,pw,
     Function to download files using ftp. Tries 10 times before failing.
     """
     print("File: ",matching[i])
+    print("src path: ", remote_path)
+
     dlstr=('ftp://' + user + ':' + pw + '@'
                 + server + remote_path + matching[i])
     for attempt in range(10):
