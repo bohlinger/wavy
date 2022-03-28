@@ -20,19 +20,26 @@ jobs:
     - name: Install deps
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y build-essential libgdal-dev libsuitesparse-dev
+        #sudo apt-get install -y build-essential libgdal-dev libsuitesparse-dev
+        sudo apt-get install -y build-essential libsuitesparse-dev
 
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
         architecture: x64
 
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+
     - name: Install poetry & package
       run: |
-        pip install -U pip
-        pip install poetry
+        conda install -c conda-forge -y geos proj poetry pytest-cov
+        #pip install -U pip
+        #pip install poetry
         poetry install
-        pip install pytest-cov
+        #pip install pytest-cov
       env:
         POETRY_VIRTUALENVS_CREATE: false
 
