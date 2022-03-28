@@ -13,6 +13,7 @@ import os
 from copy import deepcopy
 import time
 from urllib.request import urlretrieve, urlcleanup # python3
+from urllib.parse import quote
 from ftplib import FTP
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
@@ -37,7 +38,7 @@ def tmploop_get_remote_files(i,matching,user,pw,
     """
     print("File: ",matching[i])
     print("src path: ", remote_path)
-
+    pw = quote(pw) # to escape special characters
     dlstr=('ftp://' + user + ':' + pw + '@'
                 + server + remote_path + matching[i])
     for attempt in range(10):
@@ -372,8 +373,7 @@ def get_remote_files_eumetsat(**kwargs):
                 products = api.query(area=None, date=dates,**query_dict)
                 break
             except Exception as e:
-                if isinstance(e,ss.exceptions.ServerError):
-                    print(e)
+                print(e)
     else:
         user, pw = get_credentials(remoteHostName = api_url)
         api = ss.SentinelAPI(user, pw, api_url)
@@ -403,8 +403,7 @@ def make_query_dict(product,mission):
     kwargs =  {'platformname': 'Sentinel-3',
                'instrumentshortname': 'SRAL',
                'productlevel': level,
-               'filename': SAT + '*'}
-               #'filename': SAT + '*WAT*'}
+               'filename': SAT + '*WAT*'}
     return kwargs
 
 def get_remote_files(**kwargs):

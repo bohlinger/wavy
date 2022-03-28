@@ -21,6 +21,7 @@ eumetsat_L2:
         file_date_incr: d
     src:
         api_url: ["https://colhub.met.no/",
+                  "https://colhub-archive.met.no/",
                   "https://coda.eumetsat.int/search"]
     misc:
         kwargs: # specify dict for query
