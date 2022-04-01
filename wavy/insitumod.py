@@ -54,8 +54,8 @@ class insitu_class():
         print(" ")
         print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         stdvarname = variable_info[varalias]['standard_name']
-        for i in range(1):
-#        try:
+#        for i in range(1):
+        try:
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.units = variable_info[varalias].get('units')
@@ -153,10 +153,10 @@ class insitu_class():
                    round(t1-t0,2),"seconds")
             print(" ")
             print (" ### insitu_class object initialized ### ")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No insitu_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No insitu_class object initialized !")
         print ('# ----- ')
 
     def get_item_parent(self,item,attr):
