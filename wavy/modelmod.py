@@ -134,16 +134,16 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
     if (isinstance(fc_date, datetime) and leadtime != 'best'):
         filename = make_model_filename(model, fc_date, leadtime)
     elif (isinstance(fc_date, datetime) and leadtime == 'best'):
+        switch = False
         leadtime = generate_bestguess_leadtime(model, fc_date)
-        filename = make_model_filename(model, fc_date, leadtime)
-        # check if file is accessible
-        switch = check_if_ncfile_accessible(filename)
-        if switch is False:
-            print("Desired file:", filename , " not accessible")
-            print("Continue to look for date with extended leadtime")
-            leadtime = leadtime + model_dict[model]['init_step']
+        while switch is False:
             filename = make_model_filename(model, fc_date, leadtime)
-        # if not make filename with unlimited leadtime
+            # check if file is accessible
+            switch = check_if_ncfile_accessible(filename)
+            if (switch is False and leadtime < 66):
+                print("Desired file:", filename , " not accessible")
+                print("Continue to look for date with extended leadtime")
+                leadtime = leadtime + model_dict[model]['init_step']
     elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
         filename = [make_model_filename(model,date,leadtime) \
                     for date in fc_date]
