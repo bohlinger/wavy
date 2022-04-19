@@ -176,7 +176,7 @@ varalias,poi,distlim):
         print('For chosen poi: ',
                 len(rvardict['time']),'footprints found')
     # find variable name as defined in file
-    if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY'):
+    if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY' or product == 'cmems_L3_s6a'):
         ncdict = ncdumpMeta(pathlst[0])
     elif (product == 'cci_L2P' or product == 'cci_L3'):
         ncdict = ncdumpMeta(pathlst[0])
@@ -351,7 +351,7 @@ class satellite_class():
                     # rm NaNs
                     rvardict = rm_nan_from_vardict(varalias,rvardict)
                 # find variable name as defined in file
-                if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY'):
+                if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY' or product == 'cmems_L3_s6a'):
                     ncdict = ncdumpMeta(pathlst[0])
                 elif (product == 'cci_L2P' or product == 'cci_L3'):
                     ncdict = ncdumpMeta(pathlst[0])

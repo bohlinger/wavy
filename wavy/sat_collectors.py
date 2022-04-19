@@ -415,6 +415,7 @@ def get_remote_files(**kwargs):
     '''
     dispatch_collector = {
                 'cmems_L3_NRT':get_remote_files_cmems,
+                'cmems_L3_s6a':get_remote_files_cmems,
                 'cmems_L3_MY':get_remote_files_cmems,
                 'cfo_swim_L2P':get_remote_files_aviso,
                 'eumetsat_L2':get_remote_files_eumetsat,

@@ -43,6 +43,9 @@ def main():
             \n cfo - CFOSAT\
             \n h2b - HaiYang-2B\
             \n\
+            \ncmems_L3_s6a:\
+            \n s6a - Sentinel-6A Michael Freilich\
+            \n\
             \neumetsat_L2:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
@@ -68,7 +71,7 @@ def main():
             \n")
     parser.add_argument("-product",
                         metavar='product',
-                        help="available products as specified in *_specs.yaml (cmems_L3/eumetsat_2/cci_L2P/cci_L3)")
+                        help="available products as specified in *_specs.yaml")
     parser.add_argument('-l',
                         metavar='satellite list',
                         help='delimited list input for sats',

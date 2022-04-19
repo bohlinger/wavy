@@ -190,6 +190,7 @@ def read_local_files(**kwargs):
     '''
     dispatch_reader = {
                 'cmems_L3_NRT':read_local_ncfiles,
+                'cmems_L3_s6a':read_local_ncfiles,
                 'cmems_L3_MY':read_local_ncfiles,
                 'cci_L2P':read_local_ncfiles,
                 'cci_L3':read_local_ncfiles,

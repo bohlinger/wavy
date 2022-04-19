@@ -37,6 +37,32 @@ def test_collectors_cmems_L3(tmpdir):
     assert len(nclist) >= 1
 
 @pytest.mark.need_credentials
+def test_collectors_cmems_L3_s6a(tmpdir):
+    sdate = "2022-4-18 12"
+    edate = "2022-4-18 12"
+    sdate_dt = datetime(2022,4,18,12)
+    edate_dt = datetime(2022,4,18,12)
+    twin = 30
+    nproc = 1
+    mission = 's6a'
+    product = 'cmems_L3_s6a'
+    # evoke fct get_remote_files
+    api_url = None
+    dict_for_sub = {'mission':mission}
+    wavy.sat_collectors.get_remote_files(
+                            path_local=tmpdir,
+                            sdate=sdate_dt,edate=edate_dt,
+                            twin=twin,nproc=nproc,
+                            product=product,api_url=api_url,
+                            mission=mission,
+                            dict_for_sub=dict_for_sub)
+    # check if file were download to tmp directory
+    filelist = os.listdir(tmpdir)
+    nclist = [i for i in range(len(filelist))\
+                if '.nc' in filelist[i]]
+    assert len(nclist) >= 1
+
+@pytest.mark.need_credentials
 def test_collectors_cmems_MY(tmpdir):
     sdate = "2018-1-2 12"
     edate = "2018-1-2 12"

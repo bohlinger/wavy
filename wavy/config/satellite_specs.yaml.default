@@ -62,6 +62,28 @@ cmems_L3_NRT:
     processing_level: L3
     provider: cmems
 
+cmems_L3_s6a:
+    mission:
+        s6a: s6a
+    dst:
+        path_template:
+        file_template: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
+    src:
+        path_template: "/Core/\
+                WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001/\
+                cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/%Y/%m/"
+        server: "nrt.cmems-du.eu"
+        strsub: ['mission']
+    misc:
+    vardef: # varalias: varname
+        Hs: VAVH
+        U: WIND_SPEED
+    processing_level: L3
+    provider: cmems
+
 cmems_L3_MY:
     mission:
         c2: c2

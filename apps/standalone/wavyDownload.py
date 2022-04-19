@@ -38,7 +38,7 @@ def main():
     parser.add_argument("-sat",
                         metavar='satellite',
                         help="satellite mission, currently available\n \
-            \ncmems_L3:\
+            \ncmems_L3_NRT:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
             \n j3 - Jason-3 (reference mission)\
@@ -46,6 +46,9 @@ def main():
             \n al - SARAL/AltiKa\
             \n cfo - CFOSAT\
             \n h2b - HaiYang-2B\
+            \n\
+            \ncmems_L3_s6a:\
+            \n s6a - Sentinel-6A Michael Freilich\
             \n\
             \neumetsat_L2:\
             \n s3a - Sentinel-3A\
