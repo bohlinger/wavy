@@ -10,18 +10,6 @@ import subprocess
 import os
 from dateutil.parser import parse
 
-def progress(count, total, status=''):
-    '''
-    Create a progress bar:
-    from: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
-    '''
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
-
 def grab_PID():
     """
     Function to retrieve PID and display it to be able to kill the
@@ -100,10 +88,15 @@ def runmean(vec,win,mode=None,weights=None):
     """
     Computes the running mean with various configurations.
 
-    input:  vec = vector of values to me smoothed
-            win = window length
-            mode = string: left, centered, right
-            weights = weights (same size as win)
+    Args:
+        vec (numpy.ndarray | list): array of values to me smoothed
+        win (int): window length
+        mode (str): string: left, centered, right
+        weights (numpy.ndarray | list): weights (same size as win)
+
+    Returns:
+        tuple (out (numpy.ndarray), std (numpy.ndarray)):
+                array of smoothed values and std deviation
     """
     win = int(win)
     if mode is None:
@@ -143,11 +136,19 @@ def runmean_conv(x,win,mode='flat'):
     """
     running mean using convolution
 
-    input:  x = vector of values to me smoothed
-            win = window length
-            mode= which window to pic
+    Args:
+        x (numpy.ndarray): array of values to me smoothed
+        win (int): window length
+        mode (str): which type of smoothing window to pic
 
-    source: https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
+    Notes:
+        https://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
+
+    Returns:
+        out (numpy array): array of smoothed values
+
+    Raises:
+        ValueError: for wrong dimension of x and wrong windowsize
     """
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
@@ -169,7 +170,7 @@ def bootstr(a,reps):
     """
     Conducts a simple naive bootstrap:
 
-    input:    - is a time series of length n
+    input:    - a is time series of length n
               - reps (number of repetitions)
     output:   - an array of dim n x m where
                 m is the number of repetitions
