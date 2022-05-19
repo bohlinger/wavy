@@ -117,7 +117,7 @@ def make_model_filename(model, fc_date, leadtime):
     return filename
 
 
-def make_model_filename_wrapper(model, fc_date, leadtime):
+def make_model_filename_wrapper(model, fc_date, leadtime, max_lt = None):
     """
     Wrapper function of make_model_filename. Organizes various cases.
 
@@ -125,6 +125,7 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
         model - modelname type(str)
         fc_date - datetime object
         leadtime - integer in hours
+        max_lt - maximum lead time allowed
 
     return:
         filename
@@ -140,10 +141,13 @@ def make_model_filename_wrapper(model, fc_date, leadtime):
             filename = make_model_filename(model, fc_date, leadtime)
             # check if file is accessible
             switch = check_if_ncfile_accessible(filename)
-            if (switch is False and leadtime < 66):
+            if (switch is False):
                 print("Desired file:", filename , " not accessible")
                 print("Continue to look for date with extended leadtime")
                 leadtime = leadtime + model_dict[model]['init_step']
+            if max_lt is not None and leadtime > max_lt:
+                print("Leadtime:",leadtime,"is greater as maximum allowed leadtime:",max_lt)
+                return None
     elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
         filename = [make_model_filename(model,date,leadtime) \
                     for date in fc_date]

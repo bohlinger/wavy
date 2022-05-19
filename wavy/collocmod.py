@@ -76,8 +76,9 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
                     if get_model_filedate(model,d,leadtime) != False]
     return fc_dates_new
 
-def check_if_file_is_valid(fc_date,model,leadtime):
-    fname = make_model_filename_wrapper(model,fc_date,leadtime)
+def check_if_file_is_valid(fc_date,model,leadtime,max_lt=None):
+    fname = make_model_filename_wrapper(\
+                model,fc_date,leadtime,max_lt=max_lt)
     print('Check if requested file:\n',fname,'\nis available and valid')
     try:
         nc = netCDF4.Dataset(fname,mode='r')
@@ -105,7 +106,8 @@ def get_closest_date(overdetermined_lst,target_lst):
     return idx
 
 def collocate_poi_ts(indict,model=None,distlim=None,\
-    leadtime=None,date_incr=None,varalias=None,twin=None):
+    leadtime=None,date_incr=None,varalias=None,twin=None,\
+    max_lt=None):
     """
     indict: mandatory - lons, lats, time, values
             optional - leadtime, distlim, date_incr
@@ -167,7 +169,8 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
 #        for t in range(1):
         with NoStdStreams():
             check = False
-            check = check_if_file_is_valid(fc_date[d],model,leadtime)
+            check = check_if_file_is_valid(
+                    fc_date[d],model,leadtime,max_lt=max_lt)
             if check == True:
                 # retrieve model
                 fname = make_model_filename_wrapper(
@@ -530,7 +533,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
 
 def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
     model=None,distlim=None,leadtime=None,date_incr=None,
-    varalias=None,twin=None):
+    varalias=None,twin=None,max_lt=None):
     """
     get obs value for model value for given
         temporal and spatial constraints
@@ -568,7 +571,7 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
                                         leadtime=leadtime,\
                                         date_incr=date_incr,\
                                         varalias=varalias,\
-                                        twin=twin)
+                                        twin=twin,max_lt=max_lt)
     else:
         results_dict = collocate_field( mc_obj=mc_obj,\
                                         obs_obj=obs_obj,\
@@ -584,7 +587,7 @@ class collocation_class():
 
     def __init__(self,mc_obj_in=None,obs_obj_in=None,poi=None,
         col_obj_in=None,model=None,distlim=None,leadtime=None,
-        date_incr=1,varalias='Hs',twin=30):
+        date_incr=1,varalias='Hs',twin=30,max_lt = None):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")
@@ -651,7 +654,8 @@ class collocation_class():
                                     distlim=distlim,
                                     leadtime=self.leadtime,
                                     date_incr=date_incr,
-                                    varalias=self.varalias)
+                                    varalias=self.varalias,
+                                    max_lt = max_lt)
             self.vars = results_dict
             self.fc_date = results_dict['datetime']
             t1=time.time()
