@@ -605,6 +605,7 @@ class collocation_class():
             self.obstype = "satellite_altimeter"
             self.stdvarname = obs_obj.stdvarname
             self.region = obs_obj.region
+            self.units = variable_info[varalias].get('units')
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
         if isinstance(obs_obj,insitu_class):
