@@ -14,3 +14,4 @@ LC-WVF
 *.egg-info
 *.env
 /dist/
+*.DS_Store

@@ -38,6 +38,7 @@ Contents
    installing
    tutorials
    vietnam21
+   vietnam22
    oneocean
    autoapi/index
 
