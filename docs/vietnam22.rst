@@ -42,6 +42,14 @@ Then save the results with pickle.
 
 .. code-block:: python3
 
+   >>> import pickle as pkl
+   >>> with open('./sat_j3.pkl', 'wb') as fh:
+   >>>    pkl.dump(sco, fh)
+
+This can also be done with **wavy's** built-in function. 
+
+.. code-block:: python3
+
    >>> sco.write_to_pickle('sat_j3.pkl')
 
 2. Collocating model output with ship route
