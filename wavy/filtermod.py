@@ -173,15 +173,10 @@ def apply_land_mask(vardict,**kwargs):
     """ Mask out parts covering land
 
     Args:
-        land_mask_resolution (str): resolution of the GSHHG land mask in
-                                    cartopy
-        plot (bool): Plot the extent, satellite swath, and masked points
-                        if True.
-        conservative_mask (int): Number of points to extend the land mask
-                                    in the ocean
+        vardicy (dict)
 
     Returns:
-        land_mask
+        vardict, sea_mask
 
     """
     global ROAR
