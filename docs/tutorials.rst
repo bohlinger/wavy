@@ -348,7 +348,7 @@ This request can be refined even further by specifying a list of countries for w
 
 Now, we can see that the footprints are closer again to Iceland but still distant to Norway which we explicitly requested.
 
-5. access/read model data
+6. access/read model data
 #########################
 Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
 
@@ -406,7 +406,7 @@ For the modelclass objects a quicklook fct exists to depict a certain time step 
 
    Even though it is possible to access a time period, **wavy** is not yet optimized to do so and the process will be slow. The reason, being the ambiguous use of lead times, will be improved in future versions.
 
-6. read in-situ observations (.d22 and netcdf/thredds)
+7. read in-situ observations (.d22 and netcdf/thredds)
 ######################################################
 
 Currently two data types can be read .d22-files and netcdf-files. Edit the insity_specs.yaml file in your config folder and adjust the directories.
@@ -476,7 +476,7 @@ Again, for the insitu class there is also a quicklook fct available::
 
    >>> ico.quicklook()
 
-7. collocating model and observations
+8. collocating model and observations
 #####################################
 One of the main focus of **wavy** is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them.
 
@@ -569,7 +569,7 @@ Let's plot the results:
 .. image:: ./docs_fig_col_insitu.png
    :scale: 80
 
-8. dump collocation ts to a netcdf file
+9. dump collocation ts to a netcdf file
 #######################################
 The collocation results can now be dumped to a netcdf file. The path and filename can be entered as keywords but also predefined config settings can be used from collocation_specs.yaml:
 
@@ -577,7 +577,7 @@ The collocation results can now be dumped to a netcdf file. The path and filenam
 
    >>> cco_raw.write_to_nc()
 
-9. validate the collocated time series
+10. validate the collocated time series
 #######################################
 Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
@@ -602,7 +602,7 @@ Having collocated a quick validation can be performed using the validationmod. v
 
 The entire validation dictionary will then be in val_dict.
 
-10. quick look examples
+11. quick look examples
 #######################
 The script "wavyQuick.py" is designed to provide quick and easy access to information regarding satellite coverage and basic validation. Checkout the help:
 
