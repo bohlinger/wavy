@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from copy import deepcopy
 import netCDF4
@@ -6,10 +7,16 @@ import roaring_landmask
 from scipy.stats import circmean
 from datetime import timedelta
 from wavy.utils import flatten
+import cartopy.io.shapereader as shpreader
+from sklearn.neighbors import BallTree
+from pyproj import Proj
+from math import *
 
 # own imports
+from wavy.utils import NoStdStreams
 from wavy.utils import find_included_times, collocate_times
 from wavy.wconfig import load_or_default
+
 
 ROAR = None
 
@@ -45,8 +52,7 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
     vardict = rm_nan_from_vardict(varalias,vardict)
 
     # start main filter section
-    if ( kwargs.get('land_mask') is not None \
-    and kwargs['land_mask'] == True ):
+    if ( kwargs.get('land_mask') == True ):
         del kwargs['land_mask']
         vardict,sea_mask = apply_land_mask(vardict,**kwargs)
         indices = start_stop(sea_mask, True)
@@ -76,7 +82,6 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
             if (key != 'time_unit' and key != 'meta'):
                 newvardict[key] = flatten(newvardict[key])
         vardict = newvardict
-
     else:
         if kwargs.get('slider') is not None:
             # create chunks with size of slider
@@ -84,6 +89,9 @@ def filter_main(vardict_in,varalias='Hs',**kwargs):
             print(len(vardict[stdvarname]))
             vardict = filter_slider(vardict,varalias,**kwargs)
         else:
+            if kwargs.get('dtc_mask') is True:
+                # apply distance to coast filter
+                vardict = apply_distance_to_coast_mask(vardict,**kwargs)
             if kwargs.get('priorOp') is not None:
                 method = kwargs.get('priorOp')
                 vardict = apply_priorOp(varalias,vardict,
@@ -188,13 +196,104 @@ def apply_land_mask(vardict,**kwargs):
     longitudes = np.array(vardict['longitude'])
     latitudes = np.array(vardict['latitude'])
     land_mask = ROAR.contains_many(longitudes, latitudes)
+
+    conservative_mask = kwargs.get('conservative_mask',0)
+
     sea_mask = np.invert(land_mask)
 
     for key in vardict.keys():
         if (key != 'time_unit' and key != 'meta'):
             vardict[key] = list(np.array(vardict[key])[sea_mask])
     print('Number of disregarded values:', len(sea_mask[sea_mask==False]))
+
     return vardict, sea_mask
+
+def apply_distance_to_coast_mask(vardict,**kwargs):
+        """
+        discards all values closer to shoreline than threshold
+        between statement can be:
+            inclusive ("both"), exclusive ("neither"), left/right
+        """
+        print(" apply distance_to_coast_mask")
+        llim = kwargs.get('dtc_llim',10)
+        ulim = kwargs.get('dtc_ulim',100000)
+        interval_bounds = kwargs.get('dtc_interval_bounds','neither')
+        with NoStdStreams():
+            coastline = get_coastline_shape_file(**kwargs)
+        df = distance_to_shore( pd.DataFrame(vardict['longitude']),
+                                pd.DataFrame(vardict['latitude']),
+                                coastline )
+        clean_dict = deepcopy(vardict)
+        dfmask = df['distance_to_shore'].between(llim, ulim,
+                                        inclusive=interval_bounds)
+        for key in vardict:
+            if (key != 'time_unit' and key != 'meta'):
+                clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
+        return clean_dict
+
+def extract_geom_meta(country):
+    '''
+    extract from each geometry the name of the country
+    and the geom_point data. The output will be a list
+    of tuples and the country name as the last element.
+    '''
+    geoms = country.geometry
+    coords = np.empty(shape=[0, 2])
+    for geom in geoms:
+        coords = np.append(coords, geom.exterior.coords, axis = 0)
+    country_name = country.attributes["ADMIN"]
+    return [coords, country_name]
+
+def get_coastline_shape_file(pathtofile=None,**kwargs):
+    '''
+    Get the global coastline
+    '''
+    if kwargs.get('dtc_npy_file') is None:
+        ne_earth = shpreader.natural_earth(resolution = '10m',
+                                           category = 'cultural',
+                                           name='admin_0_countries')
+        reader = shpreader.Reader(ne_earth)
+        countries = reader.records()
+        clst = [c for c in countries]
+        ## extract and create separate objects
+        wg = []
+        for i in range(len(clst)):
+            try:
+                wg.append(extract_geom_meta(clst[i]))
+            except Exception as e:
+                print(e)
+        coords_countries = np.vstack([[np.array(x[:-1]), x[-1]]
+                                        for x in wg])
+    else:
+        coastline =np.load(kwargs.get('dtc_npy_file'))
+    if pathtofile is not None:
+        #'/home/patrikb/tmp_coast/coast_coords_10m.npy'
+        coastline = np.save(pathtofile,coords_countries)
+    coastline = coords_countries
+    return coastline
+
+def distance_to_shore(lon, lat, coastline):
+    '''
+    Compute distance to shore.
+
+    Args:
+        lon, lat -> pd.dataFrame
+        coastline -> shp
+    
+    Returns:
+        numpy array of distances and country names
+    '''
+    coastline_coords = np.vstack([np.flip(x[0][0], axis=1)\
+                            for x in coastline])
+    countries = np.hstack([np.repeat(str(x[1]), len(x[0][0]))\
+                            for x in coastline])
+    tree = BallTree(np.radians(coastline_coords), metric='haversine')
+    coords = pd.concat([np.radians(lat), np.radians(lon)], axis=1)
+    dist, ind = tree.query(coords, k=1)
+    df_distance_to_shore = pd.Series(dist.flatten()*6371,\
+                                    name='distance_to_shore')
+    df_countries = pd.Series(countries[ind].flatten(), name='shore_country')
+    return pd.concat([df_distance_to_shore, df_countries], axis=1)
 
 def apply_limits(varalias,vardict):
     print('Apply limits')

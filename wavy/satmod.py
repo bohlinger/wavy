@@ -335,7 +335,7 @@ class satellite_class():
                                             **kwargs )
                     # crop to original time period
                     sdate_tmp = sdate - timedelta(minutes=twin)
-                    edate_tmp = sdate + timedelta(minutes=twin)
+                    edate_tmp = edate + timedelta(minutes=twin)
                     rvardict = crop_vardict_to_period(rvardict,
                                                       sdate_tmp,
                                                       edate_tmp)
@@ -351,7 +351,9 @@ class satellite_class():
                     # rm NaNs
                     rvardict = rm_nan_from_vardict(varalias,rvardict)
                 # find variable name as defined in file
-                if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY' or product == 'cmems_L3_s6a'):
+                if (product == 'cmems_L3_NRT' or 
+                    product == 'cmems_L3_MY' or 
+                    product == 'cmems_L3_s6a'):
                     ncdict = ncdumpMeta(pathlst[0])
                 elif (product == 'cci_L2P' or product == 'cci_L3'):
                     ncdict = ncdumpMeta(pathlst[0])
