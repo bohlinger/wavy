@@ -548,12 +548,24 @@ def dispersion_deep_water(T=None,k=None,l=None,cp=None,cg=None):
     """
     return
 
-def dispersion_shallow_water():
+def dispersion_shallow_water(l=None,h=None,T=None):
     return
 
-def dispersion_intermediate_water():
+def dispersion_intermediate_water(l=None,h=None,T=None):
     return
 
-def calc_deep_water_T(l):
+def calc_deep_water_T(l=None):
     g = 9.81
     return np.sqrt(l*2*math.pi/g)
+
+def calc_shallow_water_T(l=None,h=None):
+    g = 9.81
+    return l/np.sqrt(g*h)
+
+def wave_length_mask_swim(ds,llim=50,ulim=2000):
+    """
+    remove all results for wavelengths below given llim
+    """
+    res = ds.where((calc_deep_water_T(ds)>llim)&(calc_deep_water_T(ds)<ulim))
+    mask = ~np.isnan(res)
+    return mask

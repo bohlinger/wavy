@@ -20,6 +20,7 @@ import netCDF4
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs, read_netcdfs_zipped_lru
+from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date
 # ---------------------------------------------------------------------#
@@ -180,6 +181,54 @@ def read_local_ncfiles(**kwargs):
         else:
             vardict[stdcoordname] = list(ds_sliced[varname].values)
     return vardict
+
+def read_local_ncfiles_swim(**kwargs):
+    """
+    Wrapping function to read swim netcdf files.
+
+    param:
+        pathlst - list of paths to be parsed
+        product - product as specified in satellite_specs.yaml
+        varalias
+        sd - start date (datetime object)
+        ed - start date (datetime object)
+        twin - time window (temporal constraint) in minutes
+
+    return:
+        dictionary of variables for the satellite_class object
+    """
+    pathlst = kwargs.get('pathlst')
+    product = kwargs.get('product')
+    varalias = kwargs.get('varalias')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    twin = kwargs.get('twin')
+
+    # adjust start and end
+    sdate = sdate - timedelta(minutes=twin)
+    edate = edate + timedelta(minutes=twin)
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname(varalias,variable_info,
+                            satellite_dict[product],ncmeta)
+    # retrieve data
+    vardict = read_swim_netcdfs(pathlst)
+    # parse time
+    dtime = [parse_date(d) for d in np.array(vardict['time']).astype(str)]
+    vardict['datetime'] = dtime
+    # lon tranformation
+    tlons = ((vardict['longitude'] - 180) % 360) - 180
+    vardict['longitude'] = tlons
+    # 
+    # continue here
+    #
+    # make dict and start with stdvarname for varalias
+    #
+    # slice to relevant time period
+    # 
+    # if peak wave length transform to peak period
+    return vardict
+
 
 def read_local_files(**kwargs):
     '''

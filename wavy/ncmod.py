@@ -28,9 +28,11 @@ import tempfile
 # own imports
 from wavy.wconfig import load_or_default
 from wavy.utils import find_included_times, finditem
+from wavy.utils import flatten
 
 # read yaml config files:
 insitu_dict = load_or_default('insitu_specs.yaml')
+satellite_dict = load_or_default('satellite_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 
 # --- global functions ------------------------------------------------#
@@ -131,6 +133,66 @@ def read_netcdfs_sel(paths,dlst,varname,dim='time'):
     combined = combined.to_dataset()
     print("... done concatenating")
     return combined
+
+def get_swim_var_coords(varalias):
+    varname = satellite_dict['cfo_swim_L2P']['vardef'][varalias]
+    varidx = satellite_dict['cfo_swim_L2P']['vardef'][varalias + '_idx']
+    lonname = satellite_dict['cfo_swim_L2P']['vardef']['lons']
+    lonidx = satellite_dict['cfo_swim_L2P']['vardef']['lons_idx']
+    latname = satellite_dict['cfo_swim_L2P']['vardef']['lats']
+    latidx = satellite_dict['cfo_swim_L2P']['vardef']['lats_idx']
+    timename = satellite_dict['cfo_swim_L2P']['vardef']['time']
+    timeidx = satellite_dict['cfo_swim_L2P']['vardef']['time_idx']
+
+    varnamedict = {
+            'varname':varname,
+            'varidx':varidx,
+            'lonname':lonname,
+            'lonidx':lonidx,
+            'latname':latname,
+            'latidx':latidx,
+            'timename':timename,
+            'timeidx':timeidx
+            }
+
+    return varnamedict
+
+def read_swim_nc(path,varnamedict):
+    ds = xr.open_dataset(path)
+    var = eval("ds[varnamedict['varname']].values"+varnamedict['varidx'])
+    time = eval("ds[varnamedict['timename']].values"+varnamedict['timeidx'])
+    lons = eval("ds[varnamedict['lonname']].values"+varnamedict['lonidx'])
+    lats = eval("ds[varnamedict['latname']].values"+varnamedict['latidx'])
+    return var, time, lons, lats
+
+def read_swim_netcdfs(pathlst,varalias):
+    varnamedict = get_swim_var_coords(varalias)
+
+    varlst = []
+    timelst = []
+    lonslst = []
+    latslst = []
+
+    for f in pathlst:
+        var,time,lon,lat = \
+            read_swim_nc(f,varnamedict) 
+        varlst.append(var)
+        timelst.append(time)
+        lonslst.append(lon)
+        latslst.append(lat)
+
+    var = flatten(varlst)
+    time = flatten(timelst)
+    lons = flatten(lonslst)
+    lats = flatten(latslst)
+
+    vardict = {
+            variable_info[varalias]:var,
+            'time':time,
+            'longitude':lons,
+            'latitude':lats
+            }
+    return vardict
 
 def get_arcmfc_ts(pathtofile):
     import os.path
