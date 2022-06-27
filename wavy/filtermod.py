@@ -220,6 +220,14 @@ def apply_distance_to_coast_mask(vardict,**kwargs):
         interval_bounds = kwargs.get('dtc_interval_bounds','neither')
         with NoStdStreams():
             coastline = get_coastline_shape_file(**kwargs)
+        # clean coastline object for list of specific countries
+        nlst = kwargs.get('dtc_lst_of_countries')
+        if nlst is not None:
+            clst = np.array(
+                    [coastline[i]
+                    for i in range(len(coastline))
+                    if coastline[i][1] in nlst] )
+            coastline = clst
         df = distance_to_shore( pd.DataFrame(vardict['longitude']),
                                 pd.DataFrame(vardict['latitude']),
                                 coastline )
