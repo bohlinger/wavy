@@ -9,6 +9,7 @@ import sys
 import subprocess
 import os
 from dateutil.parser import parse
+import math
 
 def grab_PID():
     """
@@ -540,3 +541,19 @@ def parse_date(indate):
     else:
         print('Not able to parse input return as is')
         return indate
+
+def dispersion_deep_water(T=None,k=None,l=None,cp=None,cg=None):
+    """
+    computes requested variable from dispersion relation in deep water
+    """
+    return
+
+def dispersion_shallow_water():
+    return
+
+def dispersion_intermediate_water():
+    return
+
+def calc_deep_water_T(l):
+    g = 9.81
+    return np.sqrt(l*2*math.pi/g)
