@@ -29,6 +29,7 @@ from wavy.utils import parse_date
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem, haversineA
 from wavy.utils import flatten
+from wavy.utils import convert_meteorologic_oceanographic
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
@@ -193,6 +194,15 @@ varalias,poi,distlim,**kwargs):
         ncdict = ncdumpMeta(extracted)
         tmpdir.cleanup()
     rvardict['meta'] = ncdict
+    # adjust conventions
+    if ('convention' in satellite_dict[product].keys() and
+    satellite_dict[product]['convention'] == 'oceanographic'):
+        print('Convert from oceanographic to meteorologic convention')
+        rvardict[variable_info[varalias]['standard_name']] = \
+                list(convert_meteorologic_oceanographic(\
+                    np.array(\
+                        rvardict[variable_info[varalias]['standard_name']]\
+                        )))
     return rvardict
 
 def crop_vardict_to_period(vardict,sdate,edate):
@@ -319,8 +329,8 @@ class satellite_class():
         print(" ")
         print(" ## Read files ...")
         if len(pathlst) > 0:
-#            for i in range(1):
-            try:
+            for i in range(1):
+#            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -405,10 +415,10 @@ class satellite_class():
                 print(" ")
                 print ("### Satellite object initialized ###")
                 print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
+#            except Exception as e:
+#                print(e)
+#                print('Error encountered')
+#                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')

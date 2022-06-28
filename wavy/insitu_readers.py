@@ -380,8 +380,8 @@ def extract_d22(sl,varalias,nID,sensor):
     ts = np.array(ts)
     # adjust conventions
     if ('convention' in d22_dict[category][varalias].keys() and
-    d22_dict[category][varalias]['convention'] == 'meteorologic'):
-        print('Convert from meteorologic to oceanographic convention')
+    d22_dict[category][varalias]['convention'] == 'oceanographic'):
+        print('Convert from oceanographic to meteorologic convention')
         ts = convert_meteorologic_oceanographic(ts)
     return ts, dt
 

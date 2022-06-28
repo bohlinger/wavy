@@ -491,7 +491,7 @@ def make_pathtofile(tmppath,strsublst,subdict,date=None):
 def convert_meteorologic_oceanographic(alpha):
     """
     fct to convert angles from meteorological convention to
-    oceanographic/nautical and vice versa.
+    oceanographic and vice versa.
     """
     return (alpha+180)%360
 

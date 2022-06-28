@@ -17,6 +17,7 @@ from tqdm import tqdm
 # own imports
 from wavy.utils import hour_rounder, make_fc_dates
 from wavy.utils import finditem, parse_date, NoStdStreams
+from wavy.utils import convert_meteorologic_oceanographic
 from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
@@ -405,6 +406,13 @@ def get_model(model=None,
         vardict['longitude'] = ((vardict['longitude'] - 180) % 360) - 180
     elif transform_lons==360:
         print('not yet implemented !!')
+    # adjust conventions
+    if ('convention' in model_dict[model].keys() and
+    model_dict[model]['convention'] == 'oceanographic'):
+        print('Convert from oceanographic to meteorologic convention')
+        vardict[variable_info[varalias]['standard_name']] = \
+                convert_meteorologic_oceanographic(\
+                    vardict[variable_info[varalias]['standard_name']])
     return vardict, fc_date, leadtime, filestr, filevarname
 
 
