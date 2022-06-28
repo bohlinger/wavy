@@ -337,6 +337,8 @@ class satellite_class():
                     # adjust varalias if other return_var
                     if kwargs.get('return_var') is not None:
                         newvaralias = kwargs.get('return_var')
+                    else:
+                        newvaralias = varalias
                     # filter data
                     rvardict = filter_main( rvardict,
                                             varalias = newvaralias,
@@ -358,6 +360,8 @@ class satellite_class():
                     # adjust varalias if other return_var
                     if kwargs.get('return_var') is not None:
                         newvaralias = kwargs.get('return_var')
+                    else:
+                        newvaralias = varalias
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
                     # rm NaNs
