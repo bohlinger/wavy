@@ -22,7 +22,7 @@ from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs, read_netcdfs_zipped_lru
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
-from wavy.utils import parse_date
+from wavy.utils import parse_date, find_included_times, calc_deep_water_T
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -212,23 +212,32 @@ def read_local_ncfiles_swim(**kwargs):
     ncvar = get_filevarname(varalias,variable_info,
                             satellite_dict[product],ncmeta)
     # retrieve data
-    vardict = read_swim_netcdfs(pathlst)
-    # parse time
+    vardict = read_swim_netcdfs(pathlst,varalias)
+    # parse time and add to dict
     dtime = [parse_date(d) for d in np.array(vardict['time']).astype(str)]
     vardict['datetime'] = dtime
+    vardict['time_unit'] = variable_info['time']['units']
+    vardict['time'] = netCDF4.date2num(vardict['datetime'],vardict['time_unit'])
     # lon tranformation
-    tlons = ((vardict['longitude'] - 180) % 360) - 180
+    tlons = list(((np.array(vardict['longitude']) - 180) % 360) - 180)
     vardict['longitude'] = tlons
-    # 
-    # continue here
-    #
-    # make dict and start with stdvarname for varalias
-    #
-    # slice to relevant time period
-    # 
+    # find idx for time period
+    tidx = find_included_times(dtime,sdate=sdate,edate=edate)
+    # adjust dict
+    for key in vardict.keys():
+        if key != 'meta' and key != 'time_unit':
+            vardict[key]=list(np.array(vardict[key])[tidx])
     # if peak wave length transform to peak period
+    if kwargs.get('return_var',varalias) == 'Tp':
+        Tp = calc_deep_water_T(np.array(vardict[varalias]))
+        vardict[variable_info['Tp']['standard_name']] = Tp
+        # change varalias to stdvarname from variable_info
+    else:
+        # change varalias to stdvarname from variable_info
+        vardict[variable_info[varalias]['standard_name']] = vardict[varalias]
+    # delete varalias key from dict
+    vardict.pop(varalias)
     return vardict
-
 
 def read_local_files(**kwargs):
     '''
@@ -244,6 +253,7 @@ def read_local_files(**kwargs):
                 'cci_L2P':read_local_ncfiles,
                 'cci_L3':read_local_ncfiles,
                 'eumetsat_L2':read_local_files_eumetsat,
+                'cfo_swim_L2P':read_local_ncfiles_swim
                 }
     product = kwargs.get('product')
     vardict = dispatch_reader[product](**kwargs)

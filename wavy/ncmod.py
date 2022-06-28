@@ -187,7 +187,7 @@ def read_swim_netcdfs(pathlst,varalias):
     lats = flatten(latslst)
 
     vardict = {
-            variable_info[varalias]:var,
+            varalias:var,
             'time':time,
             'longitude':lons,
             'latitude':lats

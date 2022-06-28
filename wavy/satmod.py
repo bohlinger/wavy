@@ -116,7 +116,7 @@ path_local=None):
     return pathlst, filelst
 
 def get_sat_ts(sdate,edate,twin,region,product,pathlst,
-varalias,poi,distlim):
+varalias,poi,distlim,**kwargs):
     """
     Main function to obtain data from satellite missions.
     reads files, apply region and temporal filter
@@ -130,7 +130,8 @@ varalias,poi,distlim):
                                 varalias = varalias,
                                 sdate = sdate,
                                 edate = edate,
-                                twin = twin
+                                twin = twin,
+                                **kwargs
                                 )
     print('Total: ', len(cvardict['time']), ' footprints found')
     print('Apply region mask')
@@ -176,7 +177,10 @@ varalias,poi,distlim):
         print('For chosen poi: ',
                 len(rvardict['time']),'footprints found')
     # find variable name as defined in file
-    if (product == 'cmems_L3_NRT' or product == 'cmems_L3_MY' or product == 'cmems_L3_s6a'):
+    if (product == 'cmems_L3_NRT' 
+    or product == 'cmems_L3_MY' 
+    or product == 'cmems_L3_s6a'
+    or product == 'cfo_swim_L2P'):
         ncdict = ncdumpMeta(pathlst[0])
     elif (product == 'cci_L2P' or product == 'cci_L3'):
         ncdict = ncdumpMeta(pathlst[0])
@@ -328,10 +332,14 @@ class satellite_class():
                     rvardict = get_sat_ts( sdate,edate,
                                            twin_tmp,region,
                                            product,pathlst,
-                                           varalias,poi,distlim)
+                                           varalias,poi,distlim,
+                                           **kwargs)
+                    # adjust varalias if other return_var
+                    if kwargs.get('return_var') is not None:
+                        newvaralias = kwargs.get('return_var')
                     # filter data
                     rvardict = filter_main( rvardict,
-                                            varalias = varalias,
+                                            varalias = newvaralias,
                                             **kwargs )
                     # crop to original time period
                     sdate_tmp = sdate - timedelta(minutes=twin)
@@ -345,15 +353,20 @@ class satellite_class():
                     rvardict = get_sat_ts( sdate,edate,
                                            twin,region,
                                            product,pathlst,
-                                           varalias,poi,distlim)
+                                           varalias,poi,distlim,
+                                           **kwargs)
+                    # adjust varalias if other return_var
+                    if kwargs.get('return_var') is not None:
+                        newvaralias = kwargs.get('return_var')
                     # make ts in vardict unique
                     rvardict = vardict_unique(rvardict)
                     # rm NaNs
-                    rvardict = rm_nan_from_vardict(varalias,rvardict)
+                    rvardict = rm_nan_from_vardict(newvaralias,rvardict)
                 # find variable name as defined in file
                 if (product == 'cmems_L3_NRT' or 
                     product == 'cmems_L3_MY' or 
-                    product == 'cmems_L3_s6a'):
+                    product == 'cmems_L3_s6a' or
+                    product == 'cfo_swim_L2P'):
                     ncdict = ncdumpMeta(pathlst[0])
                 elif (product == 'cci_L2P' or product == 'cci_L3'):
                     ncdict = ncdumpMeta(pathlst[0])
@@ -374,6 +387,11 @@ class satellite_class():
                 # define more class variables
                 self.vars = rvardict
                 self.varname = filevarname
+                if kwargs.get('return_var') is not None:
+                    self.varalias = kwargs.get('return_var')
+                    self.stdvarname = \
+                            variable_info[newvaralias].get('standard_name')
+                    self.units = variable_info[newvaralias].get('units')
                 t1=time.time()
                 print(" ")
                 print( '## Summary:')
