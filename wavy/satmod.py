@@ -474,7 +474,7 @@ class satellite_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,m=True,ts=True,projection=None):
+    def quicklook(self,m=True,ts=True,projection=None,**kwargs):
         """
         Enables to explore the class object (and retrieved results)
         by plotting time series and map.
@@ -491,12 +491,22 @@ class satellite_class():
             import cartopy.crs as ccrs
             import cmocean
             import matplotlib.pyplot as plt
+            import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
             lons = self.vars['longitude']
             lats = self.vars['latitude']
             var = self.vars[self.stdvarname]
             if projection is None:
                 projection = ccrs.PlateCarree()
+            # parse kwargs
+            vartype = variable_info[self.varalias].get('type','default')
+            if kwargs.get('cmap') is None:
+                if vartype == 'cyclic':
+                    cmap = mplcm.twilight_shifted
+                else:
+                    cmap = cmocean.cm.amp
+            else:
+                cmap = kwargs.get('cmap')
             lonmax,lonmin = np.max(lons),np.min(lons)
             latmax,latmin = np.max(lats),np.min(lats)
             fig = plt.figure()
@@ -506,7 +516,7 @@ class satellite_class():
             sc = ax.scatter(lons,lats,s=10,
                             c = var,
                             marker='o', edgecolor = 'face',
-                            cmap=cmocean.cm.amp,
+                            cmap=cmap,
                             transform=ccrs.PlateCarree())
             axins = inset_axes(ax,
                        width="5%",  # width = 5% of parent_bbox width

@@ -18,6 +18,7 @@ from tqdm import tqdm
 from wavy.utils import hour_rounder, make_fc_dates
 from wavy.utils import finditem, parse_date, NoStdStreams
 from wavy.utils import convert_meteorologic_oceanographic
+from wavy.utils import find_direction_convention
 from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
@@ -407,12 +408,35 @@ def get_model(model=None,
     elif transform_lons==360:
         print('not yet implemented !!')
     # adjust conventions
-    if ('convention' in model_dict[model].keys() and
-    model_dict[model]['convention'] == 'oceanographic'):
-        print('Convert from oceanographic to meteorologic convention')
-        vardict[variable_info[varalias]['standard_name']] = \
-                convert_meteorologic_oceanographic(\
-                    vardict[variable_info[varalias]['standard_name']])
+    # check if variable is one with conventions
+    if 'convention' in variable_info[varalias].keys():
+        convention_set = False
+        print('Chosen variable is defined with conventions')
+        print('... checking if correct convention is used ...')
+        # 1. check if clear from standard_name
+        file_stdvarname = find_direction_convention(filevarname,vardict['meta'])
+        if "to_direction" in file_stdvarname:
+            print('Convert from oceanographic to meteorologic convention')
+            vardict[variable_info[varalias]['standard_name']] = \
+                    convert_meteorologic_oceanographic(\
+                        vardict[variable_info[varalias]['standard_name']])
+            convention_set = True
+        elif "from_direction" in file_stdvarname:
+            print('standard_name indicates meteorologic convention')
+            convention_set = True
+            pass
+        # 2. overwrite convention from config file
+        if ('convention' in model_dict[model].keys() and
+        model_dict[model]['convention'] == 'oceanographic' and
+        convention_set is False):
+            print('Convention is set it config file')
+            print('This will overwrite conventions from standard_name in file!')
+            print('\n')
+            print('Convert from oceanographic to meteorologic convention')
+            vardict[variable_info[varalias]['standard_name']] = \
+                    convert_meteorologic_oceanographic(\
+                        vardict[variable_info[varalias]['standard_name']])
+            convention_set = True
     return vardict, fc_date, leadtime, filestr, filevarname
 
 
@@ -519,6 +543,7 @@ class model_class():
             import cartopy.crs as ccrs
             import cmocean
             import matplotlib.pyplot as plt
+            import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
             dt = parse_date(date)
             lons = self.vars['longitude']
@@ -539,8 +564,12 @@ class model_class():
             # parse kwargs
             cflevels = kwargs.get('cflevels',10)
             clevels = kwargs.get('clevels',10)
+            vartype = variable_info[self.varalias].get('type','default')
             if kwargs.get('cmap') is None:
-                cmap = cmocean.cm.amp
+                if vartype == 'cyclic':
+                    cmap = mplcm.twilight_shifted
+                else:
+                    cmap = cmocean.cm.amp
             else:
                 cmap = kwargs.get('cmap')
             lonmax,lonmin = np.max(lons),np.min(lons)

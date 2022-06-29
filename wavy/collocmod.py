@@ -673,17 +673,26 @@ class collocation_class():
         # add class variables
         print ('# ----- ')
 
-    def quicklook(self,m=True,ts=True,projection=None):
+    def quicklook(self,m=True,ts=True,sc=True,projection=None,**kwargs):
         if m:
             import cartopy.crs as ccrs
             import cmocean
             import matplotlib.pyplot as plt
+            import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
             lons = self.vars['obs_lons']
             lats = self.vars['obs_lats']
             var = self.vars['obs_values']
             if projection is None:
                 projection = ccrs.PlateCarree()
+            vartype = variable_info[self.varalias].get('type','default')
+            if kwargs.get('cmap') is None:
+                if vartype == 'cyclic':
+                    cmap = mplcm.twilight_shifted
+                else:
+                    cmap = cmocean.cm.amp
+            else:
+                cmap = kwargs.get('cmap')
             lonmax,lonmin = np.max(lons),np.min(lons)
             latmax,latmin = np.max(lats),np.min(lats)
             fig = plt.figure()
@@ -693,7 +702,7 @@ class collocation_class():
             sc = ax.scatter(lons,lats,s=10,
                             c = var,
                             marker='o', edgecolor = 'face',
-                            cmap=cmocean.cm.amp,
+                            cmap=cmap,
                             transform=ccrs.PlateCarree())
             axins = inset_axes(ax,
                        width="5%",  # width = 5% of parent_bbox width
@@ -740,6 +749,39 @@ class collocation_class():
                     marker='o',alpha=.8,ms=2)
             plt.ylabel(self.varalias + '[' + self.units + ']')
             plt.legend(loc='best')
+            plt.tight_layout()
+            #ax.set_title()
+            plt.show()
+        if sc:
+            import matplotlib.pyplot as plt
+            fig = plt.figure(figsize=(4,4))
+            ax = fig.add_subplot(111)
+            colors = ['k']
+            if self.obstype == 'insitu':
+                ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                    linestyle='None',color=colors[0],
+                    marker='o',alpha=.5,ms=2)
+                plt.xlabel='obs ( ' + self.nID + ' - '\
+                                     + self.sensor + ' )'
+            elif self.obstype == 'satellite_altimeter':
+                ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                    linestyle='None',color=colors[0],
+                    label='obs (' + self.mission + ')',
+                    marker='o',alpha=.5,ms=2)
+                plt.xlabel('obs ( ' + self.mission + ' )')
+            plt.ylabel('models ( ' + self.model + ' )')
+            vartype = variable_info[self.varalias].get('type','default')
+            if vartype == 'cyclic':
+                plt.xlim([0,360])
+                plt.ylim([0,360])
+            else:
+                maxv = np.max([self.vars['model_values'],
+                               self.vars['obs_values']])
+                minv = np.min([self.vars['model_values'],
+                               self.vars['obs_values']])
+                plt.xlim([minv,maxv+0.1*maxv])
+                plt.ylim([minv,maxv+0.1*maxv])
+            ax.set_title(self.varalias + '[' + self.units + ']')
             plt.tight_layout()
             #ax.set_title()
             plt.show()
