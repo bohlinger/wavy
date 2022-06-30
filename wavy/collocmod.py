@@ -29,6 +29,7 @@ from wavy.utils import make_subdict
 from wavy.utils import parse_date
 from wavy.utils import haversineA
 from wavy.utils import flatten
+from wavy.utils import compute_quantiles
 from wavy.wconfig import load_or_default
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate
@@ -673,7 +674,12 @@ class collocation_class():
         # add class variables
         print ('# ----- ')
 
-    def quicklook(self,m=True,ts=True,sc=True,projection=None,**kwargs):
+    def quicklook(\
+        self,full=False,projection=None,**kwargs):
+        # set plots
+        m = kwargs.get('m',full)
+        ts = kwargs.get('ts',full)
+        sc = kwargs.get('sc',full)
         if m:
             import cartopy.crs as ccrs
             import cmocean
@@ -688,7 +694,7 @@ class collocation_class():
             vartype = variable_info[self.varalias].get('type','default')
             if kwargs.get('cmap') is None:
                 if vartype == 'cyclic':
-                    cmap = mplcm.twilight_shifted
+                    cmap = mplcm.twilight
                 else:
                     cmap = cmocean.cm.amp
             else:
@@ -753,6 +759,10 @@ class collocation_class():
             #ax.set_title()
             plt.show()
         if sc:
+            lq = np.arange(0.01,1.01,0.01)
+            lq = kwargs.get('lq',lq)
+            modq = compute_quantiles(np.array(self.vars['model_values']),lq)
+            obsq = compute_quantiles(np.array(self.vars['obs_values']),lq)
             import matplotlib.pyplot as plt
             fig = plt.figure(figsize=(4,4))
             ax = fig.add_subplot(111)
@@ -769,6 +779,10 @@ class collocation_class():
                     label='obs (' + self.mission + ')',
                     marker='o',alpha=.5,ms=2)
                 plt.xlabel('obs ( ' + self.mission + ' )')
+            # add quantiles
+            ax.plot(obsq,modq,'r')
+            # 45 degree line for orientation
+            ax.axline((0, 0), (1, 1), lw=.5, color='grey',ls='--')
             plt.ylabel('models ( ' + self.model + ' )')
             vartype = variable_info[self.varalias].get('type','default')
             if vartype == 'cyclic':
@@ -777,10 +791,9 @@ class collocation_class():
             else:
                 maxv = np.max([self.vars['model_values'],
                                self.vars['obs_values']])
-                minv = np.min([self.vars['model_values'],
-                               self.vars['obs_values']])
-                plt.xlim([minv,maxv+0.1*maxv])
-                plt.ylim([minv,maxv+0.1*maxv])
+                minv = 0
+                plt.xlim([minv,maxv+0.15*maxv])
+                plt.ylim([minv,maxv+0.15*maxv])
             ax.set_title(self.varalias + '[' + self.units + ']')
             plt.tight_layout()
             #ax.set_title()

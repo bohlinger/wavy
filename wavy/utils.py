@@ -193,7 +193,7 @@ def marginalize(a,b=None):
     input: np.arrays with np.nan for invalids
     """
     if b is None:
-        return a[~np.isnan[a]]
+        return a[~np.isnan(a)]
     else:
         comb = a + b
         idx = np.array(range(len(a)))[~np.isnan(comb)]
@@ -573,3 +573,17 @@ def wave_length_mask_swim(ds,llim=50,ulim=2000):
     res = ds.where((calc_deep_water_T(ds)>llim)&(calc_deep_water_T(ds)<ulim))
     mask = ~np.isnan(res)
     return mask
+
+def compute_quantiles(ts,lq):
+    """
+    fct to compute quantiles for given ts
+
+    param: 
+        ts - iterable of ts
+        lq - iterable of quantiles
+
+    retrun:
+        qA - numpy array of quantiles
+    """
+    ts = marginalize(ts)
+    return np.array([np.quantile(ts,q) for q in lq])

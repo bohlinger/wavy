@@ -567,7 +567,9 @@ class model_class():
             vartype = variable_info[self.varalias].get('type','default')
             if kwargs.get('cmap') is None:
                 if vartype == 'cyclic':
-                    cmap = mplcm.twilight_shifted
+                    cmap = mplcm.twilight
+                    cflevels = kwargs.get('cflevels',range(0,365,5))
+                    clevels = kwargs.get('clevels',range(0,365,5))
                 else:
                     cmap = cmocean.cm.amp
             else:

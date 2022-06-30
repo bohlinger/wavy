@@ -474,7 +474,7 @@ class satellite_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,m=True,ts=True,projection=None,**kwargs):
+    def quicklook(self,full=False,projection=None,**kwargs):
         """
         Enables to explore the class object (and retrieved results)
         by plotting time series and map.
@@ -487,6 +487,9 @@ class satellite_class():
         return:
             figures
         """
+        # set plots
+        m = kwargs.get('m',full)
+        ts = kwargs.get('ts',full)
         if m:
             import cartopy.crs as ccrs
             import cmocean
@@ -502,7 +505,7 @@ class satellite_class():
             vartype = variable_info[self.varalias].get('type','default')
             if kwargs.get('cmap') is None:
                 if vartype == 'cyclic':
-                    cmap = mplcm.twilight_shifted
+                    cmap = mplcm.twilight
                 else:
                     cmap = cmocean.cm.amp
             else:
