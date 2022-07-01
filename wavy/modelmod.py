@@ -429,7 +429,7 @@ def get_model(model=None,
         if ('convention' in model_dict[model].keys() and
         model_dict[model]['convention'] == 'oceanographic' and
         convention_set is False):
-            print('Convention is set it config file')
+            print('Convention is set in config file')
             print('This will overwrite conventions from standard_name in file!')
             print('\n')
             print('Convert from oceanographic to meteorologic convention')
@@ -538,7 +538,8 @@ class model_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,m=True,projection=None,date=None,**kwargs):
+    def quicklook(self,full=False,projection=None,date=None,**kwargs):
+        m = kwargs.get('m',full)
         if m is True:
             import cartopy.crs as ccrs
             import cmocean

@@ -674,8 +674,7 @@ class collocation_class():
         # add class variables
         print ('# ----- ')
 
-    def quicklook(\
-        self,full=False,projection=None,**kwargs):
+    def quicklook(self,full=False,projection=None,**kwargs):
         # set plots
         m = kwargs.get('m',full)
         ts = kwargs.get('ts',full)

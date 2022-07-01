@@ -251,6 +251,36 @@ def get_nc_dict(**kwargs):
                 'longitude':lonlst,
                 'latitude':latlst
                 }
+    # adjust conventions
+    # check if variable is one with conventions
+    if 'convention' in variable_info[varalias].keys():
+        convention_set = False
+        print('Chosen variable is defined with conventions')
+        print('... checking if correct convention is used ...')
+        # 1. check if clear from standard_name
+        file_stdvarname = find_direction_convention(filevarname,ncdict)
+        if "to_direction" in file_stdvarname:
+            print('Convert from oceanographic to meteorologic convention')
+            vardict[variable_info[varalias]['standard_name']] = \
+                    convert_meteorologic_oceanographic(\
+                        vardict[variable_info[varalias]['standard_name']])
+            convention_set = True
+        elif "from_direction" in file_stdvarname:
+            print('standard_name indicates meteorologic convention')
+            convention_set = True
+            pass
+        # 2. overwrite convention from config file
+        if ('convention' in insitu_dict[nID].keys() and
+        insitu_dict[model]['convention'] == 'oceanographic' and
+        convention_set is False):
+            print('Convention is set in config file')
+            print('This will overwrite conventions from standard_name in file!')
+            print('\n')
+            print('Convert from oceanographic to meteorologic convention')
+            vardict[variable_info[varalias]['standard_name']] = \
+                    convert_meteorologic_oceanographic(\
+                        vardict[variable_info[varalias]['standard_name']])
+            convention_set = True
     return vardict
 
 def parse_d22(sdate,edate,pathlst,strsublst,dict_for_sub):
