@@ -185,6 +185,19 @@ You have now read in 24 hours of significant wave height from the satellite miss
     ### Satellite object initialized ###
    # ----- 
 
+The satellite_class object has multiple class methods and class variables:
+
+.. code-block:: python3
+
+  >>> sco.
+  sco.edate             sco.product           sco.units
+  sco.get_item_child(   sco.provider          sco.varalias
+  sco.get_item_parent(  sco.quicklook(        sco.varname
+  sco.mission           sco.region            sco.vars
+  sco.obstype           sco.sdate             sco.write_to_nc(
+  sco.path_local        sco.stdvarname        sco.write_to_pickle(
+  sco.processing_level  sco.twin
+
 You can readily explore what you obtained utilizing the quicklook function.
 
 .. code-block:: python3
