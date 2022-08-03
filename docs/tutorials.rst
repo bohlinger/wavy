@@ -1,6 +1,6 @@
 Tutorials
 ==========
-The following tutorials describe how to setup the wavy config files, to perform collocation and validation tasks. **wavy** is intended to be fleksibel such that customization can be achieved with minimal changes in the code. The **wavy** config files build the fundament for this approach and serve a similar purpose as namelist files often used for runtime changes in numerical modelling.
+The following tutorials describe how to setup the wavy config files, to retrieve satellite and insitu data, to perform collocation and validation tasks. **wavy** is intended to be fleksibel such that customization can be achieved with minimal changes in the code. The **wavy** config files build the fundament for this approach and serve a similar purpose as namelist files often used for runtime changes in numerical modelling.
 
 In general, executable files usually have help function which can be read using e.g.:
 
@@ -15,72 +15,13 @@ e.g.:
    $ cd ~/wavy/apps/standalone
    $ ./wavyDownload.py -h
 
-1. **wavy** config files, a brief overview.
-###########################################
-**wavy** obtains custom information from config files. There are default versions which can be adjusted to user needs. The following config files exist as for now:
+.. toctree::
+   :maxdepth: 3
+   :glob:
 
-
-.. code-block:: bash
-
-   $ ls
-   collocation_specs.yaml.default  region_specs.yaml.default
-   d22_var_dicts.yaml.default      satellite_specs.yaml.default
-   insitu_specs.yaml.default       validation_specs.yaml.default
-   model_specs.yaml.default        variable_info.yaml.default
-   quicklook_specs.yaml.default
-
-**wavy** browses the directory structure as follows:
-
-    * check if env 'WAVY_CONFIG' is set or specified in .env
-    * check if a config folder exists using xdg
-    * fall back on default files within the package
-
-It is probably easiest to start off copying the default config files you would like to edit to a directory of your choice. Then remove the ".default" extension. For simplicity, let's assume that you have your custom config files in *~/wavy/config/*.
-
-2. download L3 satellite altimetry data
-#######################################
-
-L3 satellite data is obtained from Copernicus with the product identifier WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001. User credentials are required for this task. So before you can start you have to get a Copernicus account (free of costs).
-Prepare access to Copernicus products. Enter your account credentials into the .netrc-file. Your .netrc should look something like:
-
-.. code::
-
-   machine nrt.cmems-du.eu    login {USER}  password {PASSWORD}
-
-Prepare your **wavy** environment with providing the directories for satellite data and model data. There are multiple config files but we only need to worry about a few for now. Explore the config file for satellites like this:
-
-.. code-block:: bash
-
-   $ cd ~/wavy/config
-   $ vim satellite_specs.yaml
-
-Add your path for satellite data here under cmems
-
-.. code-block:: yaml
-
-   cmems_L3_NRT:
-      dst:
-         path_template: /home/patrikb/tmp_altimeter/L3/mission
-
-You can proceed now and download L3 data using the wavyDownload.py script:
-
-.. code-block:: bash
-
-   $ cd ~/wavy/apps/standalone
-
-To get help check ...
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py -h
-
-... then download some satellite altimeter data:
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3_NRT
-
-You can find the downloaded files in your chosen download directory.
+   tutorials_config
+   tutorials_satmod
+   tutorials_regions
 
 3. download L2P and L3 CCI multi-mission satellite altimetry data
 #################################################################
