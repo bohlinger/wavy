@@ -120,10 +120,72 @@ Now, open python in the wavy conda environment:
 
 .. code-block:: python3
 
+   >>> # imports
    >>> from wavy.satmod import satellite_class as sc
+
+   >>> # settings
+   >>> region = 'global'
+   >>> varalias = 'Hs' # default
+   >>> mission = 's3a' # default
+   >>> product = 'cmems_L3_NRT' # default
+   >>> twin = 30 # default
+   >>> sd = "2020-11-1" # can also be datetime object
+   >>> ed = "2020-11-2" # not necessary if twin is specified
+
+   >>> # retrieval
+   >>> sco = sc(sdate=sd,edate=ed,region=region)
+
+Or in one line:
+
+.. code-block:: python3
+
    >>> sco = sc(sdate="2020-11-1",edate="2020-11-2",region="global")
 
-You have now read in 24 hours of significant wave height from the satellite mission s3a. You can readily explore what you obtained utilizing the quicklook function.
+You have now read in 24 hours of significant wave height from the satellite mission s3a. The stdout message looks like::
+
+   >>> sco = sc(sdate="2020-11-1",edate="2020-11-2",region="global")
+   # ----- 
+    ### Initializing satellite_class object ###
+         
+   Requested time frame: 2020-11-01 00:00:00 - 2020-11-02 00:00:00
+   Chosen time window is: 30 min
+   No download initialized, checking local files
+         
+    ## Find files ...
+   path_local is None -> checking config file
+   /home/patrikb/tmp_altimeter/L3/s3a/2020/10
+   /home/patrikb/tmp_altimeter/L3/s3a/2020/11
+   16 valid files found
+         
+    ## Read files ...
+   Get filevarname for 
+   stdvarname: sea_surface_wave_significant_height 
+   varalias: Hs
+   !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
+   The following variables have the same standard_name:
+    ['VAVH', 'VAVH_UNFILTERED']
+   Searching *_specs.yaml config file for definition
+   Variable defined in *_specs.yaml is:
+   Hs = VAVH
+   100%|██████████████████████████████████████████| 16/16 [00:00<00:00, 215.52it/s]
+   Concatenate ...
+   ... done concatenating
+   Total:  45677  footprints found
+   Apply region mask
+   Specified region: global
+    --> Bounds: {'llcrnrlon': -180.0, 'llcrnrlat': -90.0, 'urcrnrlon': 180.0, 'urcrnrlat': 90.0}
+   45677  values found for chosen region and time frame.
+   Region mask applied
+   For chosen region and time:  45677 footprints found
+         
+    ## Summary:
+   45677 footprints retrieved.
+   Time used for retrieving satellite data: 0.29 seconds
+         
+    ### Satellite object initialized ###
+   # ----- 
+
+You can readily explore what you obtained utilizing the quicklook function.
 
 .. code-block:: python3
 

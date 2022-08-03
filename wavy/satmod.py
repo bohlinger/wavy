@@ -408,12 +408,12 @@ class satellite_class():
                     self.units = variable_info[newvaralias].get('units')
                 t1=time.time()
                 print(" ")
-                print( '## Summary:')
+                print( ' ## Summary:')
                 print(str(len(self.vars['time'])) + " footprints retrieved.")
                 print("Time used for retrieving satellite data:",\
                         round(t1-t0,2),"seconds")
                 print(" ")
-                print ("### Satellite object initialized ###")
+                print (" ### Satellite object initialized ###")
                 print ('# ----- ')
             except Exception as e:
                 print(e)
