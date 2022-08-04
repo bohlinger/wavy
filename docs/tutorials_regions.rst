@@ -7,7 +7,7 @@ To retrieve satellite data for your region of interest you will need the region_
 
    When choosing to create a polynom make sure that it is closed by repeating the first coordinates in the end.
 
-Continue with python:
+Continue with python, ...here is an example using a polygon for the Norwegian Sea:
 
 .. code-block:: python3
 
