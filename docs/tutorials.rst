@@ -16,8 +16,7 @@ e.g.:
    $ ./wavyDownload.py -h
 
 .. toctree::
-   :maxdepth: 3
-   :glob:
+   :titlesonly:
 
    tutorials_config
    tutorials_satmod

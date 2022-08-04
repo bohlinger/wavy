@@ -42,4 +42,5 @@ In order to create your own customized project, copy the needed config default f
 This means you can create an .env file in your project directory. This .env file needs an environmental variable pointing to where your project files are located:
 
 .. code-block:: bash
+
         WAVY_CONFIG=path/to/your/config/files

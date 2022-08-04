@@ -4,11 +4,13 @@ Use satellite data
 One strength of **wavy** is to ease obtaining and using satellite altimetry data. To get an overview over the supported missions or data sources go to wavy/apps/standalone and execute:
 
 .. code-block:: bash
+
    $ ./wavyDownload.py -h
 
 
 or:
 .. code-block:: bash
+
    $ ./wavyQuick.py -h
 
 
@@ -108,11 +110,13 @@ Similarily one can download L2P and L3 multi-mission altimetry data from the CED
 As a next step, you can access these data everywhere with wavy when having set your .env file and the WAVY_CONFIG path therein. For illustration purposes, let's create a directory called ~/project_tmp. This is now your project directory. Let's assume your ammended satellite_specs.yaml file is in this directory. In this directory create an .env file with the content e.g.:
 
 .. code-block:: bash
+
    WAVY_CONFIG=/home/patrikb/project_tmp/
 
 The content of your directory looks then like:
 
 .. code-block:: bash
+
    (base) patrikb@pc5591:~/project_tmp$ ls -la
    total 20
    drwxrwxr-x  2 patrikb patrikb 4096 Aug  3 12:31 .

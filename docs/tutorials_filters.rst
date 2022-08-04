@@ -1,5 +1,6 @@
 Apply filters
 #############
+
 Basic, but very useful, filters can be applied to the altimtery time series by activating the "filterData" key word and some filter specific key words regarding the desired filter. An example of filtering the CMEMS L3 time series is given below:
 
 .. code-block:: python3
