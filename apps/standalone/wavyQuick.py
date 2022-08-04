@@ -65,6 +65,9 @@ def main():
             \ncci_L3:\
             \n multi - multimission product 1991-2018\
             \n\
+            \ncfo_swim_L2P:\
+            \n cfo - CFOSAT\
+            \n\
             \nother options are:\
             \n all - for all cmems satellites\
             \n list - a list of chosen satellites using -l\n \

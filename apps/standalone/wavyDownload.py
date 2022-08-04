@@ -67,7 +67,11 @@ def main():
             \n gfo - GEOSAT Follow-On\
             \n\
             \ncci_L3:\
-            \n multi - multimission product 1991-2018 \n\
+            \n multi - multimission product 1991-2018\
+            \n\
+            \ncfo_swim_L2P:\
+            \n cfo - CFOSAT\
+            \n\
             \n")
     parser.add_argument("-path",
                         metavar='path',
