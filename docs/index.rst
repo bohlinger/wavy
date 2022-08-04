@@ -40,6 +40,7 @@ Contents
    vietnam21
    vietnam22
    oneocean
+   gallery
    autoapi/index
 
 

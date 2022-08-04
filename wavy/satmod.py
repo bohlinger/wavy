@@ -554,7 +554,7 @@ class satellite_class():
                     linestyle='None',color=colors[0],
                     label=self.mission,
                     marker='o',alpha=.5,ms=2)
-            plt.ylabel(self.varalias + '[' + self.units + ']')
+            plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()

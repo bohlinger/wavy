@@ -26,4 +26,5 @@ e.g.:
    tutorials_insitu
    tutorials_collocmod
    tutorials_validate
+   tutorials_stats
    tutorials_wavyQuick
