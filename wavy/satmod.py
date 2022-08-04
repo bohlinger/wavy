@@ -474,7 +474,7 @@ class satellite_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,full=False,projection=None,**kwargs):
+    def quicklook(self,a=False,projection=None,**kwargs):
         """
         Enables to explore the class object (and retrieved results)
         by plotting time series and map.
@@ -482,14 +482,15 @@ class satellite_class():
         param:
             m - map figure (True/False)
             ts - time series (True/False)
+            a - all figures (True/False)
             projection - specified projection for cartopy
 
         return:
             figures
         """
         # set plots
-        m = kwargs.get('m',full)
-        ts = kwargs.get('ts',full)
+        m = kwargs.get('m',a)
+        ts = kwargs.get('ts',a)
         if m:
             import cartopy.crs as ccrs
             import cmocean

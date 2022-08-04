@@ -674,11 +674,11 @@ class collocation_class():
         # add class variables
         print ('# ----- ')
 
-    def quicklook(self,full=False,projection=None,**kwargs):
+    def quicklook(self,a=False,projection=None,**kwargs):
         # set plots
-        m = kwargs.get('m',full)
-        ts = kwargs.get('ts',full)
-        sc = kwargs.get('sc',full)
+        m = kwargs.get('m',a)
+        ts = kwargs.get('ts',a)
+        sc = kwargs.get('sc',a)
         if m:
             import cartopy.crs as ccrs
             import cmocean

@@ -218,7 +218,7 @@ You can readily explore what you obtained utilizing the quicklook function.
 
    >>> sco.quicklook(ts=True) # for time series
    >>> sco.quicklook(m=True) # for a map
-   >>> sco.quicklook(full=True) # for both
+   >>> sco.quicklook(a=True) # for all
 
 Sentinel-3 A/B L2 altimetry data are of much higher frequency (20Hz) compared to L3 data (1Hz). L2 data can be obtained from eumetsat and colhub using the SentinelAPI. This requires user credentials for eumetsat and colhub, which are free of costs as well. Enter your account credentials into the .netrc-file as you did for the L3 data. Your .netrc should have included the following:
 

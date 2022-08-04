@@ -174,9 +174,9 @@ class insitu_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,full=False,projection=None,**kwargs):
-        m = kwargs.get('m',full)
-        ts = kwargs.get('ts',full)
+    def quicklook(self,a=False,projection=None,**kwargs):
+        m = kwargs.get('m',a)
+        ts = kwargs.get('ts',a)
         if ts is True:
             import matplotlib.pyplot as plt
             fig = plt.figure(figsize=(9,3.5))

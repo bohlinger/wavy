@@ -35,7 +35,7 @@ For the collocation class object there is also a quicklook fct implemented which
    >>> cco.quicklook(ts=True)
    >>> cco.quicklook(sc=True)
    >>> cco.quicklook(m=True)
-   >>> cco.quicklook(full=True)
+   >>> cco.quicklook(a=True) # for all plots to be displayed
 
 Collocation of in-situ data and wave model
 ******************************************

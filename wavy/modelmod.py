@@ -538,8 +538,8 @@ class model_class():
         parent = finditem(ncdict,item)
         return parent
 
-    def quicklook(self,full=False,projection=None,date=None,**kwargs):
-        m = kwargs.get('m',full)
+    def quicklook(self,a=True,projection=None,date=None,**kwargs):
+        m = kwargs.get('m',a)
         if m is True:
             import cartopy.crs as ccrs
             import cmocean
