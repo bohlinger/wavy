@@ -13,11 +13,21 @@ class gridder_class():
         #             in degree where tupel is (lon,lat)
 
     def make_grid(self):
+        # create grid
+        # filter for land/sea
+        # -> return grid
+        return
+
+    def regionalize_grid(self):
+        # filter grid cells for region of interest
+        # -> return grid
         return
 
     def assign_vals(self):
+        # assign obs to grid cells
+        # -> return index mask
         return
 
-    def aggregate(self):
+    def operate(self,operation="mean"):
         return
 
