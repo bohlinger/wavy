@@ -182,6 +182,33 @@ class gridder_class():
 
         return val_grid, lon_grid, lat_grid
 
+    def gaute_group_metric(self, Midx, ovals):
+        val_grid = np.full((len(self.glons),len(self.glats)), np.nan)
+        lat_grid, lon_grid = np.meshgrid(self.glats, self.glons)
+
+        Midx = Midx.astype(int)
+
+        # Only do this once:
+        fidx = np.ravel_multi_index(Midx, val_grid.shape)
+
+        isort = fidx.argsort()
+        fidx = fidx[isort]
+        vals = ovals[isort]
+
+        isplit = np.unique(fidx, return_index=True)[1]
+
+        gfidx = fidx[isplit]
+        gvals = np.split(vals, isplit[1:])
+
+        assert len(gfidx) == len(gvals)
+
+        iyy, ixx = np.unravel_index(gfidx, val_grid.shape)
+
+        for iy, ix, vs in zip(iyy, ixx, gvals):
+            val_grid[iy, ix] = np.mean(vs)
+
+        return val_grid, lon_grid, lat_grid
+
     def apply_metric(self,Midx,ovals,**kwargs):
         '''
         dispatch table for various validation metrics
@@ -189,6 +216,7 @@ class gridder_class():
         dispatch_reader = {
                 'mean':self.grid_mean,
                 'gaute_mean':self.gautes_grid_mean,
+                'gautegroup_mean': self.gaute_group_metric,
                 }
         metric = kwargs.get('metric')
         var_gridded = dispatch_reader[metric](Midx,ovals)
