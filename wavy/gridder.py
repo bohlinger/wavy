@@ -40,7 +40,7 @@ class gridder_class():
         lons = np.arange(self.bb[0],self.bb[1],self.res[0])
         lats = np.arange(self.bb[2],self.bb[3],self.res[1])
         return np.array(lons), np.array(lats)
-    
+
     def get_obs_grid_idx(self):
         Midx = self.assign_obs_to_grid(
                 self.glons,self.glats,
@@ -149,12 +149,46 @@ class gridder_class():
             pbar.update(incr)
         return val_grid, lon_grid, lat_grid
 
+    def gautes_grid_mean(self,Midx,ovals):
+        # initialize grid
+        val_grid = np.full((len(self.glons),len(self.glats)), 0.0)
+        N = np.full((len(self.glons),len(self.glats)), 0)
+        lat_grid, lon_grid = np.meshgrid(self.glats, self.glons)
+
+        # Midx:
+        # Midx[0,:]: Longitudes of observations
+        # Midx[1,:]: Latitudes of observations
+        #
+        # ovals: Observations, shape equal to Midx.shape[1]
+
+        print(f"Number of grid cells: {val_grid.shape}: {len(val_grid.ravel())}")
+        print(f"Number of observations: {len(ovals)}")
+
+        # for iy, ix in tqdm.tqdm(np.ndindex(val_grid.shape), total=len(val_grid.ravel())):
+        #     val_grid[iy,ix] = np.mean(ovals[(Midx[0,:] == iy) & (Midx[1,:] == ix)])
+
+        assert len(ovals) == len(Midx.T)
+
+        for o, idx in zip(ovals, Midx.T):
+            iy = idx[0]
+            ix = idx[1]
+
+            val_grid[iy, ix] += o
+            N[iy, ix] += 1
+
+        mx = N>0
+        val_grid[mx] = val_grid[mx] / N[mx]
+        val_grid[~mx] = np.nan
+
+        return val_grid, lon_grid, lat_grid
+
     def apply_metric(self,Midx,ovals,**kwargs):
         '''
         dispatch table for various validation metrics
         '''
         dispatch_reader = {
                 'mean':self.grid_mean,
+                'gaute_mean':self.gautes_grid_mean,
                 }
         metric = kwargs.get('metric')
         var_gridded = dispatch_reader[metric](Midx,ovals)
@@ -218,8 +252,8 @@ class gridder_class():
                         color=cmap(normalize(vals[i])) )
 
             cbax = fig.add_axes([0.85, 0.12, 0.05, 0.78])
-            cb = mpl.colorbar.ColorbarBase(cbax, 
-                    cmap=cmap, norm=normalize, 
+            cb = mpl.colorbar.ColorbarBase(cbax,
+                    cmap=cmap, norm=normalize,
                     orientation='vertical')
 
             ax.coastlines()
