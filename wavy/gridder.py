@@ -129,11 +129,13 @@ class gridder_class():
         val_grid = np.ones([len(self.glons),len(self.glats)])*np.nan
         lon_grid = np.ones([len(self.glons),len(self.glats)])*np.nan
         lat_grid = np.ones([len(self.glons),len(self.glats)])*np.nan
+        pbarlen = len(ovals)
         novals = ovals.copy()
         # fill grid
         nMidx = Midx.copy()
-        pbar = tqdm.tqdm(total=100)
+        pbar = tqdm.tqdm(total=pbarlen)
         while len(novals)>0:
+            l1 = len(novals)
             idx1,idx2 = nMidx[0][0], nMidx[1][0]
             gidx = self.get_grid_idx(nMidx)
             mval = self.calc_mean(gidx,novals)
@@ -142,8 +144,9 @@ class gridder_class():
             lat_grid[idx1,idx2] = self.glats[idx2]
             nMidx = self.rm_used_idx_from_Midx(gidx,nMidx)
             novals = np.delete(novals,gidx)
-            frac = int(100-(len(novals)/len(ovals))*100)
-            pbar.update(frac)
+            l2 = len(novals)
+            incr = l1-l2
+            pbar.update(incr)
         return val_grid, lon_grid, lat_grid
 
     def apply_metric(self,Midx,ovals,**kwargs):
