@@ -380,7 +380,22 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                         ]
     t2=time.time()
     print('filtering used:',int(t2-t1),'seconds')
+    print('len(fc_date_valid)',len(fc_date_valid))
     fc_date = fc_date_valid   
+    print(fc_date)
+
+    t1=time.time()
+    od = np.array([d.timestamp() for d in obs_obj.vars['datetime']]) + twin*60
+    res = 2*twin*60
+    nd = od - od%res
+    nduq = np.unique(nd)
+    ndt = [datetime.fromtimestamp(ts) for ts in nduq]
+    t2=time.time()
+    print('filtering group used:',int(t2-t1),'seconds')
+    print('len(ndt)',len(ndt))
+    print(ndt)
+
+    assert ndt == fc_date
 
     print("Start collocation ...")
     results_dict = {
