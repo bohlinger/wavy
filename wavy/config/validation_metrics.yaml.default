@@ -1,0 +1,31 @@
+--- # Additional information on variables
+
+corr:
+    name: 'Correlation Coefficient'
+    units: 'N/A'
+mad: 
+    name: 'Mean Absolute Difference'
+rmsd:
+    name: 'Root Mean Squared Difference'
+nrmsd:
+    name: 'Normalized Root Mean Squared Difference'
+    units: 'N/A'
+drmsd:
+    name: 'Debiased Root Mean Squared Difference'
+bias:
+    name: 'Bias'
+nbias:
+    name: 'Normalized Bias'
+    units: 'N/A'
+SI:
+    name: 'Scatter Index'
+    units: 'N/A'
+mar:
+    name: 'Model Activity Ratio'
+    units: 'N/A'
+mom:
+    name: 'Mean of Model'
+mor:
+    name: 'Mean of Observations'
+nov:
+    name: 'Number of Collocated Values'

@@ -4,6 +4,9 @@
 import numpy as np
 import tqdm
 from wavy.grid_stats import apply_metric
+from wavy.wconfig import load_or_default
+
+validation_metric_abbreviations = load_or_default('validation_metrics.yaml')
 
 class gridder_class():
 
@@ -25,11 +28,22 @@ class gridder_class():
             self.olons = np.array(oco.vars['longitude'])
             self.olats = np.array(oco.vars['latitude'])
             self.ovals = np.array(oco.vars[oco.stdvarname])
+            self.stdvarname = oco.stdvarname
+            self.varalias = oco.varalias
+            self.units = oco.units
+            self.sdate = oco.vars['datetime'][0]
+            self.edate = oco.vars['datetime'][-1]
         elif cco is not None:
             self.olons = np.array(cco.vars['obs_lons'])
             self.olats = np.array(cco.vars['obs_lats'])
             self.ovals = np.array(cco.vars['obs_values'])
             self.mvals = np.array(cco.vars['model_values'])
+            self.stdvarname = cco.stdvarname
+            self.varalias = cco.varalias
+            self.units = cco.units
+            self.sdate = cco.vars['datetime'][0]
+            self.edate = cco.vars['datetime'][-1]
+
         self.bb = bb
         self.res = res
         self.grid = grid
@@ -120,13 +134,18 @@ class gridder_class():
                         glats,glats ])
         return xb,yb
 
-    def quicklook(self,a=True,projection=None,**kwargs):
-        lon_grid = kwargs.get('lon_grid')
-        lat_grid = kwargs.get('lat_grid')
+    def quicklook(self,projection=None,**kwargs):
+        metric = kwargs.get('metric','mor')
+
+        lon_grid = kwargs.get('lon_grid') + self.res[0]/2.
+        lat_grid = kwargs.get('lat_grid') + self.res[1]/2.
         val_grid = kwargs.get('val_grid')
-        g = kwargs.get('g',a)
-        m = kwargs.get('m',a)
-        if m:
+
+        if metric == 'all':
+            for key in val_grid.keys():
+                # plot fct
+                pass
+        else:
             import cartopy.crs as ccrs
             import cmocean
             import matplotlib.pyplot as plt
@@ -137,7 +156,7 @@ class gridder_class():
 
             lons = lon_grid.ravel()
             lats = lat_grid.ravel()
-            vals = val_grid.ravel()
+            vals = val_grid[metric].ravel()
 
             if projection is None:
                 projection = ccrs.PlateCarree()
@@ -147,31 +166,30 @@ class gridder_class():
             else:
                 cmap = kwargs.get('cmap')
 
-            normalize = mpl.colors.Normalize(
-                            vmin=np.nanmin(val_grid),
-                            vmax=np.nanmax(val_grid) )
-
-            lonmax,lonmin = np.nanmax(lons),np.nanmin(lons)
-            latmax,latmin = np.nanmax(lats),np.nanmin(lats)
+            lonmax,lonmin = np.max(lons),np.min(lons)
+            latmax,latmin = np.max(lats),np.min(lats)
 
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
-            ax.set_extent(  [lonmin, lonmax,latmin, latmax],
-                            crs = projection )
-            for i in range(len(val_grid.ravel())):
-                xs,ys = self.get_exteriors(lons[i],lats[i],self.res)
-                if math.isnan(np.mean(xs)):
-                    pass
-                else:
-                    ax.fill(
-                        xs, ys,transform=ccrs.Geodetic(),
-                        color=cmap(normalize(vals[i])) )
-
-            cbax = fig.add_axes([0.85, 0.12, 0.05, 0.78])
-            cb = mpl.colorbar.ColorbarBase(cbax,
-                    cmap=cmap, norm=normalize,
-                    orientation='vertical')
-
+            ax.set_extent(  [lonmin, lonmax,latmin, latmax], crs = projection )
+            pc = ax.pcolormesh(
+                    lon_grid,lat_grid,val_grid[metric],
+                    transform=projection,cmap=cmap)
+            axins = inset_axes(ax,
+                       width="5%",  # width = 5% of parent_bbox width
+                       height="100%",  # height : 50%
+                       loc='lower left',
+                       bbox_to_anchor=(1.01, 0., 1, 1),
+                       bbox_transform=ax.transAxes,
+                       borderpad=0,
+                       )
+            metric_name = validation_metric_abbreviations[metric].get('name')
+            metric_units =\
+                    validation_metric_abbreviations[metric].get(
+                            'units',
+                            self.units)
+            fig.colorbar(pc, cax=axins,
+                        label = metric_name + ' [' + metric_units + ']')
             ax.coastlines()
             gl = ax.gridlines(draw_labels=True,crs=projection,
                               linewidth=1, color='grey', alpha=0.4,
@@ -179,5 +197,6 @@ class gridder_class():
             gl.top_labels = False
             gl.right_labels = False
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+            ax.set_title(  'Base variable: ' + self.varalias + '\n'
+                      + 'from ' + str(self.sdate) + ' to ' + str(self.edate) )
             plt.show()
-
