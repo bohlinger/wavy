@@ -113,6 +113,7 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
     indict: mandatory - lons, lats, time, values
             optional - leadtime, distlim, date_incr
     """
+    print("run: collocate_poi_ts")
     # get stdvarname
     stdvarname = variable_info[varalias]['standard_name']
     # datetime or str
@@ -242,6 +243,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     """
     Some info
     """
+    print("run: collocate_station_ts")
     fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
     # get coinciding date between fc_date and dates in obs_obj
     idx1 = collocate_times( unfiltered_t = obs_obj.vars['datetime'],
@@ -361,21 +363,26 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     """
     Some info
     """
+    print("run: collocate_satellite_ts")
     fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
     fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                             fc_date,model,leadtime)
+
     # use only dates with a model time step closeby
     # given the time constrains
+    print('Filtering valid dates')
+    t1=time.time()
     if twin is None:
         twin = obs_obj.twin
-    fc_date_valid = []
-    for t in fc_date:
-        incl = find_included_times(obs_obj.vars['datetime'],
-                target_t=t,twin=twin)
-        if len(incl)>0:
-            fc_date_valid.append(t)
+    fc_date_valid = [ t for t in fc_date 
+                        if len(find_included_times(
+                            obs_obj.vars['datetime'],t,twin=twin)) > 0
+                        ]
+    t2=time.time()
+    print('filtering used:',int(t2-t1),'seconds')
     fc_date = fc_date_valid   
 
+    print("Start collocation ...")
     results_dict = {
             'valid_date':[],
             'time':[],

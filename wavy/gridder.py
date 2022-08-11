@@ -69,13 +69,13 @@ class gridder_class():
         Midx = self.assign_obs_to_grid(
                 self.glons,self.glats,
                 self.olons,self.olats,
-                self.ovals,self.res)
+                self.res)
         ovals, mvals, Midx = self.clean_Midx(
                 Midx,self.ovals,self.mvals,self.glons,self.glats )
         return ovals, mvals, Midx
 
     @staticmethod
-    def assign_obs_to_grid(glons,glats,olons,olats,ovals,res):
+    def assign_obs_to_grid(glons,glats,olons,olats,res):
         """
         assigns observation coordinates to grid indices
         """
