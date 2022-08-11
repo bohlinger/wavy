@@ -364,38 +364,26 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     Some info
     """
     print("run: collocate_satellite_ts")
-    fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
-    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
-                            fc_date,model,leadtime)
 
     # use only dates with a model time step closeby
     # given the time constrains
     print('Filtering valid dates')
-    t1=time.time()
     if twin is None:
         twin = obs_obj.twin
-    fc_date_valid = [ t for t in fc_date 
-                        if len(find_included_times(
-                            obs_obj.vars['datetime'],t,twin=twin)) > 0
-                        ]
-    t2=time.time()
-    print('filtering used:',int(t2-t1),'seconds')
-    print('len(fc_date_valid)',len(fc_date_valid))
-    fc_date = fc_date_valid   
-    print(fc_date)
-
     t1=time.time()
     od = np.array([d.timestamp() for d in obs_obj.vars['datetime']]) + twin*60
     res = 2*twin*60
     nd = od - od%res
     nduq = np.unique(nd)
     ndt = [datetime.fromtimestamp(ts) for ts in nduq]
-    t2=time.time()
-    print('filtering group used:',int(t2-t1),'seconds')
-    print('len(ndt)',len(ndt))
-    print(ndt)
 
-    assert ndt == fc_date
+    ndt_valid = find_valid_fc_dates_for_model_and_leadtime(\
+                                        ndt,model,leadtime)
+
+    fc_date = ndt_valid
+    t2=time.time()
+
+    print(f'filtering done, used {t2-t1:.2f} seconds')
 
     print("Start collocation ...")
     results_dict = {
