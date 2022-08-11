@@ -20,7 +20,7 @@ from copy import deepcopy
 import xarray as xr
 
 # own imports
-from wavy.utils import collocate_times
+from wavy.utils import collocate_times, find_included_times
 from wavy.utils import make_fc_dates
 from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder
@@ -357,13 +357,25 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     return results_dict
 
 def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
-    leadtime=None,date_incr=None):
+    leadtime=None,date_incr=None,twin=None):
     """
     Some info
     """
     fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
     fc_date = find_valid_fc_dates_for_model_and_leadtime(\
                             fc_date,model,leadtime)
+    # use only dates with a model time step closeby
+    # given the time constrains
+    if twin is None:
+        twin = obs_obj.twin
+    fc_date_valid = []
+    for t in fc_date:
+        incl = find_included_times(obs_obj.vars['datetime'],
+                target_t=t,twin=twin)
+        if len(incl)>0:
+            fc_date_valid.append(t)
+    fc_date = fc_date_valid   
+
     results_dict = {
             'valid_date':[],
             'time':[],
@@ -388,7 +400,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                 # filter needed obs within time period
                 idx = collocate_times( obs_obj.vars['datetime'],
                                        target_t = [fc_date[i]],
-                                       twin = obs_obj.twin )
+                                       twin = twin )
                 # make tmp obs_obj with filtered data
                 obs_obj_tmp = deepcopy(obs_obj)
                 obs_obj_tmp.vars['time'] = list(\
@@ -411,7 +423,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
                                 model_lons=vardict['longitude'],\
                                 model_vals=vardict[obs_obj.stdvarname],\
                                 obs_obj=obs_obj_tmp,\
-                                distlim=distlim )
+                                distlim=distlim,twin=twin)
                 # append to dict
                 results_dict['valid_date'].append(fc_date[i])
                 results_dict['time'].append(results_dict_tmp['time'])
@@ -452,10 +464,12 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
 
 def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
                     datein=None,model_lats=None,model_lons=None,
-                    model_vals=None):
+                    model_vals=None,twin=None):
     """
     Some info
     """
+    if twin is None:
+        twin = obs_obj.twin
     if mc_obj is not None:
         datein = netCDF4.num2date(mc_obj.vars['time'],mc_obj.vars['time_unit'])
         model_lats = mc_obj.vars['latitude']
@@ -469,7 +483,7 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
         datein = list(datein)
     if isinstance(datein,datetime):
         datein = [datein]
-    cidx = collocate_times(dtime,target_t=datein,twin=obs_obj.twin)
+    cidx = collocate_times(dtime,target_t=datein,twin=twin)
     obs_time_dt = np.array(dtime)[cidx]
     obs_time_dt = [datetime(t.year,t.month,t.day,
                             t.hour,t.minute,t.second)
@@ -565,7 +579,8 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
                                             model=model,\
                                             distlim=distlim,\
                                             leadtime=leadtime,\
-                                            date_incr=date_incr)
+                                            date_incr=date_incr,
+                                            twin=twin)
     elif poi is not None:
         results_dict = collocate_poi_ts(poi,model=model,\
                                         distlim=distlim,\
@@ -577,7 +592,8 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
         results_dict = collocate_field( mc_obj=mc_obj,\
                                         obs_obj=obs_obj,\
                                         col_obj=col_obj,\
-                                        distlim=distlim )
+                                        distlim=distlim,
+                                        twin=twin)
     return results_dict
 
 
