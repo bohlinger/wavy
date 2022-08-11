@@ -169,12 +169,16 @@ class gridder_class():
 
         assert len(ovals) == len(Midx.T)
 
+        pbarlen = len(ovals)
+        pbar = tqdm.tqdm(total=pbarlen)
+
         for o, idx in zip(ovals, Midx.T):
             iy = idx[0]
             ix = idx[1]
 
             val_grid[iy, ix] += o
             N[iy, ix] += 1
+            pbar.update(1)
 
         mx = N>0
         val_grid[mx] = val_grid[mx] / N[mx]
@@ -204,8 +208,12 @@ class gridder_class():
 
         iyy, ixx = np.unravel_index(gfidx, val_grid.shape)
 
+        pbarlen = len(gfidx)
+        pbar = tqdm.tqdm(total=pbarlen)
+
         for iy, ix, vs in zip(iyy, ixx, gvals):
             val_grid[iy, ix] = np.mean(vs)
+            pbar.update(1)
 
         return val_grid, lon_grid, lat_grid
 
