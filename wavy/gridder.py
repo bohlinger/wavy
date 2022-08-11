@@ -3,6 +3,7 @@
 # imports
 import numpy as np
 import tqdm
+from wavy.grid_stats import apply_metric
 
 class gridder_class():
 
@@ -19,19 +20,28 @@ class gridder_class():
         print('# ----- ')
         print(" ### Initializing gridder_class object ###")
         print(" ")
+        self.mvals = None
         if oco is not None:
             self.olons = np.array(oco.vars['longitude'])
             self.olats = np.array(oco.vars['latitude'])
             self.ovals = np.array(oco.vars[oco.stdvarname])
         elif cco is not None:
-            self.olons = np.array(cco.vars['longitude'])
-            self.olats = np.array(cco.vars['latitude'])
+            self.olons = np.array(cco.vars['obs_lons'])
+            self.olats = np.array(cco.vars['obs_lats'])
             self.ovals = np.array(cco.vars['obs_values'])
             self.mvals = np.array(cco.vars['model_values'])
         self.bb = bb
         self.res = res
         self.grid = grid
         self.glons, self.glats = self.create_grid_coords()
+        ovals, mvals, Midx = self.get_obs_grid_idx()
+        self.ovals_clean = ovals
+        self.mvals_clean = mvals
+        self.Midx_clean = Midx
+        print(" ")
+        print (" ### gridder_class object initialized ###")
+        print ('# ----- ')
+
 
     def create_grid_coords(self):
         """
@@ -46,8 +56,9 @@ class gridder_class():
                 self.glons,self.glats,
                 self.olons,self.olats,
                 self.ovals,self.res)
-        ovals, Midx = self.clean_Midx(Midx,self.ovals,self.glons,self.glats)
-        return ovals, Midx
+        ovals, mvals, Midx = self.clean_Midx(
+                Midx,self.ovals,self.mvals,self.glons,self.glats )
+        return ovals, mvals, Midx
 
     @staticmethod
     def assign_obs_to_grid(glons,glats,olons,olats,ovals,res):
@@ -60,7 +71,7 @@ class gridder_class():
         return Midx
 
     @staticmethod
-    def clean_Midx(Midx,ovals,glons,glats):
+    def clean_Midx(Midx,ovals,mvals,glons,glats):
         """
         cleans Midx and observations (ovals) for grid cells outside bb
         """
@@ -68,11 +79,15 @@ class gridder_class():
         glons_idx = np.where((Midx[0]>=0)&(Midx[0]<len(glons)))[0]
         Midx = Midx[:,glons_idx]
         ovals = ovals[glons_idx]
+        if mvals is not None:
+            mvals = mvals[glons_idx]
         # clean y-dim (tlats)
         glats_idx = np.where((Midx[1]>=0)&(Midx[1]<len(glats)))[0]
         Midx = Midx[:,glats_idx]
         ovals = ovals[glats_idx]
-        return ovals, Midx
+        if mvals is not None:
+            mvals = mvals[glats_idx]
+        return ovals, mvals, Midx
 
     @staticmethod
     def region_filter():
@@ -80,35 +95,6 @@ class gridder_class():
         # region could be rectangular, polygon, ...
         # -> return grid
         return
-
-    @staticmethod
-    def create_grid_polygons(bb,res):
-        #def get_geometries(top_left, bottom_right, spacing=1):
-        # bb tupel: (lonmin, lonmax, latmin, latmax)
-        polygons = []
-        points = []
-        xmin = bb[0]
-        xmax = bb[1]
-        ymax = bb[3]
-        y = bb[2]
-        i = -1
-        while True:
-            if y > ymax:
-                break
-            x = xmin
-            while True:
-                if x > xmax:
-                    break
-                #components for polygon grid
-                polygon = box(x, y, x+spacing, y+spacing)
-                polygons.append(polygon)
-                #components for point grid
-                point = Point(x, y)
-                points.append(point)
-                i = i + 1
-                x = x + spacing
-            y = y + spacing
-        return polygons, points
 
     @staticmethod
     def get_grid_idx(Midx):
@@ -123,112 +109,6 @@ class gridder_class():
         d1 = np.delete(Midx[0,:],gidx)
         d2 = np.delete(Midx[1,:],gidx)
         return np.array([d1,d2],dtype=object)
-
-    def grid_mean(self,Midx,ovals):
-        # initialize grid
-        val_grid = np.ones([len(self.glons),len(self.glats)])*np.nan
-        lon_grid = np.ones([len(self.glons),len(self.glats)])*np.nan
-        lat_grid = np.ones([len(self.glons),len(self.glats)])*np.nan
-        pbarlen = len(ovals)
-        novals = ovals.copy()
-        # fill grid
-        nMidx = Midx.copy()
-        pbar = tqdm.tqdm(total=pbarlen)
-        while len(novals)>0:
-            l1 = len(novals)
-            idx1,idx2 = nMidx[0][0], nMidx[1][0]
-            gidx = self.get_grid_idx(nMidx)
-            mval = self.calc_mean(gidx,novals)
-            val_grid[idx1,idx2] = mval
-            lon_grid[idx1,idx2] = self.glons[idx1]
-            lat_grid[idx1,idx2] = self.glats[idx2]
-            nMidx = self.rm_used_idx_from_Midx(gidx,nMidx)
-            novals = np.delete(novals,gidx)
-            l2 = len(novals)
-            incr = l1-l2
-            pbar.update(incr)
-        return val_grid, lon_grid, lat_grid
-
-    def gautes_grid_mean(self,Midx,ovals):
-        # initialize grid
-        val_grid = np.full((len(self.glons),len(self.glats)), 0.0)
-        N = np.full((len(self.glons),len(self.glats)), 0)
-        lat_grid, lon_grid = np.meshgrid(self.glats, self.glons)
-
-        # Midx:
-        # Midx[0,:]: Longitudes of observations
-        # Midx[1,:]: Latitudes of observations
-        #
-        # ovals: Observations, shape equal to Midx.shape[1]
-
-        print(f"Number of grid cells: {val_grid.shape}: {len(val_grid.ravel())}")
-        print(f"Number of observations: {len(ovals)}")
-
-        # for iy, ix in tqdm.tqdm(np.ndindex(val_grid.shape), total=len(val_grid.ravel())):
-        #     val_grid[iy,ix] = np.mean(ovals[(Midx[0,:] == iy) & (Midx[1,:] == ix)])
-
-        assert len(ovals) == len(Midx.T)
-
-        pbarlen = len(ovals)
-        pbar = tqdm.tqdm(total=pbarlen)
-
-        for o, idx in zip(ovals, Midx.T):
-            iy = idx[0]
-            ix = idx[1]
-
-            val_grid[iy, ix] += o
-            N[iy, ix] += 1
-            pbar.update(1)
-
-        mx = N>0
-        val_grid[mx] = val_grid[mx] / N[mx]
-        val_grid[~mx] = np.nan
-
-        return val_grid, lon_grid, lat_grid
-
-    def gaute_group_metric(self, Midx, ovals):
-        val_grid = np.full((len(self.glons),len(self.glats)), np.nan)
-        lat_grid, lon_grid = np.meshgrid(self.glats, self.glons)
-
-        Midx = Midx.astype(int)
-
-        # Only do this once:
-        fidx = np.ravel_multi_index(Midx, val_grid.shape)
-
-        isort = fidx.argsort()
-        fidx = fidx[isort]
-        vals = ovals[isort]
-
-        isplit = np.unique(fidx, return_index=True)[1]
-
-        gfidx = fidx[isplit]
-        gvals = np.split(vals, isplit[1:])
-
-        assert len(gfidx) == len(gvals)
-
-        iyy, ixx = np.unravel_index(gfidx, val_grid.shape)
-
-        pbarlen = len(gfidx)
-        pbar = tqdm.tqdm(total=pbarlen)
-
-        for iy, ix, vs in zip(iyy, ixx, gvals):
-            val_grid[iy, ix] = np.mean(vs)
-            pbar.update(1)
-
-        return val_grid, lon_grid, lat_grid
-
-    def apply_metric(self,Midx,ovals,**kwargs):
-        '''
-        dispatch table for various validation metrics
-        '''
-        dispatch_reader = {
-                'mean':self.grid_mean,
-                'gaute_mean':self.gautes_grid_mean,
-                'gautegroup_mean': self.gaute_group_metric,
-                }
-        metric = kwargs.get('metric')
-        var_gridded = dispatch_reader[metric](Midx,ovals)
-        return var_gridded
 
     @staticmethod
     def get_exteriors(glons,glats,res):
