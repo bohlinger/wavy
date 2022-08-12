@@ -56,7 +56,6 @@ class gridder_class():
         print (" ### gridder_class object initialized ###")
         print ('# ----- ')
 
-
     def create_grid_coords(self):
         """
         returns grid coordinates
@@ -134,69 +133,80 @@ class gridder_class():
                         glats,glats ])
         return xb,yb
 
-    def quicklook(self,projection=None,**kwargs):
-        metric = kwargs.get('metric','mor')
+    def write_to_pickle(self,pathtofile=None):
+        import pickle
+        # writing
+        pickle.dump( self, open( pathtofile, "wb" ) )
+        print('gridder_class object written to:',pathtofile)
+        # for reading
+        # sco = pickle.load( open( pathtofile, "rb" ) )
+
+    def grid_view(self,metric,**kwargs):
+        import cartopy.crs as ccrs
+        import cmocean
+        import matplotlib.pyplot as plt
+        import matplotlib.cm as mplcm
+        import matplotlib as mpl
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        import math
 
         lon_grid = kwargs.get('lon_grid') + self.res[0]/2.
         lat_grid = kwargs.get('lat_grid') + self.res[1]/2.
         val_grid = kwargs.get('val_grid')
 
-        if metric == 'all':
-            for key in val_grid.keys():
-                # plot fct
-                pass
+        if kwargs.get('projection') is None:
+            projection = ccrs.PlateCarree()
+        # parse kwargs
+        if kwargs.get('cmap') is None:
+            cmap = cmocean.cm.amp
         else:
-            import cartopy.crs as ccrs
-            import cmocean
-            import matplotlib.pyplot as plt
-            import matplotlib.cm as mplcm
-            import matplotlib as mpl
-            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-            import math
+            cmap = kwargs.get('cmap')
 
-            lons = lon_grid.ravel()
-            lats = lat_grid.ravel()
-            vals = val_grid[metric].ravel()
+        lonmax,lonmin = np.nanmax(lon_grid),np.nanmin(lon_grid)
+        latmax,latmin = np.nanmax(lat_grid),np.nanmin(lat_grid)
 
-            if projection is None:
-                projection = ccrs.PlateCarree()
-            # parse kwargs
-            if kwargs.get('cmap') is None:
-                cmap = cmocean.cm.amp
-            else:
-                cmap = kwargs.get('cmap')
-
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
-
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1, projection=projection)
-            ax.set_extent(  [lonmin, lonmax,latmin, latmax], crs = projection )
-            pc = ax.pcolormesh(
-                    lon_grid,lat_grid,val_grid[metric],
-                    transform=projection,cmap=cmap)
-            axins = inset_axes(ax,
-                       width="5%",  # width = 5% of parent_bbox width
-                       height="100%",  # height : 50%
-                       loc='lower left',
-                       bbox_to_anchor=(1.01, 0., 1, 1),
-                       bbox_transform=ax.transAxes,
-                       borderpad=0,
-                       )
-            metric_name = validation_metric_abbreviations[metric].get('name')
-            metric_units =\
-                    validation_metric_abbreviations[metric].get(
-                            'units',
-                            self.units)
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection=projection)
+        ax.set_extent(  [lonmin, lonmax,latmin, latmax], crs = projection )
+        pc = ax.pcolormesh(
+                lon_grid,lat_grid,val_grid[metric],
+                transform=projection,cmap=cmap)
+        axins = inset_axes(ax,
+                   width="5%",  # width = 5% of parent_bbox width
+                   height="100%",  # height : 50%
+                   loc='lower left',
+                   bbox_to_anchor=(1.01, 0., 1, 1),
+                   bbox_transform=ax.transAxes,
+                   borderpad=0,
+                   )
+        metric_name = validation_metric_abbreviations[metric].get('name')
+        metric_units =\
+                validation_metric_abbreviations[metric].get(
+                        'units',
+                        self.units)
+        if metric_units is None:
+            fig.colorbar(pc, cax=axins, label = metric_name )
+        else:
             fig.colorbar(pc, cax=axins,
-                        label = metric_name + ' [' + metric_units + ']')
-            ax.coastlines()
-            gl = ax.gridlines(draw_labels=True,crs=projection,
-                              linewidth=1, color='grey', alpha=0.4,
-                              linestyle='-')
-            gl.top_labels = False
-            gl.right_labels = False
-            plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            ax.set_title(  'Base variable: ' + self.varalias + '\n'
-                      + 'from ' + str(self.sdate) + ' to ' + str(self.edate) )
-            plt.show()
+                    label = metric_name + ' [' + metric_units + ']')
+        ax.coastlines()
+        gl = ax.gridlines(draw_labels=True,crs=projection,
+                          linewidth=1, color='grey', alpha=0.4,
+                          linestyle='-')
+        gl.top_labels = False
+        gl.right_labels = False
+        plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+        ax.set_title(  'Base variable: ' + self.varalias + '\n'
+                  + 'from ' + str(self.sdate) + ' to ' + str(self.edate) )
+        plt.show()
+
+    def quicklook(self,metric=None,**kwargs):
+
+        if metric is None:
+            metric = 'mor'
+
+        if metric == 'all':
+            for key in kwargs['val_grid'].keys():
+                self.grid_view(metric=key,**kwargs)
+        else:
+            self.grid_view(metric=metric,**kwargs)

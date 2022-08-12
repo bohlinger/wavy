@@ -2,30 +2,35 @@
 
 corr:
     name: 'Correlation Coefficient'
-    units: 'N/A'
+    units:
 mad: 
     name: 'Mean Absolute Difference'
+msd:
+    name: 'Mean Squared Difference'
 rmsd:
     name: 'Root Mean Squared Difference'
 nrmsd:
     name: 'Normalized Root Mean Squared Difference'
-    units: 'N/A'
+    units:
 drmsd:
     name: 'Debiased Root Mean Squared Difference'
 bias:
     name: 'Bias'
 nbias:
     name: 'Normalized Bias'
-    units: 'N/A'
+    units:
 SI:
     name: 'Scatter Index'
-    units: 'N/A'
+    units:
 mar:
     name: 'Model Activity Ratio'
-    units: 'N/A'
+    units:
 mom:
     name: 'Mean of Model'
+mop:
+    name: 'Mean of Product'
 mor:
     name: 'Mean of Observations'
 nov:
     name: 'Number of Collocated Values'
+    units:
