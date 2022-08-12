@@ -38,6 +38,7 @@ from wavy.ncmod import dumptonc_ts_collocation
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.satmod import satellite_class
 from wavy.insitumod import insitu_class
+from wavy.consolidate import consolidate_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -583,8 +584,13 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
                                             distlim=distlim,\
                                             leadtime=leadtime,\
                                             date_incr=date_incr)
-    elif (mc_obj is None and model is not None and obs_obj is not None\
-    and isinstance(obs_obj,satellite_class)):
+    elif (
+    (mc_obj is None and model is not None and obs_obj is not None\
+    and isinstance(obs_obj,satellite_class))
+    or
+    (mc_obj is None and model is not None and obs_obj is not None\
+    and isinstance(obs_obj,consolidate_class))
+    ):
         results_dict = collocate_satellite_ts(obs_obj=obs_obj,
                                             model=model,\
                                             distlim=distlim,\
@@ -635,7 +641,17 @@ class collocation_class():
             self.units = variable_info[varalias].get('units')
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
-        if isinstance(obs_obj,insitu_class):
+        elif isinstance(obs_obj,consolidate_class):
+            self.obsname = obs_obj.mission # NA
+            self.mission = obs_obj.mission # NA
+            self.nID = obs_obj.nID # NA
+            self.sensor = obs_obj.sensor # NA
+            self.obstype = "consolidated_obs"
+            self.stdvarname = obs_obj.stdvarname
+            self.units = variable_info[varalias].get('units')
+            self.sdate = obs_obj.sdate
+            self.edate = obs_obj.edate
+        elif isinstance(obs_obj,insitu_class):
             obs_obj.twin = insitu_dict[obs_obj.nID].get('twin',None)
             self.obsname = obs_obj.nID + '_' +  obs_obj.sensor
             self.obstype = 'insitu'
@@ -683,8 +699,11 @@ class collocation_class():
                                     leadtime=self.leadtime,
                                     date_incr=date_incr,
                                     varalias=self.varalias,
-                                    max_lt = max_lt)
+                                    max_lt = max_lt,
+                                    twin = twin)
             self.vars = results_dict
+            print(results_dict.keys())
+            print(results_dict['model_values'])
             self.fc_date = results_dict['datetime']
             t1=time.time()
             print(" ")
