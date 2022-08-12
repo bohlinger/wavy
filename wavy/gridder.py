@@ -141,7 +141,7 @@ class gridder_class():
         # for reading
         # sco = pickle.load( open( pathtofile, "rb" ) )
 
-    def grid_view(self,metric,**kwargs):
+    def grid_view(self,metric,mask_metric_llim,mask_metric,**kwargs):
         import cartopy.crs as ccrs
         import cmocean
         import matplotlib.pyplot as plt
@@ -149,10 +149,20 @@ class gridder_class():
         import matplotlib as mpl
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         import math
+        from copy import deepcopy
 
+        # shift coords for plotting
         lon_grid = kwargs.get('lon_grid') + self.res[0]/2.
         lat_grid = kwargs.get('lat_grid') + self.res[1]/2.
-        val_grid = kwargs.get('val_grid')
+
+        # backup values
+        all_grid = deepcopy(kwargs.get('val_grid'))
+        mask_grid = all_grid[mask_metric]
+        val_grid = all_grid[metric]
+
+        # apply mask
+        mask_llim_idx = np.where(mask_grid < mask_metric_llim)
+        val_grid[mask_llim_idx[0],mask_llim_idx[1]] = np.nan
 
         if kwargs.get('projection') is None:
             projection = ccrs.PlateCarree()
@@ -169,7 +179,7 @@ class gridder_class():
         ax = fig.add_subplot(1, 1, 1, projection=projection)
         ax.set_extent(  [lonmin, lonmax,latmin, latmax], crs = projection )
         pc = ax.pcolormesh(
-                lon_grid,lat_grid,val_grid[metric],
+                lon_grid,lat_grid,val_grid,
                 transform=projection,cmap=cmap)
         axins = inset_axes(ax,
                    width="5%",  # width = 5% of parent_bbox width
@@ -185,7 +195,7 @@ class gridder_class():
                         'units',
                         self.units)
         if metric_units is None:
-            fig.colorbar(pc, cax=axins, label = metric_name )
+            fig.colorbar(pc, cax=axins, label=metric_name)
         else:
             fig.colorbar(pc, cax=axins,
                     label = metric_name + ' [' + metric_units + ']')
@@ -198,15 +208,13 @@ class gridder_class():
         plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
         ax.set_title(  'Base variable: ' + self.varalias + '\n'
                   + 'from ' + str(self.sdate) + ' to ' + str(self.edate) )
+        # todo: add info on observation and model source for figure
         plt.show()
 
-    def quicklook(self,metric=None,**kwargs):
-
-        if metric is None:
-            metric = 'mor'
+    def quicklook(self,metric='mor',mask_metric_llim=10,mask_metric='nov',**kwargs):
 
         if metric == 'all':
             for key in kwargs['val_grid'].keys():
-                self.grid_view(metric=key,**kwargs)
+                self.grid_view(key,mask_metric_llim,mask_metric,**kwargs)
         else:
-            self.grid_view(metric=metric,**kwargs)
+            self.grid_view(metric,mask_metric_llim,mask_metric,**kwargs)
