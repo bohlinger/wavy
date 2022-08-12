@@ -368,7 +368,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
 
     # use only dates with a model time step closeby
     # given the time constrains
-    print('Filtering valid dates')
+    print('Filtering valid dates ...')
     if twin is None:
         twin = obs_obj.twin
     t1=time.time()
@@ -384,7 +384,7 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     fc_date = ndt_valid
     t2=time.time()
 
-    print(f'filtering done, used {t2-t1:.2f} seconds')
+    print(f'... done, used {t2-t1:.2f} seconds')
 
     print("Start collocation ...")
     results_dict = {
