@@ -155,7 +155,6 @@ def grid_stats_group(gco, **kwargs):
     drmsd_grid = np.full((len(glons),len(glats)), np.nan)
     corr_grid = np.full((len(glons),len(glats)), np.nan)
     mad_grid = np.full((len(glons),len(glats)), np.nan)
-    mad_grid = np.full((len(glons),len(glats)), np.nan)
     bias_grid = np.full((len(glons),len(glats)), np.nan)
     nbias_grid = np.full((len(glons),len(glats)), np.nan)
     SI_grid = np.full((len(glons),len(glats)), np.nan)
@@ -198,6 +197,7 @@ def grid_stats_group(gco, **kwargs):
         validation_dict = validate(rdict)
         mop_grid[iy, ix] = validation_dict['mop']
         mor_grid[iy, ix] = validation_dict['mor']
+        mad_grid[iy, ix] = validation_dict['mad']
         msd_grid[iy, ix] = validation_dict['msd']
         rmsd_grid[iy, ix] = validation_dict['rmsd']
         nrmsd_grid[iy, ix] = validation_dict['nrmsd']
