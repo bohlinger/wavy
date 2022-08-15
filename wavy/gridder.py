@@ -195,9 +195,9 @@ class gridder_class():
                         'units',
                         self.units)
         if metric_units is None:
-            fig.colorbar(pc, cax=axins, label=metric_name)
+            cbar = fig.colorbar(pc, cax=axins, label=metric_name)
         else:
-            fig.colorbar(pc, cax=axins,
+            cbar = fig.colorbar(pc, cax=axins,
                     label = metric_name + ' [' + metric_units + ']')
         ax.coastlines()
         gl = ax.gridlines(draw_labels=True,crs=projection,
@@ -206,12 +206,19 @@ class gridder_class():
         gl.top_labels = False
         gl.right_labels = False
         plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-        ax.set_title(  'Base variable: ' + self.varalias + '\n'
-                  + 'from ' + str(self.sdate) + ' to ' + str(self.edate) )
+        autotitle = ( 'Base variable: ' + self.varalias + '\n'
+                    + 'from ' + str(self.sdate) + ' to ' + str(self.edate) )
+        if kwargs.get('title') is None:
+            ax.set_title( autotitle )
+        else:
+            ax.set_title( kwargs.get('title') )
+        ax.title.set_size(11)
         # todo: add info on observation and model source for figure
         plt.show()
 
-    def quicklook(self,metric='mor',mask_metric_llim=10,mask_metric='nov',**kwargs):
+    def quicklook(self,metric='mor',
+        mask_metric_llim=10,
+        mask_metric='nov',**kwargs):
 
         if metric == 'all':
             for key in kwargs['val_grid'].keys():
