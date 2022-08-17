@@ -172,6 +172,10 @@ class gridder_class():
         else:
             cmap = kwargs.get('cmap')
 
+        # max/min for colorbar
+        vmax = kwargs.get('vmax')
+        vmin = kwargs.get('vmin')
+
         lonmax,lonmin = np.nanmax(lon_grid),np.nanmin(lon_grid)
         latmax,latmin = np.nanmax(lat_grid),np.nanmin(lat_grid)
 
@@ -180,7 +184,8 @@ class gridder_class():
         ax.set_extent(  [lonmin, lonmax,latmin, latmax], crs = projection )
         pc = ax.pcolormesh(
                 lon_grid,lat_grid,val_grid,
-                transform=projection,cmap=cmap)
+                transform=projection,cmap=cmap,
+                vmax=vmax, vmin=vmin)
         axins = inset_axes(ax,
                    width="5%",  # width = 5% of parent_bbox width
                    height="100%",  # height : 50%
