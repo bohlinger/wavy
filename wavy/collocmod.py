@@ -793,6 +793,11 @@ class collocation_class():
                     linestyle='None',color=colors[0],
                     label='obs (' + self.mission + ')',
                     marker='o',alpha=.5,ms=2)
+            else:
+                ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                    linestyle='None',color=colors[0],
+                    label='obs (' + self.mission + ')',
+                    marker='o',alpha=.5,ms=2)
             ax.plot(self.vars['datetime'],self.vars['model_values'],
                     linestyle='None',color=colors[1],
                     label='model (' + self.model + ')',
@@ -822,6 +827,12 @@ class collocation_class():
                     linestyle='None',color=colors[0],
                     label='obs (' + self.mission + ')',
                     marker='o',alpha=.5,ms=2)
+                plt.xlabel('obs ( ' + self.mission + ' )')
+            else:
+                ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                linestyle='None',color=colors[0],
+                label='obs (' + self.obstype + ')',
+                marker='o',alpha=.5,ms=2)
                 plt.xlabel('obs ( ' + self.mission + ' )')
             # add quantiles
             ax.plot(obsq,modq,'r')
