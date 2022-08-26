@@ -7,7 +7,7 @@ ed = "2021-8-3 00"
 def test_from_d22(test_data):
     nID = 'draugen'
     sensor = 'MKIIIradar_1'
-    ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1,path_local=str(test_data))
+    ico = ic(nID,sensor,sd,ed,varalias=varalias,stwin=1,date_incr=1,path_local=str(test_data/"d22"))
     assert ico.__class__.__name__ == 'insitu_class'
     assert len(vars(ico).keys()) >= 10
     assert len(ico.vars.keys()) >= 6

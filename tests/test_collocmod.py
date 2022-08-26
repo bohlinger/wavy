@@ -26,7 +26,7 @@ def test_sat_collocation_and_validation(test_data,tmpdir):
              region=region,sat=sat,
              twin=twin,varalias=varalias,
              product=product,
-             path_local=str(test_data))
+             path_local=str(test_data/"L3"))
     # collocate
     cco = cc(model='mwam4',obs_obj_in=sco,distlim=6,
              leadtime='best',date_incr=1)
@@ -49,5 +49,3 @@ def test_insitu_collocation_and_validation():
              leadtime='best',date_incr=1)
     # test validation
     cco.validate_collocated_values()
-
-

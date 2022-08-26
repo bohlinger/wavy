@@ -188,7 +188,7 @@ def test_readers_and_write_to_nc_cmems_NRT(tmpdir,test_data):
     # init satellite_object and check for polygon region
     sco = sc(sdate=sdate,edate=edate,region=region,
              mission=mission,twin=twin,varalias=varalias,
-             product=product,path_local=str(test_data))
+             product=product,path_local=str(test_data/"L3"))
     assert sco.__class__.__name__ == 'satellite_class'
     assert len(vars(sco).keys()) >= 11
     assert len(sco.vars.keys()) >= 6
