@@ -28,6 +28,7 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import make_subdict
 from wavy.utils import parse_date
 from wavy.utils import flatten
+from wavy.utils import find_direction_convention
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 # read yaml config files:
