@@ -214,6 +214,7 @@ def grid_stats_group(gco, **kwargs):
     val_grid_dict = {
             'mop':mop_grid,
             'mor':mor_grid,
+            'mad':mad_grid,
             'msd':msd_grid,
             'rmsd':rmsd_grid,
             'nrmsd':nrmsd_grid,
