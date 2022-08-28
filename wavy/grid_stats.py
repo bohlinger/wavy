@@ -292,7 +292,7 @@ def apply_metric(gco=None,**kwargs):
     '''
     dispatch table for various validation metrics
     '''
-    metric = kwargs.get('metric')
+    metric = kwargs.get('metric','all')
     print("Computing gridded metric",metric,"...")
     dispatch_reader = {
             'mean':grid_mean,
