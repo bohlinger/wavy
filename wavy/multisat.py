@@ -1,5 +1,7 @@
 # wavy imports
 from wavy.satmod import satellite_class as sc
+from wavy.consolidate import consolidate_class as cs
+from wavy.utils import parse_date
 
 class satellite_class():
     '''
@@ -15,21 +17,36 @@ class satellite_class():
     '''
 
     def __init__(
-        self,sdate=None,mission=['s3a'],product='cmems_L3_NRT',
+        self,sdate=None,mission=['s3a'],product=['cmems_L3_NRT'],
         edate=None,twin=30,download=False,path_local=None,
-        region='mwam4',nproc=1,varalias='Hs',api_url=None,
+        region='global',nproc=1,varalias='Hs',api_url=None,
         filterData=False,poi=None,distlim=None,**kwargs):
         print('# ----- ')
         print(" ### Initializing satellite_class object ###")
         print(" ")
         # parse and translate date input
-        sdate_str = kwargs.get(sdate)
-        sdate = parse_date(sdate)
-        edate_str = kwargs.get(edate)
-        edate = parse_date(edate)
-        missions = kwargs.get('mission')
+        missions = mission
         # products: either None, same as missions, or one product
-        products = kwargs.get('products') 
-        twin = kwargs.get('twin',30)
-        for m in missions:
-            pass
+        products = product
+        if len(products) != len(missions):
+            if len(products) == 1:
+                products = products * len(missions)
+            else:
+                print("products and missions need to correspond")
+                assert len(products) == len(missions)
+        scos = []
+        for i,m in enumerate(missions):
+            scos.append( sc( sdate = sdate, edate = edate,
+                             twin = twin, distlim = distlim,
+                             mission = m, products = products[i],
+                             region = region, varalias = varalias,
+                             filterData = filterData, poi = poi,
+                             nproc = nproc, api_url = api_url,
+                             path_local = path_local,
+                             **kwargs ) )
+        cso = cs(scos)
+        cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
+        cso.rename_consolidate_object_parameters(mission='-'.join(missions))
+        cso.rename_consolidate_object_parameters(product='-'.join(products))
+        # attribute
+        print(vars(cso))
