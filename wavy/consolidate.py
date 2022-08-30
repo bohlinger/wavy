@@ -89,10 +89,11 @@ class consolidate_class():
     def rename_consolidate_object_parameters(self,**kwargs):
         # obsname, mission, obstype, nID, sensor
         self.obsname = kwargs.get('obsname','Consolidated observations')
-        self.mission = kwargs.get('mission','')
-        self.obstype = kwargs.get('obstype','')
-        self.nID = kwargs.get('nID','')
-        self.sensor = kwargs.get('sensor','')
+        self.mission = kwargs.get('mission')
+        self.obstype = kwargs.get('obstype')
+        self.product = kwargs.get('product')
+        self.nID = kwargs.get('nID')
+        self.sensor = kwargs.get('sensor')
         return
 
     def blend_obs_types(self):

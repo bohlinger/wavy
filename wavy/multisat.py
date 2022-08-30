@@ -49,4 +49,15 @@ class satellite_class():
         cso.rename_consolidate_object_parameters(mission='-'.join(missions))
         cso.rename_consolidate_object_parameters(product='-'.join(products))
         # attribute
-        print(vars(cso))
+        self.obsname = cso.obsname
+        self.stdvarname = cso.stdvarname
+        self.varalias = cso.varalias
+        self.varname = cso.varname
+        self.obstype = cso.obstype
+        self.mission = cso.mission
+        self.product = cso.product
+        self.sdate = cso.sdate
+        self.edate = cso.edate
+        self.units = cso.units
+        self.vars = cso.vars
+        self.ocos = cso.ocos
