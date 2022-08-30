@@ -82,18 +82,25 @@ class consolidate_class():
             self.vars = consolidate_scos(ocos)
         elif isinstance(ocos[0],insitu_class):
             self.vars = consolidate_icos(ocos)
+        self.obsname = 'Consolidated_Observations'
         print(" ")
         print (" ### consolidate_class object initialized ###")
         print ('# ----- ')
 
     def rename_consolidate_object_parameters(self,**kwargs):
         # obsname, mission, obstype, nID, sensor
-        self.obsname = kwargs.get('obsname','Consolidated observations')
-        self.mission = kwargs.get('mission')
-        self.obstype = kwargs.get('obstype')
-        self.product = kwargs.get('product')
-        self.nID = kwargs.get('nID')
-        self.sensor = kwargs.get('sensor')
+        if kwargs.get('obsname') is not None:
+            self.mission = kwargs.get('obsname')
+        if kwargs.get('mission') is not None:
+            self.mission = kwargs.get('mission')
+        if kwargs.get('obstype') is not None:
+            self.obstype = kwargs.get('obstype')
+        if kwargs.get('product') is not None:
+            self.product = kwargs.get('product')
+        if kwargs.get('nID') is not None:
+            self.nID = kwargs.get('nID')
+        if kwargs.get('sensor') is not None:
+            self.sensor = kwargs.get('sensor')
         return
 
     def blend_obs_types(self):

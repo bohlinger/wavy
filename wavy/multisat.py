@@ -1,9 +1,11 @@
+# imports
+import numpy as np
 # wavy imports
 from wavy.satmod import satellite_class as sc
 from wavy.consolidate import consolidate_class as cs
 from wavy.utils import parse_date
 
-class satellite_class():
+class multisat_class():
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
@@ -47,7 +49,10 @@ class satellite_class():
         cso = cs(scos)
         cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
         cso.rename_consolidate_object_parameters(mission='-'.join(missions))
-        cso.rename_consolidate_object_parameters(product='-'.join(products))
+        if len(np.unique(products)) == 1:
+            cso.rename_consolidate_object_parameters(product=products[0])
+        else:
+            cso.rename_consolidate_object_parameters(product='-'.join(products))
         # attribute
         self.obsname = cso.obsname
         self.stdvarname = cso.stdvarname
