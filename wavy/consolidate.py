@@ -97,6 +97,8 @@ class consolidate_class():
             self.obstype = kwargs.get('obstype')
         if kwargs.get('product') is not None:
             self.product = kwargs.get('product')
+        if kwargs.get('provider') is not None:
+            self.provider = kwargs.get('provider')
         if kwargs.get('nID') is not None:
             self.nID = kwargs.get('nID')
         if kwargs.get('sensor') is not None:

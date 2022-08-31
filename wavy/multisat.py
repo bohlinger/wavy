@@ -3,9 +3,14 @@ import numpy as np
 # wavy imports
 from wavy.satmod import satellite_class as sc
 from wavy.consolidate import consolidate_class as cs
+from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.utils import parse_date
+from wavy.wconfig import load_or_default
 
-class multisat_class():
+# read yaml config files:
+satellite_dict = load_or_default('satellite_specs.yaml')
+
+class multisat_class(qls):
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
@@ -30,6 +35,7 @@ class multisat_class():
         missions = mission
         # products: either None, same as missions, or one product
         products = product
+        providers = [satellite_dict[p].get('provider') for p in products]
         if len(products) != len(missions):
             if len(products) == 1:
                 products = products * len(missions)
@@ -39,20 +45,32 @@ class multisat_class():
         scos = []
         for i,m in enumerate(missions):
             scos.append( sc( sdate = sdate, edate = edate,
-                             twin = twin, distlim = distlim,
-                             mission = m, products = products[i],
-                             region = region, varalias = varalias,
-                             filterData = filterData, poi = poi,
-                             nproc = nproc, api_url = api_url,
-                             path_local = path_local,
-                             **kwargs ) )
+                         twin = twin, distlim = distlim,
+                         mission = m, products = products[i],
+                         region = region, varalias = varalias,
+                         filterData = filterData, poi = poi,
+                         nproc = nproc, api_url = api_url,
+                         path_local = path_local,
+                         **kwargs ))
         cso = cs(scos)
         cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
         cso.rename_consolidate_object_parameters(mission='-'.join(missions))
         if len(np.unique(products)) == 1:
             cso.rename_consolidate_object_parameters(product=products[0])
         else:
-            cso.rename_consolidate_object_parameters(product='-'.join(products))
+            cso.rename_consolidate_object_parameters(\
+                            product='-'.join(products))
+        if len(np.unique(providers)) == 1:
+            cso.rename_consolidate_object_parameters(provider=providers[0])
+        else:
+            cso.rename_consolidate_object_parameters(\
+                            provider='-'.join(providers))
+        if len(np.unique(providers)) == 1:
+            cso.rename_consolidate_object_parameters(provider=providers[0])
+        else:
+            cso.rename_consolidate_object_parameters(\
+                        provider='-'.join(providers))
+
         # attribute
         self.obsname = cso.obsname
         self.stdvarname = cso.stdvarname
@@ -61,8 +79,10 @@ class multisat_class():
         self.obstype = cso.obstype
         self.mission = cso.mission
         self.product = cso.product
+        self.provider = cso.provider
         self.sdate = cso.sdate
         self.edate = cso.edate
         self.units = cso.units
         self.vars = cso.vars
         self.ocos = cso.ocos
+

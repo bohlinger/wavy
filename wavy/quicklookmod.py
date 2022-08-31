@@ -5,6 +5,7 @@
 import numpy as np
 import os
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from abc import abstractmethod
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -682,3 +683,120 @@ def ts_fig(results_dict):
     plt.gcf().autofmt_xdate()
     plt.tick_params(axis='both', which='major', labelsize=fs)
     plt.show()
+
+class quicklook_class_sat:
+
+    def quicklook(self,a=False,projection=None,**kwargs):
+        """
+        Enables to explore the class object (and retrieved results)
+        by plotting time series and map.
+
+        param:
+            m - map figure (True/False)
+            ts - time series (True/False)
+            a - all figures (True/False)
+            projection - specified projection for cartopy
+
+        return:
+            figures
+        """
+        # set plots
+        m = kwargs.get('m',a)
+        ts = kwargs.get('ts',a)
+        if m:
+            import cartopy.crs as ccrs
+            import cmocean
+            import matplotlib.pyplot as plt
+            import matplotlib.cm as mplcm
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+            lons = self.vars['longitude']
+            lats = self.vars['latitude']
+            var = self.vars[self.stdvarname]
+            if projection is None:
+                projection = ccrs.PlateCarree()
+            # parse kwargs
+            vartype = variable_info[self.varalias].get('type','default')
+            if kwargs.get('cmap') is None:
+                if vartype == 'cyclic':
+                    cmap = mplcm.twilight
+                else:
+                    cmap = cmocean.cm.amp
+            else:
+                cmap = kwargs.get('cmap')
+            lonmax,lonmin = np.max(lons),np.min(lons)
+            latmax,latmin = np.max(lats),np.min(lats)
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1, projection=projection)
+            ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+                            crs = projection )
+            sc = ax.scatter(lons,lats,s=10,
+                            c = var,
+                            marker='o', edgecolor = 'face',
+                            cmap=cmap,
+                            transform=ccrs.PlateCarree())
+            axins = inset_axes(ax,
+                       width="5%",  # width = 5% of parent_bbox width
+                       height="100%",  # height : 50%
+                       loc='lower left',
+                       bbox_to_anchor=(1.01, 0., 1, 1),
+                       bbox_transform=ax.transAxes,
+                       borderpad=0,
+                       )
+            fig.colorbar(sc, cax=axins, label=self.varalias
+                                        + ' [' + self.units + ']')
+            ax.coastlines()
+            gl = ax.gridlines(draw_labels=True,crs=projection,
+                              linewidth=1, color='grey', alpha=0.4,
+                              linestyle='-')
+            gl.top_labels = False
+            gl.right_labels = False
+            plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+            ax.set_title(self.mission + ' (' + self.provider + ')\n'
+                      + 'from ' + str(self.vars['datetime'][0])
+                      + ' to ' + str(self.vars['datetime'][-1]))
+            #fig.suptitle('', fontsize=16) # unused
+            plt.show()
+
+        if ts:
+            import matplotlib.pyplot as plt
+            fig = plt.figure(figsize=(9,3.5))
+            ax = fig.add_subplot(111)
+            colors = ['k']
+            ax.plot(self.vars['datetime'],
+                    self.vars[self.stdvarname],
+                    linestyle='None',color=colors[0],
+                    label=self.mission,
+                    marker='o',alpha=.5,ms=2)
+            plt.ylabel(self.varalias + ' [' + self.units + ']')
+            plt.legend(loc='best')
+            plt.tight_layout()
+            #ax.set_title()
+            plt.show()
+
+
+"""
+from abc import abstractmethod
+
+
+class Quicklook:
+    @property
+    @abstractmethod
+    def projection():
+        pass
+
+    @property
+    @abstractmethod
+    def vars():
+        pass
+
+    def quicklook(self, blah):
+        proj = self.projection
+
+        for var in self.vars:
+            # do something
+            pass
+
+class Sat(Quicklook):
+    vars = [ "hs", "foo" ]
+    projection = pyproj.Proj('+proj=latlong')
+"""
