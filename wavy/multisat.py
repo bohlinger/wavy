@@ -24,14 +24,17 @@ class multisat_class(qls):
     '''
 
     def __init__(
-        self,sdate=None,mission=['s3a'],product=['cmems_L3_NRT'],
-        edate=None,twin=30,download=False,path_local=None,
-        region='global',nproc=1,varalias='Hs',api_url=None,
-        filterData=False,poi=None,distlim=None,**kwargs):
+        self,
+        sdate = None, edate = None, twin = 30,
+        varalias = 'Hs', region = 'global',
+        mission = ['s3a'], product = ['cmems_L3_NRT'],
+        poi = None, distlim = None, filterData = False,
+        download = False, path_local = None,
+        nproc = 1, api_url = None,
+        **kwargs):
         print('# ----- ')
-        print(" ### Initializing satellite_class object ###")
+        print(" ### Initializing multisat_class object ###")
         print(" ")
-        # parse and translate date input
         missions = mission
         # products: either None, same as missions, or one product
         products = product
@@ -65,13 +68,7 @@ class multisat_class(qls):
         else:
             cso.rename_consolidate_object_parameters(\
                             provider='-'.join(providers))
-        if len(np.unique(providers)) == 1:
-            cso.rename_consolidate_object_parameters(provider=providers[0])
-        else:
-            cso.rename_consolidate_object_parameters(\
-                        provider='-'.join(providers))
-
-        # attribute
+        # class variables
         self.obsname = cso.obsname
         self.stdvarname = cso.stdvarname
         self.varalias = cso.varalias
@@ -86,3 +83,6 @@ class multisat_class(qls):
         self.vars = cso.vars
         self.ocos = cso.ocos
 
+        print(" ")
+        print (" ### multisat object initialized ###")
+        print ('# ----- ')

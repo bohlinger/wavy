@@ -9,7 +9,6 @@ effecient programming are most welcome!
 '''
 # --- import libraries ------------------------------------------------#
 # standard library imports
-import os
 import numpy as np
 from datetime import datetime, timedelta
 import datetime

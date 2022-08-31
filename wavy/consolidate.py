@@ -23,9 +23,6 @@ variable_info = load_or_default('variable_info.yaml')
 
 # --- global functions ------------------------------------------------#
 
-def consolidate_obs():
-    return
-
 def consolidate_scos(scos):
     """
     consolidate sco.vars: 
@@ -61,8 +58,7 @@ def consolidate_scos(scos):
             'datetime':dtimelst[idx] }
     return vardict
 
-def consolidate_icos():
-    return
+# --------------------------------------------------------------------#
 
 class consolidate_class(qls):
     '''
@@ -79,10 +75,7 @@ class consolidate_class(qls):
         self.units = ocos[0].units
         self.sdate = ocos[0].sdate
         self.edate = ocos[0].edate
-        if isinstance(ocos[0],satellite_class):
-            self.vars = consolidate_scos(ocos)
-        elif isinstance(ocos[0],insitu_class):
-            self.vars = consolidate_icos(ocos)
+        self.vars = consolidate_scos(ocos)
         self.obsname = 'Consolidated_Observations'
         self.obstype = 'Consolidated_Observations'
         self.mission = 'mission'
@@ -109,7 +102,4 @@ class consolidate_class(qls):
             self.nID = kwargs.get('nID')
         if kwargs.get('sensor') is not None:
             self.sensor = kwargs.get('sensor')
-        return
-
-    def blend_obs_types(self):
         return
