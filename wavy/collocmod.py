@@ -664,7 +664,6 @@ class collocation_class():
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
             self.label = self.nID + '_' + self.sensor
-        elif isinstance(obs_obj,insitu_class):
         if poi is not None:
             # poi is of type dict
             self.nID = poi['nID']

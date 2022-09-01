@@ -29,7 +29,7 @@ def test_cleaners():
     nID = 'D_Breisundet_wave'
     sensor = 'wavescan'
     ico = ic(nID,sensor,sd,ed,priorOp='square',cleaner='linearGAM',postOp='root',date_incr=1,filterData=True)
-    assert len(vars(ico).keys()) == 15
+    assert len(vars(ico).keys()) == 16
     assert 'filter' in vars(ico).keys()
     assert 'filterSpecs' in vars(ico).keys()
 
@@ -37,7 +37,7 @@ def test_smoothers():
     nID = 'D_Breisundet_wave'
     sensor = 'wavescan'
     ico = ic(nID,sensor,sd,ed,smoother='blockMean',date_incr=1,filterData=True)
-    assert len(vars(ico).keys()) == 15
+    assert len(vars(ico).keys()) == 16
     assert 'filter' in vars(ico).keys()
     assert 'filterSpecs' in vars(ico).keys()
 
