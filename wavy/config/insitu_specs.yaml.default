@@ -941,7 +941,7 @@ A_Sulafjorden_wave: # object nID (nameID)
         Tp: tp
         Mdir: mdir
         Pdir: thtp
-    tags: ['E39']
+    tags: ['E39','wave','pytest']
     fifo: nc
 
 A_Sulafjorden_wind: # object nID (nameID)
@@ -994,7 +994,7 @@ B_Sulafjorden_wave: # object nID (nameID)
         Tp: tp
         Mdir: mdir
         Pdir: thtp
-    tags: ['E39']
+    tags: ['E39','wave','pytest']
     fifo: nc
 
 B_Sulafjorden_wind: # object nID (nameID)
@@ -1158,7 +1158,7 @@ D_Breisundet_wave: # object nID (nameID)
         Tp: tp
         Mdir: mdir
         Pdir: thtp
-    tags: ['E39']
+    tags: ['E39','wave','pytest']
     fifo: nc
 
 D_Breisundet_wind: # object nID (nameID)

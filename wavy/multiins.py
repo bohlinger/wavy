@@ -82,6 +82,7 @@ class multiins_class(qls):
         self.units = cso.units
         self.vars = cso.vars
         self.ocos = cso.ocos
+        self.label = "multi-insitu-observations"
 
         print(" ")
         print (" ### multiins object initialized ###")

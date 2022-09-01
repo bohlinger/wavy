@@ -74,6 +74,7 @@ class multisat_class(qls):
         self.varalias = cso.varalias
         self.varname = cso.varname
         self.obstype = cso.obstype
+        self.label = 'multi-mission-obs'
         self.mission = cso.mission
         self.product = cso.product
         self.provider = cso.provider
