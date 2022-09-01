@@ -144,6 +144,8 @@ class insitu_class():
                 self.varname = varalias
             if fifo == 'frost':
                 self.sensor = sensor
+            # create label for plotting
+            self.label = self.nID + '_' + self.sensor
             t1=time.time()
             print(" ")
             print( '## Summary:')

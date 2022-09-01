@@ -10,6 +10,7 @@ import subprocess
 import os
 from dateutil.parser import parse
 import math
+from wavy.wconfig import load_or_default
 
 def grab_PID():
     """
@@ -587,3 +588,25 @@ def compute_quantiles(ts,lq):
     """
     ts = marginalize(ts)
     return np.array([np.quantile(ts,q) for q in lq])
+
+def get_obsdict(obstype):
+    if obstype == 'insitu':
+        obsdict = load_or_default('insitu_specs.yaml')
+    elif obstype == 'satellite_altimeter':
+        obsdict = load_or_default('satellite_specs.yaml')
+    else:
+        print("obstype",obstype,"is not applicable")
+        obsdict = None
+    return obsdict
+
+def find_tagged_obs(tags,obstype):
+    d = get_obsdict(obstype)
+    l = []
+    for t in tags:
+        l += [k for k in d if t in d[k].get('tags',[''])]
+    return list(np.unique(l))
+
+def expand_nID_for_sensors(nID,obstype):
+    obsdict = get_obsdict(obstype)
+    sensors = list(obsdict[nID]['sensor'])
+    return sensors

@@ -285,7 +285,7 @@ class satellite_class(qls):
                 str(sdate) + " - " + str(edate))
         stdname = variable_info[varalias].get('standard_name')
         units = variable_info[varalias].get('units')
-        # define some class variables
+        # define some class object variables
         self.sdate = sdate
         self.edate = edate
         self.varalias = varalias
@@ -399,7 +399,7 @@ class satellite_class(qls):
                                               satellite_dict[product],
                                               ncdict)
                 rvardict['meta'] = ncdict
-                # define more class variables
+                # define more class object variables
                 self.vars = rvardict
                 self.varname = filevarname
                 if kwargs.get('return_var') is not None:
@@ -407,6 +407,8 @@ class satellite_class(qls):
                     self.stdvarname = \
                             variable_info[newvaralias].get('standard_name')
                     self.units = variable_info[newvaralias].get('units')
+                # create label for plotting
+                self.label = self.mission
                 t1=time.time()
                 print(" ")
                 print( ' ## Summary:')

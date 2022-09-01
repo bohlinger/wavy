@@ -703,6 +703,7 @@ class quicklook_class_sat:
         # set plots
         m = kwargs.get('m',a)
         ts = kwargs.get('ts',a)
+        mode = kwargs.get('mode','comb') # comb,indiv
         if m:
             import cartopy.crs as ccrs
             import cmocean
@@ -757,7 +758,7 @@ class quicklook_class_sat:
             #fig.suptitle('', fontsize=16) # unused
             plt.show()
 
-        if ts:
+        if (ts and mode == 'comb'):
             import matplotlib.pyplot as plt
             fig = plt.figure(figsize=(9,3.5))
             ax = fig.add_subplot(111)
@@ -765,14 +766,28 @@ class quicklook_class_sat:
             ax.plot(self.vars['datetime'],
                     self.vars[self.stdvarname],
                     linestyle='None',color=colors[0],
-                    label=self.mission,
+                    label=self.label,
                     marker='o',alpha=.5,ms=2)
             plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
             plt.show()
-
+        elif (ts and mode == 'indiv'):
+            import matplotlib.pyplot as plt
+            fig = plt.figure(figsize=(9,3.5))
+            ax = fig.add_subplot(111)
+            for oco in self.ocos:
+                ax.plot(oco.vars['datetime'],
+                        oco.vars[oco.stdvarname],
+                        linestyle='None',
+                        label=oco.label,
+                        marker='o',alpha=.5,ms=2)
+            plt.ylabel(self.varalias + ' [' + self.units + ']')
+            plt.legend(loc='best')
+            plt.tight_layout()
+            #ax.set_title()
+            plt.show()
 
 """
 from abc import abstractmethod

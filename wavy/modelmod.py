@@ -514,6 +514,8 @@ class model_class():
         self.units = units
         self.vars = vardict
         self.filestr = filestr
+        # create label for plotting
+        self.label = self.model
         t1 = time.time()
         print(" ")
         print( '## Summary:')

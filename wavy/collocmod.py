@@ -641,6 +641,7 @@ class collocation_class():
             self.units = variable_info[varalias].get('units')
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
+            self.label = self.mission
         elif isinstance(obs_obj,consolidate_class):
             self.obsname = obs_obj.mission # NA
             self.mission = obs_obj.mission # NA
@@ -651,6 +652,7 @@ class collocation_class():
             self.units = variable_info[varalias].get('units')
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
+            self.label = "consolidated_obs"
         elif isinstance(obs_obj,insitu_class):
             obs_obj.twin = insitu_dict[obs_obj.nID].get('twin',None)
             self.obsname = obs_obj.nID + '_' +  obs_obj.sensor
@@ -661,6 +663,8 @@ class collocation_class():
             self.units = variable_info[self.varalias].get('units')
             self.sdate = obs_obj.sdate
             self.edate = obs_obj.edate
+            self.label = self.nID + '_' + self.sensor
+        elif isinstance(obs_obj,insitu_class):
         if poi is not None:
             # poi is of type dict
             self.nID = poi['nID']
@@ -671,6 +675,7 @@ class collocation_class():
             self.units = variable_info[varalias].get('units')
             self.sdate = parse_date(poi['time'][0])
             self.edate = parse_date(poi['time'][-1])
+            self.label = self.nID
         # define class variables
         self.leadtime = leadtime
         if leadtime is None:
