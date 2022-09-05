@@ -151,8 +151,6 @@ def test_collectors_reader_cmems_cci_L3(tmpdir):
 
 @pytest.mark.need_credentials
 def test_collectors_aviso_cfo(tmpdir):
-    sdate = "2018-1-2 12"
-    edate = "2018-1-2 12"
     sdate_dt = datetime(2022,3,10,10)
     edate_dt = datetime(2022,3,10,10)
     twin = 30
@@ -174,6 +172,13 @@ def test_collectors_aviso_cfo(tmpdir):
     nclist = [i for i in range(len(filelist))\
                 if '.nc' in filelist[i]]
     assert len(nclist) >= 1
+
+def test_readers_aviso_cfo(test_data):
+    # convertion to Tp
+    sco = sc(sdate="2022-2-26",edate="2022-2-27",
+            mission="cfo",product="cfo_swim_L2P",varalias='Lp',return_var='Tp',
+            path_local=str(test_data/"SWIM_L2P"))
+    assert len(vars(sco).keys()) >= 11
 
 def test_readers_and_write_to_nc_cmems_NRT(tmpdir,test_data):
     # evoke fct get_remote_files

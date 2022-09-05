@@ -213,8 +213,11 @@ def read_local_ncfiles_swim(**kwargs):
                             satellite_dict[product],ncmeta)
     # retrieve data
     vardict = read_swim_netcdfs(pathlst,varalias)
+    # rm NaN from 'time'
+    tmpt = np.array(vardict['time'])
+    tmpt = tmpt[~np.isnan(tmpt)]
     # parse time and add to dict
-    dtime = [parse_date(d) for d in np.array(vardict['time']).astype(str)]
+    dtime = [parse_date(d) for d in np.array(tmpt).astype(str)]
     vardict['datetime'] = dtime
     vardict['time_unit'] = variable_info['time']['units']
     vardict['time'] = netCDF4.date2num(vardict['datetime'],vardict['time_unit'])
