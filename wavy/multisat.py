@@ -81,6 +81,7 @@ class multisat_class(qls):
         self.sdate = cso.sdate
         self.edate = cso.edate
         self.units = cso.units
+        self.region = region
         self.vars = cso.vars
         self.ocos = cso.ocos
 

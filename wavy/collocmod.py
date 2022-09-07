@@ -37,6 +37,7 @@ from wavy.modelmod import model_class, get_model
 from wavy.ncmod import dumptonc_ts_collocation
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.satmod import satellite_class
+from wavy.multisat import multisat_class
 from wavy.insitumod import insitu_class
 from wavy.consolidate import consolidate_class
 # ---------------------------------------------------------------------#
@@ -586,10 +587,10 @@ def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
                                             date_incr=date_incr)
     elif (
     (mc_obj is None and model is not None and obs_obj is not None\
-    and isinstance(obs_obj,satellite_class))
-    or
-    (mc_obj is None and model is not None and obs_obj is not None\
-    and isinstance(obs_obj,consolidate_class))
+    and 
+    (   isinstance(obs_obj,satellite_class)
+     or isinstance(obs_obj,consolidate_class)
+     or isinstance(obs_obj,multisat_class)))
     ):
         results_dict = collocate_satellite_ts(obs_obj=obs_obj,
                                             model=model,\
@@ -632,7 +633,8 @@ class collocation_class():
         if mc_obj is not None:
             model = mc_obj.model
         self.model = model
-        if isinstance(obs_obj,satellite_class):
+        if (isinstance(obs_obj,satellite_class) or \
+        isinstance(obs_obj,multisat_class)):
             self.obsname = obs_obj.mission
             self.mission = obs_obj.mission
             self.obstype = "satellite_altimeter"
@@ -706,8 +708,6 @@ class collocation_class():
                                     max_lt = max_lt,
                                     twin = twin)
             self.vars = results_dict
-            print(results_dict.keys())
-            print(results_dict['model_values'])
             self.fc_date = results_dict['datetime']
             t1=time.time()
             print(" ")
