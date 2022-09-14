@@ -38,6 +38,7 @@ from wavy.filtermod import rm_nan_from_vardict
 from wavy.sat_collectors import get_remote_files
 from wavy.sat_readers import read_local_files
 from wavy.quicklookmod import quicklook_class_sat as qls
+from wavy.writermod import writer_class as wc
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -244,7 +245,7 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_class(qls):
+class satellite_class(qls,wc):
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
@@ -477,61 +478,61 @@ class satellite_class(qls):
         parent = finditem(ncdict,item)
         return parent
 
-    def write_to_nc(self,pathtofile=None,file_date_incr=None):
-        """
-        Write class variables to netcdf files.
-
-        param:
-            pathtofile
-            file_date_incr - what date increment to use for files
-        """
-        if 'error' in vars(self):
-            print('Erroneous satellite_class file detected')
-            print('--> dump to netCDF not possible !')
-        else:
-            tmpdate = self.sdate
-            edate = self.edate
-            while tmpdate <= edate:
-                if pathtofile is None:
-                    path_template = satellite_dict[self.product]\
-                                                  ['dst']\
-                                                  ['path_template']
-                    file_template = satellite_dict[self.product]\
-                                                  ['dst']\
-                                                  ['file_template']
-                    strsublst = satellite_dict[self.product]\
-                                              ['dst']['strsub']
-                    if 'filterData' in vars(self).keys():
-                        file_template = 'filtered_' + file_template
-                    tmppath = os.path.join(path_template,file_template)
-                    subdict = make_subdict(strsublst,
-                                           class_object_dict=vars(self))
-                    pathtofile = make_pathtofile(tmppath,strsublst,
-                                                 subdict,
-                                                 date=tmpdate)
-                title = (self.obstype
-                       + ' observations from '
-                       + self.mission)
-                dumptonc_ts_sat(self,pathtofile,title)
-                # determine date increment
-                if file_date_incr is None:
-                    file_date_incr = satellite_dict[self.product]\
-                                    ['dst'].get('file_date_incr','m')
-                if file_date_incr == 'm':
-                    tmpdate += relativedelta(months = +1)
-                elif file_date_incr == 'Y':
-                    tmpdate += relativedelta(years = +1)
-                elif file_date_incr == 'd':
-                    tmpdate += timedelta(days = +1)
-        return
-
-    def write_to_pickle(self,pathtofile=None):
-        import pickle
-        # writing
-        pickle.dump( self, open( pathtofile, "wb" ) )
-        print('satellite_class object written to:',pathtofile)
-        # for reading
-        # sco = pickle.load( open( pathtofile, "rb" ) )
+#    def write_to_nc(self,pathtofile=None,file_date_incr=None):
+#        """
+#        Write class variables to netcdf files.
+#
+#        param:
+#            pathtofile
+#            file_date_incr - what date increment to use for files
+#        """
+#        if 'error' in vars(self):
+#            print('Erroneous satellite_class file detected')
+#            print('--> dump to netCDF not possible !')
+#        else:
+#            tmpdate = self.sdate
+#            edate = self.edate
+#            while tmpdate <= edate:
+#                if pathtofile is None:
+#                    path_template = satellite_dict[self.product]\
+#                                                  ['dst']\
+#                                                  ['path_template']
+#                    file_template = satellite_dict[self.product]\
+#                                                  ['dst']\
+#                                                  ['file_template']
+#                    strsublst = satellite_dict[self.product]\
+#                                              ['dst']['strsub']
+#                    if 'filterData' in vars(self).keys():
+#                        file_template = 'filtered_' + file_template
+#                    tmppath = os.path.join(path_template,file_template)
+#                    subdict = make_subdict(strsublst,
+#                                           class_object_dict=vars(self))
+#                    pathtofile = make_pathtofile(tmppath,strsublst,
+#                                                 subdict,
+#                                                 date=tmpdate)
+#                title = (self.obstype
+#                       + ' observations from '
+#                       + self.mission)
+#                dumptonc_ts_sat(self,pathtofile,title)
+#                # determine date increment
+#                if file_date_incr is None:
+#                    file_date_incr = satellite_dict[self.product]\
+#                                    ['dst'].get('file_date_incr','m')
+#                if file_date_incr == 'm':
+#                    tmpdate += relativedelta(months = +1)
+#                elif file_date_incr == 'Y':
+#                    tmpdate += relativedelta(years = +1)
+#                elif file_date_incr == 'd':
+#                    tmpdate += timedelta(days = +1)
+#        return
+#
+#    def write_to_pickle(self,pathtofile=None):
+#        import pickle
+#        # writing
+#        pickle.dump( self, open( pathtofile, "wb" ) )
+#        print('satellite_class object written to:',pathtofile)
+#        # for reading
+#        # sco = pickle.load( open( pathtofile, "rb" ) )
 
 def poi_sat(indict,twin,distlim,poi,ridx,i):
     """

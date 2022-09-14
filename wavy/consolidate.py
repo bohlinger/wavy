@@ -76,8 +76,9 @@ class consolidate_class(qls):
         self.sdate = ocos[0].sdate
         self.edate = ocos[0].edate
         self.vars = consolidate_scos(ocos)
-        self.obsname = 'Consolidated_Observations'
-        self.obstype = 'Consolidated_Observations'
+        self.obsname = 'consolidated-obs'
+        self.obstype = 'consolidated-obs'
+        self.label = 'consolidated-obs'
         self.mission = 'mission'
         self.product = 'product'
         self.provider = 'provider'
