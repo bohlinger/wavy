@@ -27,6 +27,19 @@ Tp:
                     density_maximum"
     units: s
     valid_range: [0., 30.]
+    inverse: fp
+
+Lp:
+    standard_name: "sea_surface_wave_length_at_variance_spectral_\
+                    density_maximum"
+    units: m
+    valid_range: [0., 2000.]
+
+fp:
+    standard_name: "sea_surface_wave_peak_frequency"
+    units: "1/s"
+    inverse: Tp
+
 Tm01:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_first_frequency_moment"
@@ -43,16 +56,50 @@ Tm10:
     units: s
     valid_range: [0., 30.]
 Pdir:
-    standard_name: "sea_surface_wave_to_direction_at_variance_spectral\
+    standard_name: "sea_surface_wave_from_direction_at_variance_spectral\
                     _density_maximum"
     units: degree
     valid_range: [0.,360.]
-    convention: oceanographic
+    convention: meteorologic
+    type: cyclic
 Mdir:
-    standard_name: sea_surface_wave_to_direction
+    standard_name: sea_surface_wave_from_direction
     units: degree
     valid_range: [0.,360.]
-    convention: oceanographic
+    convention: meteorologic
+    type: cyclic
+MdirW: # wind waves
+    standard_name: sea_surface_wind_wave_from_direction
+    units: degree
+    valid_range: [0.,360.]
+    convention: meteorologic
+    type: cyclic
+MdirST: # total swell
+    standard_name: sea_surface_swell_wave_from_direction
+    units: degree
+    valid_range: [0.,360.]
+    convention: meteorologic
+    type: cyclic
+# for swell partitions only from direction exists in cf-table
+MdirS1:
+    standard_name: sea_surface_primary_swell_wave_from_direction
+    units: degree
+    valid_range: [0.,360.]
+    convention: meteorologic
+    type: cyclic
+MdirS2:
+    standard_name: sea_surface_secondary_swell_wave_from_direction
+    units: degree
+    valid_range: [0.,360.]
+    convention: meteorologic
+    type: cyclic
+MdirS3:
+    standard_name: sea_surface_tertiary_swell_wave_from_direction
+    units: degree
+    valid_range: [0.,360.]
+    convention: meteorologic
+    type: cyclic
+
 ux:
     standard_name: x_wind
     alias: grid_eastward_wind
@@ -79,6 +126,7 @@ Udir:
     units: degree
     valid_range: [0., 360.]
     convention: meteorologic
+    type: cyclic
 dist:
     standard_name: collocation_distance
     long_name: 'distance between collocated values'
