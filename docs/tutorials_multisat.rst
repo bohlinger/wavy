@@ -10,7 +10,7 @@ Open python in the wavy conda environment:
    $ conda activate wavy
    $ python
 
-Import the classes and proceed as with the satellite_class. The only difference is now that you can give the multisat_class a list of satellite_missions. Download your satellite data and then start the retrieval:
+Import the library and proceed as with the satellite_class. The only difference is now that you can give the multisat_class a list of satellite_missions. Download your satellite data and then start the retrieval:
 
 .. code-block:: python3
 
@@ -18,10 +18,10 @@ Import the classes and proceed as with the satellite_class. The only difference 
    >>> from wavy.satmod import multisat_class as ms
 
    >>> # retrieval
-   >>> mso = ms( sdate = "2020-11-1",
-                 edate = "2020-11-3",
-                 region="global",
-                 mission=['s3a','s3b'] )
+   >>> mso = ms( sdate   = "2020-11-1",
+                 edate   = "2020-11-3",
+                 region  = "global",
+                 mission = ['s3a','s3b'] )
 
 You have now retrieved 24h of significant wave height from 2 satellite missions.
 The satellite_class object has multiple class methods and class variables:
@@ -43,10 +43,12 @@ The content of the multisat_class object should look like this:
     mso.mission     mso.product     mso.sdate       mso.varname
     mso.obsname     mso.provider    mso.stdvarname  mso.vars
 
-With the retrieved variables in sa_obj.vars::
+With the retrieved variables in mso.vars::
 
    >>> sco.vars.keys()
    dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])
+
+The class variable mso.ocos contains the individual satellite_class objects.
 
 .. note 
 

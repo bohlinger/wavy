@@ -211,7 +211,7 @@ The satellite_class object has multiple class methods and class variables:
   sco.path_local        sco.stdvarname        sco.write_to_pickle(
   sco.processing_level  sco.twin
 
-With the retrieved variables in sa_obj.vars::
+With the retrieved variables in sco.vars::
 
    >>> sco.vars.keys()
    dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])

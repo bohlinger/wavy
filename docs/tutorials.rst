@@ -20,11 +20,15 @@ e.g.:
 
    tutorials_config
    tutorials_satmod
+   tutorials_multisat
    tutorials_regions
    tutorials_filters
    tutorials_modelmod
    tutorials_insitu
+   tutorials_multiins
+   tutorials_consolidate
    tutorials_collocmod
    tutorials_validate
    tutorials_stats
+   tutorials_gridder
    tutorials_wavyQuick
