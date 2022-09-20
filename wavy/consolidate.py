@@ -58,6 +58,20 @@ def consolidate_scos(scos):
             'datetime':dtimelst[idx] }
     return vardict
 
+def find_valid_oco(ocos):
+    state = False
+    for i,o in enumerate(ocos):
+        if 'vars' in vars(o).keys():
+            state = True
+            break
+    if state is True:
+        return i
+    else:
+        print("")
+        print("Caution: no valid observation object with values found!")
+        print("")
+
+
 # --------------------------------------------------------------------#
 
 class consolidate_class(qls):
@@ -68,13 +82,14 @@ class consolidate_class(qls):
         print('# ----- ')
         print(" ### Initializing consolidate_class object ###")
         print(" ")
+        i = find_valid_oco(ocos)
         self.ocos = ocos
-        self.varalias = ocos[0].varalias
-        self.stdvarname = ocos[0].stdvarname
-        self.varname = ocos[0].varname
-        self.units = ocos[0].units
-        self.sdate = ocos[0].sdate
-        self.edate = ocos[0].edate
+        self.varalias = ocos[i].varalias
+        self.stdvarname = ocos[i].stdvarname
+        self.varname = ocos[i].varname
+        self.units = ocos[i].units
+        self.sdate = ocos[i].sdate
+        self.edate = ocos[i].edate
         self.vars = consolidate_scos(ocos)
         self.obsname = 'consolidated-obs'
         self.obstype = 'consolidated-obs'

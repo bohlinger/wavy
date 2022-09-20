@@ -45,6 +45,8 @@ class multisat_class(qls):
             else:
                 print("products and missions need to correspond")
                 assert len(products) == len(missions)
+        print(missions)
+        print(products)
         scos = []
         for i,m in enumerate(missions):
             scos.append( sc( sdate = sdate, edate = edate,
