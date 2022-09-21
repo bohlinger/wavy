@@ -26,6 +26,7 @@ e.g.:
    tutorials_modelmod
    tutorials_insitu
    tutorials_multiins
+   tutorials_stormtrack
    tutorials_consolidate
    tutorials_collocmod
    tutorials_validate

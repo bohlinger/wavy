@@ -728,6 +728,26 @@ class quicklook_class_sat:
             latmax,latmin = np.max(lats),np.min(lats)
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
+            # plot track if applicable
+            lonmax,lonmin = np.max(lons),np.min(lons)
+            latmax,latmin = np.max(lats),np.min(lats)
+            if kwargs.get('poi') is not None:
+                plats = kwargs.get('poi').get('latitude')
+                platsmax,platsmin = np.max(plats), np.min(plats)
+                plons = kwargs.get('poi').get('longitude')
+                plonsmax,plonsmin = np.max(plons), np.min(plons)
+                tc = ax.plot(plons,plats,color='cornflowerblue',
+                             ls='-',lw=1,
+                             zorder=-1)
+                tc = ax.plot(plons,plats,color='cornflowerblue',
+                             ls='None',marker='o',ms=5,
+                             markeredgecolor='k',
+                             zorder=-1)
+                lonmax,lonmin = np.max([lonmax,plonsmax]),\
+                                np.min([lonmin,plonsmin])
+                latmax,latmin = np.max([latmax,platsmax]),\
+                                np.min([latmin,platsmin])
+            # plot sat
             sc = ax.scatter(lons,lats,s=10,
                             c = var,
                             marker='o', edgecolor = 'face',
@@ -743,21 +763,9 @@ class quicklook_class_sat:
                        )
             fig.colorbar(sc, cax=axins, label=self.varalias
                                         + ' [' + self.units + ']')
-            # plot track if applicable
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
-            if kwargs.get('poi') is not None:
-                plats = kwargs.get('poi').get('latitude')
-                platsmax,platsmin = np.max(plats)+1, np.min(plats)-1
-                plons = kwargs.get('poi').get('longitude')
-                plonsmax,plonsmin = np.max(plons)+1, np.min(plons)-1
-            lonmax,lonmin = np.max([lonmax,plonsmax]),np.min([lonmin,plonsmin])
-            latmax,latmin = np.max([latmax,platsmax]),np.min([latmin,platsmin])
-            ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+            ax.set_extent(  [lonmin-1, lonmax+1,latmin-1, latmax+1],
                              crs = projection )
-
-            tc = ax.plot(plons,plats,'k:')
-            ax.coastlines()
+            ax.coastlines(color='k')
             gl = ax.gridlines(draw_labels=True,crs=projection,
                               linewidth=1, color='grey', alpha=0.4,
                               linestyle='-')
@@ -765,8 +773,12 @@ class quicklook_class_sat:
             gl.right_labels = False
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
             ax.set_title(self.mission + ' (' + self.provider + ')\n'
-                      + 'from ' + str(self.vars['datetime'][0])
-                      + ' to ' + str(self.vars['datetime'][-1]))
+                      + 'from ' 
+                      + (self.vars['datetime'][0]).\
+                              strftime('%Y-%-m%d %H:%M:%S')
+                      + ' to '
+                      + (self.vars['datetime'][-1]).\
+                              strftime('%Y-%m-%d %H:%M:%S'))
             #fig.suptitle('', fontsize=16) # unused
             plt.show()
         if (ts and mode == 'comb'):
