@@ -72,12 +72,14 @@ Now start you python script:
 
    # retrievals
    sco = sc( twin=180,distlim=200,mission='multi',
-             product='cci_L3',region='global',poi=poi_dict )
+             product='cci_L3',region='global',
+             varalias = 'Hs', # default
+             poi=poi_dict )
 
    # quicklook including track by passing poi
    sco.quicklook(m=True,poi=poi_dict)
 
-This yields the following figure:
+This script gathers all footprints within a 200km radius and a +-180min time window given time and location of tracked storm. Executing yields the following figure:
 
 .. image:: ./docs_fig_stormtrack.png
    :scale: 80
