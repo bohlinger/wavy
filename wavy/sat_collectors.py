@@ -30,9 +30,10 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 
 # --- def functions ---------------------------------------------------#
 
-def tmploop_get_remote_files(i,matching,user,pw,
-                            server,remote_path,
-                            path_local):
+def tmploop_get_remote_files(i: int, matching: str,
+                             user: str, pw: str,
+                             server: str, remote_path: str,
+                             path_local: str):
     """
     Function to download files using ftp. Tries 10 times before failing.
     """
@@ -394,7 +395,7 @@ def get_remote_files_eumetsat(**kwargs):
         sort_files(path_local,filelst,product,mission)
     print ('Files downloaded to: \n', path_local)
 
-def make_query_dict(product,mission):
+def make_query_dict(product: str,mission: str) -> dict:
     '''
     fct to setup queries of L2 data using SentinelAPI
     '''

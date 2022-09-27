@@ -14,8 +14,7 @@ from wavy.wconfig import load_or_default
 
 def grab_PID():
     """
-    Function to retrieve PID and display it to be able to kill the
-    python program that was just started
+    Retrieves PID and prints it
     """
     import os
     # retrieve PID
@@ -86,7 +85,7 @@ def haversineA(lon1, lat1, lon2, lat2):
         km = 6367 * c
         return [km]
 
-def runmean(vec,win,mode=None,weights=None):
+def runmean(vec,win,mode=None,weights=None) -> tuple:
     """
     Computes the running mean with various configurations.
 
@@ -134,7 +133,7 @@ def runmean(vec,win,mode=None,weights=None):
             count = count+1
     return out, std
 
-def runmean_conv(x,win,mode='flat'):
+def runmean_conv(x: np.ndarray, win: int, mode='flat') -> np.ndarray:
     """
     running mean using convolution
 
@@ -168,7 +167,7 @@ def runmean_conv(x,win,mode='flat'):
     out=np.convolve(w/w.sum(),s,mode='valid')
     return out
 
-def bootstr(a,reps):
+def bootstr(a, reps):
     """
     Conducts a simple naive bootstrap:
 
@@ -187,7 +186,7 @@ def bootstr(a,reps):
         del tmp
     return b, bidx.astype('int')
 
-def marginalize(a,b=None):
+def marginalize(a, b=None):
     """
     Removes entries in both time series that are NaN.
 
@@ -226,7 +225,7 @@ def sort_files(dirpath,filelst,product,sat):
     elif product == 'cfo_swim_L2P':
         sort_aviso_l2p(dirpath,filelst)
 
-def sort_aviso_l2p(dirpath,filelst):
+def sort_aviso_l2p(dirpath: str, filelst: list):
     '''
     Sort AVISO files according to year and month.
     '''
@@ -241,7 +240,7 @@ def sort_aviso_l2p(dirpath,filelst):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cmems_l3_nrt(dirpath,filelst,sat):
+def sort_cmems_l3_nrt(dirpath: str, filelst: list, sat: str):
     '''
     Sort L3 files according to year and month.
     '''
@@ -254,7 +253,7 @@ def sort_cmems_l3_nrt(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cmems_l3_s6a(dirpath,filelst,sat):
+def sort_cmems_l3_s6a(dirpath: str, filelst: list, sat: str):
     '''
     Sort L3 s6a files according to year and month.
     '''
@@ -267,7 +266,7 @@ def sort_cmems_l3_s6a(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cmems_l3_my(dirpath,filelst,sat):
+def sort_cmems_l3_my(dirpath: str,filelst: list,sat: str):
     '''
     Sort L3 files according to year and month.
     '''
@@ -280,7 +279,7 @@ def sort_cmems_l3_my(dirpath,filelst,sat):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cci(dirpath,filelst):
+def sort_cci(dirpath: str, filelst: list):
     '''
     Sort L2P and L3 files according to year and month.
     '''
@@ -293,7 +292,7 @@ def sort_cci(dirpath,filelst):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_eumetsat_l2(dirpath,filelst):
+def sort_eumetsat_l2(dirpath: str, filelst: list):
     '''
     Sort L2 files according to year and month.
     '''
@@ -333,15 +332,17 @@ def get_size(obj, seen=None):
         size += sum([get_size(i, seen) for i in obj])
     return size
 
-def find_included_times_pd(unfiltered_t,sdate,edate):
+def find_included_times_pd(unfiltered_t: list,
+                           sdate:datetime, edate: datetime) -> list:
     import pandas as pd
     idx = np.array(range(len(unfiltered_t)))
     df = pd.to_datetime(unfiltered_t)
     mask = ((df >= sdate.isoformat()) & (df <= edate.isoformat()))
     return list(idx[mask])
 
-def find_included_times(unfiltered_t,target_t=None,
-    sdate=None,edate=None,twin=0):
+def find_included_times(
+    unfiltered_t: list, target_t=None,
+    sdate=None, edate=None, twin=0) -> list:
     """
     Find index/indices of unfiltered time series that fall
     within a tolerance time window around the target time
@@ -357,8 +358,9 @@ def find_included_times(unfiltered_t,target_t=None,
              and unfiltered_t[i] <= edate+timedelta(minutes=twin)) ]
     return idx
 
-def collocate_times(unfiltered_t,target_t=None,
-    sdate=None,edate=None,twin=None):
+def collocate_times(
+    unfiltered_t: list, target_t=None,
+    sdate=None, edate=None, twin=None) -> list:
     """
     fct for collocating times within a given twin as tolerance
     target_t and unfiltered_t need to be lists of datetime objects
@@ -392,7 +394,7 @@ flat_list.append(item)
 '''
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def make_fc_dates(sdate,edate,date_incr):
+def make_fc_dates(sdate: datetime, edate: datetime, date_incr: int) -> list:
     '''
     fct to create forecast date vector
     '''
@@ -402,7 +404,7 @@ def make_fc_dates(sdate,edate,date_incr):
         sdate += timedelta(hours=date_incr)
     return fc_dates
 
-def system_call(command):
+def system_call(command: str):
     p = subprocess.Popen([command], stdout=subprocess.PIPE, shell=True)
     return p.stdout.read()
 

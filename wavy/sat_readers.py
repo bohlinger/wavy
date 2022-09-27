@@ -29,7 +29,7 @@ from wavy.utils import parse_date, find_included_times, calc_deep_water_T
 satellite_dict = load_or_default('satellite_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 
-def unzip_eumetsat(pathlst,tmpdir):
+def unzip_eumetsat(pathlst: list, tmpdir: str):
     """
     Function to unzip eumetsat files prior to reading
 
@@ -242,7 +242,7 @@ def read_local_ncfiles_swim(**kwargs):
     vardict.pop(varalias)
     return vardict
 
-def read_local_files(**kwargs):
+def read_local_files(**kwargs) -> dict:
     '''
     wrapping function to read altimetry files
 
