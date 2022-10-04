@@ -15,7 +15,7 @@ Import the library and proceed as with the satellite_class. The only difference 
 .. code-block:: python3
 
    >>> # imports
-   >>> from wavy.satmod import multisat_class as ms
+   >>> from wavy.multisat import multisat_class as ms
 
    >>> # retrieval
    >>> mso = ms( sdate   = "2020-11-1",
@@ -45,7 +45,7 @@ The content of the multisat_class object should look like this:
 
 With the retrieved variables in mso.vars::
 
-   >>> sco.vars.keys()
+   >>> mso.vars.keys()
    dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])
 
 The class variable mso.ocos contains the individual satellite_class objects.
