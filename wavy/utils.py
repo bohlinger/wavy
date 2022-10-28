@@ -585,7 +585,7 @@ def compute_quantiles(ts,lq):
         ts - iterable of ts
         lq - iterable of quantiles
 
-    retrun:
+    return:
         qA - numpy array of quantiles
     """
     ts = marginalize(ts)
