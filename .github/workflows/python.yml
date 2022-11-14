@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9' ]
+        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
     steps:
     - uses: actions/checkout@v2
 
@@ -23,10 +23,9 @@ jobs:
         #sudo apt-get install -y build-essential libgdal-dev libsuitesparse-dev
         sudo apt-get install -y build-essential libsuitesparse-dev
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        architecture: x64
 
     - name: Add conda to system path
       run: |
@@ -35,7 +34,7 @@ jobs:
 
     - name: Install poetry & package
       run: |
-        conda install -c conda-forge -y geos proj poetry pytest-cov
+        conda install -c conda-forge -y geos proj poetry pytest-cov cartopy
         #pip install -U pip
         #pip install poetry
         poetry install
