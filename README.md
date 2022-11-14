@@ -1,6 +1,5 @@
 # wavy
 
-[![Tests (conda)](https://github.com/bohlinger/wavy/actions/workflows/python-conda-test.yml/badge.svg)](https://github.com/bohlinger/wavy/actions/workflows/python-conda-test.yml)
 [![Tests (python)](https://github.com/bohlinger/wavy/actions/workflows/python.yml/badge.svg)](https://github.com/bohlinger/wavy/actions/workflows/python.yml)
 [![Lint](https://github.com/bohlinger/wavy/actions/workflows/lint.yml/badge.svg)](https://github.com/bohlinger/wavy/actions/workflows/lint.yml)
 [![Coverage Status](https://coveralls.io/repos/github/bohlinger/wavy/badge.svg?branch=master)](https://coveralls.io/github/bohlinger/wavy?branch=master)
