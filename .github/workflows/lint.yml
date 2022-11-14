@@ -3,38 +3,26 @@ name: lint
 on: [push]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  tests:
+    name: pytests (${{ matrix.os }} - ${{ matrix.python-version }}, Mambaforge)
+    runs-on: ${{ matrix.os }}-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     strategy:
-      max-parallel: 5
-
+      matrix:
+        os: "ubuntu"
+        python-version: [ '3.10' ]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          python-version: ${{ matrix.python-version }}
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
 
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-
-    - name: conda cache
-      uses: actions/cache@v2
-      with:
-        path: $CONDA_PREFIX
-        key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
-        restore-keys: |
-          ${{ runner.os }}-conda-
-
-    - name: Install dependencies
-      if: steps.conda-cache.outputs.cache-hit != 'true'
-      run: |
-        conda env update --file environment.yml --name base
-        conda install pytest-cov coveralls
-
-    - name: Lint with pylint
-      run: |
-        pylint --fail-under=9 wavy
+      - name: Lint with pylint
+        run: |
+          pylint --fail-under=9 wavy
 
