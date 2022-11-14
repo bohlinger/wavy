@@ -29,6 +29,4 @@ dependencies:
   - xdg
   - sentinelsat
   - geojson
-  - pip
-  - pip:
-    - roaring_landmask>=0.4.1
+  - roaring-landmask
