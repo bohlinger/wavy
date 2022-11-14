@@ -779,6 +779,22 @@ class quicklook_class_sat:
                       + ' to '
                       + (self.vars['datetime'][-1]).\
                               strftime('%Y-%m-%d %H:%M:%S'))
+            # plot from quickloop config file
+            if ('region' in vars(self).keys()
+                and self.region in quicklook_dict
+                and 'poi' in quicklook_dict[self.region]):
+                for poi in quicklook_dict[self.region]['poi']:
+                    pname = quicklook_dict[self.region]['poi'][poi]['name']
+                    plat = quicklook_dict[self.region]['poi'][poi]['lat']
+                    plon = quicklook_dict[self.region]['poi'][poi]['lon']
+                    scp = ax.scatter(plon, plat, s = 20,
+                                     c = quicklook_dict\
+                                            [self.region]['poi'][poi]\
+                                            .get('color','b'),
+                                     marker = quicklook_dict[self.region]\
+                                            ['poi'][poi]['marker'],
+                                     transform = ccrs.PlateCarree())
+                ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
             #fig.suptitle('', fontsize=16) # unused
             plt.show()
         if (ts and mode == 'comb'):
