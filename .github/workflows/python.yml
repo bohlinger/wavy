@@ -32,8 +32,8 @@ jobs:
           conda activate test
           pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
 
-    - name: Upload to Coveralls
-      run: coveralls
+      - name: Upload to Coveralls
+        run: coveralls
 
       - name: Build wheels
         run: |
