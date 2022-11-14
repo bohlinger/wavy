@@ -31,11 +31,13 @@ jobs:
       - name: Run tests
         run: |
           conda activate test
-          mamba install -c conda-forge pytest-cov
+          mamba install -c conda-forge pytest-cov coveralls
           pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
 
       - name: Upload to Coveralls
-        run: coveralls
+        run: |
+          conda activate test
+          coveralls
 
       - name: Build wheels
         run: |
