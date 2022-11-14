@@ -42,6 +42,7 @@ Contents
    tutorials
    vietnam21
    vietnam22
+   vietnam22_2
    oneocean
    gallery
    autoapi/index
