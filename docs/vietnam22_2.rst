@@ -257,6 +257,7 @@ Often there are ambiguities due to the multiple usage of standard_names. Any suc
 The variable aliases (left hand side) need to be specified in the variable_info.yaml. Basic variables are already defined. Adding your model output files to wavy means to add something like:
 
 .. code-block:: yaml
+
     ecwam_vietnam:
         vardef:
             Hs: significant_wave_height
@@ -300,6 +301,8 @@ The variable aliases (left hand side) need to be specified in the variable_info.
         grid_date: 2021-11-26 00:00:00
         proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
 
+Now you can proceed to load your model in wavy. Start python and type:
+
 .. code-block:: python3
 
    >>> from wavy.modelmod import model_class as mc
@@ -322,7 +325,7 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
    >>> mco.vars.keys()
    dict_keys(['longitude', 'latitude', 'time', 'datetime', 'time_unit', 'sea_surface_wave_significant_height', 'meta', 'leadtime'])
 
-For the modelclass objects a quicklook fct exists to depict a certain time step of what you loaded::
+For the model_class objects a quicklook function exists to depict a certain time step of what you loaded::
 
    >>> mco.quicklook() # for a map
 
