@@ -27,9 +27,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           miniforge-version: latest
           miniforge-variant: Mambaforge
+
       - name: Run tests
         run: |
           conda activate test
+          mamba install -c conda-forge pytest-cov
           pytest --junitxml=test-results/junit.xml --cov=wavy -v --log-cli-level=debug -m 'not need_credentials'
 
       - name: Upload to Coveralls
