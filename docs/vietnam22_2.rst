@@ -1,10 +1,10 @@
 Vietnam Validation Workshop 2022 #2
 ===================================
-The following examples are tailored to the 4. **wavy** Vietnam Validation Workshop in fall 2022. While the forst part in spring 2022 was dedicated to trajectories, this workshop will focus on some simple examples that can be used as python code snippets in your workflow.
+The following examples are tailored to the 4. **wavy** Vietnam Validation Workshop and second workshop in 2022. While the first part in 2022 was in spring and dedicated to trajectories, this workshop will focus on some simple examples that can be used as python code snippets in your workflow.
 
 1. **wavy** config files
 ########################
-For this work shop you will need the following config files:
+For this workshop you will need the following config files:
 
 .. code-block:: bash
 
@@ -13,7 +13,7 @@ For this work shop you will need the following config files:
    model_specs.yaml.default        validation_specs.yaml.default
 
 
-Create a new project directory and copy your config files to this folder. Establish an .env file such that wavy knows where to find the config files it should use. This could look like:
+Create a new project directory. Establish an .env file such that **wavy** knows where to find the config files it should use. This could look like:
 
 .. code-block:: bash
 
@@ -52,7 +52,7 @@ The main changes that will occur in the config files during this workshop are:
    * adjusting the path
    * adding your model
 
-2. download L3 satellite altimetry data
+2. Download L3 satellite altimetry data
 #######################################
 
 L3 satellite data is obtained from Copernicus with the product identifier WAVE_GLO_WAV_L3_SWH_NRT_OBSERVATIONS_014_001. User credentials are required for this task. So before you can start you have to get a Copernicus account (free of costs). Prepare access to Copernicus products. Enter your account credentials into the .netrc-file. The .netrc should be located in your home not being too permissive like:
@@ -136,11 +136,11 @@ To get help check ...
 
    $ ./wavyDownload.py -sat s3a -sd 2021112600 -ed 2021120300 -product cmems_L3_NRT -nproc 4
 
-3. read satellite data
+3. Read satellite data
 ######################
 Once the satellite data is downloaded one can access and read the data for further use with **wavy**. Let's have a look at some examples in a python script.
 
-In python L3 data can be read by importing the satellite_class, choosing a region of interest, the variable of interest (Hs or U), the satellite mission, which product should be used, and whether a time window should be used as well as a start and possibly an end date. This could look like:
+In python L3-data can be read by importing the satellite_class, choosing a region of interest, the variable of interest (Hs or U), the satellite mission, which product should be used, and whether a time window should be used as well as a start and possibly an end date. This could look like:
 
 .. code-block:: python3
 
@@ -215,7 +215,7 @@ With the retrieved variables in sco.vars::
    >>> sco.vars.keys()
    dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])
 
-Using the quicklook fct you can quickly visualize the data you have retrieved::
+Using the quicklook function you can quickly visualize the data you have retrieved::
 
    >>> sco.quicklook(ts=True) # for time series
    >>> sco.quicklook(m=True) # for a map
@@ -329,12 +329,12 @@ For the model_class objects a quicklook function exists to depict a certain time
 
    >>> mco.quicklook() # for a map
 
-Or, since there is only a map plot for model_class object, the following is equivilant::
+Or, since there is only a map plot for model_class object, the following is equivalent::
 
    >>> mco.quicklook(m=True) # for a map
    >>> mco.quicklook(a=True) # for a map
 
-5. collocating model and observations
+5. Collocating model and observations
 #####################################
 One main focus of **wavy** is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them. If you have available the necessary satellite data and model data you can proceed with collocation:
 
@@ -354,7 +354,7 @@ Collocation of satellite and wave model
    >>> sco = sc(sdate=sd,edate=ed,region=model,mission=mission,varalias=varalias)
    >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
 
-*distlim* is the distiance limit for collocation in *km* and date_incr is the time step increase in hours. One can also add a keyword for the collocation time window. The default is +-30min which is equivalent to adding *twin=30*.
+*distlim* is the distance limit for collocation in *km* and date_incr is the time step increase in hours. One can also add a keyword for the collocation time window. The default is +-30min which is equivalent to adding *twin=30*.
 
 Using the quicklook function again (*cco.quicklook(a=True)*) will enable three plots this time, a time series plot (*ts=True*), a map plot (*m=True*), and a scatter plot (*sc=True*).
 
@@ -367,7 +367,7 @@ Using the quicklook function again (*cco.quicklook(a=True)*) will enable three p
 .. image:: ./vietnam_coll_2022_2_sc.png
    :scale: 80
 
-6. validate the collocated time series
+6. Validate the collocated time series
 #######################################
 Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
