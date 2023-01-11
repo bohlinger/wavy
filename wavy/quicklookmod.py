@@ -775,7 +775,7 @@ class quicklook_class_sat:
             ax.set_title(self.mission + ' (' + self.provider + ')\n'
                       + 'from ' 
                       + (self.vars['datetime'][0]).\
-                              strftime('%Y-%-m%d %H:%M:%S')
+                              strftime('%Y-%m-%d %H:%M:%S')
                       + ' to '
                       + (self.vars['datetime'][-1]).\
                               strftime('%Y-%m-%d %H:%M:%S'))

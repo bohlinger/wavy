@@ -49,15 +49,18 @@ class multisat_class(qls):
         print(products)
         scos = []
         for i,m in enumerate(missions):
-            scos.append( sc( sdate = sdate, edate = edate,
+            sco = sc( sdate = sdate, edate = edate,
                          twin = twin, distlim = distlim,
                          mission = m, products = products[i],
                          region = region, varalias = varalias,
                          filterData = filterData, poi = poi,
                          nproc = nproc, api_url = api_url,
                          path_local = path_local,
-                         **kwargs ))
+                         **kwargs )
+            if 'vars' in vars(sco):
+                scos.append(sco)
         cso = cs(scos)
+        missions = find_valid_missions(scos)
         cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
         cso.rename_consolidate_object_parameters(mission='-'.join(missions))
         if len(np.unique(products)) == 1:
@@ -90,3 +93,10 @@ class multisat_class(qls):
         print(" ")
         print (" ### multisat object initialized ###")
         print ('# ----- ')
+
+def find_valid_missions(scos):
+    missions = [scos[0].mission]
+    for i in range(1,len(scos)):
+        if len(scos[i].vars['time']) > 0:
+            missions.append(scos[i].mission)
+    return missions

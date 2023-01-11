@@ -17,6 +17,7 @@ import pylab as pl
 from datetime import datetime
 import pandas as pd
 import netCDF4
+import requests
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -120,26 +121,70 @@ def make_frost_reference_time_period(sdate,edate):
                             edate.strftime(formatstr))
     return refstr
 
-def call_frost_api_v1(nID, varalias, frost_reference_time):
-    import requests
-    import dotenv
-    dotenv.load_dotenv()
-    client_id = os.getenv('CLIENT_ID', None)
-    if client_id is None:
-        print("No Frost CLIENT_ID given!")
-    stdvarname = variable_info[varalias]['standard_name']
-    ID = insitu_dict[nID]['ID']
-    endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/filter/get?'
-    #endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/kvkafka/get?'
+def call_frost_api_v0(\
+    nID: str, varstr: str,frost_reference_time: str, client_id: str)\
+    -> 'requests.models.Response':
+    """
+    frost call, retrieve data from frost v0
+    """
+    ID = 'SN' + str(insitu_dict[nID]['ID'])
+    endpoint = 'https://frost.met.no/observations/v0.jsonld' # v0
     parameters = {
-                'stationids': ID,
-                'elementids': stdvarname,
-                'time': frost_reference_time,
-                'timeoffsets': 'default', # handled by filter
-                'levels': 0,
-                'incobs': 'true'
+                'sources': ID,
+                'elements': varstr,
+                'referencetime': frost_reference_time,
+                'timeoffsets': 'default',
+                'levels': 'default'
                 }
     return requests.get(endpoint, parameters, auth=(client_id, client_id))
+
+def call_frost_api_v1(\
+    nID: str, varstr: str,frost_reference_time: str, client_id: str)\
+    -> 'requests.models.Response':
+    """
+    frost call, retrieve data from frost v1
+    """
+    ID = insitu_dict[nID]['ID']
+    #endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/filter/get?'
+    #endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/kvkafka/get?'
+    #endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/kvkafka/get?'
+    endpoint = 'https://restricted.frost-dev.k8s.met.no/api/v1/obs/met.no/kvkafka/get?'
+    #endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/filter/get?'
+    parameters = {
+                'stationids': ID,
+                'elementids': varstr,
+                'time': frost_reference_time,
+                #'timeoffsets': 'default', # handled by filter
+                'levels': 'all',
+                'incobs': 'true',
+                'sensors': '0,1,2,3,4,5',
+                #'typeids': '22,11,510'
+                'typeids': str(get_typeid(insitu_dict,nID))
+                }
+    return requests.get(endpoint, parameters, auth=(client_id, client_id))
+
+def get_frost_df_v0(r: 'requests.models.Response', varalias: str)\
+    -> 'pandas.core.frame.DataFrame':
+    """
+    create pandas dataframe from frost call for v0
+    """
+    stdvarname = variable_info[varalias]['standard_name']
+    #varstr_lst = list(varstr_dict.keys())
+    varstr_lst = [stdvarname]
+    #alias_lst = [varstr_dict[e] for e in varstr_dict]
+    alias_lst = [varalias]
+    df = pd.json_normalize(r.json()['data'],
+                            ['observations'],
+                            ['referenceTime'])
+    df2 = df['referenceTime'].drop_duplicates().reset_index(drop=True)
+    df2 = df2.to_frame()
+    for v in varstr_lst:
+        dftmp = df.loc[df['elementId'] == v]['value'].reset_index(drop=True).to_frame()
+        #dftmp = dftmp.rename(columns={ dftmp.columns[0]: varstr_dict[v] })
+        df2 = pd.concat([df2, dftmp.reindex(df2.index)], axis=1)
+    # rename referenceTime to time
+    df2 = df2.rename(columns={ 'referenceTime': 'time' })
+    return df2
 
 def get_frost_df_v1(r,nID,sensor,varalias):
     # base df
@@ -185,9 +230,26 @@ def get_frost_dict(**kwargs):
     nID = kwargs.get('nID')
     sensor = kwargs.get('sensor')
     varalias = kwargs.get('varalias')
+    stdvarname = variable_info[varalias]['standard_name']
     reftp = make_frost_reference_time_period(sdate,edate)
-    r = call_frost_api_v1(nID,varalias,reftp)
-    vardict = get_frost_df_v1(r,nID,sensor,varalias)
+    #r = call_frost_api_v1(nID,varalias,reftp)
+    client_id = os.getenv('CLIENT_ID', None)
+    r = call_frost_api_v0(nID,stdvarname,reftp,client_id)
+    #vardict = get_frost_df_v1(r,nID,sensor,varalias)
+    df = get_frost_df_v0(r,varalias)
+    print(df.keys())
+    var = df['value'].values
+    timevec = df['time'].values
+    timedt = [parse_date(str(d)) for d in timevec]
+    #print(timedt,var)
+    vardict = {
+                stdvarname:var,
+                'time':time,
+                'datetime':timedt,
+                'time_unit':variable_info['time']['units'],
+                'longitude':lons,
+                'latitude':lats
+                }
     return vardict
 
 def get_nc_dict(**kwargs):
