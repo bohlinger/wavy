@@ -159,7 +159,7 @@ class insitu_class():
             print(e)
             self.error = e
             print("! No insitu_class object initialized !")
-       print('# ----- ')
+        print('# ----- ')
 
     def get_item_parent(self,item,attr):
         ncdict = self.vars['meta']
