@@ -154,12 +154,12 @@ class insitu_class():
             print("Time used for retrieving insitu data:",\
                    round(t1-t0,2),"seconds")
             print(" ")
-            print (" ### insitu_class object initialized ### ")
+            print(" ### insitu_class object initialized ### ")
         except Exception as e:
             print(e)
             self.error = e
-            print ("! No insitu_class object initialized !")
-        print ('# ----- ')
+            print("! No insitu_class object initialized !")
+       print('# ----- ')
 
     def get_item_parent(self,item,attr):
         ncdict = self.vars['meta']

@@ -280,6 +280,8 @@ def get_frost_dict(**kwargs):
     var = df[varalias].values
     timevec = df['time'].values
     timedt = [parse_date(str(d)) for d in timevec]
+    # rm datetime timezone info
+    timedt = [d.replace(tzinfo=None) for d in timedt]
     time = netCDF4.date2num(timedt,variable_info['time']['units'])
     lons = len(var)*[lon]
     lats = len(var)*[lat]
