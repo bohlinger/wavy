@@ -11,11 +11,9 @@ effecient programming are most welcome!
 # standard library imports
 import numpy as np
 from datetime import datetime, timedelta
-import datetime
 import time
 import os
 from dateutil.relativedelta import relativedelta
-from datetime import datetime
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -24,7 +22,6 @@ from wavy.ncmod import get_filevarname
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
-from wavy.utils import flatten
 from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
 from wavy.insitu_readers import insitu_reader
@@ -41,19 +38,23 @@ class insitu_class():
     '''
     Class to handle insitu based time series.
     '''
-    basedate = datetime(1970,1,1)
+    basedate = datetime(1970, 1, 1)
 
-    def __init__(self,nID,sensor,sdate,edate,varalias='Hs',
-    filterData=False,**kwargs):
+    def __init__(self, nID, sdate, edate, varalias='Hs',
+    filterData=False, sensor = None, **kwargs):
         # parse and translate date input
         sdate = parse_date(sdate)
         edate = parse_date(edate)
         print('# ----- ')
         print(" ### Initializing insitu_class object ###")
         print(" ")
-        print ('Chosen period: ' + str(sdate) + ' - ' + str(edate))
+        print('Chosen period: ' + str(sdate) + ' - ' + str(edate))
         stdvarname = variable_info[varalias]['standard_name']
-#        for i in range(1):
+        if sensor == None:
+            sensor = list(insitu_dict[nID]['sensor'].keys())[0]
+            print('Sensor was not chosen')
+            print('Automatic choice:', sensor)
+        # for i in range(1):
         try:
             self.stdvarname = stdvarname
             self.varalias = varalias
@@ -64,11 +65,11 @@ class insitu_class():
             self.sensor = sensor
             self.obstype = 'insitu'
             if ('tags' in insitu_dict[nID].keys() and
-            len(insitu_dict[nID]['tags'])>0):
+            len(insitu_dict[nID]['tags']) > 0):
                 self.tags = insitu_dict[nID]['tags']
             print(" ")
             print(" ## Read files ...")
-            t0=time.time()
+            t0 = time.time()
             if filterData == False:
                 vardict, fifo, pathtofile = \
                     get_insitu_ts(\
@@ -146,7 +147,7 @@ class insitu_class():
                 self.sensor = sensor
             # create label for plotting
             self.label = self.nID + '_' + self.sensor
-            t1=time.time()
+            t1 = time.time()
             print(" ")
             print( '## Summary:')
             print(str(len(self.vars['time'])) + " values retrieved.")
@@ -170,28 +171,28 @@ class insitu_class():
             return lst
         else: return None
 
-    def get_item_child(self,item):
+    def get_item_child(self, item):
         ncdict = self.vars['meta']
-        parent = finditem(ncdict,item)
+        parent = finditem(ncdict, item)
         return parent
 
-    def quicklook(self,a=False,projection=None,**kwargs):
-        m = kwargs.get('m',a)
-        ts = kwargs.get('ts',a)
+    def quicklook(self, a=False, projection=None, **kwargs):
+        m = kwargs.get('m', a)
+        ts = kwargs.get('ts', a)
         if ts is True:
             import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(9,3.5))
+            fig = plt.figure(figsize=(9, 3.5))
             ax = fig.add_subplot(111)
             colors = ['k']
             ax.plot(self.vars['datetime'],
                     self.vars[self.stdvarname],
-                    linestyle='None',color=colors[0],
+                    linestyle='None', color=colors[0],
                     label=self.nID + ' ( ' + self.sensor + ' )',
-                    marker='o',alpha=.5,ms=2)
+                    marker='o', alpha=.5, ms=2)
             plt.ylabel(self.varalias + '[' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()
-            #ax.set_title()
+            # ax.set_title()
             plt.show()
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
@@ -230,7 +231,7 @@ class insitu_class():
                     tmpdate += timedelta(days = +1)
         return
 
-    def write_to_pickle(self,pathtofile=None):
+    def write_to_pickle(self, pathtofile=None):
         import pickle
         # writing
         pickle.dump( self, open( pathtofile, "wb" ) )
@@ -239,10 +240,9 @@ class insitu_class():
         # ico = pickle.load( open( pathtofile, "rb" ) )
 
 
-def get_insitu_ts(nID,sensor,sdate,edate,varalias,basedate,
-dict_for_sub,**kwargs):
+def get_insitu_ts(nID, sensor, sdate, edate, varalias, basedate,
+dict_for_sub, **kwargs):
     # determine fifo
-    #fifo = kwargs.get('fifo', finditem(insitu_dict[nID],'fifo')[0])
     fifo = kwargs.get('fifo', insitu_dict[nID]['fifo'])
     kwargs['fifo'] = fifo
     path_template = insitu_dict[nID]['src']['path_template']
@@ -254,8 +254,8 @@ dict_for_sub,**kwargs):
     if fifo == 'frost':
         pathtofile = 'frost.api.no'
     else:
-        subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
-        pathtofile = get_pathtofile(pathlst,strsublst,subdict,sdate)
+        subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
+        pathtofile = get_pathtofile(pathlst, strsublst, subdict, sdate)
     vardict = insitu_reader(nID = nID,
                             sensor = sensor,
                             sdate = sdate,

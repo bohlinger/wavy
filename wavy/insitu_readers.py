@@ -9,15 +9,13 @@ The main task of this module is to read insitu obs for further use.
 import os
 import numpy as np
 from datetime import datetime, timedelta
-import datetime
-import os
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 import pylab as pl
-from datetime import datetime
 import pandas as pd
 import netCDF4
 import requests
+import dotenv
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -35,6 +33,7 @@ from wavy.wconfig import load_or_default
 # read yaml config files:
 insitu_dict = load_or_default('insitu_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
+variables_frost = load_or_default('variables_frost.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
 # ---------------------------------------------------------------------#
 
@@ -113,6 +112,10 @@ def get_d22_dict(**kwargs):
                 }
     return vardict
 
+def get_typeid(insitu_dict: dict, s: str) -> str:
+    typeid = insitu_dict[s].get('typeids',22)
+    return typeid
+
 def make_frost_reference_time_period(sdate,edate):
     sdate = parse_date(sdate)
     edate = parse_date(edate)
@@ -121,130 +124,168 @@ def make_frost_reference_time_period(sdate,edate):
                             edate.strftime(formatstr))
     return refstr
 
-def call_frost_api_v0(\
-    nID: str, varstr: str,frost_reference_time: str, client_id: str)\
-    -> 'requests.models.Response':
+def call_frost_api(\
+    sdate: datetime, edate: datetime,\
+    nID: str, varstr: str, sensor: str) -> 'requests.models.Response':
     """
-    frost call, retrieve data from frost v0
+    make frost api call
     """
-    ID = 'SN' + str(insitu_dict[nID]['ID'])
-    endpoint = 'https://frost.met.no/observations/v0.jsonld' # v0
-    parameters = {
-                'sources': ID,
-                'elements': varstr,
-                'referencetime': frost_reference_time,
-                'timeoffsets': 'default',
-                'levels': 'default'
-                }
-    return requests.get(endpoint, parameters, auth=(client_id, client_id))
+    print('Make frost api call ...')
+    dotenv.load_dotenv()
+    client_id = os.getenv('CLIENT_ID', None)
+    frost_reference_time = make_frost_reference_time_period(sdate, edate)
+    if client_id is None:
+        print("No Frost CLIENT_ID given!")
+    sensor = insitu_dict[nID]['sensor'][sensor]
+    r = call_frost_api_v1(nID, varstr,
+                          frost_reference_time,
+                          client_id, sensor)
+    print(r.url)
+    print('\nr.status_code:',r.status_code,'\n')
+    if r.status_code != 200:
+        print('Error! Returned status code %s' % r.status_code)
+        error = r.json()['error']
+        for part in ['message','reason','help']:
+            if part in error:
+                print(part.upper(), ': ', error[part])
+    else:
+        return r
 
 def call_frost_api_v1(\
-    nID: str, varstr: str,frost_reference_time: str, client_id: str)\
+        nID: str, varstr: str,frost_reference_time: str, client_id: str, sensor: str)\
     -> 'requests.models.Response':
     """
     frost call, retrieve data from frost v1
     """
     ID = insitu_dict[nID]['ID']
-    #endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/filter/get?'
-    #endpoint = 'https://frost-prod.met.no/api/v1/obs/met.no/kvkafka/get?'
-    #endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/kvkafka/get?'
-    endpoint = 'https://restricted.frost-dev.k8s.met.no/api/v1/obs/met.no/kvkafka/get?'
-    #endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/filter/get?'
+    endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/kvkafka/get?'
     parameters = {
                 'stationids': ID,
                 'elementids': varstr,
                 'time': frost_reference_time,
-                #'timeoffsets': 'default', # handled by filter
                 'levels': 'all',
                 'incobs': 'true',
-                'sensors': '0,1,2,3,4,5',
-                #'typeids': '22,11,510'
+                #'sensors': '0,1,2,3,4,5',
+                'sensors': sensor, # limit to one sensor
                 'typeids': str(get_typeid(insitu_dict,nID))
                 }
+    print('parameters forst api call: ',parameters)
     return requests.get(endpoint, parameters, auth=(client_id, client_id))
 
-def get_frost_df_v0(r: 'requests.models.Response', varalias: str)\
+def find_preferred(idx,sensors,refs,pref):
+    sensorsU = np.unique(sensors)
+    preferred_idx = []
+    for s in sensorsU:
+        no = len(refs[sensors==s])
+        idx_1 = idx[sensors==s]
+        if no > 1:
+            idx_2 = np.where(refs[sensors==s]==pref)
+            idx_3 = idx_1[idx_2]
+            preferred_idx.append(list(idx_3)[0])
+        else:
+            preferred_idx.append(list(idx_1)[0])
+    return preferred_idx
+
+def get_frost_df_v1(r: 'requests.models.Response')\
     -> 'pandas.core.frame.DataFrame':
     """
-    create pandas dataframe from frost call for v0
+    create pandas dataframe from frost call for v1
     """
-    stdvarname = variable_info[varalias]['standard_name']
-    #varstr_lst = list(varstr_dict.keys())
-    varstr_lst = [stdvarname]
-    #alias_lst = [varstr_dict[e] for e in varstr_dict]
-    alias_lst = [varalias]
-    df = pd.json_normalize(r.json()['data'],
-                            ['observations'],
-                            ['referenceTime'])
-    df2 = df['referenceTime'].drop_duplicates().reset_index(drop=True)
-    df2 = df2.to_frame()
-    for v in varstr_lst:
-        dftmp = df.loc[df['elementId'] == v]['value'].reset_index(drop=True).to_frame()
-        #dftmp = dftmp.rename(columns={ dftmp.columns[0]: varstr_dict[v] })
-        df2 = pd.concat([df2, dftmp.reindex(df2.index)], axis=1)
-    # rename referenceTime to time
-    df2 = df2.rename(columns={ 'referenceTime': 'time' })
-    return df2
-
-def get_frost_df_v1(r,nID,sensor,varalias):
+    # empy sensor id lst
     # base df
     df = pd.json_normalize(r.json()['data']['tseries'])
+    # coordinates for statisc station (sensor 0)
+    lon = float(df['header.extra.station.location'][0][0]['value']['longitude'])
+    lat = float(df['header.extra.station.location'][0][0]['value']['latitude'])
     # df to be concatenated initialized with time
+    # select time index, some ts have less than others
+    # choose the one with most values
+    no_of_ts = len(pd.json_normalize(r.json()['data']['tseries'][:]))
+    no_of_ts = min(4,no_of_ts)
+    lenlst = []
+    for t in range(no_of_ts):
+        lenlst.append( len(pd.json_normalize(r.json()\
+                       ['data']['tseries'][t]['observations'])['time'].\
+                              to_frame()) )
+    time_idx = lenlst.index(max(lenlst))
     dfc = pd.json_normalize(r.json()
-      ['data']['tseries'][0]['observations'])['time'].to_frame()
-    stdvarname = variable_info[varalias]['standard_name']
-    sensoridx = insitu_dict[nID]['sensor'][sensor]
-    idx = df['header.extra.element.id']\
-            [df['header.extra.element.id']==stdvarname]\
-            .index.to_list()
-    idxs = df['header.id.sensor']\
-            [df['header.id.sensor']==sensoridx]\
-            .index.to_list()
-    dftmp = pd.json_normalize(r.json()\
-                    ['data']['tseries'][idxs[sensoridx]]['observations'])\
-                    ['body.data'].to_frame()
-    dftmp = dftmp.rename(columns={ dftmp.columns[0]: stdvarname })
-    dftmp[stdvarname] = dftmp[stdvarname].mask(dftmp[stdvarname] < 0, np.nan)
-    dfc = pd.concat([dfc, dftmp.reindex(dfc.index)], axis=1)
-    var = list(dfc[stdvarname].values)
-    timedt = [parse_date(d) for d in dfc['time'].values]
-    timedt = [dt.replace(tzinfo=None) for dt in timedt]
-    time = netCDF4.date2num(timedt,variable_info['time']['units'])
-    sensor = list(insitu_dict[nID]['sensor'].keys())[0]
-    lons = [insitu_dict[nID]['coords'][sensor]['lon']]*len(var)
-    lats = [insitu_dict[nID]['coords'][sensor]['lat']]*len(var)
-    vardict = {
-                stdvarname:var,
-                'time':time,
-                'datetime':timedt,
-                'time_unit':variable_info['time']['units'],
-                'longitude':lons,
-                'latitude':lats
-                }
-    #return dfc
-    return vardict
+      ['data']['tseries'][time_idx]['observations'])['time'].to_frame()
+    dinfo = {'sensor':{},'level':{},'parameterid':{},
+             'geometric height':{},'masl':{}}
+    for vn in variables_frost:
+        frostvar = variables_frost[vn]['frost_name']
+        idx = np.array(df['header.extra.element.id']\
+                [df['header.extra.element.id']==frostvar].index.to_list())
+        sensors = df['header.id.sensor'][idx].values
+        parameterids = df['header.id.parameterid'][idx].values
+        levels = df['header.id.level'][idx].values
+        if len(sensors) != len(np.unique(sensors)):
+            print("-> id.sensor was not unique " \
+                    + "selecting according to variable_def.yaml")
+            print("   affected variable: ", frostvar)
+            # 1. prioritize according to parameterid
+            if len(np.unique(parameterids)) > 1:
+                print('multiple parameterids (',\
+                        len(np.unique(parameterids)),')')
+                print('parameterids:',np.unique(parameterids))
+                idx = find_preferred(\
+                        idx,sensors,parameterids,\
+                        variables_frost[vn]['prime_parameterid'])
+                sensors = df['header.id.sensor'][idx].values
+                parameterids = df['header.id.parameterid'][idx].values
+                levels = df['header.id.level'][idx].values
+            # 2. prioritize according to level
+            if len(np.unique(levels)) > 1:
+                print('multiple levels (',len(np.unique(levels)),')')
+                print('unique(levels):',np.unique(levels))
+                idx = find_preferred(\
+                        idx,sensors,levels,\
+                        variables_frost[vn]['prime_level'])
+                sensors = df['header.id.sensor'][idx].values
+                parameterids = df['header.id.parameterid'][idx].values
+                levels = df['header.id.level'][idx].values
+        for n,i in enumerate(idx):
+            dftmp = pd.json_normalize(r.json()\
+                        ['data']['tseries'][i]['observations'])\
+                        ['body.value'].to_frame()
+            vns = vn
+            #vns = vn + '_'a \
+            #            + str(df['header.id.sensor'][i])
+            dftmp = dftmp.rename(columns={ dftmp.columns[0]: vns }).\
+                            astype(float)
+            dftmp[vns] = dftmp[vns].mask(dftmp[vns] < 0, np.nan)
+            dfc = pd.concat([dfc, dftmp.reindex(dfc.index)], axis=1)
+            # sensor
+            dinfo['sensor'][vns] = sensors[n]
+            # level
+            if levels[n] == 0:
+                dinfo['level'][vns] = variables_frost[vn]['default_level']
+            else:
+                dinfo['level'][vns] = levels[n]
+            # parameterid
+            dinfo['parameterid'][vns] = parameterids[n]
+    return dfc, dinfo, lon, lat
+
 
 def get_frost_dict(**kwargs):
     sdate = kwargs.get('sdate')
     edate = kwargs.get('edate')
     nID = kwargs.get('nID')
-    sensor = kwargs.get('sensor')
     varalias = kwargs.get('varalias')
+    varstr = [variables_frost[varalias]['frost_name']]
     stdvarname = variable_info[varalias]['standard_name']
-    reftp = make_frost_reference_time_period(sdate,edate)
-    #r = call_frost_api_v1(nID,varalias,reftp)
-    client_id = os.getenv('CLIENT_ID', None)
-    r = call_frost_api_v0(nID,stdvarname,reftp,client_id)
-    #vardict = get_frost_df_v1(r,nID,sensor,varalias)
-    df = get_frost_df_v0(r,varalias)
-    print(df.keys())
-    var = df['value'].values
+    sensor = kwargs.get('sensor',0)
+    r = call_frost_api(sdate,edate,nID,varstr,sensor)
+    df, dinfo, lon, lat = get_frost_df_v1(r)
+    var = df[varalias].values
     timevec = df['time'].values
     timedt = [parse_date(str(d)) for d in timevec]
-    #print(timedt,var)
+    time = netCDF4.date2num(timedt,variable_info['time']['units'])
+    lons = len(var)*[lon]
+    lats = len(var)*[lat]
     vardict = {
-                stdvarname:var,
-                'time':time,
+                stdvarname:list(var),
+                'time':list(time),
                 'datetime':timedt,
                 'time_unit':variable_info['time']['units'],
                 'longitude':lons,
