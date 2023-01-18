@@ -57,10 +57,11 @@ class multiins_class(qls):
         # retrieve
         icos = []
         for i,n in enumerate(nIDs):
-            ico = ic( n, sensors[i],
+            ico = ic( n,
                       sdate, edate,
                       varalias = varalias,
                       filterData = filterData,
+                      sensor = sensors[i],
                       **kwargs )
             el = list(vars(ico).keys())
             if 'error' in el:
