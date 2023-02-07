@@ -226,7 +226,8 @@ def apply_distance_to_coast_mask(vardict,**kwargs):
             clst = np.array(
                     [coastline[i]
                     for i in range(len(coastline))
-                    if coastline[i][1] in nlst] )
+                    if coastline[i,2] in nlst] )
+                    #if coastline[i][1] in nlst] )
             coastline = clst
         df = distance_to_shore( pd.DataFrame(vardict['longitude']),
                                 pd.DataFrame(vardict['latitude']),
@@ -247,8 +248,9 @@ def extract_geom_meta(country):
     '''
     geoms = country.geometry
     coords = np.empty(shape=[0, 2])
-    for geom in geoms:
-        coords = np.append(coords, geom.exterior.coords, axis = 0)
+    #for geom in geoms:
+    #    coords = np.append(coords, geom.exterior.coords, axis = 0)
+    coords = np.append(coords, geoms.convex_hull.exterior.coords, axis = 0)
     country_name = country.attributes["ADMIN"]
     return [coords, country_name]
 
@@ -270,13 +272,18 @@ def get_coastline_shape_file(pathtofile=None,**kwargs):
                 wg.append(extract_geom_meta(clst[i]))
             except Exception as e:
                 print(e)
-        coords_countries = np.vstack([[np.array(x[:-1]), x[-1]]
-                                        for x in wg])
+        a = [np.array(x[0]) for x in wg]
+        b = [[x[-1]]*len(x[0]) for x in wg]
+        a1 = np.vstack(a)
+        b1 = np.vstack(flatten(b))
+        coords_countries = np.hstack([a1,b1])
+        #coords_countries = np.vstack([[np.array(x[:-1]), x[-1]]
+        #                               for x in wg])
     else:
-        coastline =np.load(kwargs.get('dtc_npy_file'))
+        coastline = np.load(kwargs.get('dtc_npy_file'))
     if pathtofile is not None:
         #'/home/patrikb/tmp_coast/coast_coords_10m.npy'
-        coastline = np.save(pathtofile,coords_countries)
+        coastline = np.save(pathtofile, coords_countries)
     coastline = coords_countries
     return coastline
 
@@ -291,10 +298,12 @@ def distance_to_shore(lon, lat, coastline):
     Returns:
         numpy array of distances and country names
     '''
-    coastline_coords = np.vstack([np.flip(x[0][0], axis=1)\
-                            for x in coastline])
-    countries = np.hstack([np.repeat(str(x[1]), len(x[0][0]))\
-                            for x in coastline])
+    #coastline_coords = np.vstack([np.flip(x[0][0], axis=1)\
+    #                        for x in coastline])
+    #countries = np.hstack([np.repeat(str(x[1]), len(x[0][0]))\
+    #                        for x in coastline])
+    coastline_coords = np.flip(coastline[:,0:2].astype(float))
+    countries = coastline[:,2]
     tree = BallTree(np.radians(coastline_coords), metric='haversine')
     coords = pd.concat([np.radians(lat), np.radians(lon)], axis=1)
     dist, ind = tree.query(coords, k=1)
