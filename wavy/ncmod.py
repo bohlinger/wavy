@@ -857,7 +857,10 @@ def dumptonc_ts_sat(sco,pathtofile=None,title=None):
         nclat.setncatts(variable_info['lats'])
         # var
         ncvar[:] = var
-        ncvar.setncatts(variable_info[sco.varalias])
+        attsdict = variable_info[sco.varalias]
+        if 'aliases_of_vector_components' in attsdict.keys():
+            del attsdict['aliases_of_vector_components']
+        ncvar.setncatts(attsdict)
         # coordinate system info
         nc_crs = nc.createVariable('latlon',int)
         nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
