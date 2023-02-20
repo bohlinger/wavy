@@ -12,10 +12,10 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 #def test_ftp_files_and_satellite_class_features(tmpdir):
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3(tmpdir):
-    sdate = "2020-1-2 12"
-    edate = "2020-1-2 12"
-    sdate_dt = datetime(2020,1,2,12)
-    edate_dt = datetime(2020,1,2,12)
+    sdate = "2023-2-1 12"
+    edate = "2023-2-1 12"
+    sdate_dt = datetime(2023,2,1,12)
+    edate_dt = datetime(2023,2,1,12)
     twin = 30
     nproc = 1
     mission = 's3a'
@@ -38,10 +38,10 @@ def test_collectors_cmems_L3(tmpdir):
 
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3_s6a(tmpdir):
-    sdate = "2022-4-18 12"
-    edate = "2022-4-18 12"
-    sdate_dt = datetime(2022,4,18,12)
-    edate_dt = datetime(2022,4,18,12)
+    sdate = "2023-2-1 12"
+    edate = "2023-2-1 12"
+    sdate_dt = datetime(2023,2,1,12)
+    edate_dt = datetime(2023,2,1,12)
     twin = 30
     nproc = 1
     mission = 's6a'

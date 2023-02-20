@@ -258,11 +258,11 @@ def sort_cmems_l3_s6a(dirpath: str, filelst: list, sat: str):
     Sort L3 s6a files according to year and month.
     '''
     for e in filelst:
-        if os.path.isfile(os.path.join(dirpath,e)):
+        if os.path.isfile(os.path.join(dirpath, e)):
             tmp = 'global_vavh_l3_rt_' + sat + '_lr_'
-            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
-            folder = os.path.join(dirpath,year,month)
-            os.makedirs(folder,exist_ok=True)
+            year, month = e[len(tmp):len(tmp)+4], e[len(tmp)+4:len(tmp)+6]
+            folder = os.path.join(dirpath, year, month)
+            os.makedirs(folder, exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
