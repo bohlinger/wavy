@@ -1,0 +1,38 @@
+# variable definition:
+# translates wavy varaliases to frost variable name (element_id)
+# prime* represents the preffered choice, 0 = default
+
+Hs:
+        frost_name: sea_surface_wave_significant_height
+        prime_parameterid: 136
+        prime_level: 0
+        default_level: 0
+Tm02:
+        frost_name: sea_surface_wave_mean_period
+        prime_parameterid: 154
+        # 160 had deprecated elementid name:
+        #  sea_surface_wave_significant_height_from_spectrum_from_radar
+        # 154 had deprecated elementid name:
+        #  sea_surface_wave_period_from_instrument
+        prime_level: 0
+        default_level: 0
+Tp:
+        frost_name: sea_surface_wave_period_at_variance_spectral_density_maximum
+        prime_parameterid: 157
+        prime_level: 0
+        default_level: 0
+Pdir:
+        frost_name: sea_surface_primary_wave_from_direction
+        prime_parameterid: 163
+        prime_level: 0
+        default_level: 0
+U:
+        frost_name: wind_speed
+        prime_parameterid: 81
+        prime_level: 0
+        default_level: 10
+Udir:
+        frost_name: wind_from_direction
+        prime_parameterid: 61
+        prime_level: 0
+        default_level: -1
