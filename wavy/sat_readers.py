@@ -166,6 +166,7 @@ def read_local_ncfiles(**kwargs):
     # add coords to vardict
     # 1. retrieve list of coordinates
     coords_lst = list(var_sliced.coords.keys())
+    print(coords_lst)
     # 2. iterate over coords_lst
     for varname in coords_lst:
         stdcoordname = ds_sliced[varname].attrs['standard_name']
@@ -181,6 +182,71 @@ def read_local_ncfiles(**kwargs):
         else:
             vardict[stdcoordname] = list(ds_sliced[varname].values)
     return vardict
+
+def read_local_20Hz_files(**kwargs):
+    """
+    Wrapping function to read satellite netcdf files.
+
+    param:
+        pathlst - list of paths to be parsed
+        product - product as specified in satellite_specs.yaml
+        varalias
+        sd - start date (datetime object)
+        ed - start date (datetime object)
+        twin - time window (temporal constraint) in minutes
+
+    return:
+        dictionary of variables for the satellite_class object
+    """
+    pathlst = kwargs.get('pathlst')
+    product = kwargs.get('product')
+    varalias = kwargs.get('varalias')
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    twin = kwargs.get('twin')
+
+    # establish coords if defined in config file
+    timestr = satellite_dict[product]['vardef']['time']
+    lonstr = satellite_dict[product]['vardef']['lons']
+    latstr = satellite_dict[product]['vardef']['lats']
+
+    # adjust start and end
+    sdate = sdate - timedelta(minutes=twin)
+    edate = edate + timedelta(minutes=twin)
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname(varalias, variable_info,
+                            satellite_dict[product], ncmeta)
+    # retrieve sliced data
+    ds = read_netcdfs(pathlst)
+    ds_sort = ds.sortby(timestr)
+
+    # get indices for included time period
+    nptime = ds_sort[timestr].data
+    print('here0')
+    dtime = [parse_date(str(nptime[i])) for i in range(len(nptime))]
+    print('here1')
+    idx = find_included_times(dtime, sdate=sdate, edate=edate)
+    print('here2')
+
+    dtime = list(np.array(dtime)[idx])
+    lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
+    lats = list(ds_sort[latstr].data[idx])
+
+    unxt = (nptime[idx].astype(int) / 10**9)
+
+    # make dict and start with stdvarname for varalias
+    stdvarname = variable_info[varalias]['standard_name']
+    vardict = {}
+    vardict[stdvarname] = list(ds_sort[ncvar].data[idx])
+    vardict['longitude'] = lons
+    vardict['latitude'] = lats
+    vardict['time'] = unxt
+    vardict['datetime'] = dtime
+    vardict['time_unit'] = variable_info['time']['units']
+    print(vardict.keys())
+    return vardict
+
 
 def read_local_ncfiles_swim(**kwargs):
     """
@@ -256,8 +322,15 @@ def read_local_files(**kwargs) -> dict:
                 'cci_L2P':read_local_ncfiles,
                 'cci_L3':read_local_ncfiles,
                 'eumetsat_L2':read_local_files_eumetsat,
-                'cfo_swim_L2P':read_local_ncfiles_swim
+                'cfo_swim_L2P':read_local_ncfiles_swim,
+                'L2_20Hz_s3a':read_local_20Hz_files
                 }
     product = kwargs.get('product')
+    # check if product available in dispatcher
+    if product in dispatch_reader.keys():
+        pass
+    else:
+        product = 'cmems_L3_NRT'
+
     vardict = dispatch_reader[product](**kwargs)
     return vardict

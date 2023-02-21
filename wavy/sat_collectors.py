@@ -76,6 +76,10 @@ def get_remote_files_cmems(**kwargs):
     mission = kwargs.get('mission','s3a')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
+    # check if search str template
+    file_search_template = \
+        satellite_dict[product]['src'].get('file_search_template',\
+                                            '%Y%m%dT%H')
     # credentials
     server = satellite_dict[product]['src']['server']
     user, pw = get_credentials(remoteHostName = server)
@@ -121,7 +125,7 @@ def get_remote_files_cmems(**kwargs):
         tmpdate_end = edate+timedelta(minutes=twin)
         while (tmpdate_new <= tmpdate_end):
             matchingtmp = [s for s in content
-                            if tmpdate_new.strftime('%Y%m%dT%H')
+                            if tmpdate_new.strftime(file_search_template)
                             in s ]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
@@ -424,4 +428,10 @@ def get_remote_files(**kwargs):
                 'cci_L3':get_remote_files_cci,
                 }
     product = kwargs.get('product')
+    # check if product available in dispatcher
+    if product in dispatch_collector.keys():
+        pass
+    else:
+        product = 'cmems_L3_NRT'
+
     dispatch_collector[product](**kwargs)

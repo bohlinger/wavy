@@ -183,6 +183,7 @@ varalias,poi,distlim,**kwargs):
     if (product == 'cmems_L3_NRT' 
     or product == 'cmems_L3_MY' 
     or product == 'cmems_L3_s6a'
+    or product == 'L2_20Hz_s3a'
     or product == 'cfo_swim_L2P'):
         ncdict = ncdumpMeta(pathlst[0])
     elif (product == 'cci_L2P' or product == 'cci_L3'):
@@ -331,8 +332,8 @@ class satellite_class(qls,wc):
         print(" ")
         print(" ## Read files ...")
         if len(pathlst) > 0:
-#            for i in range(1):
-            try:
+            for i in range(1):
+#            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -379,9 +380,10 @@ class satellite_class(qls,wc):
                     # rm NaNs
                     rvardict = rm_nan_from_vardict(newvaralias,rvardict)
                 # find variable name as defined in file
-                if (product == 'cmems_L3_NRT' or 
-                    product == 'cmems_L3_MY' or 
+                if (product == 'cmems_L3_NRT' or
+                    product == 'cmems_L3_MY' or
                     product == 'cmems_L3_s6a' or
+                    product == 'L2_20Hz_s3a' or
                     product == 'cfo_swim_L2P'):
                     ncdict = ncdumpMeta(pathlst[0])
                 elif (product == 'cci_L2P' or product == 'cci_L3'):
@@ -419,10 +421,10 @@ class satellite_class(qls,wc):
                 print(" ")
                 print (" ### Satellite object initialized ###")
                 print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
+#            except Exception as e:
+#                print(e)
+#                print('Error encountered')
+#                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')
