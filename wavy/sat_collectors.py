@@ -21,6 +21,7 @@ from joblib import Parallel, delayed
 # own imports
 from wavy.utils import sort_files
 from wavy.utils import make_pathtofile, make_subdict
+from wavy.utils import date_dispatcher
 from wavy.credentials import get_credentials
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
@@ -146,8 +147,10 @@ def get_remote_files_cmems(**kwargs):
                         ) for i in range(len(matching))
                         )
         # update time
-        tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
-                            (tmpdate + relativedelta(months=+1)).month,1)
+        #tmpdate = datetime((tmpdate + relativedelta(months=+1)).year,
+        #                    (tmpdate + relativedelta(months=+1)).month,1)
+        date_incr = satellite_dict[product]['src'].get('date_incr', 'm')
+        tmpdate = date_dispatcher(tmpdate, date_incr=date_incr)
     if filesort is True:
         # sort files
         print("Data is being sorted into subdirectories " \
@@ -419,13 +422,13 @@ def get_remote_files(**kwargs):
     as well as L2P from aviso+ for cfosat swim data.
     '''
     dispatch_collector = {
-                'cmems_L3_NRT':get_remote_files_cmems,
-                'cmems_L3_s6a':get_remote_files_cmems,
-                'cmems_L3_MY':get_remote_files_cmems,
-                'cfo_swim_L2P':get_remote_files_aviso,
-                'eumetsat_L2':get_remote_files_eumetsat,
-                'cci_L2P':get_remote_files_cci,
-                'cci_L3':get_remote_files_cci,
+                'cmems_L3_NRT': get_remote_files_cmems,
+                'cmems_L3_s6a': get_remote_files_cmems,
+                'cmems_L3_MY': get_remote_files_cmems,
+                'cfo_swim_L2P': get_remote_files_aviso,
+                'eumetsat_L2': get_remote_files_eumetsat,
+                'cci_L2P': get_remote_files_cci,
+                'cci_L3': get_remote_files_cci,
                 }
     product = kwargs.get('product')
     # check if product available in dispatcher

@@ -22,7 +22,8 @@ from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs, read_netcdfs_zipped_lru
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
-from wavy.utils import parse_date, find_included_times, calc_deep_water_T
+from wavy.utils import parse_date, calc_deep_water_T
+from wavy.utils import find_included_times, find_included_times_pd
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -224,12 +225,17 @@ def read_local_20Hz_files(**kwargs):
     # get indices for included time period
     nptime = ds_sort[timestr].data
     print('here0')
-    dtime = [parse_date(str(nptime[i])) for i in range(len(nptime))]
+    print(len(nptime))
+    #dtime = [parse_date(str(nptime[i])) for i in range(len(nptime))]
     print('here1')
-    idx = find_included_times(dtime, sdate=sdate, edate=edate)
+    #idx = find_included_times_pd(dtime, sdate=sdate, edate=edate)
+    idx = find_included_times_pd(nptime, sdate=sdate, edate=edate)
+    print(len(nptime[idx]))
     print('here2')
-
-    dtime = list(np.array(dtime)[idx])
+    dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
+    print(dtime)
+    print('here3')
+    #dtime = list(np.array(dtime)[idx])
     lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
     lats = list(ds_sort[latstr].data[idx])
 

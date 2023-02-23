@@ -49,8 +49,8 @@ variable_info = load_or_default('variable_info.yaml')
 
 # --- global functions ------------------------------------------------#
 
-def get_local_files(sdate,edate,twin,product,dict_for_sub=None,
-path_local=None):
+def get_local_files(sdate,edate,twin,product,
+                    dict_for_sub=None,path_local=None):
     """
     Function to retrieve list of files/paths for available
     locally stored satellite data. This list is used for
@@ -332,8 +332,8 @@ class satellite_class(qls,wc):
         print(" ")
         print(" ## Read files ...")
         if len(pathlst) > 0:
-            for i in range(1):
-#            try:
+#            for i in range(1):
+            try:
                 if filterData == True:
                     # extend time period due to filter
                     if 'stwin' not in kwargs.keys():
@@ -421,10 +421,10 @@ class satellite_class(qls,wc):
                 print(" ")
                 print (" ### Satellite object initialized ###")
                 print ('# ----- ')
-#            except Exception as e:
-#                print(e)
-#                print('Error encountered')
-#                print('No satellite_class object initialized')
+            except Exception as e:
+                print(e)
+                print('Error encountered')
+                print('No satellite_class object initialized')
         else:
             print('No satellite data found')
             print('No satellite_class object initialized')

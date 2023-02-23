@@ -4,6 +4,7 @@ utility fcts for the verification
 import numpy as np
 import netCDF4
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from math import radians, cos, sin, asin, sqrt, floor
 import sys
 import subprocess
@@ -333,7 +334,7 @@ def get_size(obj, seen=None):
     return size
 
 def find_included_times_pd(unfiltered_t: list,
-                           sdate:datetime, edate: datetime) -> list:
+                           sdate: datetime, edate: datetime) -> list:
     import pandas as pd
     idx = np.array(range(len(unfiltered_t)))
     df = pd.to_datetime(unfiltered_t)
@@ -612,3 +613,31 @@ def expand_nID_for_sensors(nID,obstype):
     obsdict = get_obsdict(obstype)
     sensors = list(obsdict[nID]['sensor'])
     return sensors
+
+def date_dispatcher(date, date_incr='d'):
+    dispatch_date = {
+                'h': date_next_hour,
+                'd': date_next_day,
+                'm': date_next_month,
+                'y': date_next_year
+                }
+    return dispatch_date[date_incr](date)
+
+def date_next_hour(date):
+    date += timedelta(hours=1)
+    return date
+
+def date_next_day(date):
+    date += timedelta(days=1)
+    return date
+
+def date_next_month(date):
+    return datetime( (date + relativedelta(months=+1)).year,\
+                     (date + relativedelta(months=+1)).month,\
+                    1)
+
+def date_next_year(date):
+    return datetime( (date + relativedelta(years=+1)).year,\
+                     (date + relativedelta(years=+1)).month,\
+                    1)
+

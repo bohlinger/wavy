@@ -169,16 +169,19 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
     time_lst = []
     dtimes = []
     switch = 0
-    for d in tqdm(range(len(fc_date))):
+    for i, d in enumerate(tqdm(fc_date)):
+#    for d in tqdm(range(len(fc_date))):
+#    for d in range(len(fc_date)):
 #        for t in range(1):
         with NoStdStreams():
             check = False
             check = check_if_file_is_valid(
-                    fc_date[d],model,leadtime,max_lt=max_lt)
-            if check == True:
+                    d, model, leadtime, max_lt=max_lt)
+                    #fc_date[d],model,leadtime,max_lt=max_lt)
+            if check is True:
                 # retrieve model
                 fname = make_model_filename_wrapper(
-                            model,fc_date[d],leadtime)
+                            model, d, leadtime)
                 # get hold of variable names (done only once)
                 if switch == 0:
                     meta = ncdumpMeta(fname)
@@ -199,12 +202,15 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                         Mlons,Mlats = np.meshgrid(mlons,mlats)
                     else: Mlons,Mlats = mlons,mlats
                     switch = 1
-                plon = [indict['longitude'][d]]
-                plat = [indict['latitude'][d]]
+                #plon = [indict['longitude'][d]]
+                #plat = [indict['latitude'][d]]
+                plon = [indict['longitude'][i]]
+                plat = [indict['latitude'][i]]
                 index_array_2d, distance_array, _ = \
                         collocation_fct(plon,plat,Mlons,Mlats)
                 dst = xr.open_dataset(fname)[timename].values
-                tidx = list(dst).index(np.datetime64(fc_date[d]))
+                #tidx = list(dst).index(np.datetime64(fc_date[d]))
+                tidx = list(dst).index(np.datetime64(d))
                 # impose distlim
                 if distance_array[0]< distlim*1000:
                     idx_x = index_array_2d[0][0]
@@ -214,14 +220,25 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                     vals = xr.open_dataset(fname)[filevarname]\
                                         [tidx,idx_x,idx_y].values
                     model_vals.append(vals.item())
-                    obs_vals.append(indict['obs'][d])
-                    obs_lons.append(indict['longitude'][d])
-                    obs_lats.append(indict['latitude'][d])
+                    #obs_vals.append(indict['obs'][d])
+                    obs_vals.append(indict['obs'][i])
+                    #obs_lons.append(indict['longitude'][d])
+                    obs_lons.append(indict['longitude'][i])
+                    #obs_lats.append(indict['latitude'][d])
+                    obs_lats.append(indict['latitude'][i])
                     collocation_idx_x.append(idx_x)
                     collocation_idx_y.append(idx_y)
                     distance.append(distance_array[0])
-                    time_lst.append(time[d])
+                    #time_lst.append(time[d])
+                    time_lst.append(time[i])
+                    """
+                    append fc_date as use of poi_dtimes like:
                     dtimes.append(poi_dtimes[d])
+                    might not be correct of a time step cannot 
+                    be collocated.
+                    """
+                    #dtimes.append(fc_date[d])
+                    dtimes.append(d)
     results_dict = {
             'valid_date':dtimes,
                 'time':time_lst,
@@ -800,7 +817,7 @@ class collocation_class():
             else:
                 ax.plot(self.vars['datetime'],self.vars['obs_values'],
                     linestyle='None',color=colors[0],
-                    label='obs (' + self.mission + ')',
+                    label='obs (' + self.obsname + ')',
                     marker='o',alpha=.5,ms=2)
             ax.plot(self.vars['datetime'],self.vars['model_values'],
                     linestyle='None',color=colors[1],
