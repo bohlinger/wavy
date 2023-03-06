@@ -854,6 +854,11 @@ class collocation_class():
                     label='obs (' + self.mission + ')',
                     marker='o',alpha=.5,ms=2)
                 plt.xlabel('obs ( ' + self.mission + ' )')
+            elif self.obstype == 'POI':
+                ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                    linestyle='None',color=colors[0],
+                    marker='o',alpha=.5,ms=2)
+                plt.xlabel('obs ( ' + self.obstype + ' )')
             else:
                 ax.plot(self.vars['obs_values'],self.vars['model_values'],
                 linestyle='None',color=colors[0],
