@@ -48,9 +48,9 @@ insitu_dict = load_or_default('insitu_specs.yaml')
 collocation_dict = load_or_default('collocation_specs.yaml')
 variable_info = load_or_default('variable_info.yaml')
 
-def collocation_fct(obs_lons,obs_lats,model_lons,model_lats):
-    grid = pyresample.geometry.GridDefinition(\
-                                lats=model_lats, \
+def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
+    grid = pyresample.geometry.GridDefinition(
+                                lats=model_lats,
                                 lons=model_lons)
     # Define some sample points
     swath = pyresample.geometry.SwathDefinition(lons=obs_lons,
@@ -58,16 +58,16 @@ def collocation_fct(obs_lons,obs_lats,model_lons,model_lats):
     # Determine nearest (great circle distance) neighbour in the grid.
     valid_input_index, valid_output_index, index_array, distance_array = \
                             pyresample.kd_tree.get_neighbour_info(
-                            source_geo_def=grid,
-                            target_geo_def=swath,
-                            radius_of_influence=1000000000,
-                            neighbours=1)
+                                source_geo_def=grid,
+                                target_geo_def=swath,
+                                radius_of_influence=1000000000,
+                                neighbours=1)
     # get_neighbour_info() returns indices in the
     # flattened lat/lon grid. Compute the 2D grid indices:
     index_array_2d = np.unravel_index(index_array, grid.shape)
-    return  index_array_2d, distance_array, valid_output_index
+    return index_array_2d, distance_array, valid_output_index
 
-def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
+def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     '''
     Finds valid dates that are close to desired dates at a precision
     of complete hours
@@ -75,41 +75,48 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates,model,leadtime):
     if (leadtime is None or leadtime == 'best'):
         fc_dates_new = [hour_rounder(d) for d in fc_dates]
     else:
-        fc_dates_new = [hour_rounder(d) for d in fc_dates \
-                    if get_model_filedate(model,d,leadtime) != False]
+        fc_dates_new = [hour_rounder(d) for d in fc_dates
+                    if get_model_filedate(model, d, leadtime) != False]
     return fc_dates_new
 
-def check_if_file_is_valid(fc_date,model,leadtime,max_lt=None):
-    fname = make_model_filename_wrapper(\
-                model,fc_date,leadtime,max_lt=max_lt)
-    print('Check if requested file:\n',fname,'\nis available and valid')
+def check_if_file_is_valid(fc_date, model, leadtime, max_lt=None):
+    fname = make_model_filename_wrapper(
+                model, fc_date, leadtime,max_lt=max_lt)
+    print('Check if requested file:\n', fname, '\nis available and valid')
     try:
-        nc = netCDF4.Dataset(fname,mode='r')
+        nc = netCDF4.Dataset(fname, mode='r')
         time = nc.variables['time']
-        dt = netCDF4.num2date(time[:],time.units)
+        dt = netCDF4.num2date(time[:], time.units)
         if fc_date in list(dt):
             print('File is available and contains requested date')
             return True
         else:
-            print('Desired date ' + str(fc_date) +  ' is not in', fname)
+            print('Desired date ' + str(fc_date) + ' is not in', fname)
             return False
     except (FileNotFoundError, OSError) as e:
         print('File is not available or does not contain requested date')
         print(e)
         return False
 
-def get_closest_date(overdetermined_lst,target_lst):
+def get_closest_date(overdetermined_lst, target_lst):
     idx = []
     for i in range(len(target_lst)):
-        diffs=np.abs( [ ( target_lst[i]
+        diffs = np.abs( [ ( target_lst[i]
                         - overdetermined_lst[j] ).total_seconds()
                         for j in range(len(overdetermined_lst)) ] )
-        mindiff= np.min(diffs)
+        mindiff = np.min(diffs)
         idx.append(list(diffs).index(mindiff))
     return idx
 
-def collocate_poi_ts(indict,model=None,distlim=None,\
-    leadtime=None,date_incr=None,varalias=None,twin=None,\
+def adjust_dict_for_idx(indict, idx, excl_keys_lst):
+    outdict = deepcopy(indict)
+    for k in indict.keys():
+        if k not in excl_keys_lst:
+            outdict[k] = np.array(indict[k])[idx]
+    return outdict
+
+def collocate_poi_ts(indict, model=None, distlim=None,\
+    leadtime=None, date_incr=None, varalias=None, twin=None,\
     max_lt=None):
     """
     indict: mandatory - lons, lats, time, values
@@ -117,7 +124,7 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
     """
     print("run: collocate_poi_ts")
     # get stdvarname
-    stdvarname = variable_info[varalias]['standard_name']
+    # stdvarname = variable_info[varalias]['standard_name']
     # datetime or str
     if isinstance(indict['time'][0],str):
         poi_dtimes = [ parse_date(t) for t in indict['time'] ]
@@ -139,20 +146,27 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                     fc_date)
         idx1 = list(np.array(idx1)[idx_closest])
     # adjust obs_obj according to valid dates
-    for key in indict.keys():
-        if (key != 'time_unit' and key !='meta' and key!='nID'):
-            indict[key] = list(np.array(indict[key])[idx1])
-    poi_dtimes = list(np.array(poi_dtimes)[idx1])
+    indict = adjust_dict_for_idx(indict, idx1, ['time_unit', 'meta', 'nID'])
+    poi_dtimes = indict['time']
+    # HERE
     del idx1
     # find valid dates for given leadtime and model
     fc_date = find_valid_fc_dates_for_model_and_leadtime(\
-                                    fc_date,model,leadtime)
+                                    fc_date, model, leadtime)
     # adjust fc_date according to obs date
     idx2 = collocate_times( unfiltered_t = fc_date,
                                 target_t = poi_dtimes,
                                 twin = twin )
     fc_date = list(np.array(fc_date)[idx2])
     del idx2
+    # double check dates for poi based on cleaned cf_date
+    idx_closest = get_closest_date(\
+                  poi_dtimes,\
+                  fc_date)
+    indict = adjust_dict_for_idx(indict, idx_closest,
+                                ['time_unit', 'meta', 'nID'])
+    poi_dtimes = indict['time']
+    del idx_closest
     # compute time based on time unit from variable definition
     time_unit = variable_info['time']['units']
     time = netCDF4.date2num(poi_dtimes,time_unit)
@@ -177,7 +191,6 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
             check = False
             check = check_if_file_is_valid(
                     d, model, leadtime, max_lt=max_lt)
-                    #fc_date[d],model,leadtime,max_lt=max_lt)
             if check is True:
                 # retrieve model
                 fname = make_model_filename_wrapper(
@@ -202,14 +215,11 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                         Mlons,Mlats = np.meshgrid(mlons,mlats)
                     else: Mlons,Mlats = mlons,mlats
                     switch = 1
-                #plon = [indict['longitude'][d]]
-                #plat = [indict['latitude'][d]]
                 plon = [indict['longitude'][i]]
                 plat = [indict['latitude'][i]]
                 index_array_2d, distance_array, _ = \
                         collocation_fct(plon,plat,Mlons,Mlats)
                 dst = xr.open_dataset(fname)[timename].values
-                #tidx = list(dst).index(np.datetime64(fc_date[d]))
                 tidx = list(dst).index(np.datetime64(d))
                 # impose distlim
                 if distance_array[0]< distlim*1000:
@@ -220,16 +230,12 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                     vals = xr.open_dataset(fname)[filevarname]\
                                         [tidx,idx_x,idx_y].values
                     model_vals.append(vals.item())
-                    #obs_vals.append(indict['obs'][d])
                     obs_vals.append(indict['obs'][i])
-                    #obs_lons.append(indict['longitude'][d])
                     obs_lons.append(indict['longitude'][i])
-                    #obs_lats.append(indict['latitude'][d])
                     obs_lats.append(indict['latitude'][i])
                     collocation_idx_x.append(idx_x)
                     collocation_idx_y.append(idx_y)
                     distance.append(distance_array[0])
-                    #time_lst.append(time[d])
                     time_lst.append(time[i])
                     """
                     append fc_date as use of poi_dtimes like:
@@ -237,7 +243,6 @@ def collocate_poi_ts(indict,model=None,distlim=None,\
                     might not be correct of a time step cannot 
                     be collocated.
                     """
-                    #dtimes.append(fc_date[d])
                     dtimes.append(d)
     results_dict = {
             'valid_date':dtimes,
