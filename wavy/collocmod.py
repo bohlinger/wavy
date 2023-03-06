@@ -769,8 +769,8 @@ class collocation_class():
                     cmap = cmocean.cm.amp
             else:
                 cmap = kwargs.get('cmap')
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
+            lonmax,lonmin = np.nanmax(lons),np.nanmin(lons)
+            latmax,latmin = np.nanmax(lats),np.nanmin(lats)
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
             ax.set_extent(  [lonmin, lonmax,latmin, latmax],
@@ -875,8 +875,8 @@ class collocation_class():
                 plt.xlim([0,360])
                 plt.ylim([0,360])
             else:
-                maxv = np.max([self.vars['model_values'],
-                               self.vars['obs_values']])
+                maxv = np.nanmax([self.vars['model_values'],
+                                  self.vars['obs_values']])
                 minv = 0
                 plt.xlim([minv,maxv+0.15*maxv])
                 plt.ylim([minv,maxv+0.15*maxv])
