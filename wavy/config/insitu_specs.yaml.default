@@ -149,7 +149,7 @@ ekofiskL: # object nID (nameID)
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
         vardef:
-    tags: ['oilrig','arcmfc']
+    tags: ['arcmfc']
     fifo: d22 # file format: fifo
     ID: 76920
 
@@ -894,7 +894,7 @@ veslefrikka:
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
-    tags: ['oilrig']
+    tags: ['']
     fifo: d22 # file format: fifo
 
 veslefrikkb:
@@ -930,7 +930,7 @@ veslefrikkb:
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
-    tags: ['oilrig']
+    tags: ['']
     fifo: d22 # file format: fifo
 
 visund:
