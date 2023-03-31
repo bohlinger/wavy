@@ -355,6 +355,7 @@ gullfaksc: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76923
 
 heidrun: # object nID (nameID)
     sensor:

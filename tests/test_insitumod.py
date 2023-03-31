@@ -36,3 +36,12 @@ def test_to_nc(tmpdir):
     sensor = 'wavescan'
     ico = ic(nID,sd,ed,varalias=varalias,stwin=1,date_incr=1,sensor=sensor)
     ico.write_to_nc(pathtofile=tmpdir.join('test.nc'))
+
+def test_from_frost_v1(test_data):
+    nID = 'gullfaksc'
+    sensor = None
+    ico = ic(nID,sd,ed,varalias=varalias,sensor=sensor,fifo='frost')
+    assert ico.__class__.__name__ == 'insitu_class'
+    assert len(vars(ico).keys()) >= 10
+    assert len(ico.vars.keys()) >= 6
+    assert not 'error' in vars(ico).keys()
