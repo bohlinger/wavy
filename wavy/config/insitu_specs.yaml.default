@@ -28,6 +28,7 @@ asgardb: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76958
 
 aastahansteen: # object nID (nameID)
     sensor:
@@ -54,6 +55,7 @@ aastahansteen: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 77040
 
 brage: # object nID (nameID)
     sensor:
@@ -80,6 +82,7 @@ brage: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76959
 
 draugen: # object nID (nameID)
     sensor:
@@ -111,6 +114,7 @@ draugen: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76925
 
 ekofiskL: # object nID (nameID)
     sensor:
@@ -145,8 +149,9 @@ ekofiskL: # object nID (nameID)
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
         vardef:
-    tags: ['oilrig','arcmfc']
+    tags: ['arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76920
 
 gjoa: # object nID (nameID)
     sensor:
@@ -173,6 +178,7 @@ gjoa: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76954
 
 goliat: # object nID (nameID)
     sensor:
@@ -199,6 +205,7 @@ goliat: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76956
 
 grane: # object nID (nameID)
     sensor:
@@ -225,6 +232,7 @@ grane: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76960
 
 gudrun: # object nID (nameID)
     sensor:
@@ -251,8 +259,9 @@ gudrun: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 77041
 
-oseberg: # object nID (nameID)
+oseberga: # object nID (nameID)
     sensor:
         MKIIIradar: 0
     manufacturer:
@@ -277,6 +286,7 @@ oseberg: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76927
 
 osebergc: # object nID (nameID)
     sensor:
@@ -303,6 +313,7 @@ osebergc: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76965
 
 osebergsyd: # object nID (nameID)
     sensor:
@@ -329,6 +340,7 @@ osebergsyd: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76967
 
 gullfaksc: # object nID (nameID)
     sensor:
@@ -387,6 +399,7 @@ heidrun: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76928
 
 heimdal: # object nID (nameID)
     sensor:
@@ -413,6 +426,7 @@ heimdal: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76932
 
 kvitebjorn: # object nID (nameID)
     sensor:
@@ -439,6 +453,7 @@ kvitebjorn: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76969
 
 kristin: # object nID (nameID)
     sensor:
@@ -470,6 +485,7 @@ kristin: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76963
 
 #huldra: # missing variables
     #sensor:
@@ -507,6 +523,7 @@ njorda: # 2004-2016
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76964
 
 norne: # object nID (nameID)
     sensor:
@@ -533,6 +550,7 @@ norne: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76930
 
 ormenlange: # object nID (nameID)
     sensor:
@@ -559,6 +577,7 @@ ormenlange: # object nID (nameID)
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76933
 
 snorrea: # object nID (nameID)
     sensor:
@@ -585,6 +604,7 @@ snorrea: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76935
 
 snorreb: # object nID (nameID)
     sensor:
@@ -612,8 +632,9 @@ snorreb: # object nID (nameID)
         #sea_surface_wave_significant_height: Hs_10min
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76936
 
-sleipner: # object nID (nameID)
+sleipnera: # object nID (nameID)
     sensor:
         MKIIIradar: 0
         NA_1: 1
@@ -643,6 +664,7 @@ sleipner: # object nID (nameID)
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76926
 
 #sleipnerb: # missing variables
 #    sensor:
@@ -680,6 +702,7 @@ stafjorda: # etsablished typo -> should be statfjorda
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76922
 
 statfjordb:
     sensor:
@@ -706,6 +729,7 @@ statfjordb:
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76934
 
 trolla:
     sensor:
@@ -732,6 +756,7 @@ trolla:
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76931
 
 trollb:
     sensor:
@@ -758,6 +783,7 @@ trollb:
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76957
 
 ula:
     sensor:
@@ -784,6 +810,7 @@ ula:
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76938
 
 valhall:
     sensor:
@@ -815,6 +842,34 @@ valhall:
     vardef:
     tags: ['oilrig']
     fifo: d22 # file format: fifo
+    ID: 76939
+
+veslefrikk:
+    sensor:
+        NA_1: 1
+    manufacturer:
+        NA_1: NA
+    coords:
+        NA_1:
+            lat: 60.78
+            lon: 2.89
+    operator: Equinor_Energy
+    twin:
+    src: # source
+        path_template: ["/lustre/storeB/immutable/archive/projects/\
+                        metproduction/DNMI_OFFSHORE/nID/d22/%Y/",
+                        "/fogdata/nID/d22/",\
+                        "/vol/gorgon/offshore/nID/d22/"]
+        file_template: '%Y%m%d.d22'
+        strsub: ['nID']
+    dst: # destination
+        path_template: []
+        file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
+        strsub: ['varalias','nID','sensor']
+    vardef:
+    tags: ['oilrig']
+    fifo: d22 # file format: fifo
+    ID: 76995
 
 veslefrikka:
     sensor:
@@ -839,7 +894,7 @@ veslefrikka:
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
-    tags: ['oilrig']
+    tags: ['']
     fifo: d22 # file format: fifo
 
 veslefrikkb:
@@ -875,7 +930,7 @@ veslefrikkb:
         file_template: 'varalias_10min_nID_sensor_%Y%m.nc'
         strsub: ['varalias','nID','sensor']
     vardef:
-    tags: ['oilrig']
+    tags: ['']
     fifo: d22 # file format: fifo
 
 visund:
@@ -903,6 +958,7 @@ visund:
     vardef:
     tags: ['oilrig','arcmfc']
     fifo: d22 # file format: fifo
+    ID: 76968
 
 # ekofisk 1997-2014
 # petrojarlknarr (fra 2015)
