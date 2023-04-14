@@ -389,6 +389,101 @@ def get_nc_dict(**kwargs):
             convention_set = True
     return vardict
 
+def get_multidim_nc_dict(**kwargs):
+    sdate = kwargs.get('sdate')
+    edate = kwargs.get('edate')
+    nID = kwargs.get('nID')
+    varalias = kwargs.get('varalias')
+    pathlst = kwargs.get('pathlst')
+    strsublst = kwargs.get('strsublst')
+    dict_for_sub = kwargs.get('dict_for_sub')
+    # loop from sdate to edate with dateincr
+    stdvarname = variable_info[varalias]['standard_name']
+    tmpdate = deepcopy(sdate)
+    varlst = []
+    lonlst = []
+    latlst = []
+    timelst = []
+    dtimelst = []
+    # make subdict
+    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
+    while datetime(tmpdate.year,tmpdate.month,1)\
+    <= datetime(edate.year,edate.month,1):
+        # get pathtofile
+        pathtofile = get_pathtofile(pathlst,strsublst,\
+                                        subdict,tmpdate)
+        # get ncdump
+        ncdict = ncdumpMeta(pathtofile)
+        #vardict = read_multidim_netcdfs(specs_dict, varalias, pathlst, nID)
+        # retrieve filevarname for varalias
+        filevarname = get_filevarname(varalias,
+                                      variable_info,
+                                      insitu_dict[nID],
+                                      ncdict)
+        varstrlst = [filevarname,'longitude','latitude','time']
+        # query
+        vardict = get_varlst_from_nc_1D(pathtofile,
+                                        varstrlst,
+                                        sdate,edate)
+        varlst.append(list(vardict[filevarname]))
+        lonlst.append(list(vardict['longitude']))
+        latlst.append(list(vardict['latitude']))
+        timelst.append(list(vardict['time']))
+        dtimelst.append(list(vardict['dtime']))
+        # determine date increment
+        file_date_incr = insitu_dict[nID]['src'].get('file_date_incr','m')
+        if file_date_incr == 'm':
+            tmpdate += relativedelta(months = +1)
+        elif file_date_incr == 'Y':
+            tmpdate += relativedelta(years = +1)
+        elif file_date_incr == 'd':
+            tmpdate += timedelta(days = +1)
+    varlst = flatten(varlst)
+    lonlst = flatten(lonlst)
+    latlst = flatten(latlst)
+    timelst = flatten(timelst)
+    dtimelst = flatten(dtimelst)
+    vardict = {
+                stdvarname:varlst,
+                'time':timelst,
+                'datetime':dtimelst,
+                'time_unit':variable_info['time']['units'],
+                'longitude':lonlst,
+                'latitude':latlst
+                }
+    # adjust conventions
+    # check if variable is one with conventions
+    if 'convention' in variable_info[varalias].keys():
+        convention_set = False
+        print('Chosen variable is defined with conventions')
+        print('... checking if correct convention is used ...')
+        # 1. check if clear from standard_name
+        file_stdvarname = find_direction_convention(filevarname, ncdict)
+        if "to_direction" in file_stdvarname:
+            print('Convert from oceanographic to meteorologic convention')
+            vardict[variable_info[varalias]['standard_name']] = \
+                    convert_meteorologic_oceanographic(\
+                        vardict[variable_info[varalias]['standard_name']])
+            convention_set = True
+        elif "from_direction" in file_stdvarname:
+            print('standard_name indicates meteorologic convention')
+            convention_set = True
+            pass
+        # 2. overwrite convention from config file
+        if ('convention' in insitu_dict[nID].keys() and
+        insitu_dict[model]['convention'] == 'oceanographic' and
+        convention_set is False):
+            print('Convention is set in config file')
+            print('This will overwrite conventions from standard_name in file!')
+            print('\n')
+            print('Convert from oceanographic to meteorologic convention')
+            vardict[variable_info[varalias]['standard_name']] = \
+                    convert_meteorologic_oceanographic(\
+                        vardict[variable_info[varalias]['standard_name']])
+            convention_set = True
+    return vardict
+
+
 def parse_d22(sdate,edate,pathlst,strsublst,dict_for_sub):
     """
     Read all lines in file and append to sl
@@ -521,6 +616,7 @@ def extract_d22(sl,varalias,nID,sensor):
         ts = convert_meteorologic_oceanographic(ts)
     return ts, dt
 
+
 def insitu_reader(**kwargs):
     '''
     wrapping function to read insitu files
@@ -532,6 +628,7 @@ def insitu_reader(**kwargs):
                 'd22':get_d22_dict,
                 'frost':get_frost_dict,
                 'nc':get_nc_dict,
+                'multidim_nc':get_multidim_nc_dict,
                 'thredds':get_nc_dict,
                 }
     product = kwargs.get('fifo') # change to reader

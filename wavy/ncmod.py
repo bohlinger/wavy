@@ -174,8 +174,8 @@ def read_swim_netcdfs(pathlst,varalias):
     latslst = []
 
     for f in pathlst:
-        var,time,lon,lat = \
-            read_swim_nc(f,varnamedict) 
+        var, time, lon, lat = \
+            read_swim_nc(f, varnamedict) 
         varlst.append(var)
         timelst.append(time)
         lonslst.append(lon)
@@ -187,11 +187,98 @@ def read_swim_netcdfs(pathlst,varalias):
     lats = flatten(latslst)
 
     vardict = {
-            varalias:var,
-            'time':time,
-            'longitude':lons,
-            'latitude':lats
+            varalias: var,
+            'time': time,
+            'longitude': lons,
+            'latitude': lats
             }
+    return vardict
+
+def get_multidim_var_coords(specs_dict, varalias, nID, ncmeta):
+    varname = specs_dict[nID]['vardef'].get(varalias,
+                                             get_filevarname(
+                                                varalias,
+                                                variable_info,
+                                                specs_dict[nID],
+                                                ncmeta))
+    varidx = specs_dict[nID]['vardef'].get(varalias + '_idx', '[:]')
+    timename = specs_dict[nID]['vardef'].get('time',
+                                             get_filevarname(
+                                                'time',
+                                                variable_info,
+                                                specs_dict[nID],
+                                                ncmeta))
+    timeidx = specs_dict[nID]['vardef'].get('time_idx', '[:]')
+    lonname = specs_dict[nID]['vardef'].get('lons',
+                                            get_filevarname(
+                                                'lons',
+                                                variable_info,
+                                                specs_dict[nID],
+                                                ncmeta))
+    lonidx = specs_dict[nID]['vardef'].get('lons_idx', '[:]')
+    latname = specs_dict[nID]['vardef'].get('lats',
+                                            get_filevarname(
+                                                'lats',
+                                                variable_info,
+                                                specs_dict[nID],
+                                                ncmeta))
+    latidx = specs_dict[nID]['vardef'].get('lats_idx', '[:]')
+
+    varnamedict = {
+            'varname': varname,
+            'varidx': varidx,
+            'lonname': lonname,
+            'lonidx': lonidx,
+            'latname': latname,
+            'latidx': latidx,
+            'timename': timename,
+            'timeidx': timeidx
+            }
+
+    return varnamedict
+
+def read_multidim_nc(path, varnamedict):
+    with xr.open_dataset(path) as ds:
+        ds = xr.open_dataset(path)
+        var = eval("ds[varnamedict['varname']].values"
+                    + varnamedict['varidx'])
+        time = eval("ds[varnamedict['timename']].values"
+                    + varnamedict['timeidx'])
+        lons = eval("ds[varnamedict['lonname']].values"
+                    + varnamedict['lonidx'])
+        lats = eval("ds[varnamedict['latname']].values"
+                    + varnamedict['latidx'])
+        return var, time, lons, lats
+
+def read_multidim_netcdfs(specs_dict, varalias, pathlst, nID):
+    ncmeta = ncdumpMeta(pathlst[0])
+    varnamedict = get_multidim_var_coords(specs_dict, varalias, nID, ncmeta)
+
+    varlst = []
+    timelst = []
+    lonslst = []
+    latslst = []
+
+    for f in pathlst:
+        var, time, lon, lat = \
+            read_multidim_nc(f, varnamedict)
+        varlst.append(var)
+        timelst.append(time)
+        lonslst.append(lon)
+        latslst.append(lat)
+
+    var = flatten(varlst)
+    time = flatten(timelst)
+    lons = flatten(lonslst)
+    lats = flatten(latslst)
+
+    vardict = {
+            varalias: var,
+            'time': time,
+            'longitude': lons,
+            'latitude': lats
+            }
+
     return vardict
 
 def get_arcmfc_ts(pathtofile):
