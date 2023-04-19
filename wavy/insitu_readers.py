@@ -21,6 +21,7 @@ import dotenv
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_varlst_from_nc_1D
 from wavy.ncmod import get_filevarname
+from wavy.ncmod import read_multidim_netcdfs, crop_to_requested_time_interval
 from wavy.utils import collocate_times
 from wavy.utils import get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
@@ -377,7 +378,7 @@ def get_nc_dict(**kwargs):
             pass
         # 2. overwrite convention from config file
         if ('convention' in insitu_dict[nID].keys() and
-        insitu_dict[model]['convention'] == 'oceanographic' and
+        insitu_dict[nID]['convention'] == 'oceanographic' and
         convention_set is False):
             print('Convention is set in config file')
             print('This will overwrite conventions from standard_name in file!')
@@ -390,46 +391,28 @@ def get_nc_dict(**kwargs):
     return vardict
 
 def get_multidim_nc_dict(**kwargs):
+    # essentials
     sdate = kwargs.get('sdate')
     edate = kwargs.get('edate')
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
-    pathlst = kwargs.get('pathlst')
-    strsublst = kwargs.get('strsublst')
-    dict_for_sub = kwargs.get('dict_for_sub')
-    # loop from sdate to edate with dateincr
-    stdvarname = variable_info[varalias]['standard_name']
+    # misc
+    path_template = kwargs.get('path_template',
+                                insitu_dict[nID]['src']['path_template'])
+    file_template = kwargs.get('file_template',
+                                insitu_dict[nID]['src']['file_template'])
     tmpdate = deepcopy(sdate)
-    varlst = []
-    lonlst = []
-    latlst = []
-    timelst = []
-    dtimelst = []
-    # make subdict
-    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
+    # make corrected pathlst
+    pathlst_new = []
+    #subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
     while datetime(tmpdate.year,tmpdate.month,1)\
     <= datetime(edate.year,edate.month,1):
         # get pathtofile
-        pathtofile = get_pathtofile(pathlst,strsublst,\
-                                        subdict,tmpdate)
-        # get ncdump
-        ncdict = ncdumpMeta(pathtofile)
-        #vardict = read_multidim_netcdfs(specs_dict, varalias, pathlst, nID)
-        # retrieve filevarname for varalias
-        filevarname = get_filevarname(varalias,
-                                      variable_info,
-                                      insitu_dict[nID],
-                                      ncdict)
-        varstrlst = [filevarname,'longitude','latitude','time']
-        # query
-        vardict = get_varlst_from_nc_1D(pathtofile,
-                                        varstrlst,
-                                        sdate,edate)
-        varlst.append(list(vardict[filevarname]))
-        lonlst.append(list(vardict['longitude']))
-        latlst.append(list(vardict['latitude']))
-        timelst.append(list(vardict['time']))
-        dtimelst.append(list(vardict['dtime']))
+        #pathtofile = get_pathtofile(pathlst,strsublst,\
+        #                                subdict,tmpdate)
+        pathtofile = tmpdate.strftime(path_template) + '/' \
+                   + tmpdate.strftime(file_template)
+        pathlst_new.append(pathtofile)
         # determine date increment
         file_date_incr = insitu_dict[nID]['src'].get('file_date_incr','m')
         if file_date_incr == 'm':
@@ -438,19 +421,17 @@ def get_multidim_nc_dict(**kwargs):
             tmpdate += relativedelta(years = +1)
         elif file_date_incr == 'd':
             tmpdate += timedelta(days = +1)
-    varlst = flatten(varlst)
-    lonlst = flatten(lonlst)
-    latlst = flatten(latlst)
-    timelst = flatten(timelst)
-    dtimelst = flatten(dtimelst)
-    vardict = {
-                stdvarname:varlst,
-                'time':timelst,
-                'datetime':dtimelst,
-                'time_unit':variable_info['time']['units'],
-                'longitude':lonlst,
-                'latitude':latlst
-                }
+    print(pathlst_new)
+
+    vardict, ncdict = read_multidim_netcdfs(insitu_dict, varalias,
+                                            pathlst_new, nID)
+    vardict = crop_to_requested_time_interval(vardict, sdate, edate)
+
+    # retrieve filevarname for varalias
+    filevarname = get_filevarname(varalias,
+                                  variable_info,
+                                  insitu_dict[nID],
+                                  ncdict)
     # adjust conventions
     # check if variable is one with conventions
     if 'convention' in variable_info[varalias].keys():
@@ -469,9 +450,9 @@ def get_multidim_nc_dict(**kwargs):
             print('standard_name indicates meteorologic convention')
             convention_set = True
             pass
-        # 2. overwrite convention from config file
+        # 2. overwrite convention using config file
         if ('convention' in insitu_dict[nID].keys() and
-        insitu_dict[model]['convention'] == 'oceanographic' and
+        insitu_dict[nID]['convention'] == 'oceanographic' and
         convention_set is False):
             print('Convention is set in config file')
             print('This will overwrite conventions from standard_name in file!')
@@ -624,12 +605,13 @@ def insitu_reader(**kwargs):
     return:
         vardict - dictionary of variables for insitu data
     '''
+    #reader = kwargs.get('reader')
     dispatch_reader = {
-                'd22':get_d22_dict,
-                'frost':get_frost_dict,
-                'nc':get_nc_dict,
-                'multidim_nc':get_multidim_nc_dict,
-                'thredds':get_nc_dict,
+                'd22': get_d22_dict,
+                'frost': get_frost_dict,
+                'nc': get_nc_dict,
+                'insitu_multidim': get_multidim_nc_dict,
+                'thredds': get_nc_dict,
                 }
     product = kwargs.get('fifo') # change to reader
     vardict = dispatch_reader[product](**kwargs)

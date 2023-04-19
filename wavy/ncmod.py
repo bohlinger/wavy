@@ -239,7 +239,7 @@ def get_multidim_var_coords(specs_dict, varalias, nID, ncmeta):
 
 def read_multidim_nc(path, varnamedict):
     with xr.open_dataset(path) as ds:
-        ds = xr.open_dataset(path)
+        ds = xr.open_dataset(path, decode_times=False)
         var = eval("ds[varnamedict['varname']].values"
                     + varnamedict['varidx'])
         time = eval("ds[varnamedict['timename']].values"
@@ -248,7 +248,8 @@ def read_multidim_nc(path, varnamedict):
                     + varnamedict['lonidx'])
         lats = eval("ds[varnamedict['latname']].values"
                     + varnamedict['latidx'])
-        return var, time, lons, lats
+        time_unit = ds[varnamedict['timename']].units
+        return var, time, lons, lats, time_unit
 
 def read_multidim_netcdfs(specs_dict, varalias, pathlst, nID):
     ncmeta = ncdumpMeta(pathlst[0])
@@ -260,7 +261,7 @@ def read_multidim_netcdfs(specs_dict, varalias, pathlst, nID):
     latslst = []
 
     for f in pathlst:
-        var, time, lon, lat = \
+        var, time, lon, lat, time_unit = \
             read_multidim_nc(f, varnamedict)
         varlst.append(var)
         timelst.append(time)
@@ -272,13 +273,33 @@ def read_multidim_netcdfs(specs_dict, varalias, pathlst, nID):
     lons = flatten(lonslst)
     lats = flatten(latslst)
 
+    stdvarname = variable_info[varalias]['standard_name']
+
     vardict = {
-            varalias: var,
+            stdvarname: var,
             'time': time,
             'longitude': lons,
-            'latitude': lats
-            }
+            'latitude': lats,
+            'time_unit': time_unit
+           }
 
+    return vardict, ncmeta
+
+def crop_to_requested_time_interval(vardict, sd, ed):
+    dtvar = netCDF4.num2date(vardict['time'], vardict['time_unit'])
+    dtime = [datetime(dt.year, dt.month, dt.day, dt.hour,
+                      dt.minute, dt.second)
+             for dt in dtvar]
+    idx = find_included_times(dtime, sdate=sd, edate=ed)
+    for name in list(vardict.keys()):
+        if name is not 'time_unit':
+            var = np.array(vardict[name])[idx]
+            vardict[name] = var
+    vardict['datetime'] = np.array(dtime)[idx]
+    time_unit_new = variable_info['time']['units']
+    dnum = netCDF4.date2num(vardict['datetime'], time_unit_new)
+    vardict['time'] = dnum
+    vardict['time_unit'] = time_unit_new
     return vardict
 
 def get_arcmfc_ts(pathtofile):

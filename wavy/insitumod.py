@@ -54,8 +54,8 @@ class insitu_class():
             sensor = list(insitu_dict[nID]['sensor'].keys())[0]
             print('Sensor was not chosen')
             print('Automatic choice:', sensor)
-        # for i in range(1):
-        try:
+        for i in range(1):
+        #try:
             self.stdvarname = stdvarname
             self.varalias = varalias
             self.units = variable_info[varalias].get('units')
@@ -155,10 +155,10 @@ class insitu_class():
                    round(t1-t0,2),"seconds")
             print(" ")
             print(" ### insitu_class object initialized ### ")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print("! No insitu_class object initialized !")
+        #except Exception as e:
+        #    print(e)
+        #    self.error = e
+        #    print("! No insitu_class object initialized !")
         print('# ----- ')
 
     def get_item_parent(self,item,attr):
@@ -247,7 +247,8 @@ dict_for_sub, **kwargs):
     kwargs['fifo'] = fifo
     path_template = insitu_dict[nID]['src']['path_template']
     file_template = insitu_dict[nID]['src']['file_template']
-    pathlst = [p + ('/' + file_template) for p in path_template]
+    #pathlst = [p + ('/' + file_template) for p in path_template]
+    pathlst = [path_template + '/' + file_template]
     strsublst = insitu_dict[nID]['src']['strsub']
     if 'path_local' in kwargs.keys():
         pathlst = [kwargs['path_local'] + '/' + file_template]
