@@ -403,7 +403,9 @@ def plot_sat(sa_obj,**kwargs):
                         globe=None, latitude_true_scale=(latmin+latmax)/2.,
                         false_easting=0.0, false_northing=0.0,
                         scale_factor=None)
-        land = cfeature.GSHHSFeature(scale='i', levels=[1],
+        land = cfeature.GSHHSFeature(\
+                        scale=kwargs.get('land_mask_resolution','i'),\
+                        levels=[1],
                         facecolor=cfeature.COLORS['land'])
 
     # make figure
@@ -706,6 +708,7 @@ class quicklook_class_sat:
         mode = kwargs.get('mode','comb') # comb,indiv
         if m:
             import cartopy.crs as ccrs
+            import cartopy.feature as cfeature
             import cmocean
             import matplotlib.pyplot as plt
             import matplotlib.cm as mplcm
@@ -713,6 +716,11 @@ class quicklook_class_sat:
             lons = self.vars['longitude']
             lats = self.vars['latitude']
             var = self.vars[self.stdvarname]
+            # land
+            land = cfeature.GSHHSFeature(\
+                    scale=kwargs.get('land_mask_resolution','i'),\
+                    levels=[1],
+                    facecolor=cfeature.COLORS['land'])
             if projection is None:
                 projection = ccrs.PlateCarree()
             # parse kwargs
@@ -728,6 +736,14 @@ class quicklook_class_sat:
             latmax,latmin = np.max(lats),np.min(lats)
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
+            # add land
+            ax.add_geometries(land.intersecting_geometries(
+                    [-180, 180, 0, 90]),
+                    ccrs.PlateCarree(),
+                    facecolor=cfeature.COLORS['land'],
+                    edgecolor='black',linewidth=1)
+            # - add land color
+            ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
             # plot track if applicable
             lonmax,lonmin = np.max(lons),np.min(lons)
             latmax,latmin = np.max(lats),np.min(lats)
@@ -765,7 +781,8 @@ class quicklook_class_sat:
                                         + ' [' + self.units + ']')
             ax.set_extent(  [lonmin-1, lonmax+1,latmin-1, latmax+1],
                              crs = projection )
-            ax.coastlines(color='k')
+            #ax.coastlines(color='k')
+
             gl = ax.gridlines(draw_labels=True,crs=projection,
                               linewidth=1, color='grey', alpha=0.4,
                               linestyle='-')

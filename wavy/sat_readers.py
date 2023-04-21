@@ -224,17 +224,10 @@ def read_local_20Hz_files(**kwargs):
 
     # get indices for included time period
     nptime = ds_sort[timestr].data
-    print('here0')
-    print(len(nptime))
     #dtime = [parse_date(str(nptime[i])) for i in range(len(nptime))]
-    print('here1')
-    #idx = find_included_times_pd(dtime, sdate=sdate, edate=edate)
     idx = find_included_times_pd(nptime, sdate=sdate, edate=edate)
-    print(len(nptime[idx]))
-    print('here2')
-    dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
-    print(dtime)
-    print('here3')
+    #dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
+    dtime = nptime[idx]
     #dtime = list(np.array(dtime)[idx])
     lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
     lats = list(ds_sort[latstr].data[idx])

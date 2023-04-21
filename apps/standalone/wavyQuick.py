@@ -110,6 +110,8 @@ def main():
                         help="show figure",
                         action='store_const',
                         const=True)
+    parser.add_argument("-land_mask_resolution",type=str,
+                        help="defines land mask")
     parser.add_argument("-savep",
                         metavar="savepath",
                         help="save figure to path")
@@ -250,14 +252,14 @@ def main():
 
 # plot
     if (args.mod is None and sa_obj.region not in model_dict):
-        plot_sat(sa_obj, savepath=args.savep, showfig=args.show)
+        plot_sat(sa_obj, savepath=args.savep, showfig=args.show, land_mask_resolution=args.land_mask_resolution)
     elif (args.mod is None and sa_obj.region in model_dict):
         print('Chosen region is a specified model domain')
         mc_obj = mc(model=sa_obj.region,
                     fc_date=model_dict[sa_obj.region]['grid_date'],
                     varalias=args.var)
         plot_sat(sa_obj, mc_obj=mc_obj, savepath=args.savep,
-                showfig=args.show)
+                showfig=args.show, land_mask_resolution=args.land_mask_resolution)
     elif (args.mod is not None and args.col is True and sdate==edate):
         # get model collocated values
         mc_obj = mc(model=args.mod,

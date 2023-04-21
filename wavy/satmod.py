@@ -196,6 +196,8 @@ varalias,poi,distlim,**kwargs):
                                    path=tmpdir.name)
         ncdict = ncdumpMeta(extracted)
         tmpdir.cleanup()
+    else:
+        ncdict = ncdumpMeta(pathlst[0])
     rvardict['meta'] = ncdict
     # adjust conventions
     if ('convention' in satellite_dict[product].keys() and
@@ -329,6 +331,9 @@ class satellite_class(qls,wc):
         pathlst, _ = get_local_files(sdate,edate,twin,
                                      product,vars(self),
                                      path_local=path_local)
+        print(satellite_dict[product]['dst']['path_template'])
+        print(path_local)
+        print(pathlst)
         print(" ")
         print(" ## Read files ...")
         if len(pathlst) > 0:
@@ -396,6 +401,8 @@ class satellite_class(qls,wc):
                                                path=tmpdir.name)
                     ncdict = ncdumpMeta(extracted)
                     tmpdir.cleanup()
+                else:
+                    ncdict = ncdumpMeta(pathlst[0])
                 with NoStdStreams():
                     filevarname = get_filevarname(varalias,
                                               variable_info,
