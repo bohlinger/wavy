@@ -17,19 +17,19 @@ read .d22 files
 
    >>> from wavy.insitumod import insitu_class as ic
    >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1"
-   >>> ed = "2020-1-5"
+   >>> sd = "2020-01-01"
+   >>> ed = "2020-01-05"
    >>> nID = 'ekofiskL'
    >>> sensor = 'waverider'
    >>> fifo = "d22" # default
-   >>> ico = ic(nID,sensor,sd,ed)
+   >>> ico = ic(nID, sd, ed, sensor=sensor)
 
 
 In contrast to the L3 satellite time series, d22 in-situ time series are usually not filtered or underwent rigorous outlier detection. There are various operations that can be performed on the time series. It is in particular interesting to remove double reported values, which is often the case for d22 files. This is done with setting unique=True.
 
 .. code-block:: python3
 
-   >>> ico = ic(nID,sensor,sd,ed,unique=True)
+   >>> ico = ic(nID, sd, ed, sensor=sensor, unique=True)
 
 
 make a FROST call
@@ -41,7 +41,7 @@ For a FROST call **wavy** uses MET Norways FROST API v1. A FROST call would be s
 
    >>> nID = 'draugen'
    >>> sensor = "MKIIIradar_1"
-   >>> ico = ic(nID,sensor,sd,ed,fifo="frost")
+   >>> ico = ic(nID, sd, ed, sensor=sensor, fifo="frost")
 
 
 read .nc-files
@@ -51,19 +51,19 @@ read .nc-files
 
    >>> from wavy.insitumod import insitu_class as ic
    >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1"
-   >>> ed = "2020-1-5"
+   >>> sd = "2020-01-01"
+   >>> ed = "2020-01-05"
    >>> nID = 'D_Breisundet_wave'
    >>> sensor = 'wavescan'
    >>> fifo = "nc" # default for this buoy
-   >>> ico = ic(nID,sensor,sd,ed)
+   >>> ico = ic(nID,sd,ed,sensor=sensor)
 
 Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below is a example:
 
 .. code-block:: python3
 
    >>> # blockMean filter
-   >>> ico_bm = ic(nID,sensor,sd,ed,unique=True,priorOp='square',postOp='root',smoother='blockMean',stwin=3,etwin=3,date_incr=1,filterData=True)
+   >>> ico_bm = ic(nID,sd,ed,sensor=sensor,unique=True,priorOp='square',postOp='root',smoother='blockMean',stwin=3,etwin=3,date_incr=1,filterData=True)
 
 Now, let's check how this could look like:
 
