@@ -821,9 +821,11 @@ class quicklook_class_sat:
             colors = ['k']
             ax.plot(self.vars['datetime'],
                     self.vars[self.stdvarname],
-                    linestyle='None',color=colors[0],
+                    linestyle=kwargs.get('linestyle',''),
+                    color=colors[0],
                     label=self.label,
-                    marker='o',alpha=.5,ms=2)
+                    marker=kwargs.get('marker','o'),
+                    alpha=.5,ms=2)
             plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()
@@ -836,9 +838,10 @@ class quicklook_class_sat:
             for oco in self.ocos:
                 ax.plot(oco.vars['datetime'],
                         oco.vars[oco.stdvarname],
-                        linestyle='None',
+                        linestyle=kwargs.get('linestyle',''),
                         label=oco.label,
-                        marker='o',alpha=.5,ms=2)
+                        marker=kwargs.get('marker','o'),
+                        alpha=.5,ms=2)
             plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()

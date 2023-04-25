@@ -322,7 +322,7 @@ def apply_limits(varalias,vardict):
     ulim = variable_info[varalias]['valid_range'][1]
     tmpdict = {'y':y}
     df = pd.DataFrame(data = tmpdict)
-    dfmask = df['y'].between(llim, ulim, inclusive=True)
+    dfmask = df['y'].between(llim, ulim, inclusive='both')
     for key in vardict:
         if (key != 'time_unit' and key != 'meta'):
             clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
@@ -923,6 +923,12 @@ def cleaner_GP(x,y,**kwargs):
     y_pred, sigma = gp.predict(X, return_std=True)
     uplim = y_pred + (2*sigma).reshape(-1,1)
     lowlim = y_pred - (2*sigma).reshape(-1,1)
+    idx=[]
+    #for i in range(len(Y)):
+    #    print(uplim[i])
+    #    if Y[i]>uplim[i]:
+    #        if Y[i]<lowlim[i]:
+    #            idx.append(i)
     idx = [i for i in range(len(Y)) \
             if (Y[i]>uplim[i] or Y[i]<lowlim[i])]
     return idx

@@ -247,7 +247,8 @@ dict_for_sub, **kwargs):
     kwargs['fifo'] = fifo
     path_template = insitu_dict[nID]['src']['path_template']
     file_template = insitu_dict[nID]['src']['file_template']
-    pathlst = [p + ('/' + file_template) for p in path_template]
+    #pathlst = [p + ('/' + file_template) for p in path_template]
+    pathlst = [path_template + '/' + file_template]
     strsublst = insitu_dict[nID]['src']['strsub']
     if 'path_local' in kwargs.keys():
         pathlst = [kwargs['path_local'] + '/' + file_template]

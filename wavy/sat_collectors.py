@@ -58,7 +58,7 @@ def tmploop_get_remote_files(i: int, matching: str,
             break
     else:
         print ('An error was raised and I ' +
-              'failed to fix problem myself :(')
+              'failed to fix the problem myself :(')
         print ('Exit program')
         sys.exit()
 
@@ -425,6 +425,7 @@ def get_remote_files(**kwargs):
                 'cmems_L3_NRT': get_remote_files_cmems,
                 'cmems_L3_s6a': get_remote_files_cmems,
                 'cmems_L3_MY': get_remote_files_cmems,
+                'cnes_5Hz_my': get_remote_files_cmems,
                 'cfo_swim_L2P': get_remote_files_aviso,
                 'eumetsat_L2': get_remote_files_eumetsat,
                 'cci_L2P': get_remote_files_cci,

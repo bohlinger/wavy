@@ -168,7 +168,7 @@ varalias,poi,distlim,**kwargs):
         print('For chosen region and time: 0 footprints found!')
     if poi is not None:
         pvardict = {}
-        pidx = match_poi(rvardict,twin,distlim,poi)
+        pidx = match_poi(rvardict,twin,distlim,poi,**kwargs)
         for element in rvardict:
             if element != 'time_unit':
                 pvardict[element] = list(np.array(
@@ -487,6 +487,14 @@ class satellite_class(qls,wc):
         parent = finditem(ncdict,item)
         return parent
 
+    def crop_to_period(self,sdate,edate):
+        vardict_new = crop_vardict_to_period(self.vars, sdate, edate)
+        self.vars = vardict_new
+        self.sdate = sdate
+        self.edate = edate
+        return
+        
+
 def poi_sat(indict,twin,distlim,poi,ridx,i):
     """
     return: indices for values matching the spatial and
@@ -505,16 +513,20 @@ def poi_sat(indict,twin,distlim,poi,ridx,i):
     dists = list(np.array(dists_tmp)[sidx])
     return list(np.array(tidx)[sidx])
 
-def match_poi(indict, twin, distlim, poi):
+def match_poi(indict, twin, distlim, poi, **kwargs):
     """
     return: idx that match to region
     """
     from tqdm import tqdm
     print('Match up poi locations')
-    region={'llcrnrlat':np.min(poi['latitude']),
-            'urcrnrlat':np.max(poi['latitude']),
-            'llcrnrlon':np.min(poi['longitude']),
-            'urcrnrlon':np.max(poi['longitude'])}
+    if kwargs.get('static_location',True):
+        # use region as chosen before
+        region = kwargs.get('region')
+    else:
+        region={'llcrnrlat':np.min(poi['latitude']),
+                'urcrnrlat':np.max(poi['latitude']),
+                'llcrnrlon':np.min(poi['longitude']),
+                'urcrnrlon':np.max(poi['longitude'])}
     ridx = match_region_rect(indict['latitude'],
                              indict['longitude'],
                              region=region)

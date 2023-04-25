@@ -225,6 +225,8 @@ def sort_files(dirpath,filelst,product,sat):
         sort_eumetsat_l2(dirpath,filelst)
     elif product == 'cfo_swim_L2P':
         sort_aviso_l2p(dirpath,filelst)
+    elif product == 'cnes_5Hz_my':
+        sort_cnes_5Hz_my(dirpath,filelst,sat)
 
 def sort_aviso_l2p(dirpath: str, filelst: list):
     '''
@@ -236,6 +238,20 @@ def sort_aviso_l2p(dirpath: str, filelst: list):
             d1 = parse(tmp[-2])
             #d2 = parse(tmp[-1].split('.')[0])
             year, month = d1.strftime("%Y"), d1.strftime("%m")
+            folder = os.path.join(dirpath,year,month)
+            os.makedirs(folder,exist_ok=True)
+            cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
+            os.system(cmd)
+
+
+def sort_cnes_5Hz_my(dirpath: str, filelst: list, sat: str):
+    '''
+    Sort L3 files according to year and month.
+    '''
+    for e in filelst:
+        if os.path.isfile(os.path.join(dirpath,e)):
+            tmp = 'cnes_obs-wave_glo_phy-swh_my_' + sat + '_-l3_PT0.2S'
+            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
             folder = os.path.join(dirpath,year,month)
             os.makedirs(folder,exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
