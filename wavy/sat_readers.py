@@ -27,8 +27,8 @@ from wavy.utils import find_included_times, find_included_times_pd
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-satellite_dict = load_or_default('satellite_specs.yaml')
-variable_info = load_or_default('variable_info.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
+variable_info = load_or_default('variable_def.yaml')
 
 def unzip_eumetsat(pathlst: list, tmpdir: str):
     """

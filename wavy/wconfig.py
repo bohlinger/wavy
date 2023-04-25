@@ -40,7 +40,7 @@ def load_or_default(name):
 
     .. code::
 
-        c = load_or_default('model_specs.yaml')
+        c = load_or_default('model_cfg.yaml')
 
     """
     logging.debug('attempting to load: %s..' % name)

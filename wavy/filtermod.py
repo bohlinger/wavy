@@ -20,7 +20,7 @@ from wavy.wconfig import load_or_default
 
 ROAR = None
 
-variable_info = load_or_default('variable_info.yaml')
+variable_info = load_or_default('variable_def.yaml')
 
 def filter_main(vardict_in,varalias='Hs',**kwargs):
     """ Governing function of filtermod

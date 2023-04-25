@@ -9,29 +9,46 @@
 ########################################################################
 
 cmems_SWH_NRT:
+    # mandatory
     names:
         wavy: [s3a,s3b]
         src: [s3a,s3b]
-    retrieval:
-        src_template: "/Core/\
-                       WAVE_GLO_PHY_SWH_L3_NRT_014_001/\
-                       cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/\
-                       %Y/%m/"
-        target_template: /home/patrikb/tmp_altimeter/L3/mission
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/Core/\
+                        WAVE_GLO_PHY_SWH_L3_NRT_014_001/\
+                        cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/\
+                        %Y/%m/"
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission
+            strsub: ['mission']
+            server: "nrt.cmems-du.eu"
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input_files:
+        src_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
+        fl_tmplt: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['mission']
-        server: "nrt.cmems-du.eu"
-    output:
-        target_template: /home/patrikb/tmp_altimeter/L3/mission
-        file_template: "varalias_mission_region_\
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output_files:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
+        fl_tmplt: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']
         file_date_incr: m
+    # optional, if not defined the default is used
     reader:
+    # optional, needs to be defined if not cf and in variable_info.yaml
     variables:
         wavy: [Hs,U]
         src: [VAVH,WIND_SPEED]
+    # optional, info that can be used by class functions
     misc:
         processing_level:
         provider:
-        obs_platform_type:
-        tags:
+        obs_type:
+    # optional, to ease grouping
+    tags:

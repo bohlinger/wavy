@@ -31,9 +31,9 @@ from wavy.utils import find_included_times, finditem
 from wavy.utils import flatten
 
 # read yaml config files:
-insitu_dict = load_or_default('insitu_specs.yaml')
-satellite_dict = load_or_default('satellite_specs.yaml')
-variable_info = load_or_default('variable_info.yaml')
+insitu_dict = load_or_default('insitu_cfg.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
+variable_info = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
 """

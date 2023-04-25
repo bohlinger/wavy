@@ -6,7 +6,7 @@ from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.wconfig import load_or_default
 
-satellite_dict = load_or_default('satellite_specs.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
 
 class writer_class:
 

@@ -33,19 +33,20 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
-from wavy.filtermod import filter_main,vardict_unique
+from wavy.filtermod import filter_main, vardict_unique
 from wavy.filtermod import rm_nan_from_vardict
 from wavy.sat_collectors import get_remote_files
 from wavy.sat_readers import read_local_files
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.writermod import writer_class as wc
+from wavy.init_class import init_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-region_dict = load_or_default('region_specs.yaml')
-model_dict = load_or_default('model_specs.yaml')
-satellite_dict = load_or_default('satellite_specs.yaml')
-variable_info = load_or_default('variable_info.yaml')
+region_dict = load_or_default('region_cfg.yaml')
+model_dict = load_or_default('model_cfg.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
+variable_info = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
 
@@ -246,239 +247,29 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_class(qls,wc):
+class satellite_class(qls, wc):
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
-
-    This class offers the following added functionality:
-     - get swaths of desired days and read
-     - get the closest time stamp(s)
-     - get the location (lon, lat) for this time stamp
-     - get Hs or 10m wind value for this time
-     - region mask
     '''
 
-    def __init__(
-        self,sdate=None,mission='s3a',product='cmems_L3_NRT',
-        edate=None,twin=30,download=False,path_local=None,
-        region='mwam4',nproc=1,varalias='Hs',api_url=None,
-        filterData=False,poi=None,distlim=None,**kwargs):
+    def __init__(self, **kwargs):
+        #self,sd=None,mission='s3a',product='cmems_L3_NRT',
+        #edate=None,twin=30,download=False,path_local=None,
+        #region='mwam4',nproc=1,varalias='Hs',api_url=None,
+        #filterData=False,poi=None,distlim=None,**kwargs):
         print('# ----- ')
         print(" ### Initializing satellite_class object ###")
         print(" ")
+        dc = init_class('satellite', kwargs.get('nID'))
         # parse and translate date input
-        sdate = parse_date(sdate)
-        edate = parse_date(edate)
-        # check settings
-        if (sdate is None and edate is None and poi is not None):
-            sdate = poi['datetime'][0]
-            edate = poi['datetime'][-1]
-        elif (edate is None and sdate is not None):
-            print ("Requested time: ", str(sdate))
-            edate = sdate
-        elif (edate is None and sdate is None):
-            now = datetime.now()
-            sdate = datetime(now.year,now.month,now.day,now.hour)
-            edate = sdate
-            print ("Requested time: ", str(sdate))
-        else:
-            print ("Requested time frame: " +
-                str(sdate) + " - " + str(edate))
-        stdname = variable_info[varalias].get('standard_name')
-        units = variable_info[varalias].get('units')
-        # define some class object variables
-        self.sdate = sdate
-        self.edate = edate
-        self.varalias = varalias
-        self.units = units
-        self.stdvarname = stdname
-        self.twin = twin
-        self.region = region
-        self.mission = mission
-        self.obstype = 'satellite_altimeter'
-        self.product = product
-        self.provider = satellite_dict[product].get('provider')
-        self.processing_level = \
-                satellite_dict[product].get('processing_level')
-        print('Chosen time window is:', twin, 'min')
-        # make satpaths
-        if path_local is None:
-            path_template = satellite_dict[product]\
-                                          ['dst']\
-                                          ['path_template']
-            self.path_local = path_template
-        else:
-            self.path_local = path_local
-        # retrieve files
-        if download is False:
-            print ("No download initialized, checking local files")
-        else:
-            print ("Downloading necessary files ...")
-            get_remote_files(\
-                            path_local=path_local,
-                            sdate=sdate,edate=edate,
-                            twin=twin,nproc=nproc,
-                            product=product,
-                            api_url=api_url,
-                            mission=mission,
-                            dict_for_sub=vars(self))
-        print(" ")
-        print(" ## Find files ...")
-        t0=time.time()
-        pathlst, _ = get_local_files(sdate,edate,twin,
-                                     product,vars(self),
-                                     path_local=path_local)
-        print(" ")
-        print(" ## Read files ...")
-        if len(pathlst) > 0:
-#            for i in range(1):
-            try:
-                if filterData == True:
-                    # extend time period due to filter
-                    if 'stwin' not in kwargs.keys():
-                        kwargs['stwin'] = 1 # needs to be changed
-                    if 'etwin' not in kwargs.keys():
-                        kwargs['etwin'] = 1
-                    twin_tmp = twin + kwargs['stwin'] + kwargs['etwin']
-                    # retrieve data
-                    rvardict = get_sat_ts( sdate,edate,
-                                           twin_tmp,region,
-                                           product,pathlst,
-                                           varalias,poi,distlim,
-                                           **kwargs)
-                    # adjust varalias if other return_var
-                    if kwargs.get('return_var') is not None:
-                        newvaralias = kwargs.get('return_var')
-                    else:
-                        newvaralias = varalias
-                    # filter data
-                    rvardict = filter_main( rvardict,
-                                            varalias = newvaralias,
-                                            **kwargs )
-                    # crop to original time period
-                    sdate_tmp = sdate - timedelta(minutes=twin)
-                    edate_tmp = edate + timedelta(minutes=twin)
-                    rvardict = crop_vardict_to_period(rvardict,
-                                                      sdate_tmp,
-                                                      edate_tmp)
-                    self.filter = True
-                    self.filterSpecs = kwargs
-                else:
-                    rvardict = get_sat_ts( sdate,edate,
-                                           twin,region,
-                                           product,pathlst,
-                                           varalias,poi,distlim,
-                                           **kwargs)
-                    # adjust varalias if other return_var
-                    if kwargs.get('return_var') is not None:
-                        newvaralias = kwargs.get('return_var')
-                    else:
-                        newvaralias = varalias
-                    # make ts in vardict unique
-                    rvardict = vardict_unique(rvardict)
-                    # rm NaNs
-                    rvardict = rm_nan_from_vardict(newvaralias,rvardict)
-                # find variable name as defined in file
-                if (product == 'cmems_L3_NRT' or
-                    product == 'cmems_L3_MY' or
-                    product == 'cmems_L3_s6a' or
-                    product == 'L2_20Hz_s3a' or
-                    product == 'cfo_swim_L2P'):
-                    ncdict = ncdumpMeta(pathlst[0])
-                elif (product == 'cci_L2P' or product == 'cci_L3'):
-                    ncdict = ncdumpMeta(pathlst[0])
-                elif product == 'eumetsat_L2':
-                    tmpdir = tempfile.TemporaryDirectory()
-                    zipped = zipfile.ZipFile(pathlst[0])
-                    enhanced_measurement = zipped.namelist()[-1]
-                    extracted = zipped.extract(enhanced_measurement,
-                                               path=tmpdir.name)
-                    ncdict = ncdumpMeta(extracted)
-                    tmpdir.cleanup()
-                with NoStdStreams():
-                    filevarname = get_filevarname(varalias,
-                                              variable_info,
-                                              satellite_dict[product],
-                                              ncdict)
-                rvardict['meta'] = ncdict
-                # define more class object variables
-                self.vars = rvardict
-                self.varname = filevarname
-                if kwargs.get('return_var') is not None:
-                    self.varalias = kwargs.get('return_var')
-                    self.stdvarname = \
-                            variable_info[newvaralias].get('standard_name')
-                    self.units = variable_info[newvaralias].get('units')
-                # create label for plotting
-                self.label = self.mission
-                t1=time.time()
-                print(" ")
-                print( ' ## Summary:')
-                print(str(len(self.vars['time'])) + " footprints retrieved.")
-                print("Time used for retrieving satellite data:",\
-                        round(t1-t0,2),"seconds")
-                print(" ")
-                print (" ### Satellite object initialized ###")
-                print ('# ----- ')
-            except Exception as e:
-                print(e)
-                print('Error encountered')
-                print('No satellite_class object initialized')
-        else:
-            print('No satellite data found')
-            print('No satellite_class object initialized')
-            print ('# ----- ')
+        self.sd = parse_date(kwargs.get('sd'))
+        self.ed = parse_date(kwargs.get('ed', self.sd))
+        self.nID = kwargs.get('nID')
+        self.mission = kwargs.get('mission','s3a')
+        self.varalias = kwargs.get('varalias','Hs')
+        self.twin = kwargs.get('twin',0)
 
-    def get_item_parent(self,item,attr):
-        """
-        Offers possibility to explore netcdf meta info.
-        by specifying what you are looking for (item),
-        e.g. part of a string, and in which attribute (attr),
-        e.g. standard_name, this function returns the
-        parent parameter name of the query string.
-
-        param:
-            item - (partial) string e.g. [m]
-            attr - attribute e.g. units
-
-        return: list of matching parameter strings
-
-        e.g. for satellite_class object sco:
-
-        .. code ::
-
-            sco.get_item_parent('m','units')
-        """
-
-        ncdict = self.vars['meta']
-        lst = [i for i in ncdict.keys() \
-                if (attr in ncdict[i].keys() \
-                and item in ncdict[i][attr]) \
-                ]
-        if len(lst) >= 1:
-            return lst
-        else: return None
-
-    def get_item_child(self,item):
-        """
-        Gets all attributes connected to given parameter name.
-
-        param:
-            item - (partial) string e.g. [m]
-
-        return: matching parameter string
-
-        e.g. for satellite_class object sco:
-
-        .. code ::
-
-            sco.get_item_child('time')
-        """
-
-        ncdict = self.vars['meta']
-        parent = finditem(ncdict,item)
-        return parent
 
 def poi_sat(indict,twin,distlim,poi,ridx,i):
     """

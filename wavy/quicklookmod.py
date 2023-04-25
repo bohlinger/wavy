@@ -11,10 +11,10 @@ from abc import abstractmethod
 from wavy.wconfig import load_or_default
 
 # read yaml config files:
-region_dict = load_or_default('region_specs.yaml')
-variable_info = load_or_default('variable_info.yaml')
-model_dict = load_or_default('model_specs.yaml')
-quicklook_dict = load_or_default('quicklook_specs.yaml')
+region_dict = load_or_default('region_cfg.yaml')
+variable_info = load_or_default('variable_def.yaml')
+model_dict = load_or_default('model_cfg.yaml')
+quicklook_dict = load_or_default('quicklook_cfg.yaml')
 
 # define global functions
 

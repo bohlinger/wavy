@@ -27,7 +27,7 @@ from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-satellite_dict = load_or_default('satellite_specs.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
 
 # --- def functions ---------------------------------------------------#
 
