@@ -27,7 +27,7 @@ asgardb: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76958
 
 aastahansteen: # object nID (nameID)
@@ -54,7 +54,7 @@ aastahansteen: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 77040
 
 brage: # object nID (nameID)
@@ -81,7 +81,7 @@ brage: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76959
 
 draugen: # object nID (nameID)
@@ -113,7 +113,7 @@ draugen: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76925
 
 ekofiskL: # object nID (nameID)
@@ -150,7 +150,7 @@ ekofiskL: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
         vardef:
     tags: ['arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76920
 
 gjoa: # object nID (nameID)
@@ -177,7 +177,7 @@ gjoa: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76954
 
 goliat: # object nID (nameID)
@@ -204,7 +204,7 @@ goliat: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76956
 
 grane: # object nID (nameID)
@@ -231,7 +231,7 @@ grane: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76960
 
 gudrun: # object nID (nameID)
@@ -258,7 +258,7 @@ gudrun: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 77041
 
 oseberga: # object nID (nameID)
@@ -285,7 +285,7 @@ oseberga: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76927
 
 osebergc: # object nID (nameID)
@@ -312,7 +312,7 @@ osebergc: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76965
 
 osebergsyd: # object nID (nameID)
@@ -339,7 +339,7 @@ osebergsyd: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76967
 
 gullfaksc: # object nID (nameID)
@@ -366,7 +366,7 @@ gullfaksc: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76923
 
 heidrun: # object nID (nameID)
@@ -398,7 +398,7 @@ heidrun: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76928
 
 heimdal: # object nID (nameID)
@@ -425,7 +425,7 @@ heimdal: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo   
     ID: 76932
 
 kvitebjorn: # object nID (nameID)
@@ -452,7 +452,7 @@ kvitebjorn: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76969
 
 kristin: # object nID (nameID)
@@ -484,7 +484,7 @@ kristin: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76963
 
 #huldra: # missing variables
@@ -522,7 +522,7 @@ njorda: # 2004-2016
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76964
 
 norne: # object nID (nameID)
@@ -549,7 +549,7 @@ norne: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76930
 
 ormenlange: # object nID (nameID)
@@ -576,7 +576,7 @@ ormenlange: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76933
 
 snorrea: # object nID (nameID)
@@ -603,7 +603,7 @@ snorrea: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76935
 
 snorreb: # object nID (nameID)
@@ -631,7 +631,7 @@ snorreb: # object nID (nameID)
     vardef: # stdname: abbreviation
         #sea_surface_wave_significant_height: Hs_10min
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76936
 
 sleipnera: # object nID (nameID)
@@ -663,7 +663,7 @@ sleipnera: # object nID (nameID)
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76926
 
 #sleipnerb: # missing variables
@@ -701,7 +701,7 @@ stafjorda: # etsablished typo -> should be statfjorda
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76922
 
 statfjordb:
@@ -728,7 +728,7 @@ statfjordb:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76934
 
 trolla:
@@ -755,7 +755,7 @@ trolla:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76931
 
 trollb:
@@ -782,7 +782,7 @@ trollb:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76957
 
 ula:
@@ -809,7 +809,7 @@ ula:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76938
 
 valhall:
@@ -841,7 +841,7 @@ valhall:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76939
 
 veslefrikk:
@@ -868,7 +868,7 @@ veslefrikk:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76995
 
 veslefrikka:
@@ -957,7 +957,7 @@ visund:
         strsub: ['varalias','nID','sensor']
     vardef:
     tags: ['oilrig','arcmfc']
-    fifo: d22 # file format: fifo
+    fifo: frost # file format: fifo
     ID: 76968
 
 # ekofisk 1997-2014
