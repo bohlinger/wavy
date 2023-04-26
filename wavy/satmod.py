@@ -55,22 +55,22 @@ variable_info = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
 
-def crop_vardict_to_period(vardict,sdate,edate):
+def crop_to_period(vardict, sd, ed):
     """
     Function to crop the variable dictionary to a given period
     """
     for key in vardict:
         if (key != 'time_unit' and key != 'meta' and key != 'datetime'):
-            vardict[key] =  list(np.array(vardict[key])[ \
-                                ( (np.array(vardict['datetime'])>=sdate)
-                                & (np.array(vardict['datetime'])<=edate)
+            vardict[key] = list(np.array(vardict[key])[ \
+                                ( (np.array(vardict['datetime']) >= sd)
+                                & (np.array(vardict['datetime']) <= ed)
                                 ) ])
         else:
             vardict[key] = vardict[key]
-    vardict['datetime'] =   list(np.array(vardict['datetime'])[ \
-                                ( (np.array(vardict['datetime'])>=sdate)
-                                & (np.array(vardict['datetime'])<=edate)
-                                ) ])
+    vardict['datetime'] = list(np.array(vardict['datetime'])[ \
+                               ( (np.array(vardict['datetime']) >= sd)
+                               & (np.array(vardict['datetime']) <= ed)
+                               ) ])
     return vardict
 
 
@@ -209,79 +209,78 @@ class satellite_class(qls, wc):
         print(" ")
         return pathlst
 
+    def crop_to_poi(self, poi):
+        vardict = {}
+        idx = self._match_poi(poi)
+        for element in self.vars:
+            if element != 'time_unit':
+                vardict[element] = list(np.array(
+                                        self.vars[element]
+                                        )[idx])
+            else:
+                vardict[element] = self.vars[element]
+        print('For chosen poi: ', len(vardict['time']), 'footprints found')
+        return self
+
+    def crop_to_region(self, region):
+        print('Crop to region:', region)
+        idx = self._match_region(self.vars['latitude'],
+                                 self.vars['longitude'],
+                                 region=region,
+                                 grid_date=self.sd)
+        vardict = {}
+        for element in self.vars:
+            if element != 'time_unit':
+                vardict[element] = list(np.array(
+                                        self.vars[element]
+                                        )[idx])
+            else:
+                vardict[element] = self.vars[element]
+        self.vars = vardict
+        print('Region mask applied')
+        print('For chosen region: ', len(vardict['time']),
+              'footprints found')
+        return self
+
     def _get_sat_ts(self, **kwargs):
         """
         Main function to obtain data from satellite missions.
         reads files, apply region and temporal filter
 
         return: adjusted dictionary according to spatial and
-                temporal contarinst
+                temporal constraints
         """
-        cvardict = read_local_files(
-                                    pathlst=self.pathlst,
-                                    nID=self.nID,
-                                    varalias=self.varalias,
-                                    sd=self.sd,
-                                    ed=self.ed,
-                                    twin=self.twin,
-                                    **kwargs
-                                    )
-        print('Total: ', len(cvardict['time']), ' footprints found')
-        print('Apply region mask for region', self.region)
-        ridx = self._match_region(cvardict['latitude'],
-                                  cvardict['longitude'],
-                                  region=self.region,
-                                  grid_date=self.sd)
-        print('Region mask applied')
-        rvardict = {}
-        for element in cvardict:
-            if element != 'time_unit':
-                rvardict[element] = list(np.array(
-                                        cvardict[element]
-                                        )[ridx])
-            else:
-                rvardict[element] = cvardict[element]
-        del cvardict, ridx
-        if len(rvardict['time']) > 0:
-            rvardict['datetime'] = netCDF4.num2date(
-                                        rvardict['time'],
-                                        rvardict['time_unit'])
-            print('For chosen region and time: ',
-                    len(rvardict['time']), 'footprints found')
+        vardict = read_local_files(
+                                   pathlst=self.pathlst,
+                                   nID=self.nID,
+                                   varalias=self.varalias,
+                                   sd=self.sd,
+                                   ed=self.ed,
+                                   twin=self.twin,
+                                   **kwargs
+                                   )
+        if len(vardict['time']) > 0:
+            vardict['datetime'] = netCDF4.num2date(
+                                        vardict['time'],
+                                        vardict['time_unit'])
+            print(len(vardict['time']), 'footprints found')
             # convert to datetime object
-            timedt = rvardict['datetime']
-            rvardict['datetime'] = [datetime(t.year, t.month, t.day,
-                                             t.hour, t.minute, t.second,
-                                             t.microsecond)
-                                    for t in timedt]
+            timedt = vardict['datetime']
+            vardict['datetime'] = [datetime(t.year, t.month, t.day,
+                                            t.hour, t.minute, t.second,
+                                            t.microsecond)
+                                   for t in timedt]
         else:
-            print('For chosen region and time: 0 footprints found!')
-        if self.poi is not None:
-            pvardict = {}
-            #pidx = match_poi(rvardict, self.twin, self.distlim, self.poi)
-            pidx = self._match_poi(rvardict, self.twin, self.distlim, self.poi)
-            for element in rvardict:
-                if element != 'time_unit':
-                    pvardict[element] = list(np.array(
-                                            rvardict[element]
-                                            )[pidx])
-                else:
-                    pvardict[element] = rvardict[element]
-            rvardict = pvardict
-            print('For chosen poi: ', len(rvardict['time']),
-                  'footprints found')
-        # find variable name as defined in file
-        ncdict = ncdumpMeta(self.pathlst[0])
-        rvardict['meta'] = ncdict
+            print('0 footprints found!')
         # adjust conventions
         if ('convention' in satellite_dict[self.nID].keys() and
         satellite_dict[self.nID]['convention'] == 'oceanographic'):
             print('Convert from oceanographic to meteorologic convention')
-            rvardict[variable_info[self.varalias]['standard_name']] = \
+            vardict[variable_info[self.varalias]['standard_name']] = \
                 list(convert_meteorologic_oceanographic(np.array(
-                    rvardict[variable_info[self.varalias]['standard_name']]
+                    vardict[variable_info[self.varalias]['standard_name']]
                     )))
-        return rvardict
+        return vardict
 
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
@@ -291,31 +290,16 @@ class satellite_class(qls, wc):
         if len(lst) > 0:
             try:
                 t0 = time.time()
-                if self.filter is True:
-                    print('Filter is activated,')
-                    print('Make sure the chosen time window is appropriate')
-                    # retrieve data
-                    rvardict = self._get_sat_ts(**kwargs)
-                    # adjust varalias if other return_var
-                    if kwargs.get('return_var') is not None:
-                        newvaralias = kwargs.get('return_var')
-                    else:
-                        newvaralias = self.varalias
-                    # filter data
-                    rvardict = filter_main(rvardict,
-                                           varalias=newvaralias,
-                                           **kwargs)
+                vardict = self._get_sat_ts(**kwargs)
+                # adjust varalias if other return_var
+                if kwargs.get('return_var') is not None:
+                    newvaralias = kwargs.get('return_var')
                 else:
-                    rvardict = self._get_sat_ts(**kwargs)
-                    # adjust varalias if other return_var
-                    if kwargs.get('return_var') is not None:
-                        newvaralias = kwargs.get('return_var')
-                    else:
-                        newvaralias = self.varalias
-                    # make ts in vardict unique
-                    rvardict = vardict_unique(rvardict)
-                    # rm NaNs
-                    rvardict = rm_nan_from_vardict(newvaralias, rvardict)
+                    newvaralias = self.varalias
+                # make ts in vardict unique
+                vardict = vardict_unique(vardict)
+                # rm NaNs
+                vardict = rm_nan_from_vardict(newvaralias, vardict)
                 # find variable name as defined in file
                 ncdict = ncdumpMeta(self.pathlst[0])
                 with NoStdStreams():
@@ -325,9 +309,9 @@ class satellite_class(qls, wc):
                                                   satellite_dict[self.nID],
                                                   ncdict
                                                   )
-                rvardict['meta'] = ncdict
+                self.meta = ncdict
                 # define more class object variables
-                self.vars = rvardict
+                self.vars = vardict
                 self.varname = filevarname
                 if kwargs.get('return_var') is not None:
                     self.varalias = kwargs.get('return_var')
@@ -431,6 +415,31 @@ class satellite_class(qls, wc):
             ridx = match_region_poly(LATS, LONS, region=region,
                                      grid_date=grid_date)
         return ridx
+
+    def crop_to_period(self, **kwargs):
+        """
+        Function to crop the variable dictionary to a given period
+        """
+        sd = parse_date(kwargs.get('sd', str(self.sd)))
+        ed = parse_date(kwargs.get('ed', str(self.ed)))
+        print('Crop to time period:', sd, 'to', ed)
+        vardict = self.vars
+        for key in vardict:
+            if (key != 'time_unit' and key != 'datetime'):
+                vardict[key] = list(
+                    np.array(vardict[key])[
+                        ((np.array(vardict['datetime']) >= sd)
+                            & (np.array(vardict['datetime']) <= ed))])
+            else:
+                vardict[key] = vardict[key]
+        vardict['datetime'] = list(
+            np.array(vardict['datetime'])[
+                ((np.array(vardict['datetime']) >= sd)
+                    & (np.array(vardict['datetime']) <= ed))])
+        self.vars = vardict
+        self.sdate = sd
+        self.edate = ed
+        return self
 
 
 def poi_sat(indict, twin, distlim, poi, ridx, i):
