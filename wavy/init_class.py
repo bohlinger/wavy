@@ -9,10 +9,10 @@ class config_class:
     nID: str = None
     names: dict = None
     download: dict = None
-    wavy_input_files: dict = None
-    wavy_output_files: dict = None
+    wavy_input: dict = None
+    wavy_output: dict = None
     reader: str = None
-    variables: dict = None
+    vardef: dict = None
     misc: dict = None
     tags: list = None
 

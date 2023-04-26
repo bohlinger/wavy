@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import os
 from copy import deepcopy
 import time
-from urllib.request import urlretrieve, urlcleanup # python3
+from urllib.request import urlretrieve, urlcleanup
 from urllib.parse import quote
 from ftplib import FTP
 from dateutil.relativedelta import relativedelta
@@ -69,9 +69,9 @@ def get_remote_files_cmems(**kwargs):
 
     from, to, creation
     '''
-    product = kwargs.get('product')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
+    product = kwargs.get('nID')
+    sdate = kwargs.get('sd')
+    edate = kwargs.get('ed')
     twin = kwargs.get('twin',30)
     nproc = kwargs.get('nproc',1)
     mission = kwargs.get('mission','s3a')

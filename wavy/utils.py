@@ -506,6 +506,8 @@ def convert_meteorologic_oceanographic(alpha):
 class NoStdStreams(object):
     '''
     Suppress stdout.
+    if argument is verbose stdout is shown,
+    e.g.: with NoStdStreams(verbose)
 
     https://codereview.stackexchange.com/questions/25417/
     is-there-a-better-way-to-make-a-function-silent-on-need

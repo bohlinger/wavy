@@ -259,17 +259,17 @@ def get_filevarname(varalias, variable_info, srcdict, ncdict):
         print('!!! standard_name: ', stdname, ' is not unique !!!',
               '\nThe following variables have the same standard_name:\n',
               filevarname)
-        print('Searching *_specs.yaml config file for definition')
+        print('Searching *_cfg.yaml config file for definition')
         filevarname = None
     if filevarname is not None:
         return filevarname[0]
-    tmpdict = finditem(srcdict,'vardef')
+    tmpdict = finditem(srcdict, 'vardef')
     if len(tmpdict)==0:
         tmpdict = [{'None':None}]
     vardefdict = tmpdict[0]
     if (filevarname is None and varalias in vardefdict.keys()):
         filevarname = vardefdict[varalias]
-        print('Variable defined in *_specs.yaml is:')
+        print('Variable defined in *_cfg.yaml is:')
         print(varalias, '=', filevarname)
         return filevarname
     elif (filevarname is None

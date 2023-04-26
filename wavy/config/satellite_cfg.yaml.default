@@ -8,7 +8,7 @@
 # """
 ########################################################################
 
-cmems_SWH_NRT:
+cmems_L3_NRT:
     # mandatory
     names:
         wavy: [s3a,s3b]
@@ -21,19 +21,19 @@ cmems_SWH_NRT:
                         WAVE_GLO_PHY_SWH_L3_NRT_014_001/\
                         cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/\
                         %Y/%m/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
             strsub: ['mission']
             server: "nrt.cmems-du.eu"
     # optional: where to read from
     #           can be defined directly when calling wavy
-    wavy_input_files:
+    wavy_input:
         src_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
         fl_tmplt: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['mission']
     # optional: where to write to
     #           can be defined directly when calling wavy
-    wavy_output_files:
+    wavy_output:
         trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
         fl_tmplt: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
@@ -42,9 +42,11 @@ cmems_SWH_NRT:
     # optional, if not defined the default is used
     reader:
     # optional, needs to be defined if not cf and in variable_info.yaml
-    variables:
-        wavy: [Hs,U]
-        src: [VAVH,WIND_SPEED]
+    vardef:
+        Hs: VAVH
+        U: WIND_SPEED
+        #wavy: [Hs,U]
+        #src: [VAVH,WIND_SPEED]
     # optional, info that can be used by class functions
     misc:
         processing_level:

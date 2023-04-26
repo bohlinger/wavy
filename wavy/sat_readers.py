@@ -132,7 +132,7 @@ def read_local_ncfiles(**kwargs):
 
     param:
         pathlst - list of paths to be parsed
-        product - product as specified in satellite_specs.yaml
+        product - product as specified in satellite_cfg.yaml
         varalias
         sd - start date (datetime object)
         ed - start date (datetime object)
@@ -142,23 +142,23 @@ def read_local_ncfiles(**kwargs):
         dictionary of variables for the satellite_class object
     """
     pathlst = kwargs.get('pathlst')
-    product = kwargs.get('product')
+    nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
     twin = kwargs.get('twin')
 
     # adjust start and end
-    sdate = sdate - timedelta(minutes=twin)
-    edate = edate + timedelta(minutes=twin)
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias,variable_info,
-                            satellite_dict[product],ncmeta)
+    ncvar = get_filevarname(varalias, variable_info,
+                            satellite_dict[nID], ncmeta)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby('time')
-    ds_sliced = ds_sort.sel(time=slice(sdate, edate))
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
     # make dict and start with stdvarname for varalias
     stdvarname = variable_info[varalias]['standard_name']
     var_sliced = ds_sliced[ncvar]
@@ -190,7 +190,7 @@ def read_local_20Hz_files(**kwargs):
 
     param:
         pathlst - list of paths to be parsed
-        product - product as specified in satellite_specs.yaml
+        product - product as specified in satellite_cfg.yaml
         varalias
         sd - start date (datetime object)
         ed - start date (datetime object)
@@ -260,7 +260,7 @@ def read_local_ncfiles_swim(**kwargs):
 
     param:
         pathlst - list of paths to be parsed
-        product - product as specified in satellite_specs.yaml
+        product - product as specified in satellite_cfg.yaml
         varalias
         sd - start date (datetime object)
         ed - start date (datetime object)
@@ -331,7 +331,7 @@ def read_local_files(**kwargs) -> dict:
                 'cfo_swim_L2P':read_local_ncfiles_swim,
                 'L2_20Hz_s3a':read_local_20Hz_files
                 }
-    product = kwargs.get('product')
+    product = kwargs.get('nID')
     # check if product available in dispatcher
     if product in dispatch_reader.keys():
         pass

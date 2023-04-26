@@ -772,13 +772,15 @@ class quicklook_class_sat:
             gl.top_labels = False
             gl.right_labels = False
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            ax.set_title(self.mission + ' (' + self.provider + ')\n'
-                      + 'from ' 
-                      + (self.vars['datetime'][0]).\
+            auto_title = (self.mission + '\n'
+                          + 'from ' 
+                          + (self.vars['datetime'][0]).\
                               strftime('%Y-%m-%d %H:%M:%S')
-                      + ' to '
-                      + (self.vars['datetime'][-1]).\
+                          + ' to '
+                          + (self.vars['datetime'][-1]).\
                               strftime('%Y-%m-%d %H:%M:%S'))
+            title = kwargs.get('title',auto_title)
+            ax.set_title(title)
             # plot from quickloop config file
             if ('region' in vars(self).keys()
                 and self.region in quicklook_dict
