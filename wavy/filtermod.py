@@ -19,99 +19,215 @@ from wavy.wconfig import load_or_default
 
 
 ROAR = None
-
 variable_info = load_or_default('variable_def.yaml')
 
-def filter_main(vardict_in,varalias='Hs',**kwargs):
-    """ Governing function of filtermod
 
-    Tasks:
-        - check if prior/post transforms are needed
-        - check if cleaning is needed
-        - check if filter is needed
-        - check if land mask is needed
-            - if so apply cleaning/filters to subsets
-              i.e. each chunk will be fed into filter_data
-              and consolidated when finished with all chunks
+class filter_class:
 
-    Args:
-        vardict
-
-    Returns:
-        vardict
-    """
-    stdvarname = variable_info[varalias]['standard_name']
-    # clone vardict_in
-    vardict = deepcopy(vardict_in)
-    # make ts in vardict unique
-    vardict = vardict_unique(vardict)
-    # apply physical limits
-    if kwargs.get('limits') is not None:
-        vardict = apply_limits(varalias,vardict)
-    # rm NaNs
-    vardict = rm_nan_from_vardict(varalias,vardict)
-
-    # start main filter section
-    if ( kwargs.get('land_mask') == True ):
-        del kwargs['land_mask']
-        vardict,sea_mask = apply_land_mask(vardict,**kwargs)
-        indices = start_stop(sea_mask, True)
-        # initialize newvardict with same keys
-        newvardict = deepcopy(vardict)
+    def apply_limits(self, **kwargs):
+        print('Apply limits')
+        print('Crude cleaning using valid range')
+        llim = kwargs.get('llim',
+            variable_info[self.varalias]['valid_range'][0])
+        ulim = kwargs.get('llim',
+            variable_info[self.varalias]['valid_range'][1])
+        vardict = deepcopy(self.vars)
+        y = vardict[self.stdvarname]
+        tmpdict = {'y': y}
+        df = pd.DataFrame(data=tmpdict)
+        dfmask = df['y'].between(llim, ulim, inclusive='both')
         for key in vardict:
-            if (key != 'time_unit' and key != 'meta'):
-                newvardict[key] = []
-        for start_idx, stop_idx in indices:
-            lenofchunk = len(list(range(start_idx, stop_idx)))
-            print('Length of chunk:',lenofchunk)
-            tmpdict = {}
+            if key != 'time_unit':
+                vardict[key] = list(np.array(vardict[key])[dfmask.values])
+        self.vars = vardict
+        return self
+
+    def filter_landMask(self, **kwargs):
+        vardict = deepcopy(self.vars)
+        # apply land mask
+        sea_mask = apply_land_mask(vardict, **kwargs)
+        # impose on vardict
+        for key in vardict.keys():
+            if key != 'time_unit':
+                vardict[key] = list(np.array(vardict[key])[sea_mask])
+
+        indices = start_stop(sea_mask, True)
+        indices_tmp = deepcopy(indices)
+        len_of_indices_tmp = len(list(indices_tmp))
+
+        del indices_tmp
+
+        if len_of_indices_tmp == 0:
+            pass
+
+        else:
+            no_chunks = 0
+            for start_idx, stop_idx in indices:
+                print(start_idx, stop_idx)
+                no_chunks += 1
+                lenofchunk = len(list(range(start_idx, stop_idx)))
+                print('Length of chunk:', lenofchunk)
+
+        # Assign back to class object
+        self.vars = vardict
+        print(' Number of registered intersections with land:', no_chunks)
+        print(' Number of disregarded values due to land intersections:',
+              len(sea_mask[sea_mask == False]))
+        return self
+
+    def filter_distance_to_coast(self, **kwargs):
+        """
+        discards all values closer to shoreline than threshold
+        between statement can be:
+            inclusive ("both"), exclusive ("neither"), left/right
+        """
+        print("Apply distance_to_coast_mask")
+        vardict = deepcopy(self.vars)
+        llim = kwargs.get('llim', 10)
+        ulim = kwargs.get('ulim', 100000)
+        interval_bounds = kwargs.get('interval_bounds', 'neither')
+        with NoStdStreams():
+            coastline = get_coastline_shape_file(**kwargs)
+        # clean coastline object for list of specific countries
+        nlst = kwargs.get('lst_of_countries')
+        if nlst is not None:
+            clst = np.array(
+                    [coastline[i]
+                        for i in range(len(coastline))
+                        if coastline[i, 2] in nlst]
+                        )
+            # if coastline[i][1] in nlst] )
+            coastline = clst
+        df = distance_to_shore(pd.DataFrame(vardict['longitude']),
+                               pd.DataFrame(vardict['latitude']),
+                               coastline)
+        clean_dict = deepcopy(vardict)
+        dfmask = df['distance_to_shore'].between(
+                        llim, ulim, inclusive=interval_bounds)
+        for key in vardict:
+            if key != 'time_unit':
+                clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
+        print(" Number of disregarded values due to coastline proximetry:",
+              len(self.vars['time'])-len(clean_dict['time']))
+        print(" Remaining number of values:", len(clean_dict['time']))
+        self.vars = clean_dict
+        return self
+
+    def filter_blockMean(self, **kwargs):
+        return self
+
+    def filter_GP(self, **kwargs):
+        return self
+
+    def filter_NIGP(self, **kwargs):
+        return self
+
+    def filter_linearGAM(self, **kwargs):
+        return self
+
+    def despike_blockStd(self, **kwargs):
+        return self
+
+    def despike_GP(self, **kwargs):
+        return self
+
+    def despike_NIGP(self, **kwargs):
+        return self
+
+    def despike_linearGAM(self, **kwargs):
+        return self
+
+    def filter_main(self, **kwargs):
+        """ Governing function of filtermod
+
+        Tasks:
+            - check if prior/post transforms are needed
+            - check if cleaning is needed
+            - check if filter is needed
+            - check if land mask is needed
+                - if so apply cleaning/filters to subsets
+                  i.e. each chunk will be fed into filter_data
+                  and consolidated when finished with all chunks
+
+        Args:
+            vardict
+
+        Returns:
+            vardict
+        """
+        stdvarname = variable_info[self.varalias]['standard_name']
+        # clone ingoing vardict
+        vardict = deepcopy(self.vars)
+        # make ts in vardict unique
+        vardict = vardict_unique(vardict)
+        # apply physical limits
+        if kwargs.get('limits') is not None:
+            vardict = apply_limits(self.varalias,vardict)
+        # rm NaNs
+        vardict = rm_nan_from_vardict(self.varalias,vardict)
+
+        # start main filter section
+        if ( kwargs.get('land_mask') == True ):
+            del kwargs['land_mask']
+            vardict,sea_mask = apply_land_mask(vardict,**kwargs)
+            indices = start_stop(sea_mask, True)
+            # initialize newvardict with same keys
+            newvardict = deepcopy(vardict)
             for key in vardict:
                 if (key != 'time_unit' and key != 'meta'):
-                    tmpdict[key] = vardict[key][start_idx:stop_idx]
-                else:
-                    tmpdict[key] = vardict[key]
-            newtmpdict = filter_main(tmpdict,
-                                     varalias=varalias,
-                                     **kwargs)
-            # append to newvardict
-            for key in tmpdict:
+                    newvardict[key] = []
+            for start_idx, stop_idx in indices:
+                lenofchunk = len(list(range(start_idx, stop_idx)))
+                print('Length of chunk:',lenofchunk)
+                tmpdict = {}
+                for key in vardict:
+                    if (key != 'time_unit' and key != 'meta'):
+                        tmpdict[key] = vardict[key][start_idx:stop_idx]
+                    else:
+                        tmpdict[key] = vardict[key]
+                newtmpdict = self.filter_main(tmpdict,
+                                              varalias=self.varalias,
+                                              **kwargs)
+                # append to newvardict
+                for key in tmpdict:
+                    if (key != 'time_unit' and key != 'meta'):
+                        newvardict[key].append(newtmpdict[key])
+            # flatten newvardict lists
+            for key in newvardict:
                 if (key != 'time_unit' and key != 'meta'):
-                    newvardict[key].append(newtmpdict[key])
-        # flatten newvardict lists
-        for key in newvardict:
-            if (key != 'time_unit' and key != 'meta'):
-                newvardict[key] = flatten(newvardict[key])
-        vardict = newvardict
-    else:
-        if kwargs.get('slider') is not None:
-            # create chunks with size of slider
-            print(len(vardict['time']))
-            print(len(vardict[stdvarname]))
-            vardict = filter_slider(vardict,varalias,**kwargs)
+                    newvardict[key] = flatten(newvardict[key])
+            vardict = newvardict
         else:
-            if kwargs.get('dtc_mask') is True:
-                # apply distance to coast filter
-                vardict = apply_distance_to_coast_mask(vardict,**kwargs)
-            if kwargs.get('priorOp') is not None:
-                method = kwargs.get('priorOp')
-                vardict = apply_priorOp(varalias,vardict,
-                                        method = method)
-            if kwargs.get('cleaner') is not None:
-                method = kwargs.get('cleaner')
-                vardict = apply_cleaner(varalias,vardict,
-                                        method = method,
-                                        **kwargs)
-            if kwargs.get('smoother') is not None:
-                output_dates = kwargs.get('output_dates')
-                method = kwargs.get('smoother')
-                vardict = apply_smoother(varalias,vardict,
-                                         output_dates = output_dates,
-                                         method = method,
-                                         **kwargs)
-            if kwargs.get('postOp') is not None:
-                method = kwargs.get('postOp')
-                vardict = apply_postOp(varalias,vardict,method = method)
-    return vardict
+            if kwargs.get('slider') is not None:
+                # create chunks with size of slider
+                print(len(vardict['time']))
+                print(len(vardict[stdvarname]))
+                vardict = filter_slider(vardict,self.varalias,**kwargs)
+            else:
+                if kwargs.get('dtc_mask') is True:
+                    # apply distance to coast filter
+                    vardict = apply_distance_to_coast_mask(vardict,**kwargs)
+                if kwargs.get('priorOp') is not None:
+                    method = kwargs.get('priorOp')
+                    vardict = apply_priorOp(self.varalias,vardict,
+                                            method = method)
+                if kwargs.get('cleaner') is not None:
+                    method = kwargs.get('cleaner')
+                    vardict = apply_cleaner(self.varalias,vardict,
+                                            method = method,
+                                            **kwargs)
+                if kwargs.get('smoother') is not None:
+                    output_dates = kwargs.get('output_dates')
+                    method = kwargs.get('smoother')
+                    vardict = apply_smoother(self.varalias,vardict,
+                                             output_dates = output_dates,
+                                             method = method,
+                                             **kwargs)
+                if kwargs.get('postOp') is not None:
+                    method = kwargs.get('postOp')
+                    vardict = apply_postOp(self.varalias,vardict,method=method)
+            self.vars = vardict
+        return self
 
 def vardict_unique(vardict):
     _, idx = np.unique(np.array(vardict['datetime']),return_index=True)
@@ -171,13 +287,13 @@ def rm_nan_from_vardict(varalias,vardict):
 
 def start_stop(a, trigger_val):
     # "Enclose" mask with sentients to catch shifts later on
-    mask = np.r_[False,np.equal(a, trigger_val),False]
+    mask = np.r_[False, np.equal(a, trigger_val), False]
     # Get the shifting indices
     idx = np.flatnonzero(mask[1:] != mask[:-1])
     # Get the start and end indices with slicing along the shifting ones
     return zip(idx[::2], idx[1::2]-1)
 
-def apply_land_mask(vardict,**kwargs):
+def apply_land_mask(vardict, **kwargs):
     """ Mask out parts covering land
 
     Args:
@@ -196,49 +312,10 @@ def apply_land_mask(vardict,**kwargs):
     longitudes = np.array(vardict['longitude'])
     latitudes = np.array(vardict['latitude'])
     land_mask = ROAR.contains_many(longitudes, latitudes)
-
-    conservative_mask = kwargs.get('conservative_mask',0)
-
+    conservative_mask = kwargs.get('conservative_mask', 0)
     sea_mask = np.invert(land_mask)
 
-    for key in vardict.keys():
-        if (key != 'time_unit' and key != 'meta'):
-            vardict[key] = list(np.array(vardict[key])[sea_mask])
-    print('Number of disregarded values:', len(sea_mask[sea_mask==False]))
-
-    return vardict, sea_mask
-
-def apply_distance_to_coast_mask(vardict,**kwargs):
-        """
-        discards all values closer to shoreline than threshold
-        between statement can be:
-            inclusive ("both"), exclusive ("neither"), left/right
-        """
-        print(" apply distance_to_coast_mask")
-        llim = kwargs.get('dtc_llim',10)
-        ulim = kwargs.get('dtc_ulim',100000)
-        interval_bounds = kwargs.get('dtc_interval_bounds','neither')
-        with NoStdStreams():
-            coastline = get_coastline_shape_file(**kwargs)
-        # clean coastline object for list of specific countries
-        nlst = kwargs.get('dtc_lst_of_countries')
-        if nlst is not None:
-            clst = np.array(
-                    [coastline[i]
-                    for i in range(len(coastline))
-                    if coastline[i,2] in nlst] )
-                    #if coastline[i][1] in nlst] )
-            coastline = clst
-        df = distance_to_shore( pd.DataFrame(vardict['longitude']),
-                                pd.DataFrame(vardict['latitude']),
-                                coastline )
-        clean_dict = deepcopy(vardict)
-        dfmask = df['distance_to_shore'].between(llim, ulim,
-                                        inclusive=interval_bounds)
-        for key in vardict:
-            if (key != 'time_unit' and key != 'meta'):
-                clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
-        return clean_dict
+    return sea_mask
 
 def extract_geom_meta(country):
     '''
@@ -248,9 +325,9 @@ def extract_geom_meta(country):
     '''
     geoms = country.geometry
     coords = np.empty(shape=[0, 2])
-    #for geom in geoms:
+    # for geom in geoms:
     #    coords = np.append(coords, geom.exterior.coords, axis = 0)
-    coords = np.append(coords, geoms.convex_hull.exterior.coords, axis = 0)
+    coords = np.append(coords, geoms.convex_hull.exterior.coords, axis=0)
     country_name = country.attributes["ADMIN"]
     return [coords, country_name]
 
@@ -259,13 +336,13 @@ def get_coastline_shape_file(pathtofile=None,**kwargs):
     Get the global coastline
     '''
     if kwargs.get('dtc_npy_file') is None:
-        ne_earth = shpreader.natural_earth(resolution = '10m',
-                                           category = 'cultural',
+        ne_earth = shpreader.natural_earth(resolution='10m',
+                                           category='cultural',
                                            name='admin_0_countries')
         reader = shpreader.Reader(ne_earth)
         countries = reader.records()
         clst = [c for c in countries]
-        ## extract and create separate objects
+        # extract and create separate objects
         wg = []
         for i in range(len(clst)):
             try:
@@ -276,13 +353,13 @@ def get_coastline_shape_file(pathtofile=None,**kwargs):
         b = [[x[-1]]*len(x[0]) for x in wg]
         a1 = np.vstack(a)
         b1 = np.vstack(flatten(b))
-        coords_countries = np.hstack([a1,b1])
-        #coords_countries = np.vstack([[np.array(x[:-1]), x[-1]]
+        coords_countries = np.hstack([a1, b1])
+        # coords_countries = np.vstack([[np.array(x[:-1]), x[-1]]
         #                               for x in wg])
     else:
         coastline = np.load(kwargs.get('dtc_npy_file'))
     if pathtofile is not None:
-        #'/home/patrikb/tmp_coast/coast_coords_10m.npy'
+        # '/home/patrikb/tmp_coast/coast_coords_10m.npy'
         coastline = np.save(pathtofile, coords_countries)
     coastline = coords_countries
     return coastline
@@ -298,12 +375,12 @@ def distance_to_shore(lon, lat, coastline):
     Returns:
         numpy array of distances and country names
     '''
-    #coastline_coords = np.vstack([np.flip(x[0][0], axis=1)\
+    # coastline_coords = np.vstack([np.flip(x[0][0], axis=1)\
     #                        for x in coastline])
-    #countries = np.hstack([np.repeat(str(x[1]), len(x[0][0]))\
+    # countries = np.hstack([np.repeat(str(x[1]), len(x[0][0]))\
     #                        for x in coastline])
-    coastline_coords = np.flip(coastline[:,0:2].astype(float))
-    countries = coastline[:,2]
+    coastline_coords = np.flip(coastline[:, 0:2].astype(float))
+    countries = coastline[:, 2]
     tree = BallTree(np.radians(coastline_coords), metric='haversine')
     coords = pd.concat([np.radians(lat), np.radians(lon)], axis=1)
     dist, ind = tree.query(coords, k=1)
@@ -322,7 +399,7 @@ def apply_limits(varalias,vardict):
     ulim = variable_info[varalias]['valid_range'][1]
     tmpdict = {'y':y}
     df = pd.DataFrame(data = tmpdict)
-    dfmask = df['y'].between(llim, ulim, inclusive=True)
+    dfmask = df['y'].between(llim, ulim, inclusive='both')
     for key in vardict:
         if (key != 'time_unit' and key != 'meta'):
             clean_dict[key] = list(np.array(vardict[key])[dfmask.values])

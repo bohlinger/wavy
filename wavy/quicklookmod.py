@@ -686,7 +686,7 @@ def ts_fig(results_dict):
 
 class quicklook_class_sat:
 
-    def quicklook(self,a=False,projection=None,**kwargs):
+    def quicklook(self, a=False, projection=None, **kwargs):
         """
         Enables to explore the class object (and retrieved results)
         by plotting time series and map.

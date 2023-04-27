@@ -38,7 +38,9 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
-from wavy.filtermod import filter_main, vardict_unique
+#from wavy.filtermod import filter_main, vardict_unique
+from wavy.filtermod import filter_class as fc
+from wavy.filtermod import vardict_unique
 from wavy.filtermod import rm_nan_from_vardict
 from wavy.sat_collectors import get_remote_files
 from wavy.sat_readers import read_local_files
@@ -93,7 +95,7 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_class(qls, wc):
+class satellite_class(qls, wc, fc):
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
