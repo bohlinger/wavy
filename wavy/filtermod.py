@@ -25,8 +25,7 @@ variable_info = load_or_default('variable_def.yaml')
 class filter_class:
 
     def apply_limits(self, **kwargs):
-        print('Apply limits')
-        print('Crude cleaning using valid range')
+        print('Apply limits (crude cleaning using valid range)')
         llim = kwargs.get('llim',
             variable_info[self.varalias]['valid_range'][0])
         ulim = kwargs.get('llim',
@@ -39,6 +38,9 @@ class filter_class:
         for key in vardict:
             if key != 'time_unit':
                 vardict[key] = list(np.array(vardict[key])[dfmask.values])
+        print(" Number of removed values:",
+              len(self.vars['time'])-len(vardict['time']))
+        print(" Number of remaining values:", len(vardict['time']))
         self.vars = vardict
         return self
 
@@ -73,6 +75,7 @@ class filter_class:
         print(' Number of registered intersections with land:', no_chunks)
         print(' Number of disregarded values due to land intersections:',
               len(sea_mask[sea_mask == False]))
+        print(' Number of remaining values:', len(vardict['time']))
         return self
 
     def filter_distance_to_coast(self, **kwargs):

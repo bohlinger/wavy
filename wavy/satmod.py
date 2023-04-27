@@ -200,15 +200,16 @@ class satellite_class(qls, wc, fc):
         print(str(int(len(pathlst))) + " valid files found")
         return pathlst, filelst
 
-    def list_files(self, **kwargs):
+    def list_files(self, show=False, **kwargs):
         print(" ## Find and list files ...")
         path = kwargs.get('path', None)
         pathlst, _ = self._get_files(vars(self), path=path)
         print('source template:',
               satellite_dict[self.nID]['wavy_input']['src_tmplt'])
-        print(" ")
-        print(pathlst)
-        print(" ")
+        if show is True:
+            print(" ")
+            print(pathlst)
+            print(" ")
         return pathlst
 
     def crop_to_poi(self, poi):
