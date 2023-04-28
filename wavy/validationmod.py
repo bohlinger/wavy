@@ -50,6 +50,12 @@ def calc_nrmsd(a,b):
     rmsd = np.sqrt(msd)
     return msd, rmsd
 
+def number_of_valid_values(a,b):
+    comb = a + b
+    idx = np.array(range(len(a)))[~np.isnan(comb)]
+    a1 = a[idx]
+    return len(a1)
+
 def calc_drmsd(a,b):
     '''
     debiased root mean square deviation
@@ -182,7 +188,8 @@ def validate(results_dict,boot=None):
         msd, rmsd = calc_rmsd(model_matches,obs_matches)
         nmsd, nrmsd = calc_nrmsd(model_matches,obs_matches)
         dmsd, drmsd = calc_drmsd(model_matches,obs_matches)
-        nov = len(obs_matches)
+        #nov = len(obs_matches)
+        nov = number_of_valid_values(model_matches,obs_matches)
         mad = calc_mad(model_matches,obs_matches)
         corr = calc_corrcoef(model_matches,obs_matches)
         bias = calc_bias(model_matches,obs_matches)
