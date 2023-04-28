@@ -46,8 +46,10 @@ class filter_class:
 
     def filter_landMask(self, **kwargs):
         vardict = deepcopy(self.vars)
+        longitudes = np.array(vardict['longitude'])
+        latitudes = np.array(vardict['latitude'])
         # apply land mask
-        sea_mask = apply_land_mask(vardict, **kwargs)
+        sea_mask = apply_land_mask(longitudes, latitudes, **kwargs)
         # impose on vardict
         for key in vardict.keys():
             if key != 'time_unit':
@@ -92,18 +94,20 @@ class filter_class:
         with NoStdStreams():
             coastline = get_coastline_shape_file(**kwargs)
         # clean coastline object for list of specific countries
-        nlst = kwargs.get('lst_of_countries')
-        if nlst is not None:
-            clst = np.array(
-                    [coastline[i]
-                        for i in range(len(coastline))
-                        if coastline[i, 2] in nlst]
-                        )
-            # if coastline[i][1] in nlst] )
-            coastline = clst
+        #nlst = kwargs.get('lst_of_countries')
+        #if nlst is not None:
+        #    clst = np.array(
+        #            [coastline[i]
+        #                for i in range(len(coastline))
+        #                if coastline[i, 2] in nlst]
+        #                )
+        #    # if coastline[i][1] in nlst] )
+        #    coastline = clst
         df = distance_to_shore(pd.DataFrame(vardict['longitude']),
                                pd.DataFrame(vardict['latitude']),
                                coastline)
+        print(coastline)
+        print(df)
         clean_dict = deepcopy(vardict)
         dfmask = df['distance_to_shore'].between(
                         llim, ulim, inclusive=interval_bounds)
@@ -296,11 +300,11 @@ def start_stop(a, trigger_val):
     # Get the start and end indices with slicing along the shifting ones
     return zip(idx[::2], idx[1::2]-1)
 
-def apply_land_mask(vardict, **kwargs):
+def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray):
     """ Mask out parts covering land
 
     Args:
-        vardicy (dict)
+        longitudes, latitudes
 
     Returns:
         vardict, sea_mask
@@ -312,10 +316,7 @@ def apply_land_mask(vardict, **kwargs):
     if ROAR is None:
         ROAR = roaring_landmask.RoaringLandmask.new()
 
-    longitudes = np.array(vardict['longitude'])
-    latitudes = np.array(vardict['latitude'])
     land_mask = ROAR.contains_many(longitudes, latitudes)
-    conservative_mask = kwargs.get('conservative_mask', 0)
     sea_mask = np.invert(land_mask)
 
     return sea_mask
@@ -345,6 +346,7 @@ def get_coastline_shape_file(pathtofile=None,**kwargs):
         reader = shpreader.Reader(ne_earth)
         countries = reader.records()
         clst = [c for c in countries]
+        print(clst)
         # extract and create separate objects
         wg = []
         for i in range(len(clst)):
