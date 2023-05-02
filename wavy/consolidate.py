@@ -19,7 +19,7 @@ from wavy.quicklookmod import quicklook_class_sat as qls
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-variable_info = load_or_default('variable_info.yaml')
+variable_info = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
 
@@ -88,8 +88,8 @@ class consolidate_class(qls):
         self.stdvarname = ocos[i].stdvarname
         self.varname = ocos[i].varname
         self.units = ocos[i].units
-        self.sdate = ocos[i].sdate
-        self.edate = ocos[i].edate
+        self.sd = ocos[i].sd
+        self.ed = ocos[i].ed
         self.vars = consolidate_scos(ocos)
         self.obsname = 'consolidated-obs'
         self.obstype = 'consolidated-obs'
@@ -100,10 +100,10 @@ class consolidate_class(qls):
         self.nID = 'nID'
         self.sensor = 'sensor'
         print(" ")
-        print (" ### consolidate_class object initialized ###")
-        print ('# ----- ')
+        print(" ### consolidate_class object initialized ###")
+        print('# ----- ')
 
-    def rename_consolidate_object_parameters(self,**kwargs):
+    def rename_consolidate_object_parameters(self, **kwargs):
         if kwargs.get('obsname') is not None:
             self.obsname = kwargs.get('obsname')
         if kwargs.get('mission') is not None:

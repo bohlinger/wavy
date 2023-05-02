@@ -31,18 +31,18 @@ from wavy.utils import find_direction_convention
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 # read yaml config files:
-insitu_dict = load_or_default('insitu_specs.yaml')
-variable_info = load_or_default('variable_info.yaml')
+insitu_dict = load_or_default('insitu_cfg.yaml')
+variable_info = load_or_default('variable_def.yaml')
 variables_frost = load_or_default('variables_frost.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
 # ---------------------------------------------------------------------#
 
-def get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,
-pathlst,strsublst,dict_for_sub):
+def get_d22_ts(sdate, edate, basedate, nID, sensor, varalias,
+pathlst, strsublst, dict_for_sub):
     sdatetmp = sdate
     edatetmp = edate
-    sl = parse_d22(sdatetmp,edatetmp,pathlst,strsublst,dict_for_sub)
-    var, timedt = extract_d22(sl,varalias,nID,sensor)
+    sl = parse_d22(sdatetmp, edatetmp, pathlst, strsublst, dict_for_sub)
+    var, timedt = extract_d22(sl, varalias, nID, sensor)
     time = np.array(
            [(t-basedate).total_seconds() for t in timedt]
            )
@@ -60,16 +60,16 @@ def get_d22_dict(**kwargs):
     dict_for_sub = kwargs.get('dict_for_sub')
     stdvarname = variable_info[varalias]['standard_name']
     var, time, timedt = \
-        get_d22_ts(sdate,edate,basedate,nID,sensor,varalias,\
-                    pathlst,strsublst,dict_for_sub)
+        get_d22_ts(sdate, edate, basedate, nID, sensor, varalias,\
+                    pathlst, strsublst, dict_for_sub)
     if 'twin' in insitu_dict[nID]:
         idxtmp = collocate_times(unfiltered_t=timedt,\
-                            sdate=sdate,edate=edate,
+                            sdate=sdate, edate=edate,
                             twin=insitu_dict[nID]['twin'])
     else:
         # default to allow for a 1 min variation
         idxtmp = collocate_times(unfiltered_t=timedt,\
-                            sdate=sdate,edate=edate,
+                            sdate=sdate, edate=edate,
                             twin=1)
     # convert to list for consistency with other classes
     # and make sure that only steps with existing obs are included
@@ -82,7 +82,7 @@ def get_d22_dict(**kwargs):
         # 1. create artificial time vector for collocation
         tmpdate = deepcopy(sdate)
         tmpdatelst = []
-        while tmpdate<edate:
+        while tmpdate < edate:
             tmpdatelst.append(tmpdate)
             tmpdate += timedelta(minutes=20)
         # 2. collocate times
@@ -103,20 +103,20 @@ def get_d22_dict(**kwargs):
     lats = [insitu_dict[nID]['coords'][sensor]['lat']]\
             *len(var)
     vardict = {
-                stdvarname:var,
-                'time':time,
-                'datetime':timedt,
-                'time_unit':variable_info['time']['units'],
-                'longitude':lons,
-                'latitude':lats
+                stdvarname: var,
+                'time': time,
+                'datetime': timedt,
+                'time_unit': variable_info['time']['units'],
+                'longitude': lons,
+                'latitude': lats
                 }
     return vardict
 
 def get_typeid(insitu_dict: dict, s: str) -> str:
-    typeid = insitu_dict[s].get('typeids',22)
+    typeid = insitu_dict[s].get('typeids', 22)
     return typeid
 
-def make_frost_reference_time_period(sdate,edate):
+def make_frost_reference_time_period(sdate, edate):
     sdate = parse_date(sdate)
     edate = parse_date(edate)
     formatstr = '%Y-%m-%dT%H:%M:00.000Z'
@@ -141,18 +141,19 @@ def call_frost_api(\
                           frost_reference_time,
                           client_id, sensor)
     print(r.url)
-    print('\nr.status_code:',r.status_code,'\n')
+    print('\nr.status_code:', r.status_code, '\n')
     if r.status_code != 200:
         print('Error! Returned status code %s' % r.status_code)
         error = r.json()['error']
-        for part in ['message','reason','help']:
+        for part in ['message', 'reason', 'help']:
             if part in error:
                 print(part.upper(), ': ', error[part])
     else:
         return r
 
 def call_frost_api_v1(\
-        nID: str, varstr: str,frost_reference_time: str, client_id: str, sensor: str)\
+        nID: str, varstr: str, frost_reference_time: str,
+        client_id: str, sensor: str)\
     -> 'requests.models.Response':
     """
     frost call, retrieve data from frost v1
@@ -167,19 +168,19 @@ def call_frost_api_v1(\
                 'incobs': 'true',
                 #'sensors': '0,1,2,3,4,5',
                 'sensors': sensor, # limit to one sensor
-                'typeids': str(get_typeid(insitu_dict,nID))
+                'typeids': str(get_typeid(insitu_dict, nID))
                 }
-    print('parameters forst api call: ',parameters)
+    print('parameters forst api call: ', parameters)
     return requests.get(endpoint, parameters, auth=(client_id, client_id))
 
-def find_preferred(idx,sensors,refs,pref):
+def find_preferred(idx, sensors, refs, pref):
     sensorsU = np.unique(sensors)
     preferred_idx = []
     for s in sensorsU:
-        no = len(refs[sensors==s])
-        idx_1 = idx[sensors==s]
+        no = len(refs[sensors == s])
+        idx_1 = idx[sensors == s]
         if no > 1:
-            idx_2 = np.where(refs[sensors==s]==pref)
+            idx_2 = np.where(refs[sensors == s] == pref)
             idx_3 = idx_1[idx_2]
             preferred_idx.append(list(idx_3)[0])
         else:
@@ -201,12 +202,12 @@ def get_frost_df_v1(r: 'requests.models.Response')\
     # select time index, some ts have less than others
     # choose the one with most values
     no_of_ts = len(pd.json_normalize(r.json()['data']['tseries'][:]))
-    no_of_ts = min(4,no_of_ts)
+    no_of_ts = min(4, no_of_ts)
     lenlst = []
     for t in range(no_of_ts):
-        lenlst.append( len(pd.json_normalize(r.json()\
-                       ['data']['tseries'][t]['observations'])['time'].\
-                              to_frame()) )
+        lenlst.append(len(pd.json_normalize(r.json()\
+                      ['data']['tseries'][t]['observations'])['time']\
+                      .to_frame()))
     time_idx = lenlst.index(max(lenlst))
     dfc = pd.json_normalize(r.json()
       ['data']['tseries'][time_idx]['observations'])['time'].to_frame()
@@ -226,20 +227,20 @@ def get_frost_df_v1(r: 'requests.models.Response')\
             # 1. prioritize according to parameterid
             if len(np.unique(parameterids)) > 1:
                 print('multiple parameterids (',\
-                        len(np.unique(parameterids)),')')
+                        len(np.unique(parameterids)), ')')
                 print('parameterids:',np.unique(parameterids))
                 idx = find_preferred(\
-                        idx,sensors,parameterids,\
+                        idx, sensors, parameterids,\
                         variables_frost[vn]['prime_parameterid'])
                 sensors = df['header.id.sensor'][idx].values
                 parameterids = df['header.id.parameterid'][idx].values
                 levels = df['header.id.level'][idx].values
             # 2. prioritize according to level
             if len(np.unique(levels)) > 1:
-                print('multiple levels (',len(np.unique(levels)),')')
+                print('multiple levels (', len(np.unique(levels)), ')')
                 print('unique(levels):',np.unique(levels))
                 idx = find_preferred(\
-                        idx,sensors,levels,\
+                        idx, sensors, levels, \
                         variables_frost[vn]['prime_level'])
                 sensors = df['header.id.sensor'][idx].values
                 parameterids = df['header.id.parameterid'][idx].values
@@ -274,30 +275,30 @@ def get_frost_dict(**kwargs):
     varalias = kwargs.get('varalias')
     varstr = [variables_frost[varalias]['frost_name']]
     stdvarname = variable_info[varalias]['standard_name']
-    sensor = kwargs.get('sensor',0)
-    r = call_frost_api(sdate,edate,nID,varstr,sensor)
+    sensor = kwargs.get('sensor', 0)
+    r = call_frost_api(sdate, edate, nID, varstr, sensor)
     df, dinfo, lon, lat = get_frost_df_v1(r)
     var = df[varalias].values
     timevec = df['time'].values
     timedt = [parse_date(str(d)) for d in timevec]
     # rm datetime timezone info
     timedt = [d.replace(tzinfo=None) for d in timedt]
-    time = netCDF4.date2num(timedt,variable_info['time']['units'])
+    time = netCDF4.date2num(timedt, variable_info['time']['units'])
     lons = len(var)*[lon]
     lats = len(var)*[lat]
     vardict = {
-                stdvarname:list(var),
-                'time':list(time),
-                'datetime':timedt,
-                'time_unit':variable_info['time']['units'],
-                'longitude':lons,
-                'latitude':lats
+                stdvarname: list(var),
+                'time': list(time),
+                'datetime': timedt,
+                'time_unit': variable_info['time']['units'],
+                'longitude': lons,
+                'latitude': lats
                 }
     return vardict
 
 def get_nc_dict(**kwargs):
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
     nID = kwargs.get('nID')
     #sensor = kwargs.get('sensor')
     varalias = kwargs.get('varalias')
@@ -306,19 +307,19 @@ def get_nc_dict(**kwargs):
     dict_for_sub = kwargs.get('dict_for_sub')
     # loop from sdate to edate with dateincr
     stdvarname = variable_info[varalias]['standard_name']
-    tmpdate = deepcopy(sdate)
+    tmpdate = deepcopy(sd)
     varlst = []
     lonlst = []
     latlst = []
     timelst = []
     dtimelst = []
     # make subdict
-    subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
-    while datetime(tmpdate.year,tmpdate.month,1)\
-    <= datetime(edate.year,edate.month,1):
+    subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
+    while datetime(tmpdate.year, tmpdate.month, 1)\
+    <= datetime(ed.year, ed.month, 1):
         # get pathtofile
-        pathtofile = get_pathtofile(pathlst,strsublst,\
-                                        subdict,tmpdate)
+        pathtofile = get_pathtofile(pathlst, strsublst,
+                                    subdict, tmpdate)
         # get ncdump
         ncdict = ncdumpMeta(pathtofile)
         # retrieve filevarname for varalias
@@ -326,36 +327,36 @@ def get_nc_dict(**kwargs):
                                       variable_info,
                                       insitu_dict[nID],
                                       ncdict)
-        varstrlst = [filevarname,'longitude','latitude','time']
+        varstrlst = [filevarname, 'longitude', 'latitude', 'time']
         # query
         vardict = get_varlst_from_nc_1D(pathtofile,
                                         varstrlst,
-                                        sdate,edate)
+                                        sd, ed)
         varlst.append(list(vardict[filevarname]))
         lonlst.append(list(vardict['longitude']))
         latlst.append(list(vardict['latitude']))
         timelst.append(list(vardict['time']))
         dtimelst.append(list(vardict['dtime']))
         # determine date increment
-        file_date_incr = insitu_dict[nID]['src'].get('file_date_incr','m')
+        file_date_incr = insitu_dict[nID]['src'].get('file_date_incr', 'm')
         if file_date_incr == 'm':
-            tmpdate += relativedelta(months = +1)
+            tmpdate += relativedelta(months=+1)
         elif file_date_incr == 'Y':
-            tmpdate += relativedelta(years = +1)
+            tmpdate += relativedelta(years=+1)
         elif file_date_incr == 'd':
-            tmpdate += timedelta(days = +1)
+            tmpdate += timedelta(days=+1)
     varlst = flatten(varlst)
     lonlst = flatten(lonlst)
     latlst = flatten(latlst)
     timelst = flatten(timelst)
     dtimelst = flatten(dtimelst)
     vardict = {
-                stdvarname:varlst,
-                'time':timelst,
-                'datetime':dtimelst,
-                'time_unit':variable_info['time']['units'],
-                'longitude':lonlst,
-                'latitude':latlst
+                stdvarname: varlst,
+                'time': timelst,
+                'datetime': dtimelst,
+                'time_unit': variable_info['time']['units'],
+                'longitude': lonlst,
+                'latitude': latlst
                 }
     # adjust conventions
     # check if variable is one with conventions
@@ -364,7 +365,7 @@ def get_nc_dict(**kwargs):
         print('Chosen variable is defined with conventions')
         print('... checking if correct convention is used ...')
         # 1. check if clear from standard_name
-        file_stdvarname = find_direction_convention(filevarname,ncdict)
+        file_stdvarname = find_direction_convention(filevarname, ncdict)
         if "to_direction" in file_stdvarname:
             print('Convert from oceanographic to meteorologic convention')
             vardict[variable_info[varalias]['standard_name']] = \
@@ -389,7 +390,7 @@ def get_nc_dict(**kwargs):
             convention_set = True
     return vardict
 
-def parse_d22(sdate,edate,pathlst,strsublst,dict_for_sub):
+def parse_d22(sdate, edate, pathlst, strsublst, dict_for_sub):
     """
     Read all lines in file and append to sl
     """
@@ -419,13 +420,14 @@ def floater(s):
     return x
 
 def find_category_for_variable(varalias):
-    lst = [ i for i in d22_dict.keys() \
-            if (varalias in d22_dict[i]) ]
+    lst = [i for i in d22_dict.keys()
+           if (varalias in d22_dict[i])]
     if len(lst) == 1:
         return lst[0]
-    else: return None
+    else:
+        return None
 
-def get_revised_categories(sl,category):
+def get_revised_categories(sl, category):
     """
     finds number of occurences of string (category) to determine
     revised_categories (type: list)
@@ -434,30 +436,30 @@ def get_revised_categories(sl,category):
     idxlst = []
     count = 1
     searching = True
-    while (searching is True or count<10):
+    while (searching is True or count < 10):
         revised_category = category+str(count)
-        if find_category(sl,revised_category) is True:
+        if find_category(sl, revised_category) is True:
             revised_categories.append(revised_category)
             idxlst.append(count-1)
             count += 1
         else:
             searching = False
             count += 1
-    return revised_categories,idxlst
+    return revised_categories, idxlst
 
-def find_category(sl,category):
+def find_category(sl, category):
     for element in sl:
         if category in element:
             return True
 
-def check_sensor_availability(idxlst,nID,sensor):
+def check_sensor_availability(idxlst, nID, sensor):
     idxyaml = insitu_dict[nID]['sensor'][sensor]
     if idxyaml in idxlst:
         return idxlst.index(idxyaml)
     else:
         return None
 
-def extract_d22(sl,varalias,nID,sensor):
+def extract_d22(sl, varalias, nID, sensor):
     """
     Extracting data of choice - reading sl from parse_d22
     CAUTION: 10min data is extracted for entire days only 00:00h - 23:50h
@@ -466,9 +468,9 @@ def extract_d22(sl,varalias,nID,sensor):
     """
     print('Extracting data from parsed .d22-files')
     category = find_category_for_variable(varalias)
-    revised_categories,idxlst = get_revised_categories(sl,category)
-    print( 'Consistency check: \n'
-           ' --> compare found #sensors against defined in insitu_specs.yaml')
+    revised_categories, idxlst = get_revised_categories(sl, category)
+    print('Consistency check: \n'
+          ' --> compare found #sensors against defined in insitu_specs.yaml')
     sensornr = len(insitu_dict[nID]['sensor'].keys())
     if len(revised_categories) == sensornr:
         print('Consistency check: OK!')
@@ -482,7 +484,7 @@ def extract_d22(sl,varalias,nID,sensor):
                 + str(sensornr)
                 + ') in insitu_specs.yaml')
     # check that the defined sensors are actually the ones being found
-    check = check_sensor_availability(idxlst,nID,sensor)
+    check = check_sensor_availability(idxlst, nID, sensor)
     ts = []
     dt = []
     if check is not None:
@@ -529,10 +531,10 @@ def insitu_reader(**kwargs):
         vardict - dictionary of variables for insitu data
     '''
     dispatch_reader = {
-                'd22':get_d22_dict,
-                'frost':get_frost_dict,
-                'nc':get_nc_dict,
-                'thredds':get_nc_dict,
+                'd22': get_d22_dict,
+                'frost': get_frost_dict,
+                'nc': get_nc_dict,
+                'thredds': get_nc_dict,
                 }
     product = kwargs.get('fifo') # change to reader
     vardict = dispatch_reader[product](**kwargs)
