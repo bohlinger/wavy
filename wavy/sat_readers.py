@@ -219,12 +219,16 @@ def read_local_20Hz_files(**kwargs):
     ncvar = get_filevarname(varalias, variable_info,
                             satellite_dict[nID], ncmeta)
     # retrieve sliced data
+    print('HERE1')
     ds = read_netcdfs(pathlst)
+    print('HERE2')
     ds_sort = ds.sortby(timestr)
+    print('HERE3')
 
     # get indices for included time period
     nptime = ds_sort[timestr].data
     idx = find_included_times_pd(nptime, sdate=sdate, edate=edate)
+    print('HERE4')
     dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
     lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
     lats = list(ds_sort[latstr].data[idx])
