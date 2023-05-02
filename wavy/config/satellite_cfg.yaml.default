@@ -54,3 +54,50 @@ cmems_L3_NRT:
         obs_type:
     # optional, to ease grouping
     tags:
+
+L2_20Hz_s3a:
+    # mandatory
+    names:
+        wavy: [s3a]
+        src: [s3a]
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/products/v3/data/satellite/altimeter/\
+                        l2_20Hz/l2/sentinel-3_a/%Y/%j/"
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
+            strsub: ['mission']
+            server: "eftp.ifremer.fr"
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%m
+        fl_tmplt: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['mission']
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%m
+        fl_tmplt: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
+    # optional, if not defined the default is used
+    reader:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: swh_lrrmc_corr_hfa_20_ku # time
+        time: time_echo_sar_ku
+        lats: lat_echo_sar_ku
+        lons: lon_echo_sar_ku
+        #wavy: [Hs,U]
+        #src: [VAVH,WIND_SPEED]
+    # optional, info that can be used by class functions
+    misc:
+        processing_level:
+        provider:
+        obs_type:
+    # optional, to ease grouping
+    tags:

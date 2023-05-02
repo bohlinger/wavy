@@ -12,6 +12,12 @@ from sklearn.neighbors import BallTree
 from pyproj import Proj
 from math import *
 
+import pyresample as pr
+from roaring_landmask import Gshhg
+import shapely.wkb as wkb
+from shapely.geometry import Polygon, mapping
+
+
 # own imports
 from wavy.utils import NoStdStreams
 from wavy.utils import find_included_times, collocate_times
@@ -80,44 +86,31 @@ class filter_class:
         print(' Number of remaining values:', len(vardict['time']))
         return self
 
-    def filter_distance_to_coast(self, **kwargs):
+    def filter_distance_to_coast(self, llim=0, ulim=10000, **kwargs):
         """
         discards all values closer to shoreline than threshold
-        between statement can be:
-            inclusive ("both"), exclusive ("neither"), left/right
         """
         print("Apply distance_to_coast_mask")
         vardict = deepcopy(self.vars)
-        llim = kwargs.get('llim', 10)
-        ulim = kwargs.get('ulim', 100000)
-        interval_bounds = kwargs.get('interval_bounds', 'neither')
-        with NoStdStreams():
-            coastline = get_coastline_shape_file(**kwargs)
-        # clean coastline object for list of specific countries
-        #nlst = kwargs.get('lst_of_countries')
-        #if nlst is not None:
-        #    clst = np.array(
-        #            [coastline[i]
-        #                for i in range(len(coastline))
-        #                if coastline[i, 2] in nlst]
-        #                )
-        #    # if coastline[i][1] in nlst] )
-        #    coastline = clst
-        df = distance_to_shore(pd.DataFrame(vardict['longitude']),
-                               pd.DataFrame(vardict['latitude']),
-                               coastline)
-        print(coastline)
-        print(df)
-        clean_dict = deepcopy(vardict)
-        dfmask = df['distance_to_shore'].between(
-                        llim, ulim, inclusive=interval_bounds)
-        for key in vardict:
+        Plons = vardict['longitude']
+        Plats = vardict['latitude']
+        w = Gshhg.wkb()
+        polys = wkb.loads(w)
+        mapped = mapping(polys)
+        c = mapped['coordinates']
+        cA = np.vstack([np.flip(x[0][:]) for x in c])
+        points_sdef = pr.geometry.SwathDefinition(Plons, Plats)
+        coast_sdef = pr.geometry.SwathDefinition(cA[:, 1], cA[:, 0])
+        _, _, _, distance_array = pr.kd_tree.get_neighbour_info(
+            coast_sdef, points_sdef, 1000000, neighbours=1)
+        A = distance_array/1000.
+        # get rid of infs
+        mask = np.where((A > llim) & (A < ulim))[0]
+        # impose on vardict
+        for key in vardict.keys():
             if key != 'time_unit':
-                clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
-        print(" Number of disregarded values due to coastline proximetry:",
-              len(self.vars['time'])-len(clean_dict['time']))
-        print(" Remaining number of values:", len(clean_dict['time']))
-        self.vars = clean_dict
+                vardict[key] = list(np.array(vardict[key])[mask])
+        self.vars = vardict
         return self
 
     def filter_blockMean(self, **kwargs):
@@ -320,79 +313,6 @@ def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray):
     sea_mask = np.invert(land_mask)
 
     return sea_mask
-
-def extract_geom_meta(country):
-    '''
-    extract from each geometry the name of the country
-    and the geom_point data. The output will be a list
-    of tuples and the country name as the last element.
-    '''
-    geoms = country.geometry
-    coords = np.empty(shape=[0, 2])
-    # for geom in geoms:
-    #    coords = np.append(coords, geom.exterior.coords, axis = 0)
-    coords = np.append(coords, geoms.convex_hull.exterior.coords, axis=0)
-    country_name = country.attributes["ADMIN"]
-    return [coords, country_name]
-
-def get_coastline_shape_file(pathtofile=None,**kwargs):
-    '''
-    Get the global coastline
-    '''
-    if kwargs.get('dtc_npy_file') is None:
-        ne_earth = shpreader.natural_earth(resolution='10m',
-                                           category='cultural',
-                                           name='admin_0_countries')
-        reader = shpreader.Reader(ne_earth)
-        countries = reader.records()
-        clst = [c for c in countries]
-        print(clst)
-        # extract and create separate objects
-        wg = []
-        for i in range(len(clst)):
-            try:
-                wg.append(extract_geom_meta(clst[i]))
-            except Exception as e:
-                print(e)
-        a = [np.array(x[0]) for x in wg]
-        b = [[x[-1]]*len(x[0]) for x in wg]
-        a1 = np.vstack(a)
-        b1 = np.vstack(flatten(b))
-        coords_countries = np.hstack([a1, b1])
-        # coords_countries = np.vstack([[np.array(x[:-1]), x[-1]]
-        #                               for x in wg])
-    else:
-        coastline = np.load(kwargs.get('dtc_npy_file'))
-    if pathtofile is not None:
-        # '/home/patrikb/tmp_coast/coast_coords_10m.npy'
-        coastline = np.save(pathtofile, coords_countries)
-    coastline = coords_countries
-    return coastline
-
-def distance_to_shore(lon, lat, coastline):
-    '''
-    Compute distance to shore.
-
-    Args:
-        lon, lat -> pd.dataFrame
-        coastline -> shp
-    
-    Returns:
-        numpy array of distances and country names
-    '''
-    # coastline_coords = np.vstack([np.flip(x[0][0], axis=1)\
-    #                        for x in coastline])
-    # countries = np.hstack([np.repeat(str(x[1]), len(x[0][0]))\
-    #                        for x in coastline])
-    coastline_coords = np.flip(coastline[:, 0:2].astype(float))
-    countries = coastline[:, 2]
-    tree = BallTree(np.radians(coastline_coords), metric='haversine')
-    coords = pd.concat([np.radians(lat), np.radians(lon)], axis=1)
-    dist, ind = tree.query(coords, k=1)
-    df_distance_to_shore = pd.Series(dist.flatten()*6371,\
-                                    name='distance_to_shore')
-    df_countries = pd.Series(countries[ind].flatten(), name='shore_country')
-    return pd.concat([df_distance_to_shore, df_countries], axis=1)
 
 def apply_limits(varalias,vardict):
     print('Apply limits')

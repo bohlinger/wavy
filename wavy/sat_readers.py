@@ -200,42 +200,32 @@ def read_local_20Hz_files(**kwargs):
         dictionary of variables for the satellite_class object
     """
     pathlst = kwargs.get('pathlst')
-    product = kwargs.get('product')
+    nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
     twin = kwargs.get('twin')
 
     # establish coords if defined in config file
-    timestr = satellite_dict[product]['vardef']['time']
-    lonstr = satellite_dict[product]['vardef']['lons']
-    latstr = satellite_dict[product]['vardef']['lats']
+    timestr = satellite_dict[nID]['vardef']['time']
+    lonstr = satellite_dict[nID]['vardef']['lons']
+    latstr = satellite_dict[nID]['vardef']['lats']
 
     # adjust start and end
-    sdate = sdate - timedelta(minutes=twin)
-    edate = edate + timedelta(minutes=twin)
+    sdate = sd - timedelta(minutes=twin)
+    edate = ed + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname(varalias, variable_info,
-                            satellite_dict[product], ncmeta)
+                            satellite_dict[nID], ncmeta)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby(timestr)
 
     # get indices for included time period
     nptime = ds_sort[timestr].data
-    print('here0')
-    print(len(nptime))
-    #dtime = [parse_date(str(nptime[i])) for i in range(len(nptime))]
-    print('here1')
-    #idx = find_included_times_pd(dtime, sdate=sdate, edate=edate)
     idx = find_included_times_pd(nptime, sdate=sdate, edate=edate)
-    print(len(nptime[idx]))
-    print('here2')
     dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
-    print(dtime)
-    print('here3')
-    #dtime = list(np.array(dtime)[idx])
     lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
     lats = list(ds_sort[latstr].data[idx])
 
