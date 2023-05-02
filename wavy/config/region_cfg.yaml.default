@@ -17,6 +17,12 @@ rect:
         llcrnrlat: 62.
         urcrnrlon: 8.14
         urcrnrlat: 63.15
+    SulafjD:
+        llcrnrlon: 5.968
+        llcrnrlat: 62.4
+        urcrnrlon: 6.078
+        urcrnrlat: 62.5
+
 
 # polynomial
 poly:

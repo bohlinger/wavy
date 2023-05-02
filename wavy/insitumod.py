@@ -22,7 +22,7 @@ from wavy.ncmod import get_filevarname
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
-from wavy.filtermod import filter_main
+#from wavy.filtermod import filter_main
 from wavy.wconfig import load_or_default
 from wavy.insitu_readers import insitu_reader
 # ---------------------------------------------------------------------#

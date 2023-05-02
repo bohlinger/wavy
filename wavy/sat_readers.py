@@ -212,24 +212,22 @@ def read_local_20Hz_files(**kwargs):
     latstr = satellite_dict[nID]['vardef']['lats']
 
     # adjust start and end
-    sdate = sd - timedelta(minutes=twin)
-    edate = ed + timedelta(minutes=twin)
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname(varalias, variable_info,
                             satellite_dict[nID], ncmeta)
     # retrieve sliced data
-    print('HERE1')
     ds = read_netcdfs(pathlst)
-    print('HERE2')
     ds_sort = ds.sortby(timestr)
-    print('HERE3')
 
     # get indices for included time period
     nptime = ds_sort[timestr].data
-    idx = find_included_times_pd(nptime, sdate=sdate, edate=edate)
-    print('HERE4')
-    dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
+    idx = find_included_times_pd(nptime, sdate=sd, edate=ed)
+    #ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    #dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
+    dtime = nptime[idx]
     lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
     lats = list(ds_sort[latstr].data[idx])
 
@@ -244,7 +242,6 @@ def read_local_20Hz_files(**kwargs):
     vardict['time'] = unxt
     vardict['datetime'] = dtime
     vardict['time_unit'] = variable_info['time']['units']
-    print(vardict.keys())
     return vardict
 
 
