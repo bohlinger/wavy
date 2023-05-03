@@ -30,102 +30,6 @@ from wavy.utils import find_included_times, find_included_times_pd
 satellite_dict = load_or_default('satellite_cfg.yaml')
 variable_info = load_or_default('variable_def.yaml')
 
-def unzip_eumetsat(pathlst: list, tmpdir: str):
-    """
-    Function to unzip eumetsat files prior to reading
-
-    param:
-        pathlst - list of paths to zipped files
-        tmpdir - temporary folder to unzipped files
-
-    return:
-        pathlst_new - new list of paths to unzipped files
-    """
-    for count, f in enumerate(pathlst):
-        zipped = zipfile.ZipFile(f)
-        enhanced_measurement = zipped.namelist()[-1]
-        extracted = zipped.extract(enhanced_measurement,
-                                   path=tmpdir.name)
-        fname = extracted.split('/')[-1]
-        dignumstr = '_{num:0' + str(len(str(len(pathlst)))) + 'd}.nc'
-        # cp extracted file to parent tmp
-        cmdstr = ('cp ' + extracted + ' ' + tmpdir.name
-                + '/' + fname[0:-3]
-                + dignumstr.format(num=count))
-                #+ '_{num:04d}.nc'.format(num=count))
-        os.system(cmdstr)
-        # delete subfolder
-        cmdstr = ('rm -r '
-                 + os.path.dirname(os.path.realpath(extracted)))
-        os.system(cmdstr)
-    flst = os.listdir(tmpdir.name)
-    pathlst_new = []
-    for f in flst:
-        pathlst_new.append(os.path.join(tmpdir.name,f))
-    return pathlst_new
-
-def read_local_files_eumetsat(**kwargs):
-    '''
-    Read and concatenate all data to one timeseries for each variable.
-    Fct is tailored to EUMETSAT files.
-    '''
-    pathlst = kwargs.get('pathlst')
-    product = kwargs.get('product')
-    varalias = kwargs.get('varalias')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
-    twin = kwargs.get('twin')
-    # adjust start and end
-    sdate = sdate - timedelta(minutes=twin)
-    edate = edate + timedelta(minutes=twin)
-    # --- find variable cf names --- #
-    print ("Processing " + str(int(len(pathlst))) + " files")
-    print (pathlst[0])
-    print (pathlst[-1])
-    # --- find ncvar cf names --- #
-    tmpdir = tempfile.TemporaryDirectory()
-    zipped = zipfile.ZipFile(pathlst[0])
-    enhanced_measurement = zipped.namelist()[-1]
-    extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
-    stdvarname = variable_info[varalias]['standard_name']
-    ncmeta = ncdumpMeta(extracted)
-    ncvar = get_filevarname(varalias,variable_info,
-                            satellite_dict[product],ncmeta)
-    latname = get_filevarname('lats',variable_info,
-                            satellite_dict[product],ncmeta)
-    lonname = get_filevarname('lons',variable_info,
-                            satellite_dict[product],ncmeta)
-    timename = get_filevarname('time',variable_info,
-                            satellite_dict[product],ncmeta)
-    tmpdir.cleanup()
-    # --- create vardict --- #
-    vardict = {}
-    ds = read_netcdfs_zipped_lru(pathlst,ncvar,dim=timename)
-    ds_sort = ds.sortby(timename)
-    ds_sliced = ds_sort.sel({timename:slice(sdate, edate)})
-    # make dict and start with stdvarname for varalias
-    var_sliced = ds_sliced[ncvar]
-    vardict = {}
-    vardict[stdvarname] = list(var_sliced.values)
-    # add coords to vardict
-    # 1. retrieve list of coordinates
-    coords_lst = list(var_sliced.coords.keys())
-    # 2. iterate over coords_lst
-    for varname in coords_lst:
-        stdcoordname = ds_sliced[varname].attrs['standard_name']
-        if stdcoordname == 'longitude':
-            vardict[stdcoordname] = \
-                list(((ds_sliced[varname].values - 180) % 360) - 180)
-        elif stdcoordname == 'time':
-            # convert to unixtime
-            df_time = ds_sliced[varname].to_dataframe()
-            unxt = (pd.to_datetime(df_time[varname]).view(int) / 10**9)
-            vardict[stdcoordname] = unxt.values
-            vardict['time_unit'] = variable_info[stdcoordname]['units']
-        else:
-            vardict[stdcoordname] = list(ds_sliced[varname].values)
-    return vardict
-
 def read_local_ncfiles(**kwargs):
     """
     Wrapping function to read satellite netcdf files.
@@ -160,29 +64,18 @@ def read_local_ncfiles(**kwargs):
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     # make dict and start with stdvarname for varalias
-    stdvarname = variable_info[varalias]['standard_name']
-    var_sliced = ds_sliced[ncvar]
-    vardict = {}
-    vardict[stdvarname] = list(var_sliced.values)
-    # add coords to vardict
-    # 1. retrieve list of coordinates
-    coords_lst = list(var_sliced.coords.keys())
-    print(coords_lst)
-    # 2. iterate over coords_lst
-    for varname in coords_lst:
-        stdcoordname = ds_sliced[varname].attrs['standard_name']
-        if stdcoordname == 'longitude':
-            vardict[stdcoordname] = \
-                list(((ds_sliced[varname].values - 180) % 360) - 180)
-        elif stdcoordname == 'time':
-            # convert to unixtime
-            df_time = ds_sliced[varname].to_dataframe()
-            unxt = (pd.to_datetime(df_time[varname]).view(int) / 10**9)
-            vardict[stdcoordname] = unxt.values
-            vardict['time_unit'] = variable_info[stdcoordname]['units']
-        else:
-            vardict[stdcoordname] = list(ds_sliced[varname].values)
-    return vardict
+    # stdvarname = variable_info[varalias]['standard_name']
+    ncvars = [ncvar]
+    var_sliced = ds_sliced[ncvars]
+    var_sliced['longitude'] = ((ds_sliced['longitude'] - 180) % 360) - 180
+    # todo:
+    #   attribute cf-standard names to all variables
+    #   do shift longitude
+    #   (only unique time steps?)
+    #   rm all entries containing NaNs
+    #   ensure meteorologic convention
+    return var_sliced
+
 
 def read_local_20Hz_files(**kwargs):
     """
@@ -313,14 +206,14 @@ def read_local_files(**kwargs) -> dict:
         vardict - dictionary of variables for altimeter data
     '''
     dispatch_reader = {
-                'cmems_L3_NRT':read_local_ncfiles,
-                'cmems_L3_s6a':read_local_ncfiles,
-                'cmems_L3_MY':read_local_ncfiles,
-                'cci_L2P':read_local_ncfiles,
-                'cci_L3':read_local_ncfiles,
-                'eumetsat_L2':read_local_files_eumetsat,
-                'cfo_swim_L2P':read_local_ncfiles_swim,
-                'L2_20Hz_s3a':read_local_20Hz_files
+                #'cmems_L3_NRT': read_local_ncfiles,
+                'cmems_L3_NRT': read_local_ncfiles,
+                'cmems_L3_s6a': read_local_ncfiles,
+                'cmems_L3_MY': read_local_ncfiles,
+                'cci_L2P': read_local_ncfiles,
+                'cci_L3': read_local_ncfiles,
+                'cfo_swim_L2P': read_local_ncfiles_swim,
+                'L2_20Hz_s3a': read_local_20Hz_files
                 }
     product = kwargs.get('nID')
     # check if product available in dispatcher

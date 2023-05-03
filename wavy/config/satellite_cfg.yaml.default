@@ -40,7 +40,7 @@ cmems_L3_NRT:
         strsub: ['varalias','mission','region']
         file_date_incr: m
     # optional, if not defined the default is used
-    reader:
+    reader: read_local_ncfiles
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH
@@ -85,7 +85,7 @@ L2_20Hz_s3a:
         strsub: ['varalias','mission','region']
         file_date_incr: m
     # optional, if not defined the default is used
-    reader:
+    reader: read_local_20Hz_files
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: swh_lrrmc_corr_hfa_20_ku # time

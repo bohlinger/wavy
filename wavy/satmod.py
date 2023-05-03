@@ -40,7 +40,7 @@ from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
 #from wavy.filtermod import filter_main, vardict_unique
 from wavy.filtermod import filter_class as fc
-from wavy.filtermod import vardict_unique
+#from wavy.filtermod import vardict_unique
 from wavy.filtermod import rm_nan_from_vardict
 from wavy.sat_collectors import get_remote_files
 from wavy.sat_readers import read_local_files
@@ -253,37 +253,23 @@ class satellite_class(qls, wc, fc):
         return: adjusted dictionary according to spatial and
                 temporal constraints
         """
-        vardict = read_local_files(
-                                   pathlst=self.pathlst,
-                                   nID=self.nID,
-                                   varalias=self.varalias,
-                                   sd=self.sd,
-                                   ed=self.ed,
-                                   twin=self.twin,
-                                   **kwargs
-                                   )
-        if len(vardict['time']) > 0:
-            vardict['datetime'] = netCDF4.num2date(
-                                        vardict['time'],
-                                        vardict['time_unit'])
-            print(len(vardict['time']), 'footprints found')
-            # convert to datetime object
-            timedt = vardict['datetime']
-            vardict['datetime'] = [datetime(t.year, t.month, t.day,
-                                            t.hour, t.minute, t.second,
-                                            t.microsecond)
-                                   for t in timedt]
-        else:
-            print('0 footprints found!')
-        # adjust conventions
-        if ('convention' in satellite_dict[self.nID].keys() and
-        satellite_dict[self.nID]['convention'] == 'oceanographic'):
-            print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_info[self.varalias]['standard_name']] = \
-                list(convert_meteorologic_oceanographic(np.array(
-                    vardict[variable_info[self.varalias]['standard_name']]
-                    )))
-        return vardict
+        ds = read_local_files(pathlst=self.pathlst,
+                              nID=self.nID,
+                              varalias=self.varalias,
+                              sd=self.sd,
+                              ed=self.ed,
+                              twin=self.twin,
+                              **kwargs
+                              )
+        ## adjust conventions
+        #if ('convention' in satellite_dict[self.nID].keys() and
+        #satellite_dict[self.nID]['convention'] == 'oceanographic'):
+        #    print('Convert from oceanographic to meteorologic convention')
+        #    vardict[variable_info[self.varalias]['standard_name']] = \
+        #        list(convert_meteorologic_oceanographic(np.array(
+        #            vardict[variable_info[self.varalias]['standard_name']]
+        #            )))
+        return ds
 
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
@@ -299,11 +285,6 @@ class satellite_class(qls, wc, fc):
                     newvaralias = kwargs.get('return_var')
                 else:
                     newvaralias = self.varalias
-                # make ts in vardict unique
-                vardict = vardict_unique(vardict)
-                # rm NaNs
-                vardict = rm_nan_from_vardict(newvaralias, vardict)
-                # find variable name as defined in file
                 ncdict = ncdumpMeta(self.pathlst[0])
                 with NoStdStreams():
                     filevarname = get_filevarname(
