@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 import os
 from copy import deepcopy
 import time
-import netCDF4 as netCDF4
 from dateutil.relativedelta import relativedelta
 import pyproj
 import zipfile
@@ -38,10 +37,7 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
-#from wavy.filtermod import filter_main, vardict_unique
 from wavy.filtermod import filter_class as fc
-#from wavy.filtermod import vardict_unique
-from wavy.filtermod import rm_nan_from_vardict
 from wavy.sat_collectors import get_remote_files
 from wavy.sat_readers import read_local_files
 from wavy.quicklookmod import quicklook_class_sat as qls
@@ -57,23 +53,12 @@ variable_info = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
 
-def crop_to_period(vardict, sd, ed):
+def crop_to_period(ds, sd, ed):
     """
-    Function to crop the variable dictionary to a given period
+    Function to crop the dataset to a given period
     """
-    for key in vardict:
-        if (key != 'time_unit' and key != 'meta' and key != 'datetime'):
-            vardict[key] = list(np.array(vardict[key])[ \
-                                ( (np.array(vardict['datetime']) >= sd)
-                                & (np.array(vardict['datetime']) <= ed)
-                                ) ])
-        else:
-            vardict[key] = vardict[key]
-    vardict['datetime'] = list(np.array(vardict['datetime'])[ \
-                               ( (np.array(vardict['datetime']) >= sd)
-                               & (np.array(vardict['datetime']) <= ed)
-                               ) ])
-    return vardict
+    ds_sliced = ds.sel(time=slice(sd, ed))
+    return ds_sliced
 
 
 def check_date(filelst,date):
@@ -253,22 +238,52 @@ class satellite_class(qls, wc, fc):
         return: adjusted dictionary according to spatial and
                 temporal constraints
         """
+        varalias = self.varalias
+        ncmeta = ncdumpMeta(self.pathlst[0])
+
+        ncvar = get_filevarname(varalias, variable_info,
+                                satellite_dict[self.nID], ncmeta)
+        # possible to select list of variables
+        ncvars = [ncvar]
+
         ds = read_local_files(pathlst=self.pathlst,
-                              nID=self.nID,
-                              varalias=self.varalias,
+                              ncvars=ncvars,
                               sd=self.sd,
                               ed=self.ed,
                               twin=self.twin,
                               **kwargs
                               )
-        ## adjust conventions
-        #if ('convention' in satellite_dict[self.nID].keys() and
-        #satellite_dict[self.nID]['convention'] == 'oceanographic'):
-        #    print('Convert from oceanographic to meteorologic convention')
-        #    vardict[variable_info[self.varalias]['standard_name']] = \
-        #        list(convert_meteorologic_oceanographic(np.array(
-        #            vardict[variable_info[self.varalias]['standard_name']]
-        #            )))
+
+        # shift longitude
+        #var_sliced['longitude'] = ((ds_sliced['longitude'] - 180) % 360) - 180
+
+        # adjust conventions
+        ds = self._amend_standard_name_in_ds(ds, ncvars)
+
+        return ds
+
+    def _amend_standard_name_in_ds(self, ds, ncvars):
+
+        # time, longitude, latitude, ncvars
+        variables = list(ds.variables)
+        
+        # adjust longitude -180/180
+        attrs = ds.longitude.attrs
+        attrs['valid_min'] = -180
+        attrs['valid_max'] = 180
+        attrs['comments'] = 'forced to range -180 to 180'
+        ds.longitude.values = ((ds.longitude.values-180) % 360)-180
+
+        # ensure meteorologic convention
+        for ncvar in ncvars:
+            if ('convention' in satellite_dict[self.nID].keys() and
+            satellite_dict[self.nID]['convention'] == 'oceanographic'):
+                print('Convert from oceanographic to meteorologic convention')
+                ds[ncvar] = convert_meteorologic_oceanographic(ds[ncvar])
+            elif 'to_direction' in ds[ncvar].attrs['standard_name']:
+                print('Convert from oceanographic to meteorologic convention')
+                ds[ncvar] = convert_meteorologic_oceanographic(ds[ncvar])
+
         return ds
 
     def populate(self, **kwargs):

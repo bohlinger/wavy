@@ -46,32 +46,22 @@ def read_local_ncfiles(**kwargs):
         dictionary of variables for the satellite_class object
     """
     pathlst = kwargs.get('pathlst')
-    nID = kwargs.get('nID')
-    varalias = kwargs.get('varalias')
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
+    ncvars = kwargs.get('ncvars')
 
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
-    # get meta data
-    ncmeta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_info,
-                            satellite_dict[nID], ncmeta)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     #ds = read_mf_netcdfs(pathlst)
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
-    # make dict and start with stdvarname for varalias
-    # stdvarname = variable_info[varalias]['standard_name']
-    ncvars = [ncvar]
     var_sliced = ds_sliced[ncvars]
-    var_sliced['longitude'] = ((ds_sliced['longitude'] - 180) % 360) - 180
     # todo:
     #   attribute cf-standard names to all variables
-    #   do shift longitude
     #   (only unique time steps?)
     #   rm all entries containing NaNs
     #   ensure meteorologic convention
