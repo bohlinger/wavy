@@ -19,7 +19,7 @@ import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
-from wavy.ncmod import read_netcdfs, read_netcdfs_zipped_lru
+from wavy.ncmod import read_netcdfs, read_mf_netcdfs
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
@@ -61,6 +61,7 @@ def read_local_ncfiles(**kwargs):
                             satellite_dict[nID], ncmeta)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
+    #ds = read_mf_netcdfs(pathlst)
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     # make dict and start with stdvarname for varalias
@@ -74,6 +75,7 @@ def read_local_ncfiles(**kwargs):
     #   (only unique time steps?)
     #   rm all entries containing NaNs
     #   ensure meteorologic convention
+    #   rename to wavy aliases
     return var_sliced
 
 

@@ -55,6 +55,7 @@ def check_if_ncfile_accessible(fstr):
         return False
 
 def read_netcdfs(paths, dim='time'):
+    @lru_cache(maxsize=128)
     def process_one_path(path):
         # use a context manager, to ensure the file gets closed after use
         with xr.open_dataset(path) as ds:
@@ -71,19 +72,12 @@ def read_netcdfs(paths, dim='time'):
     print("... done concatenating")
     return combined
 
-@lru_cache(maxsize=32)
-def process_one_path_zipped_lru(path,varname,tmpdir):
-    # unzip
-    zipped = zipfile.ZipFile(path)
-    enhanced_measurement = zipped.namelist()[-1]
-    extracted = zipped.extract(enhanced_measurement, path=tmpdir.name)
-    with xr.open_dataset(extracted) as ds:
-        da = ds[varname]
-        da.load()
-        return da
+def read_mf_netcdfs(paths):
+    ds = xr.open_mfdataset(paths, parallel=True)
+    return ds
 
 @lru_cache(maxsize=32)
-def process_one_path_lru(path,t,varname):
+def process_one_path_lru(path, t, varname):
     with xr.open_dataset(path) as ds:
         da = ds.sel(time=t)[varname]
         da.load()
@@ -94,21 +88,6 @@ def process_one_path(path,t,varname):
         da = ds.sel(time=t)[varname]
         da.load()
         return da
-
-def read_netcdfs_zipped_lru(paths,varname,dim='time'):
-    # establish tmpdir
-    tmpdir = tempfile.TemporaryDirectory()
-    dataarr = [process_one_path_zipped_lru(paths[i],varname,tmpdir)\
-                for i in tqdm(range(len(paths)))]
-    print("Concatenate ...")
-    combined = xr.concat(dataarr,dim,
-                         coords='minimal',
-                         compat='override',
-                         combine_attrs='override')
-    combined = combined.to_dataset()
-    tmpdir.cleanup()
-    print("... done concatenating")
-    return combined
 
 def read_netcdfs_sel_lru(paths,dlst,varname,dim='time'):
     dataarr = [process_one_path_lru(paths[i],dlst[i],varname)\
