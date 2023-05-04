@@ -196,29 +196,31 @@ class satellite_class(qls, wc, fc):
         return pathlst
 
     def crop_to_poi(self, poi):
+        new = deepcopy(self)
         vardict = {}
-        idx = self._match_poi(poi)
-        for element in self.vars:
+        idx = new._match_poi(poi)
+        for element in new.vars:
             if element != 'time_unit':
                 vardict[element] = list(np.array(
-                                        self.vars[element]
+                                        new.vars[element]
                                         )[idx])
             else:
-                vardict[element] = self.vars[element]
+                vardict[element] = new.vars[element]
         print('For chosen poi: ', len(vardict['time']), 'footprints found')
-        return self
+        return new
 
     def crop_to_region(self, region):
+        new = deepcopy(self)
         print('Crop to region:', region)
-        idx = self._match_region(self.vars['lats'].values,
-                                 self.vars['lons'].values,
-                                 region=region,
-                                 grid_date=self.sd)
-        self.vars = self.vars.sel(time=self.vars.time[idx])
+        idx = new._match_region(new.vars['lats'].values,
+                                new.vars['lons'].values,
+                                region=region,
+                                grid_date=new.sd)
+        new.vars = new.vars.sel(time=new.vars.time[idx])
         print('Region mask applied')
-        print('For chosen region: ', len(self.vars['time']),
+        print('For chosen region: ', len(new.vars['time']),
               'footprints found')
-        return self
+        return new
 
     def _get_sat_ts(self, **kwargs):
         """
@@ -430,13 +432,14 @@ class satellite_class(qls, wc, fc):
         """
         Function to crop the variable dictionary to a given period
         """
-        sd = parse_date(kwargs.get('sd', str(self.sd)))
-        ed = parse_date(kwargs.get('ed', str(self.ed)))
+        new = deepcopy(self)
+        sd = parse_date(kwargs.get('sd', str(new.sd)))
+        ed = parse_date(kwargs.get('ed', str(new.ed)))
         print('Crop to time period:', sd, 'to', ed)
-        self.vars = self.vars.sel(time=slice(sd, ed))
-        self.sdate = sd
-        self.edate = ed
-        return self
+        new.vars = new.vars.sel(time=slice(sd, ed))
+        new.sdate = sd
+        new.edate = ed
+        return new
 
 
 def poi_sat(indict, twin, distlim, poi, ridx, i):
