@@ -8,19 +8,14 @@ files for further use.
 # --- import libraries ------------------------------------------------#
 # standard library igports
 import numpy as np
-import os
-import pandas as pd
-import zipfile
-import tempfile
-from tqdm import tqdm
-import xarray as xr
 from datetime import timedelta
 import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs
-from wavy.ncmod import read_mf_netcdfs
+#from wavy.ncmod import read_netcdfs_hidefix
+#from wavy.ncmod import read_mf_netcdfs
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
@@ -56,8 +51,11 @@ def read_local_ncfiles(**kwargs):
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
     # retrieve sliced data
+    #
+    # ds = read_netcdfs_hidefix(pathlst)
     ds = read_netcdfs(pathlst)
-    #ds = read_mf_netcdfs(pathlst)
+    # ds = read_mf_netcdfs(pathlst)
+    #
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     var_sliced = ds_sliced[[ncvar]]

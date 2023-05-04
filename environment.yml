@@ -2,16 +2,23 @@ name: wavy
 channels:
   - conda-forge
 dependencies:
-  - matplotlib>=3
-  - numpy>=1
-  - scipy>=1
+  - python<=3.12
+  #- matplotlib>=3
+  - matplotlib
+  #- numpy>=1
+  - numpy>
+  #- scipy>=1
+  - scipy
   - netCDF4
   - pyyaml
-  - pyproj>=3
-  - cartopy>=0.21
+  #- pyproj>=3
+  - pyproj
+  #- cartopy>=0.21
+  - cartopy
   - cmocean
   - joblib
-  - scikit-learn>=0.19
+  #- scikit-learn>=0.19
+  - scikit-learn
   - pandas
   - pyGAM
   # - scikit-sparse==0.4.5
@@ -27,7 +34,10 @@ dependencies:
   - sphinx
   - python-dotenv
   - xdg
-  - sentinelsat
+  #- sentinelsat
   - geojson
   - roaring-landmask
   - numba
+  - pip
+  - pip:
+    - hidefix

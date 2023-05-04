@@ -54,10 +54,6 @@ def check_if_ncfile_accessible(fstr):
         print(e)
         return False
 
-def change_stdvarname_to_cfname(ds, varaliases):
-    #for v in varaliases:
-    return
-
 def read_netcdfs(paths, dim='time'):
     @lru_cache(maxsize=128)
     def process_one_path(path):
@@ -76,6 +72,11 @@ def read_netcdfs(paths, dim='time'):
                          join='override')
     print("... done concatenating")
     return combined
+
+def read_netcdfs_hidefix(paths):
+    from hidefix import xarray
+    ds = xr.open_mfdataset(paths, engine='hidefix')
+    return ds
 
 def read_netcdfs_KF(paths, dim='time'):
     # https://github.com/knutfrode/concepts/blob/main/Open_MFDataset_overlap.ipynb

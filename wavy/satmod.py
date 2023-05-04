@@ -16,9 +16,7 @@ from copy import deepcopy
 import time
 from dateutil.relativedelta import relativedelta
 import pyproj
-import zipfile
-import tempfile
-import traceback
+#import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=30)
@@ -27,8 +25,8 @@ logger = logging.getLogger(__name__)
 # own imports
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_filevarname
-from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
-from wavy.utils import find_included_times, NoStdStreams
+from wavy.ncmod import find_attr_in_nc
+from wavy.utils import find_included_times
 from wavy.utils import parse_date
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem, haversineA
@@ -283,6 +281,19 @@ class satellite_class(qls, wc, fc):
             self.vars = self.vars.rename({ncvar: c})
         return self
 
+    def _change_stdvarname_to_cfname(self):
+        # enforce standard_name for coordinate aliases
+        self.vars['lons'].attrs['standard_name'] = \
+            variable_info['lons'].get('standard_name')
+        self.vars['lats'].attrs['standard_name'] = \
+            variable_info['lats'].get('standard_name')
+        self.vars['time'].attrs['standard_name'] = \
+            variable_info['time'].get('standard_name')
+        # enforce standard_name for variable alias
+        self.vars[self.varalias].attrs['standard_name'] = \
+            self.stdvarname
+        return self
+
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
 
@@ -304,6 +315,7 @@ class satellite_class(qls, wc, fc):
                 self = self._get_sat_ts(**kwargs)
                 self = self._enforce_meteorologic_convention()
                 self = self._change_varname_to_aliases()
+                self = self._change_stdvarname_to_cfname()
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
                     newvaralias = kwargs.get('return_var')
