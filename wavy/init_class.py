@@ -13,6 +13,7 @@ class config_class:
     wavy_output: dict = None
     reader: str = None
     vardef: dict = None
+    coords: dict = None
     misc: dict = None
     tags: list = None
 

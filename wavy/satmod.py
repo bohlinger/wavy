@@ -95,7 +95,7 @@ class satellite_class(qls, wc, fc):
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
         self.nID = kwargs.get('nID')
-        self.mission = kwargs.get('mission', 's3a')
+        self.mission = dc.names[kwargs.get('mission', 's3a')]
         self.varalias = kwargs.get('varalias', 'Hs')
         self.units = variable_info[self.varalias].get('units')
         self.stdvarname = variable_info[self.varalias].get('standard_name')
@@ -212,11 +212,10 @@ class satellite_class(qls, wc, fc):
 
     def crop_to_region(self, region):
         print('Crop to region:', region)
-        idx = self._match_region(self.vars['latitude'].values,
-                                 self.vars['longitude'].values,
+        idx = self._match_region(self.vars['lats'].values,
+                                 self.vars['lons'].values,
                                  region=region,
                                  grid_date=self.sd)
-
         self.vars = self.vars.sel(time=self.vars.time[idx])
         print('Region mask applied')
         print('For chosen region: ', len(self.vars['time']),
@@ -234,7 +233,7 @@ class satellite_class(qls, wc, fc):
 
         # retrieve dataset
         ds = read_local_files(pathlst=self.pathlst,
-                              ncvars=self.varname,
+                              ncvar=self.varname,
                               sd=self.sd,
                               ed=self.ed,
                               twin=self.twin,
@@ -271,6 +270,19 @@ class satellite_class(qls, wc, fc):
 
         return self
 
+    def _change_varname_to_aliases(self):
+        # variables
+        ncvar = get_filevarname(self.varalias, variable_info,
+                                satellite_dict[self.nID], self.meta)
+        self.vars = self.vars.rename({ncvar: self.varalias})
+        # coords
+        coords = ['time', 'lons', 'lats']
+        for c in coords:
+            ncvar = get_filevarname(c, variable_info,
+                                    satellite_dict[self.nID], self.meta)
+            self.vars = self.vars.rename({ncvar: c})
+        return self
+
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
 
@@ -279,26 +291,25 @@ class satellite_class(qls, wc, fc):
 
         self.poi = kwargs.get('poi', None)
 
-        ncmeta = ncdumpMeta(self.pathlst[0])
+        self.meta = ncdumpMeta(self.pathlst[0])
         ncvar = get_filevarname(self.varalias, variable_info,
-                                satellite_dict[self.nID], ncmeta)
+                                satellite_dict[self.nID], self.meta)
 
         # possible to select list of variables
-        ncvars = [ncvar]
-        self.varname = ncvars
+        self.varname = ncvar
 
         if len(lst) > 0:
             try:
                 t0 = time.time()
                 self = self._get_sat_ts(**kwargs)
                 self = self._enforce_meteorologic_convention()
+                self = self._change_varname_to_aliases()
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
                     newvaralias = kwargs.get('return_var')
                 else:
                     newvaralias = self.varalias
 
-                self.meta = ncmeta
                 # define more class object variables
                 if kwargs.get('return_var') is not None:
                     self.varalias = kwargs.get('return_var')
@@ -595,11 +606,7 @@ def match_region_poly(LATS, LONS, region, grid_date):
                        region_dict['poly'][region]['lats'])),
                        closed=True)
         # check if coords in region
-        LATS = list(LATS)
-        LONS = list(LONS)
-        lats = np.array(LATS).ravel()
-        lons = np.array(LONS).ravel()
-        points = np.c_[lons, lats]
+        points = np.c_[LONS, LATS]
         # radius seems to be important to correctly define polygone
         # see discussion here:
         # https://github.com/matplotlib/matplotlib/issues/9704

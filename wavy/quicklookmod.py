@@ -6,6 +6,7 @@ import numpy as np
 import os
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from abc import abstractmethod
+from wavy.utils import parse_date
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -711,9 +712,9 @@ class quicklook_class_sat:
             import matplotlib.pyplot as plt
             import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-            lons = self.vars['longitude']
-            lats = self.vars['latitude']
-            var = self.vars[self.stdvarname]
+            lons = self.vars['lons']
+            lats = self.vars['lats']
+            var = self.vars[self.varalias]
             # land
             land = cfeature.GSHHSFeature(\
                     scale=kwargs.get('land_mask_resolution','i'),\
@@ -789,10 +790,10 @@ class quicklook_class_sat:
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
             auto_title = (self.mission + '\n'
                           + 'from ' 
-                          + (self.vars['datetime'][0]).\
+                          + (parse_date(str(self.vars['time'][0].values))).\
                               strftime('%Y-%m-%d %H:%M:%S')
                           + ' to '
-                          + (self.vars['datetime'][-1]).\
+                          + (parse_date(str(self.vars['time'][-1].values))).\
                               strftime('%Y-%m-%d %H:%M:%S'))
             title = kwargs.get('title',auto_title)
             ax.set_title(title)
@@ -819,8 +820,8 @@ class quicklook_class_sat:
             fig = plt.figure(figsize=(9,3.5))
             ax = fig.add_subplot(111)
             colors = ['k']
-            ax.plot(self.vars['datetime'],
-                    self.vars[self.stdvarname],
+            ax.plot(self.vars['time'],
+                    self.vars[self.varalias],
                     color=colors[0],
                     linestyle=kwargs.get('linestyle',''),
                     label=self.label,

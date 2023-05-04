@@ -19,7 +19,8 @@ import netCDF4
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
-from wavy.ncmod import read_netcdfs, read_mf_netcdfs
+from wavy.ncmod import read_netcdfs
+from wavy.ncmod import read_mf_netcdfs
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
@@ -49,7 +50,7 @@ def read_local_ncfiles(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
-    ncvars = kwargs.get('ncvars')
+    ncvar = kwargs.get('ncvar')
 
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
@@ -59,13 +60,11 @@ def read_local_ncfiles(**kwargs):
     #ds = read_mf_netcdfs(pathlst)
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
-    var_sliced = ds_sliced[ncvars]
+    var_sliced = ds_sliced[[ncvar]]
+    # rename ncvars to respective wavy aliases
     # todo:
     #   attribute cf-standard names to all variables
     #   (only unique time steps?)
-    #   rm all entries containing NaNs
-    #   ensure meteorologic convention
-    #   rename to wavy aliases
     return var_sliced
 
 

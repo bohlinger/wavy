@@ -11,8 +11,8 @@
 cmems_L3_NRT:
     # mandatory
     names:
-        wavy: [s3a,s3b]
-        src: [s3a,s3b]
+        s3a: s3a
+        s3b: s3b
     # mandatory when downloading
     # where to store downloaded data
     download:
@@ -47,6 +47,7 @@ cmems_L3_NRT:
         U: WIND_SPEED
         #wavy: [Hs,U]
         #src: [VAVH,WIND_SPEED]
+    coords:
     # optional, info that can be used by class functions
     misc:
         processing_level:
@@ -58,8 +59,7 @@ cmems_L3_NRT:
 L2_20Hz_s3a:
     # mandatory
     names:
-        wavy: [s3a]
-        src: [s3a]
+        s3a: s3a
     # mandatory when downloading
     # where to store downloaded data
     download:
@@ -94,6 +94,7 @@ L2_20Hz_s3a:
         lons: lon_echo_sar_ku
         #wavy: [Hs,U]
         #src: [VAVH,WIND_SPEED]
+    coords:
     # optional, info that can be used by class functions
     misc:
         processing_level:
