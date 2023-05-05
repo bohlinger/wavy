@@ -106,20 +106,6 @@ class satellite_class(qls, wc, fc):
         self.region = kwargs.get('region', 'global')
         self.cfg = dc
 
-        # define reader
-        dotenv.load_dotenv()
-        WAVY_DIR = os.getenv('WAVY_DIR', None)
-        reader_str = dc.reader
-        reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
-        spec = importlib.util.spec_from_file_location(
-                'sat_readers.' + reader_str, reader_mod_str)
-        # create reader module
-        sat_reader = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(sat_reader)
-        # pick reader
-        reader = getattr(sat_reader, 'read_local_ncfiles')
-        self.reader = reader
-
         # super(config_class,self).__init__('satellite', kwargs.get('nID'))
         # self.poi = kwargs.get('poi',None)
         print(" ")
@@ -322,10 +308,28 @@ class satellite_class(qls, wc, fc):
         self.pathlst = lst
 
         self.poi = kwargs.get('poi', None)
-
+        print('')
+        print('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
         ncvar = get_filevarname(self.varalias, variable_info,
                                 satellite_dict[self.nID], self.meta)
+        print('')
+        print('Choosing reader..')
+        # define reader
+        dotenv.load_dotenv()
+        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        reader_str = kwargs.get('reader', self.cfg.reader)
+        reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
+        spec = importlib.util.spec_from_file_location(
+                'sat_readers.' + reader_str, reader_mod_str)
+        # create reader module
+        sat_reader = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sat_reader)
+        # pick reader
+        reader = getattr(sat_reader, 'read_local_ncfiles')
+        self.reader = reader
+        print('Chosen reader:', spec.name)
+        print('')
 
         # possible to select list of variables
         self.varname = ncvar
@@ -333,6 +337,7 @@ class satellite_class(qls, wc, fc):
         if len(lst) > 0:
             try:
                 t0 = time.time()
+                print('Reading..')
                 self = self._get_sat_ts(**kwargs)
                 self = self._enforce_meteorologic_convention()
                 self = self._change_varname_to_aliases()
