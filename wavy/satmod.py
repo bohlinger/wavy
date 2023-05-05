@@ -15,7 +15,9 @@ import os
 from copy import deepcopy
 import time
 from dateutil.relativedelta import relativedelta
+import importlib.util
 import pyproj
+import dotenv
 #import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -103,6 +105,21 @@ class satellite_class(qls, wc, fc):
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
         self.cfg = dc
+
+        # define reader
+        dotenv.load_dotenv()
+        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        reader_str = dc.reader
+        reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
+        spec = importlib.util.spec_from_file_location(
+                'sat_readers.' + reader_str, reader_mod_str)
+        # create reader module
+        sat_reader = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(sat_reader)
+        # pick reader
+        reader = getattr(sat_reader, 'read_local_ncfiles')
+        self.reader = reader
+
         # super(config_class,self).__init__('satellite', kwargs.get('nID'))
         # self.poi = kwargs.get('poi',None)
         print(" ")
@@ -234,13 +251,13 @@ class satellite_class(qls, wc, fc):
         """
 
         # retrieve dataset
-        ds = read_local_files(pathlst=self.pathlst,
-                              ncvar=self.varname,
-                              sd=self.sd,
-                              ed=self.ed,
-                              twin=self.twin,
-                              **kwargs
-                              )
+        ds = self.reader(pathlst=self.pathlst,
+                         ncvar=self.varname,
+                         sd=self.sd,
+                         ed=self.ed,
+                         twin=self.twin,
+                         **kwargs
+                         )
         ds = self._enforce_longitude_format(ds)
         self.vars = ds
         self.coords = list(self.vars.coords)
