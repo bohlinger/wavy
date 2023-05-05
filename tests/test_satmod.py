@@ -4,36 +4,20 @@ from datetime import datetime
 import pytest
 
 from wavy.wconfig import load_or_default
-import wavy.sat_collectors
 from wavy.satmod import satellite_class as sc
 
-satellite_dict = load_or_default('satellite_specs.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
 
 #def test_ftp_files_and_satellite_class_features(tmpdir):
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3(tmpdir):
-    sdate = "2023-2-1 12"
-    edate = "2023-2-1 12"
-    sdate_dt = datetime(2023,2,1,12)
-    edate_dt = datetime(2023,2,1,12)
-    twin = 30
-    nproc = 1
-    mission = 's3a'
-    product = 'cmems_L3_NRT'
-    # evoke fct get_remote_files
-    api_url = None
-    dict_for_sub = {'mission':mission}
-    wavy.sat_collectors.get_remote_files(
-                            path_local=tmpdir,
-                            sdate=sdate_dt,edate=edate_dt,
-                            twin=twin,nproc=nproc,
-                            product=product,api_url=api_url,
-                            mission=mission,
-                            dict_for_sub=dict_for_sub)
-    # check if file were download to tmp directory
+    sco = sc(sd='2023-2-1 12', ed='2023-2-1 12',
+             nID='cmems_L3_NRT', mission='s3a')
+    sco.download(path=tmpdir)
+    # check if files were download to tmp directory
     filelist = os.listdir(tmpdir)
-    nclist = [i for i in range(len(filelist))\
-                if '.nc' in filelist[i]]
+    nclist = [i for i in range(len(filelist))
+              if '.nc' in filelist[i]]
     assert len(nclist) >= 1
 
 @pytest.mark.need_credentials

@@ -22,6 +22,9 @@ cmems_L3_NRT:
                         cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/\
                         %Y/%m/"
             trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
+            date_incr: 'm'
+            #search_str: '%Y%m%dT%H'
+            search_str: '%Y%m%dT'
             strsub: ['mission']
             server: "nrt.cmems-du.eu"
     # optional: where to read from
@@ -31,6 +34,7 @@ cmems_L3_NRT:
         fl_tmplt: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['mission']
+        date_incr: 'm'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:

@@ -81,7 +81,7 @@ def check_date(filelst, date):
 class satellite_class(qls, wc, fc):
     '''
     Class to handle netcdf files containing satellite data e.g.
-    Hs[time], lat[time], lon[time]
+    Hs[time], lat[time], lon[time], time[time]
     '''
 
     def __init__(self, **kwargs):
@@ -92,16 +92,18 @@ class satellite_class(qls, wc, fc):
         # parse and translate date input
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
+        # add other class object variables
         self.nID = kwargs.get('nID')
         self.mission = dc.names[kwargs.get('mission', 's3a')]
         self.varalias = kwargs.get('varalias', 'Hs')
         self.units = variable_info[self.varalias].get('units')
         self.stdvarname = variable_info[self.varalias].get('standard_name')
-        self.twin = kwargs.get('twin', 0)
+        self.twin = int(kwargs.get('twin', 0))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
         self.cfg = dc
+        # super(config_class,self).__init__('satellite', kwargs.get('nID'))
         # self.poi = kwargs.get('poi',None)
         print(" ")
         print(" ### satellite_class object initialized ###")
@@ -110,7 +112,7 @@ class satellite_class(qls, wc, fc):
     def download(self, path=None, nproc=1, **kwargs):
         print("Downloading files ...")
         get_remote_files(
-                        path_local=path,
+                        path=path,
                         nproc=nproc,
                         twin=kwargs.get('twin', self.twin),
                         sd=kwargs.get('sd', self.sd),
@@ -440,6 +442,55 @@ class satellite_class(qls, wc, fc):
         new.sdate = sd
         new.edate = ed
         return new
+
+    def get_item_parent(self, item, attr):
+        """
+        Offers possibility to explore netcdf meta info.
+        by specifying what you are looking for (item),
+        e.g. part of a string, and in which attribute (attr),
+        e.g. standard_name, this function returns the
+        parent parameter name of the query string.
+
+        param:
+            item - (partial) string e.g. [m]
+            attr - attribute e.g. units
+
+        return: list of matching parameter strings
+
+        e.g. for satellite_class object sco:
+
+        .. code ::
+
+            sco.get_item_parent('m','units')
+        """
+
+        lst = [i for i in self.meta.keys()
+               if (attr in self.meta[i].keys()
+               and item in self.meta[i][attr])
+               ]
+        if len(lst) >= 1:
+            return lst
+        else:
+            return None
+
+    def get_item_child(self, item):
+        """
+        Gets all attributes connected to given parameter name.
+
+        param:
+            item - (partial) string e.g. [m]
+
+        return: matching parameter string
+
+        e.g. for satellite_class object sco:
+
+        .. code ::
+
+            sco.get_item_child('time')
+        """
+
+        parent = finditem(self.meta, item)
+        return parent
 
 
 def poi_sat(indict, twin, distlim, poi, ridx, i):
