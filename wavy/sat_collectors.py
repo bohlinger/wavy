@@ -75,7 +75,6 @@ def get_remote_files_cmems(**kwargs):
     twin = int(np.max([kwargs.get('twin', 30), 30]))
     nproc = kwargs.get('nproc', 1)
     mission = kwargs.get('mission', 's3a')
-    path_local = kwargs.get('path')
     dict_for_sub = kwargs.get('dict_for_sub')
     # check if search str template
     file_search_template = \
@@ -98,7 +97,7 @@ def get_remote_files_cmems(**kwargs):
         path_remote = make_pathtofile(path_template_src,\
                                       strsublst_src, subdict_src,\
                                       date=tmpdate)
-        if path_local is None:
+        if kwargs.get('path') is None:
             # create local path
             path_template_dst = satellite_dict[product]['download']\
                                     ['ftp']['trgt_tmplt']
@@ -151,13 +150,9 @@ def get_remote_files_cmems(**kwargs):
         date_incr = satellite_dict[product]['download']['ftp']\
                         .get('date_incr', 'm')
         tmpdate = date_dispatcher(tmpdate, date_incr=date_incr)
-    if filesort is True:
-        # sort files
-        print("Data is being sorted into subdirectories "
-              + "year and month ...")
-        filelst = [f for f in os.listdir(path_local)
-                   if os.path.isfile(os.path.join(path_local, f))]
-        sort_files(path_local, filelst, product, mission)
+        print('####################################')
+        print(path_local)
+        print('####################################')
     print('Files downloaded to: \n', path_local)
 
 def get_remote_files_aviso(**kwargs):
