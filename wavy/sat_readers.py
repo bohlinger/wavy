@@ -15,6 +15,7 @@ import netCDF4
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs
 #from wavy.ncmod import read_netcdfs_hidefix
+from wavy.ncmod import tpe_hidefix
 #from wavy.ncmod import read_mf_netcdfs
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
@@ -54,6 +55,7 @@ def read_local_ncfiles(**kwargs):
     #
     # ds = read_netcdfs_hidefix(pathlst)
     ds = read_netcdfs(pathlst)
+    #ds = tpe_hidefix(pathlst)
     # ds = read_mf_netcdfs(pathlst)
     #
     ds_sort = ds.sortby('time')
