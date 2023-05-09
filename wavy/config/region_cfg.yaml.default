@@ -53,3 +53,6 @@ geojson:
     TidalZones:
         fstr: "/home/patrikb/Documents/Validation/wam_moskenes/wci_nn.geojson"
         fidx: # number of feature in case geojson file has several
+    TidalZone0:
+        fstr: "/home/patrikb/Documents/Validation/wam_moskenes/wci_nn.geojson"
+        fidx: 0 # number of feature in case geojson file has several

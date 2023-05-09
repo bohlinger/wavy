@@ -28,13 +28,12 @@ def test_manually_specified_reader(tmpdir, test_data):
     varalias = 'Hs'
     twin = 30
     nID = 'cmems_L3_NRT'
-    print(test_data/"L3")
     # init satellite_object and check for polygon region
     sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
              varalias=varalias,
              twin=twin)
     # read data
-    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3"))
+    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3/s3a"))
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
@@ -54,13 +53,12 @@ def test_default_reader(tmpdir, test_data):
     varalias = 'Hs'
     twin = 30
     nID = 'cmems_L3_NRT'
-    print(test_data/"L3")
     # init satellite_object and check for polygon region
     sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
              varalias=varalias,
              twin=twin)
     # read data
-    sco.populate(path=str(test_data/"L3"))
+    sco.populate(path=str(test_data/"L3/s3a"))
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
@@ -80,15 +78,37 @@ def test_polygon_region(tmpdir, test_data):
     varalias = 'Hs'
     twin = 30
     nID = 'cmems_L3_NRT'
-    print(test_data/"L3")
     # init satellite_object and check for polygon region
     sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
              varalias=varalias,
              twin=twin)
     # read data
-    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3"))
+    sco.populate(path=str(test_data/"L3/s3a"))
     sco = sco.crop_to_region('NordicSeas')
-    print(len(sco.vars['time']))
+    assert sco.__class__.__name__ == 'satellite_class'
+    # compare number of available variables
+    vlst = list(vars(sco).keys())
+    assert len(vlst) == 20
+    # compare number of available functions
+    dlst = dir(sco)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) == 32
+    assert type(sco.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(sco).keys()
+
+def test_rectangular_region(tmpdir, test_data):
+    # evoke fct get_remote_files
+    sd = "2022-2-01 01"
+    ed = "2022-2-03 23"
+    mission = 's3a'
+    varalias = 'Hs'
+    nID = 'cmems_L3_NRT'
+    # init satellite_object and check for polygon region
+    sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
+             varalias=varalias)
+    # read data
+    sco.populate(path=str(test_data/"L3/s3a"))
+    sco = sco.crop_to_region('Sulafj')
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
