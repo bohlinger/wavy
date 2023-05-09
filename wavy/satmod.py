@@ -63,7 +63,7 @@ def crop_to_period(ds, sd, ed):
 
 def check_date(filelst, date):
     '''
-    Checks if str in lst according to desired date (sdate,edate)
+    Checks if str in lst according to desired date (sd, ed)
 
     return: idx for file
     '''
@@ -138,7 +138,7 @@ class satellite_class(qls, wc, fc):
             twin - time window (temporal constraint) in minutes
             nID - nID as of satellite_cfg.yaml
             dict_for_sub - dictionary for substitution in templates
-            local_path - a path if defined
+            path - a path if defined
 
         return:
             pathlst - list of paths
@@ -286,7 +286,7 @@ class satellite_class(qls, wc, fc):
         for c in coords:
             ncvar = get_filevarname(c, variable_info,
                                     satellite_dict[self.nID], self.meta)
-            self.vars = self.vars.rename({ncvar: c})
+            self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
         return self
 
     def _change_stdvarname_to_cfname(self):
@@ -307,6 +307,8 @@ class satellite_class(qls, wc, fc):
 
         lst = self.list_input_files(**kwargs)
         self.pathlst = lst
+
+        print(self.pathlst)
 
         self.poi = kwargs.get('poi', None)
         print('')
@@ -462,8 +464,8 @@ class satellite_class(qls, wc, fc):
         ed = parse_date(kwargs.get('ed', str(new.ed)))
         print('Crop to time period:', sd, 'to', ed)
         new.vars = new.vars.sel(time=slice(sd, ed))
-        new.sdate = sd
-        new.edate = ed
+        new.sd = sd
+        new.ed = ed
         return new
 
     def get_item_parent(self, item, attr):
@@ -701,8 +703,6 @@ def match_region_poly(LATS, LONS, region, grid_date):
         # https://github.com/matplotlib/matplotlib/issues/9704
         hits = Path(poly.xy).contains_points(points, radius=1e-9)
         ridx = list(np.array(range(len(LONS)))[hits])
-    if not ridx:
+    if (not ridx or len(ridx)<1):
         print("No values for chosen region and time frame!!!")
-    else:
-        print("Values found for chosen region and time frame.")
     return ridx

@@ -76,10 +76,12 @@ def get_remote_files_cmems(**kwargs):
     nproc = kwargs.get('nproc', 1)
     mission = kwargs.get('mission', 's3a')
     dict_for_sub = kwargs.get('dict_for_sub')
+    # define path
+    path = kwargs.get('path', None)
     # check if search str template
     file_search_template = \
         satellite_dict[product]['download']['ftp']\
-            .get('search_str', '%Y%m%dT%H')
+        .get('search_str', '%Y%m%dT%H')
     # credentials
     server = satellite_dict[product]['download']['ftp']['server']
     user, pw = get_credentials(remoteHostName=server)
@@ -96,7 +98,7 @@ def get_remote_files_cmems(**kwargs):
         path_remote = make_pathtofile(path_template_src,
                                       strsublst_src, subdict_src,
                                       date=tmpdate)
-        if kwargs.get('path') is None:
+        if path is None:
             # create local path
             path_template_dst = satellite_dict[product]['download']\
                                     ['ftp']['trgt_tmplt']
@@ -107,6 +109,8 @@ def get_remote_files_cmems(**kwargs):
             path_local = make_pathtofile(path_template_dst,
                                          strsublst_dst, subdict_dst,
                                          date=tmpdate)
+        else:
+            path_local = path
         print('# ----- ')
         print('Chosen source: ')
         print(mission + ' values from ' + product + ': ' + server)
@@ -117,7 +121,8 @@ def get_remote_files_cmems(**kwargs):
         ftp.login(user, pw)
         ftp.cwd(path_remote)
         content = FTP.nlst(ftp)
-        #choose files according to sdate/edate
+
+        # choose files according to sdate/edate
         tmplst = []
         tmpdate_new = tmpdate-timedelta(minutes=twin)
         tmpdate_end = edate+timedelta(minutes=twin)
@@ -129,9 +134,11 @@ def get_remote_files_cmems(**kwargs):
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = np.unique(tmplst)
         print(matching)
-        # check if download path exists if not create
+
+        # check if download path_local exists if not create
         if not os.path.exists(path_local):
             os.makedirs(path_local, exist_ok=True)
+
         # Download matching files
         print('Downloading ' + str(len(matching))
               + ' files: .... \n')
@@ -145,11 +152,12 @@ def get_remote_files_cmems(**kwargs):
                         )
         # update time
         date_incr = satellite_dict[product]['download']['ftp']\
-                        .get('date_incr', 'm')
+            .get('date_incr', 'm')
         tmpdate = date_dispatcher(tmpdate, date_incr=date_incr)
         print('####################################')
         print(path_local)
         print('####################################')
+
     print('Files downloaded to: \n', path_local)
 
 

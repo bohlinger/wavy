@@ -20,25 +20,89 @@ def test_collectors_cmems_L3(tmpdir):
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
 
-def test_readers_and_write_to_nc_cmems_NRT(tmpdir, test_data):
+def test_manually_specified_reader(tmpdir, test_data):
     # evoke fct get_remote_files
-    sdate = "2020-11-1 12"
-    edate = "2020-11-1 12"
-    region = 'NordicSeas'
+    sd = "2020-11-1 12"
+    ed = "2020-11-1 12"
     mission = 's3a'
     varalias = 'Hs'
     twin = 30
-    product = 'cmems_L3_NRT'
+    nID = 'cmems_L3_NRT'
+    print(test_data/"L3")
     # init satellite_object and check for polygon region
-    sco = sc(sdate=sdate,edate=edate,region=region,
-             mission=mission,twin=twin,varalias=varalias,
-             product=product,path_local=str(test_data/"L3"))
+    sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
+             varalias=varalias,
+             twin=twin)
+    # read data
+    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3"))
     assert sco.__class__.__name__ == 'satellite_class'
-    assert len(vars(sco).keys()) >= 11
-    assert len(sco.vars.keys()) >= 6
+    # compare number of available variables
+    vlst = list(vars(sco).keys())
+    assert len(vlst) == 20
+    # compare number of available functions
+    dlst = dir(sco)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) == 32
+    assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
+
+def test_default_reader(tmpdir, test_data):
+    # evoke fct get_remote_files
+    sd = "2020-11-1 12"
+    ed = "2020-11-1 12"
+    mission = 's3a'
+    varalias = 'Hs'
+    twin = 30
+    nID = 'cmems_L3_NRT'
+    print(test_data/"L3")
+    # init satellite_object and check for polygon region
+    sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
+             varalias=varalias,
+             twin=twin)
+    # read data
+    sco.populate(path=str(test_data/"L3"))
+    assert sco.__class__.__name__ == 'satellite_class'
+    # compare number of available variables
+    vlst = list(vars(sco).keys())
+    assert len(vlst) == 20
+    # compare number of available functions
+    dlst = dir(sco)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) == 32
+    assert type(sco.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(sco).keys()
+
+def test_polygon_region(tmpdir, test_data):
+    # evoke fct get_remote_files
+    sd = "2020-11-01 01"
+    ed = "2020-11-03 23"
+    mission = 's3a'
+    varalias = 'Hs'
+    twin = 30
+    nID = 'cmems_L3_NRT'
+    print(test_data/"L3")
+    # init satellite_object and check for polygon region
+    sco = sc(sd=sd, ed=ed, nID=nID, mission=mission,
+             varalias=varalias,
+             twin=twin)
+    # read data
+    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3"))
+    sco = sco.crop_to_region('NordicSeas')
+    print(len(sco.vars['time']))
+    assert sco.__class__.__name__ == 'satellite_class'
+    # compare number of available variables
+    vlst = list(vars(sco).keys())
+    assert len(vlst) == 20
+    # compare number of available functions
+    dlst = dir(sco)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) == 32
+    assert type(sco.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(sco).keys()
+
+
     # write to nc
-    sco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
+    #sco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
     # check if created -> assert
     # read nc
     # check if varalias assert
