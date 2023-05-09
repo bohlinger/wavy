@@ -22,8 +22,8 @@ def test_collectors_cmems_L3(tmpdir):
 
 def test_manually_specified_reader(tmpdir, test_data):
     # evoke fct get_remote_files
-    sd = "2020-11-1 12"
-    ed = "2020-11-1 12"
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
     mission = 's3a'
     varalias = 'Hs'
     twin = 30
@@ -48,8 +48,8 @@ def test_manually_specified_reader(tmpdir, test_data):
 
 def test_default_reader(tmpdir, test_data):
     # evoke fct get_remote_files
-    sd = "2020-11-1 12"
-    ed = "2020-11-1 12"
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
     mission = 's3a'
     varalias = 'Hs'
     twin = 30
@@ -74,8 +74,8 @@ def test_default_reader(tmpdir, test_data):
 
 def test_polygon_region(tmpdir, test_data):
     # evoke fct get_remote_files
-    sd = "2020-11-01 01"
-    ed = "2020-11-03 23"
+    sd = "2022-2-01 01"
+    ed = "2022-2-03 23"
     mission = 's3a'
     varalias = 'Hs'
     twin = 30
