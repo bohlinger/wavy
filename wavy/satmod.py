@@ -82,14 +82,15 @@ def check_date(filelst, date):
 
 class satellite_class(qls, wc, fc):
     '''
-    Class to handle netcdf files containing satellite data e.g.
-    Hs[time], lat[time], lon[time], time[time]
+    Class to handle netcdf files containing satellite altimeter data
+    e.g.: Hs[time], lat[time], lon[time], time[time]
     '''
 
     def __init__(self, **kwargs):
         print('# ----- ')
         print(" ### Initializing satellite_class object ###")
         print(" ")
+        # initializing useful attributes from config file
         dc = init_class('satellite', kwargs.get('nID'))
         # parse and translate date input
         self.sd = parse_date(kwargs.get('sd'))

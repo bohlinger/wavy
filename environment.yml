@@ -38,6 +38,7 @@ dependencies:
   - geojson
   - roaring-landmask
   - numba
+  - trajan
   - pip
   - pip:
     - hidefix

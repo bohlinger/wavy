@@ -84,7 +84,6 @@ def get_remote_files_cmems(**kwargs):
     server = satellite_dict[product]['download']['ftp']['server']
     user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
-    filesort = False
     path_template_src = satellite_dict\
                             [product]['download']['ftp']\
                             ['src_tmplt']
@@ -94,8 +93,8 @@ def get_remote_files_cmems(**kwargs):
                                class_object_dict=dict_for_sub)
     while (tmpdate <= edate):
         # create remote path
-        path_remote = make_pathtofile(path_template_src,\
-                                      strsublst_src, subdict_src,\
+        path_remote = make_pathtofile(path_template_src,
+                                      strsublst_src, subdict_src,
                                       date=tmpdate)
         if kwargs.get('path') is None:
             # create local path
@@ -105,16 +104,14 @@ def get_remote_files_cmems(**kwargs):
                                     ['ftp']['strsub']
             subdict_dst = make_subdict(strsublst_dst,
                                            class_object_dict=dict_for_sub)
-            path_local = make_pathtofile(path_template_dst,\
-                                         strsublst_dst,subdict_dst,\
+            path_local = make_pathtofile(path_template_dst,
+                                         strsublst_dst, subdict_dst,
                                          date=tmpdate)
-            filesort = True
-
         print('# ----- ')
         print('Chosen source: ')
         print(mission + ' values from ' + product + ': ' + server)
         print(path_remote)
-        print ('# ----- ')
+        print('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
         ftp.login(user, pw)
@@ -136,15 +133,15 @@ def get_remote_files_cmems(**kwargs):
         if not os.path.exists(path_local):
             os.makedirs(path_local, exist_ok=True)
         # Download matching files
-        print ('Downloading ' + str(len(matching))
-                + ' files: .... \n')
-        print ("Used number of possible simultaneous downloads "
-                + str(nproc) + "!")
+        print('Downloading ' + str(len(matching))
+              + ' files: .... \n')
+        print("Used number of possible simultaneous downloads "
+              + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
-                        i, matching, user, pw, server,
-                        path_remote, path_local
-                        ) for i in range(len(matching))
+                            i, matching, user, pw, server,
+                            path_remote, path_local
+                            ) for i in range(len(matching))
                         )
         # update time
         date_incr = satellite_dict[product]['download']['ftp']\
@@ -154,6 +151,7 @@ def get_remote_files_cmems(**kwargs):
         print(path_local)
         print('####################################')
     print('Files downloaded to: \n', path_local)
+
 
 def get_remote_files_aviso(**kwargs):
     '''
@@ -170,7 +168,7 @@ def get_remote_files_aviso(**kwargs):
     dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
     server = satellite_dict[product]['src']['server']
-    user, pw = get_credentials(remoteHostName = server)
+    user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
@@ -179,9 +177,9 @@ def get_remote_files_aviso(**kwargs):
                                       ['path_template']
         strsublst = satellite_dict[product]['src']\
                                   ['strsub']
-        subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
+        subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,\
-                                      strsublst,subdict,\
+                                      strsublst, subdict,\
                                       date=tmpdate)
         if path_local is None:
             # create local path
@@ -190,13 +188,13 @@ def get_remote_files_aviso(**kwargs):
             strsublst = satellite_dict[product]['dst']\
                                       ['strsub']
             path_local = make_pathtofile(path_template,\
-                                     strsublst,subdict,\
+                                     strsublst, subdict,\
                                      date=sdate)
             filesort = True
-        print ('# ----- ')
-        print ('Chosen source: ')
-        print (mission + ' values from ' + product + ': ' + server)
-        print ('# ----- ')
+        print('# ----- ')
+        print('Chosen source: ')
+        print(mission + ' values from ' + product + ': ' + server)
+        print('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
         ftp.login(user, pw)
@@ -208,36 +206,37 @@ def get_remote_files_aviso(**kwargs):
         tmpdate_end = edate+timedelta(minutes=twin)
         while (tmpdate_new <= tmpdate_end):
             matchingtmp = [s for s in content
-                            if tmpdate_new.strftime('%Y%m%dT%H')
-                            in s ]
+                           if tmpdate_new.strftime('%Y%m%dT%H')
+                           in s]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedirs(path_local,exist_ok=True)
+            os.makedirs(path_local, exist_ok=True)
         # Download matching files
-        print ('Downloading ' + str(len(matching))
-                + ' files: .... \n')
-        print ("Used number of possible simultaneous downloads "
-                + str(nproc) + "!")
+        print('Downloading ' + str(len(matching))
+              + ' files: .... \n')
+        print("Used number of possible simultaneous downloads "
+              + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
-                        i,matching,user,pw,server,
-                        path_remote,path_local
-                        ) for i in range(len(matching))
+                            i, matching, user, pw, server,
+                            path_remote, path_local
+                            ) for i in range(len(matching))
                         )
         # update time
         tmpdate = datetime((tmpdate + relativedelta(years=+1)).year,
-                            (tmpdate + relativedelta(years=+1)).month,1)
+                           (tmpdate + relativedelta(years=+1)).month, 1)
     if filesort is True:
         # sort files
-        print("Data is being sorted into subdirectories " \
-            + "year and month ...")
+        print("Data is being sorted into subdirectories "
+              + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
-                    if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,mission)
-    print ('Files downloaded to: \n', path_local)
+                   if os.path.isfile(os.path.join(path_local, f))]
+        sort_files(path_local, filelst, product, mission)
+    print('Files downloaded to: \n', path_local)
+
 
 def get_remote_files_cci(**kwargs):
     '''
@@ -247,15 +246,15 @@ def get_remote_files_cci(**kwargs):
     product = kwargs.get('product')
     sdate = kwargs.get('sdate')
     edate = kwargs.get('edate')
-    twin = kwargs.get('twin',30)
-    nproc = kwargs.get('nproc',1)
-    mission = kwargs.get('mission','multi')
+    twin = kwargs.get('twin', 30)
+    nproc = kwargs.get('nproc', 1)
+    mission = kwargs.get('mission', 'multi')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
     server = satellite_dict[product]['src']['server']
     level = satellite_dict[product]['processing_level']
-    user, pw = get_credentials(remoteHostName = server)
+    user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
     filesort = False
     while (tmpdate <= edate):
@@ -267,9 +266,9 @@ def get_remote_files_cci(**kwargs):
                                   ['strsub']
         dict_for_sub['mission'] =\
                         satellite_dict[product]['mission'][mission]
-        subdict = make_subdict(strsublst,class_object_dict=dict_for_sub)
-        path_remote = make_pathtofile(path_template,\
-                                      strsublst,subdict,\
+        subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
+        path_remote = make_pathtofile(path_template,
+                                      strsublst, subdict,
                                       date=tmpdate)
         if path_local is None:
             # create local path
@@ -278,14 +277,14 @@ def get_remote_files_cci(**kwargs):
                                           ['path_template']
             strsublst = satellite_dict[product]['dst']\
                                       ['strsub']
-            path_local = make_pathtofile(path_template,\
-                                     strsublst,subdict,\
-                                     date=sdate)
+            path_local = make_pathtofile(path_template,
+                                         strsublst, subdict,
+                                         date=sdate)
             filesort = True
-        print ('# ----- ')
-        print ('Chosen source: ')
-        print (mission + ' values from ' + product + ': ' + server)
-        print ('# ----- ')
+        print('# ----- ')
+        print('Chosen source: ')
+        print(mission + ' values from ' + product + ': ' + server)
+        print('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
         ftp.login(user, pw)
@@ -298,116 +297,41 @@ def get_remote_files_cci(**kwargs):
         while (tmpdate_new <= tmpdate_end):
             if level == 'L2P':
                 matchingtmp = [s for s in content
-                            if tmpdate_new.strftime('-%Y%m%dT%H')
-                            in s ]
+                               if tmpdate_new.strftime('-%Y%m%dT%H')
+                               in s]
             elif level == 'L3':
                 matchingtmp = [s for s in content
-                            if tmpdate_new.strftime('-%Y%m%d')
-                            in s ]
+                               if tmpdate_new.strftime('-%Y%m%d')
+                               in s]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = np.unique(tmplst)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedirs(path_local,exist_ok=True)
+            os.makedirs(path_local, exist_ok=True)
         # Download matching files
-        print ('Downloading ' + str(len(matching))
-                + ' files: .... \n')
-        print ("Used number of simultaneous downloads "
-                + str(nproc) + "!")
+        print('Downloading ' + str(len(matching))
+              + ' files: .... \n')
+        print("Used number of simultaneous downloads "
+              + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
-                        i,matching,user,pw,server,
-                        path_remote,path_local
-                        ) for i in range(len(matching))
+                            i, matching, user, pw, server,
+                            path_remote, path_local
+                            ) for i in range(len(matching))
                         )
         # update time
         tmpdate += timedelta(days=1)
     if filesort is True:
         # sort files
-        print("Data is being sorted into subdirectories " \
-            + "year and month ...")
+        print("Data is being sorted into subdirectories "
+              + "year and month ...")
         print(path_local)
         filelst = [f for f in os.listdir(path_local)
-                    if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,mission)
-    print ('Files downloaded to: \n', path_local)
+                   if os.path.isfile(os.path.join(path_local, f))]
+        sort_files(path_local, filelst, product, mission)
+    print('Files downloaded to: \n', path_local)
 
-def get_remote_files_eumetsat(**kwargs):
-    '''
-    Download swath files from EUMETSAT and store them at defined
-    location. This fct uses the SentinelAPI for queries.
-    '''
-    product = kwargs.get('product')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
-    mission = kwargs.get('mission','s3a')
-    path_local = kwargs.get('path_local')
-    dict_for_sub = kwargs.get('dict_for_sub')
-    api_url = kwargs.get('api_url')
-    import sentinelsat as ss
-    products = None
-    dates = (sdate.strftime('%Y-%m-%dT%H:%M:%SZ'),\
-             edate.strftime('%Y-%m-%dT%H:%M:%SZ'))
-    filesort = False
-    if path_local is None:
-        # create local path
-        path_template = satellite_dict[product]['dst']\
-                                      ['path_template']
-        strsublst = satellite_dict[product]['dst']\
-                                  ['strsub']
-        subdict = make_subdict(strsublst,
-                               class_object_dict=dict_for_sub)
-        path_local = make_pathtofile(path_template,\
-                                     strsublst,
-                                     subdict,\
-                                     date=sdate)
-        filesort = True
-    query_dict = make_query_dict(product,mission)
-    print(query_dict)
-    if api_url is None:
-        api_url_lst = \
-            satellite_dict[product]['src']['api_url']
-        for url in api_url_lst:
-            print('Source:',url)
-            try:
-                user, pw = get_credentials(remoteHostName=url)
-                api = ss.SentinelAPI(user, pw, url)
-                products = api.query(area=None, date=dates,**query_dict)
-                break
-            except Exception as e:
-                print(e)
-    else:
-        user, pw = get_credentials(remoteHostName = api_url)
-        api = ss.SentinelAPI(user, pw, api_url)
-        products = api.query(area=None, date=dates,**query_dict)
-    if products is not None:
-        # check if download path exists if not create
-        if not os.path.exists(path_local):
-            os.makedirs(path_local,exist_ok=True)
-        api.download_all(products,directory_path=path_local)
-        #api.download(product_id)
-    else: print('No products found!')
-    if filesort is True:
-        # sort files
-        print("Data is being sorted into subdirectories " \
-            + "year and month ...")
-        filelst = [f for f in os.listdir(path_local)
-                    if os.path.isfile(os.path.join(path_local,f))]
-        sort_files(path_local,filelst,product,mission)
-    print ('Files downloaded to: \n', path_local)
-
-def make_query_dict(product: str,mission: str) -> dict:
-    '''
-    fct to setup queries of L2 data using SentinelAPI
-    '''
-    level = satellite_dict[product]['mission'].get('processing_level')
-    SAT = satellite_dict[product]['mission'].get(mission)
-    kwargs =  {'platformname': 'Sentinel-3',
-               'instrumentshortname': 'SRAL',
-               'productlevel': level,
-               'filename': SAT + '*WAT*'}
-    return kwargs
 
 def get_remote_files(**kwargs):
     '''
@@ -421,7 +345,6 @@ def get_remote_files(**kwargs):
                 'cmems_L3_s6a': get_remote_files_cmems,
                 'cmems_L3_MY': get_remote_files_cmems,
                 'cfo_swim_L2P': get_remote_files_aviso,
-                'eumetsat_L2': get_remote_files_eumetsat,
                 'cci_L2P': get_remote_files_cci,
                 'cci_L3': get_remote_files_cci,
                 }
