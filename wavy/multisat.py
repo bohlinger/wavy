@@ -12,32 +12,38 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 
 class multisat_class(qls):
     '''
-    Class to handle netcdf files containing satellite data e.g.
-    Hs[time], lat[time], lon[time]
-
-    This class offers the following added functionality:
-     - get swaths of desired days and read
-     - get the closest time stamp(s)
-     - get the location (lon, lat) for this time stamp
-     - get Hs or 10m wind value for this time
-     - region mask
+    Class to combine multiple satellite datasets
     '''
 
-    def __init__(
-        self,
-        sdate = None, edate = None, twin = 30,
-        varalias = 'Hs', region = 'global',
-        mission = ['s3a'], product = ['cmems_L3_NRT'],
-        poi = None, distlim = None, filterData = False,
-        download = False, path_local = None,
-        nproc = 1, api_url = None,
-        **kwargs):
+    def __init__(self, **kwargs):
+#        self,
+#        sdate = None, edate = None, twin = 30,
+#        varalias = 'Hs', region = 'global',
+#        mission = ['s3a'], product = ['cmems_L3_NRT'],
+#        poi = None, distlim = None, filterData = False,
+#        download = False, path_local = None,
+#        nproc = 1, api_url = None,
+#        **kwargs):
         print('# ----- ')
         print(" ### Initializing multisat_class object ###")
         print(" ")
-        missions = mission
+        # parse and translate date input
+        self.sd = parse_date(kwargs.get('sd'))
+        self.ed = parse_date(kwargs.get('ed', self.sd))
+        # add other class object variables
+        self.nID = kwargs.get('nID') # list of nID
+        self.mission = kwargs.get('mission', ['s3a']) # list of missions
+        self.varalias = kwargs.get('varalias', 'Hs')
+        self.units = variable_info[self.varalias].get('units')
+        self.stdvarname = variable_info[self.varalias].get('standard_name')
+        self.twin = int(kwargs.get('twin', 0))
+        self.distlim = kwargs.get('distlim', 6)
+        self.filter = kwargs.get('filter', False)
+        self.region = kwargs.get('region', 'global')
+
+        missions = self.mission
         # products: either None, same as missions, or one product
-        products = product
+        nIDs = self.nID
         providers = [satellite_dict[p].get('provider') for p in products]
         if len(products) != len(missions):
             if len(products) == 1:
@@ -49,16 +55,14 @@ class multisat_class(qls):
         print(products)
         scos = []
         for i,m in enumerate(missions):
-            sco = sc( sdate = sdate, edate = edate,
-                         twin = twin, distlim = distlim,
-                         mission = m, products = products[i],
-                         region = region, varalias = varalias,
-                         filterData = filterData, poi = poi,
-                         nproc = nproc, api_url = api_url,
-                         path_local = path_local,
-                         **kwargs )
+            sco = sc(sd=sd, ed=ed, nID=nID[i], mission=m,
+                     twin=twin, distlim=distlim,
+                     region=region, varalias=varalias,
+                     **kwargs)
+            sco = sco.populate()
             if 'vars' in vars(sco):
                 scos.append(sco)
+        # consolidate scos
         cso = cs(scos)
         missions = find_valid_missions(scos)
         cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')

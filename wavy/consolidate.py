@@ -9,6 +9,7 @@ observations to perform a collective collocation/analysis
 # standard library imports
 import numpy as np
 from datetime import datetime
+import xarray as xr
 
 # own imports
 from wavy.utils import flatten
@@ -29,34 +30,9 @@ def consolidate_scos(scos):
         'sea_surface_wave_significant_height', 'time',
         'latitude', 'longitude', 'datetime'
     """
-    varlst = []
-    lonlst = []
-    latlst = []
-    timelst = []
-    dtimelst = []
-    for sco in scos:
-        varlst.append(sco.vars[sco.stdvarname])
-        lonlst.append(sco.vars['longitude'])
-        latlst.append(sco.vars['latitude'])
-        timelst.append(sco.vars['time'])
-        dtimelst.append(sco.vars['datetime'])
-    # flatten all, make arrays
-    varlst = np.array(flatten(varlst))
-    lonlst = np.array(flatten(lonlst))
-    latlst = np.array(flatten(latlst))
-    timelst = np.array(flatten(timelst))
-    dtimelst = np.array(flatten(dtimelst))
-    # sort according to time
-    idx = np.argsort(timelst)
-    # make dict
-    vardict = {
-            sco.stdvarname:varlst[idx],
-            'longitude':lonlst[idx],
-            'latitude':latlst[idx],
-            'time':timelst[idx],
-            'time_unit':sco.vars['time_unit'],
-            'datetime':dtimelst[idx] }
-    return vardict
+    das = [sco.vars[sco.varalias] for sco in scos]
+    ds = xr.concat(das,dim='time').to_dataset()
+    return ds
 
 def find_valid_oco(ocos):
     state = False

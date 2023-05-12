@@ -180,6 +180,14 @@ class satellite_class(qls, wc, fc):
                 pathlst = glob.glob(path+'/*')
             else:
                 pathlst = glob.glob(path+'*')
+            #
+            # interesting other approach using pathlibs glob
+            # https://stackoverflow.com/questions/3348753/\
+            #        search-for-a-file-using-a-wildcard
+            # from pathlib import Path
+            # filelst = [p.name for p in Path(path).glob("*")]
+            # pathlst = [str(p.parent) for p in Path(path).glob("*")]
+            #
             # separate files from path
             filelst = [p.split('/')[-1] for p in pathlst]
             pathlst = [p[0:-len(f)] for p,f in zip(pathlst,filelst)]
