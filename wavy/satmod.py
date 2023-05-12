@@ -252,20 +252,18 @@ class satellite_class(qls, wc, fc):
                          twin=self.twin,
                          **kwargs
                          )
-        ds = self._enforce_longitude_format(ds)
         self.vars = ds
         self.coords = list(self.vars.coords)
-
         return self
 
     @staticmethod
     def _enforce_longitude_format(ds):
         # adjust longitude -180/180
-        attrs = ds.longitude.attrs
+        attrs = ds.lons.attrs
         attrs['valid_min'] = -180
         attrs['valid_max'] = 180
         attrs['comments'] = 'forced to range: -180 to 180'
-        ds.longitude.values = ((ds.longitude.values-180) % 360)-180
+        ds.lons.values = ((ds.lons.values-180) % 360)-180
         return ds
 
     def _enforce_meteorologic_convention(self):
@@ -356,6 +354,12 @@ class satellite_class(qls, wc, fc):
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
+
+                # convert longitude
+                ds = self.vars
+                ds_new = self._enforce_longitude_format(ds)
+                self.vars = ds_new
+
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
                     newvaralias = kwargs.get('return_var')
