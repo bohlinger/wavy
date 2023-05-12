@@ -18,6 +18,7 @@ from dateutil.relativedelta import relativedelta
 import importlib.util
 import pyproj
 import dotenv
+import glob
 #import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -175,8 +176,14 @@ class satellite_class(qls, wc, fc):
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
         else:
-            filelst = np.sort(os.listdir(path))
-            pathlst = [os.path.join(path, e) for e in filelst]
+            if os.path.isdir(path):
+                pathlst = glob.glob(path+'/*')
+            else:
+                pathlst = glob.glob(path+'*')
+            # separate files from path
+            filelst = [p.split('/')[-1] for p in pathlst]
+            pathlst = [p[0:-len(f)] for p,f in zip(pathlst,filelst)]
+            pathtotals = [os.path.join(p, f) for p,f in zip(pathlst,filelst)]
         idx_start, tmp = check_date(filelst,
                                     self.sd - timedelta(minutes=self.twin))
         tmp, idx_end = check_date(filelst,
@@ -184,10 +191,10 @@ class satellite_class(qls, wc, fc):
         if idx_end == 0:
             idx_end = len(pathlst)-1
         del tmp
-        pathlst = np.unique(pathlst[idx_start:idx_end+1])
+        pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
         filelst = np.unique(filelst[idx_start:idx_end+1])
-        print(str(int(len(pathlst))) + " valid files found")
-        return pathlst, filelst
+        print(str(int(len(pathtotals))) + " valid files found")
+        return pathtotals, filelst
 
     def list_input_files(self, show=False, **kwargs):
         print(" ## Find and list files ...")
@@ -321,6 +328,10 @@ class satellite_class(qls, wc, fc):
         # define reader
         dotenv.load_dotenv()
         WAVY_DIR = os.getenv('WAVY_DIR', None)
+        if WAVY_DIR is None:
+            print('###########')
+            print('Environmental variable for WAVY_DIR needs to be defined!')
+            print('###########')
         reader_str = kwargs.get('reader', self.cfg.reader)
         reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
         spec = importlib.util.spec_from_file_location(
@@ -342,9 +353,9 @@ class satellite_class(qls, wc, fc):
                 t0 = time.time()
                 print('Reading..')
                 self = self._get_sat_ts(**kwargs)
-                self = self._enforce_meteorologic_convention()
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
+                self = self._enforce_meteorologic_convention()
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
                     newvaralias = kwargs.get('return_var')
