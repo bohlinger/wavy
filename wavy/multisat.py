@@ -1,5 +1,6 @@
 # imports
 import numpy as np
+from copy import deepcopy
 # wavy imports
 from wavy.satmod import satellite_class as sc
 from wavy.consolidate import consolidate_class as cs
@@ -8,7 +9,8 @@ from wavy.utils import parse_date
 from wavy.wconfig import load_or_default
 
 # read yaml config files:
-satellite_dict = load_or_default('satellite_specs.yaml')
+satellite_dict = load_or_default('satellite_cfg.yaml')
+variable_def = load_or_default('variable_def.yaml')
 
 class multisat_class(qls):
     '''
@@ -16,14 +18,6 @@ class multisat_class(qls):
     '''
 
     def __init__(self, **kwargs):
-#        self,
-#        sdate = None, edate = None, twin = 30,
-#        varalias = 'Hs', region = 'global',
-#        mission = ['s3a'], product = ['cmems_L3_NRT'],
-#        poi = None, distlim = None, filterData = False,
-#        download = False, path_local = None,
-#        nproc = 1, api_url = None,
-#        **kwargs):
         print('# ----- ')
         print(" ### Initializing multisat_class object ###")
         print(" ")
@@ -31,76 +25,58 @@ class multisat_class(qls):
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
         # add other class object variables
-        self.nID = kwargs.get('nID') # list of nID
-        self.mission = kwargs.get('mission', ['s3a']) # list of missions
+        self.nID = kwargs.get('nID')  # list of nID
+        self.mission = kwargs.get('mission', ['s3a'])  # list of missions
         self.varalias = kwargs.get('varalias', 'Hs')
-        self.units = variable_info[self.varalias].get('units')
-        self.stdvarname = variable_info[self.varalias].get('standard_name')
-        self.twin = int(kwargs.get('twin', 0))
+        self.units = variable_def[self.varalias].get('units')
+        self.stdvarname = variable_def[self.varalias].get('standard_name')
+        self.twin = int(kwargs.get('twin', 30))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
+        self.reader = kwargs.get('reader', ['read_local_ncfiles'])
+        self.path = kwargs.get('path')
 
         missions = self.mission
         # products: either None, same as missions, or one product
         nIDs = self.nID
-        providers = [satellite_dict[p].get('provider') for p in products]
-        if len(products) != len(missions):
-            if len(products) == 1:
-                products = products * len(missions)
+        if len(nIDs) != len(missions):
+            if len(nIDs) == 1:
+                products = nIDs * len(missions)
             else:
                 print("products and missions need to correspond")
                 assert len(products) == len(missions)
         print(missions)
-        print(products)
+        print(nIDs)
         scos = []
-        for i,m in enumerate(missions):
-            sco = sc(sd=sd, ed=ed, nID=nID[i], mission=m,
-                     twin=twin, distlim=distlim,
-                     region=region, varalias=varalias,
-                     **kwargs)
-            sco = sco.populate()
+        for i, m in enumerate(missions):
+            sco = sc(sd=self.sd, ed=self.ed,
+                     nID=nIDs[i], mission=m,
+                     twin=self.twin, distlim=self.distlim,
+                     region=self.region, varalias=self.varalias,
+                     reader=self.reader[i])
+            #sco = sco.populate(reader=self.reader[i])
+            sco = sco.populate(reader=self.reader[i],
+                               path=self.path[i])
             if 'vars' in vars(sco):
-                scos.append(sco)
+                scos.append(deepcopy(sco))
+            del sco
         # consolidate scos
         cso = cs(scos)
         missions = find_valid_missions(scos)
-        cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
-        cso.rename_consolidate_object_parameters(mission='-'.join(missions))
-        if len(np.unique(products)) == 1:
-            cso.rename_consolidate_object_parameters(product=products[0])
-        else:
-            cso.rename_consolidate_object_parameters(\
-                            product='-'.join(products))
-        if len(np.unique(providers)) == 1:
-            cso.rename_consolidate_object_parameters(provider=providers[0])
-        else:
-            cso.rename_consolidate_object_parameters(\
-                            provider='-'.join(providers))
+        #cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
+        #cso.rename_consolidate_object_parameters(mission='-'.join(missions))
         # class variables
-        self.obsname = cso.obsname
-        self.stdvarname = cso.stdvarname
-        self.varalias = cso.varalias
-        self.varname = cso.varname
-        self.obstype = cso.obstype
         self.label = 'multi-mission-obs'
-        self.mission = cso.mission
-        self.product = cso.product
-        self.provider = cso.provider
-        self.sdate = cso.sdate
-        self.edate = cso.edate
-        self.units = cso.units
-        self.region = region
-        self.vars = cso.vars
-        self.ocos = cso.ocos
 
         print(" ")
-        print (" ### multisat object initialized ###")
-        print ('# ----- ')
+        print(" ### multisat object initialized ###")
+        print('# ----- ')
+
 
 def find_valid_missions(scos):
     missions = [scos[0].mission]
-    for i in range(1,len(scos)):
+    for i in range(1, len(scos)):
         if len(scos[i].vars['time']) > 0:
             missions.append(scos[i].mission)
     return missions

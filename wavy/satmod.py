@@ -50,7 +50,7 @@ from wavy.init_class import init_class
 region_dict = load_or_default('region_cfg.yaml')
 model_dict = load_or_default('model_cfg.yaml')
 satellite_dict = load_or_default('satellite_cfg.yaml')
-variable_info = load_or_default('variable_def.yaml')
+variable_def = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
 
@@ -100,9 +100,9 @@ class satellite_class(qls, wc, fc):
         self.nID = kwargs.get('nID')
         self.mission = dc.names[kwargs.get('mission', 's3a')]
         self.varalias = kwargs.get('varalias', 'Hs')
-        self.units = variable_info[self.varalias].get('units')
-        self.stdvarname = variable_info[self.varalias].get('standard_name')
-        self.twin = int(kwargs.get('twin', 0))
+        self.units = variable_def[self.varalias].get('units')
+        self.stdvarname = variable_def[self.varalias].get('standard_name')
+        self.twin = int(kwargs.get('twin', 30))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
@@ -175,6 +175,7 @@ class satellite_class(qls, wc, fc):
                 tmpdate = tmpdate + relativedelta(months=+1)
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
+            pathtotals = [pathlst]
         else:
             if os.path.isdir(path):
                 pathlst = glob.glob(path+'/*')
@@ -291,13 +292,13 @@ class satellite_class(qls, wc, fc):
 
     def _change_varname_to_aliases(self):
         # variables
-        ncvar = get_filevarname(self.varalias, variable_info,
+        ncvar = get_filevarname(self.varalias, variable_def,
                                 satellite_dict[self.nID], self.meta)
         self.vars = self.vars.rename({ncvar: self.varalias})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
-            ncvar = get_filevarname(c, variable_info,
+            ncvar = get_filevarname(c, variable_def,
                                     satellite_dict[self.nID], self.meta)
             self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
         return self
@@ -305,11 +306,11 @@ class satellite_class(qls, wc, fc):
     def _change_stdvarname_to_cfname(self):
         # enforce standard_name for coordinate aliases
         self.vars['lons'].attrs['standard_name'] = \
-            variable_info['lons'].get('standard_name')
+            variable_def['lons'].get('standard_name')
         self.vars['lats'].attrs['standard_name'] = \
-            variable_info['lats'].get('standard_name')
+            variable_def['lats'].get('standard_name')
         self.vars['time'].attrs['standard_name'] = \
-            variable_info['time'].get('standard_name')
+            variable_def['time'].get('standard_name')
         # enforce standard_name for variable alias
         self.vars[self.varalias].attrs['standard_name'] = \
             self.stdvarname
@@ -327,7 +328,7 @@ class satellite_class(qls, wc, fc):
         print('')
         print('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
-        ncvar = get_filevarname(self.varalias, variable_info,
+        ncvar = get_filevarname(self.varalias, variable_def,
                                 satellite_dict[self.nID], self.meta)
         print('')
         print('Choosing reader..')
@@ -378,8 +379,8 @@ class satellite_class(qls, wc, fc):
                 if kwargs.get('return_var') is not None:
                     self.varalias = kwargs.get('return_var')
                     self.stdvarname = \
-                        variable_info[newvaralias].get('standard_name')
-                    self.units = variable_info[newvaralias].get('units')
+                        variable_def[newvaralias].get('standard_name')
+                    self.units = variable_def[newvaralias].get('units')
                 # create label for plotting
                 self.label = self.mission
                 t1 = time.time()
@@ -659,11 +660,11 @@ def match_region_poly(LATS, LONS, region, grid_date):
             filestr = make_model_filename_wrapper(
                                     region, grid_date, 'best')
             meta = ncdumpMeta(filestr)
-            flon = get_filevarname('lons', variable_info,
+            flon = get_filevarname('lons', variable_def,
                                    model_dict[region], meta)
-            flat = get_filevarname('lats', variable_info,
+            flat = get_filevarname('lats', variable_def,
                                    model_dict[region], meta)
-            time = get_filevarname('time', variable_info,
+            time = get_filevarname('time', variable_def,
                                    model_dict[region], meta)
             model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr, flon, flat, time)
@@ -681,11 +682,11 @@ def match_region_poly(LATS, LONS, region, grid_date):
             filestr = make_model_filename_wrapper(
                                     region, grid_date, 'best')
             meta = ncdumpMeta(filestr)
-            flon = get_filevarname('lons', variable_info,
+            flon = get_filevarname('lons', variable_def,
                                    model_dict[region], meta)
-            flat = get_filevarname('lats', variable_info,
+            flat = get_filevarname('lats', variable_def,
                                    model_dict[region], meta)
-            time = get_filevarname('time', variable_info,
+            time = get_filevarname('time', variable_def,
                                    model_dict[region], meta)
             model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr, flon, flat, time)
