@@ -148,7 +148,6 @@ def collocate_poi_ts(indict, model=None, distlim=None,\
     # adjust obs_obj according to valid dates
     indict = adjust_dict_for_idx(indict, idx1, ['time_unit', 'meta', 'nID'])
     poi_dtimes = indict['time']
-    # HERE
     del idx1
     # find valid dates for given leadtime and model
     fc_date = find_valid_fc_dates_for_model_and_leadtime(\
@@ -222,7 +221,8 @@ def collocate_poi_ts(indict, model=None, distlim=None,\
                 dst = xr.open_dataset(fname)[timename].values
                 tidx = list(dst).index(np.datetime64(d))
                 # impose distlim
-                if distance_array[0]< distlim*1000:
+                #if distance_array[0]< distlim*1000:
+                if (len(distance_array>0) and distance_array[0]< distlim*1000):
                     idx_x = index_array_2d[0][0]
                     idx_y = index_array_2d[1][0]
                     model_lons.append(Mlons[idx_x,idx_y])
