@@ -20,6 +20,17 @@ def test_collectors_cmems_L3(tmpdir):
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
 
+#@pytest.mark.need_credentials
+#def test_collectors_cci_v3_20Hz(tmpdir):
+#    sco = sc(sd='2020-2-1 12', ed='2020-2-1 12',
+#             nID='L2_20Hz_s3a', mission='s3a')
+#    sco.download(path=tmpdir, nproc=2)
+#    # check if files were download to tmp directory
+#    filelist = os.listdir(tmpdir)
+#    nclist = [i for i in range(len(filelist))
+#              if '.nc' in filelist[i]]
+#    assert len(nclist) >= 1
+
 def test_manually_specified_reader(tmpdir, test_data):
     # evoke fct get_remote_files
     sd = "2022-2-1 12"

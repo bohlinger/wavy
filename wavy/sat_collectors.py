@@ -79,9 +79,11 @@ def get_remote_files_cmems(**kwargs):
     # define path
     path = kwargs.get('path', None)
     # check if search str template
-    file_search_template = \
-        satellite_dict[product]['download']['ftp']\
-        .get('search_str', '%Y%m%dT%H')
+    file_search_template = kwargs.get('search_str')
+    if file_search_template is None:
+        file_search_template = \
+            satellite_dict[product]['download']['ftp']\
+            .get('search_str', '%Y%m%dT%H')
     # credentials
     server = satellite_dict[product]['download']['ftp']['server']
     user, pw = get_credentials(remoteHostName=server)
@@ -98,6 +100,7 @@ def get_remote_files_cmems(**kwargs):
         path_remote = make_pathtofile(path_template_src,
                                       strsublst_src, subdict_src,
                                       date=tmpdate)
+
         if path is None:
             # create local path
             path_template_dst = satellite_dict[product]['download']\
@@ -111,6 +114,7 @@ def get_remote_files_cmems(**kwargs):
                                          date=tmpdate)
         else:
             path_local = path
+
         print('# ----- ')
         print('Chosen source: ')
         print(mission + ' values from ' + product + ': ' + server)

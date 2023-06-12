@@ -8,95 +8,122 @@
 time:
     standard_name: time
     units: "seconds since 1970-01-01 00:00:00.0"
+    _FillValue: -999.9
 
 # coordinates
 lons:
     standard_name: longitude
     units: degree_east
+    _FillValue: -999.9
 lats:
     standard_name: latitude
     units: degree_north
+    _FillValue: -999.9
 
 # variables
 Hs:
     standard_name: sea_surface_wave_significant_height
     units: m
     valid_range: [0., 30.]
+    _FillValue: -999.9
+
 Tp:
     standard_name: "sea_surface_wave_period_at_variance_spectral_\
                     density_maximum"
     units: s
     valid_range: [0., 30.]
     inverse: fp
+    _FillValue: -999.9
 
 Lp:
     standard_name: "sea_surface_wave_length_at_variance_spectral_\
                     density_maximum"
     units: m
     valid_range: [0., 2000.]
+    _FillValue: -999.9
 
 fp:
     standard_name: "sea_surface_wave_peak_frequency"
     units: "1/s"
     inverse: Tp
+    _FillValue: -999.9
 
 Tm01:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_first_frequency_moment"
     units: s
     valid_range: [0., 30.]
+    _FillValue: -999.9
+
 Tm02:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_second_frequency_moment"
     units: s
     valid_range: [0., 30.]
+    _FillValue: -999.9
+
 Tm10:
     standard_name: "sea_surface_wave_mean_period_from_variance_spectral\
                     _density_inverse_frequency_moment"
     units: s
     valid_range: [0., 30.]
+    _FillValue: -999.9
+
 Pdir:
     standard_name: "sea_surface_wave_from_direction_at_variance_spectral\
                     _density_maximum"
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 Mdir:
     standard_name: sea_surface_wave_from_direction
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 MdirW: # wind waves
     standard_name: sea_surface_wind_wave_from_direction
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 MdirST: # total swell
     standard_name: sea_surface_swell_wave_from_direction
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 # for swell partitions only from direction exists in cf-table
 MdirS1:
     standard_name: sea_surface_primary_swell_wave_from_direction
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 MdirS2:
     standard_name: sea_surface_secondary_swell_wave_from_direction
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 MdirS3:
     standard_name: sea_surface_tertiary_swell_wave_from_direction
     units: degree
     valid_range: [0.,360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
 
@@ -104,42 +131,61 @@ ux:
     standard_name: x_wind
     alias: grid_eastward_wind
     units: m s-1
+    _FillValue: -999.9
+
 ua:
     standard_name: eastward_wind
     units: m s-1
+    _FillValue: -999.9
+
 vy:
     standard_name: y_wind
     alias: grid_northward_wind
     units: m s-1
+    _FillValue: -999.9
+
 va:
     standard_name: northward_wind
     units: m s-1
+    _FillValue: -999.9
+
 U:
     standard_name: wind_speed
     units: m s-1
+    _FillValue: -999.9
     aliases_of_vector_components:
         alt1: [ua,va]
         alt2: [ux,vy]
     valid_range: [0., 200]
+
 Udir:
     standard_name: wind_from_direction
     units: degree
     valid_range: [0., 360.]
+    _FillValue: -999.9
     convention: meteorologic
     type: cyclic
+
 dist:
     standard_name: collocation_distance
     long_name: 'distance between collocated values'
     units: m
+    _FillValue: -999.9
+
 colidx:
     standard_name: collocation_idx
     long_name: 'collocation indices in flattened (1D) model field'
     units: NA
+    _FillValue: -999.9
+
 colidx_x:
     standard_name: collocation_idx_x
     long_name: 'collocation indices in x-direction'
     units: NA
+    _FillValue: -999.9
+
 colidx_y:
     standard_name: collocation_idx_y
     long_name: 'collocation indices in y-direction'
     units: NA
+    _FillValue: -999.9

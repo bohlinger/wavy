@@ -10,6 +10,7 @@ files for further use.
 import numpy as np
 from datetime import timedelta
 import netCDF4
+import pandas as pd
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
@@ -46,7 +47,7 @@ def read_local_ncfiles(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
-    ncvar = kwargs.get('ncvar')
+    varname = kwargs.get('varname')
 
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
@@ -60,7 +61,7 @@ def read_local_ncfiles(**kwargs):
     #
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
-    var_sliced = ds_sliced[[ncvar]]
+    var_sliced = ds_sliced[[varname]]
     # rename ncvars to respective wavy aliases
     # todo:
     #   attribute cf-standard names to all variables
@@ -100,8 +101,8 @@ def read_local_20Hz_files(**kwargs):
     ed = ed + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_info,
-                            satellite_dict[nID], ncmeta)
+    varname = get_filevarname(varalias, variable_info,
+                              satellite_dict[nID], ncmeta)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby(timestr)
@@ -109,25 +110,43 @@ def read_local_20Hz_files(**kwargs):
     # get indices for included time period
     nptime = ds_sort[timestr].data
     idx = find_included_times_pd(nptime, sdate=sd, edate=ed)
-    #ds_sliced = ds_sort.sel(time=slice(sd, ed))
-    #dtime = [parse_date(str(nptime[idx][i])) for i in range(len(nptime[idx]))]
-    dtime = nptime[idx]
-    lons = list(((ds_sort[lonstr].data[idx] - 180) % 360) - 180)
-    lats = list(ds_sort[latstr].data[idx])
+    var_sliced = ds_sort[varname].values[idx]
+    lons = ds_sort[lonstr].values[idx]
+    lats = ds_sort[latstr].values[idx]
+    nptime = nptime[idx]
+    varnames = (varname, lonstr, latstr, timestr)
+    var = (var_sliced, lons, lats, nptime)
+    # build xarray ds
+    ds_new = build_xr_ds(var, varnames)
+    return ds_new
 
-    unxt = (nptime[idx].astype(int) / 10**9)
-
-    # make dict and start with stdvarname for varalias
-    stdvarname = variable_info[varalias]['standard_name']
-    vardict = {}
-    vardict[stdvarname] = list(ds_sort[ncvar].data[idx])
-    vardict['longitude'] = lons
-    vardict['latitude'] = lats
-    vardict['time'] = unxt
-    vardict['datetime'] = dtime
-    vardict['time_unit'] = variable_info['time']['units']
-    return vardict
-
+def build_xr_ds(var: tuple, varnames: tuple):
+    import xarray as xr
+    ds = xr.Dataset({
+            varnames[0]: xr.DataArray(
+                    data=var[0],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[1]: xr.DataArray(
+                    data=var[1],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[2]: xr.DataArray(
+                    data=var[2],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[3]: xr.DataArray(
+                    data=var[3],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    )
+                },
+            attrs={'example_attr': 'this is a global attribute'}
+        )
+    return ds
 
 def read_local_ncfiles_swim(**kwargs):
     """

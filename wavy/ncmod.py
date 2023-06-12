@@ -56,11 +56,13 @@ def check_if_ncfile_accessible(fstr):
         print(e)
         return False
 
-def read_netcdfs(paths, dim='time'):
+def read_netcdfs(paths, dim='time', decode_times=None, use_cftime=None):
     @lru_cache(maxsize=128)
     def process_one_path(path):
         # use a context manager, to ensure the file gets closed after use
-        with xr.open_dataset(path) as ds:
+        with xr.open_dataset(path,
+                decode_times=decode_times,
+                use_cftime=use_cftime) as ds:
             # use it after closing each original file
             ds.load()
             return ds

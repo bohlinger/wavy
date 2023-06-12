@@ -49,8 +49,6 @@ cmems_L3_NRT:
     vardef:
         Hs: VAVH
         U: WIND_SPEED
-        #wavy: [Hs,U]
-        #src: [VAVH,WIND_SPEED]
     coords:
     # optional, info that can be used by class functions
     misc:
@@ -70,24 +68,27 @@ L2_20Hz_s3a:
         ftp: # downloading method
             src_tmplt: "/products/v3/data/satellite/altimeter/\
                         l2_20Hz/l2/sentinel-3_a/%Y/%j/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%j/
             strsub: ['mission']
             server: "eftp.ifremer.fr"
+            date_incr: 'd'
+            search_str: '%Y%m%d'
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%m
+        src_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%j/
         fl_tmplt: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['mission']
+        date_incr: 'd'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%m
+        trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%j/
         fl_tmplt: "varalias_mission_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','mission','region']
-        file_date_incr: m
+        file_date_incr: 'm'
     # optional, if not defined the default is used
     reader: read_local_20Hz_files
     # optional, needs to be defined if not cf and in variable_info.yaml
@@ -96,8 +97,6 @@ L2_20Hz_s3a:
         time: time_echo_sar_ku
         lats: lat_echo_sar_ku
         lons: lon_echo_sar_ku
-        #wavy: [Hs,U]
-        #src: [VAVH,WIND_SPEED]
     coords:
     # optional, info that can be used by class functions
     misc:

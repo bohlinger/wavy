@@ -34,6 +34,7 @@ from wavy.utils import parse_date
 from wavy.utils import make_pathtofile, make_subdict
 from wavy.utils import finditem, haversineA
 from wavy.utils import flatten
+from wavy.utils import date_dispatcher
 from wavy.utils import convert_meteorologic_oceanographic
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
@@ -150,7 +151,8 @@ class satellite_class(qls, wc, fc):
         tmpdate = self.sd-timedelta(minutes=self.twin)
         if path is None:
             print('path is None -> checking config file')
-            while (tmpdate <= self.ed + relativedelta(months=+1)):
+            while (tmpdate <= date_dispatcher(self.ed,
+            self.cfg.wavy_input['date_incr'])):
                 try:
                     # create local path for each time
                     path_template = \
@@ -172,7 +174,8 @@ class satellite_class(qls, wc, fc):
                     path = None
                 except Exception as e:
                     logger.exception(e)
-                tmpdate = tmpdate + relativedelta(months=+1)
+                tmpdate = date_dispatcher(tmpdate,
+                            self.cfg.wavy_input['date_incr'])
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
             pathtotals = [pathlst]
@@ -254,13 +257,16 @@ class satellite_class(qls, wc, fc):
         """
 
         # retrieve dataset
-        ds = self.reader(pathlst=self.pathlst,
-                         ncvar=self.varname,
-                         sd=self.sd,
-                         ed=self.ed,
-                         twin=self.twin,
-                         **kwargs
-                         )
+        #ds = self.reader(pathlst=self.pathlst,
+        #                 ncvar=self.varname,
+        #                 sd=self.sd,
+        #                 ed=self.ed,
+        #                 twin=self.twin,
+        #                 nID=self.nID,
+        #                 **kwargs
+        #                 )
+        ds = self.reader(**(vars(self)))
+        print(ds)
         self.vars = ds
         self.coords = list(self.vars.coords)
         return self
@@ -343,11 +349,14 @@ class satellite_class(qls, wc, fc):
         reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
         spec = importlib.util.spec_from_file_location(
                 'sat_readers.' + reader_str, reader_mod_str)
+
         # create reader module
         sat_reader = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(sat_reader)
+
         # pick reader
-        reader = getattr(sat_reader, 'read_local_ncfiles')
+        #reader = getattr(sat_reader, 'read_local_ncfiles')
+        reader = getattr(sat_reader, reader_str)
         self.reader = reader
         print('Chosen reader:', spec.name)
         print('')
