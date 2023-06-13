@@ -51,15 +51,14 @@ class filter_class:
         return self
 
     def filter_landMask(self, **kwargs):
-        vardict = deepcopy(self.vars)
-        longitudes = np.array(vardict['longitude'])
-        latitudes = np.array(vardict['latitude'])
+        longitudes = np.array(self.vars['lons'])
+        latitudes = np.array(self.vars['lats'])
         # apply land mask
         sea_mask = apply_land_mask(longitudes, latitudes, **kwargs)
-        # impose on vardict
-        for key in vardict.keys():
-            if key != 'time_unit':
-                vardict[key] = list(np.array(vardict[key])[sea_mask])
+        # impose on dataset
+        idx = np.array(range(len(sea_mask)))
+        idx = idx[sea_mask]
+        ds = self.vars.isel(time=idx)
 
         indices = start_stop(sea_mask, True)
         indices_tmp = deepcopy(indices)
@@ -79,11 +78,11 @@ class filter_class:
                 print('Length of chunk:', lenofchunk)
 
         # Assign back to class object
-        self.vars = vardict
+        self.vars = ds
         print(' Number of registered intersections with land:', no_chunks)
         print(' Number of disregarded values due to land intersections:',
               len(sea_mask[sea_mask == False]))
-        print(' Number of remaining values:', len(vardict['time']))
+        print(' Number of remaining values:', len(self.vars['time']))
         return self
 
     def filter_distance_to_coast(self, llim=0, ulim=10000, **kwargs):
@@ -91,26 +90,24 @@ class filter_class:
         discards all values closer to shoreline than threshold
         """
         print("Apply distance_to_coast_mask")
-        vardict = deepcopy(self.vars)
-        Plons = vardict['longitude']
-        Plats = vardict['latitude']
+        longitudes = np.array(self.vars['lons'])
+        latitudes = np.array(self.vars['lats'])
         w = Gshhg.wkb()
         polys = wkb.loads(w)
         mapped = mapping(polys)
         c = mapped['coordinates']
         cA = np.vstack([np.flip(x[0][:]) for x in c])
-        points_sdef = pr.geometry.SwathDefinition(Plons, Plats)
+        points_sdef = pr.geometry.SwathDefinition(longitudes, latitudes)
         coast_sdef = pr.geometry.SwathDefinition(cA[:, 1], cA[:, 0])
         _, _, _, distance_array = pr.kd_tree.get_neighbour_info(
             coast_sdef, points_sdef, 1000000, neighbours=1)
         A = distance_array/1000.
         # get rid of infs
         mask = np.where((A > llim) & (A < ulim))[0]
-        # impose on vardict
-        for key in vardict.keys():
-            if key != 'time_unit':
-                vardict[key] = list(np.array(vardict[key])[mask])
-        self.vars = vardict
+        # impose on dataset
+        ds = self.vars.isel(time=mask)
+        # Assign back to class object
+        self.vars = ds
         return self
 
     def filter_blockMean(self, **kwargs):
