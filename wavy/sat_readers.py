@@ -144,7 +144,7 @@ def build_xr_ds(var: tuple, varnames: tuple):
                     coords={varnames[3]: var[3]}
                     )
                 },
-            attrs={'example_attr': 'this is a global attribute'}
+            attrs={'title': 'wavy dataset'}
         )
     return ds
 

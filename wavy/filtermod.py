@@ -32,33 +32,33 @@ class filter_class:
 
     def apply_limits(self, **kwargs):
         print('Apply limits (crude cleaning using valid range)')
+        new = deepcopy(self)
         llim = kwargs.get('llim',
-            variable_info[self.varalias]['valid_range'][0])
-        ulim = kwargs.get('llim',
-            variable_info[self.varalias]['valid_range'][1])
-        vardict = deepcopy(self.vars)
-        y = vardict[self.stdvarname]
+            variable_info[new.varalias]['valid_range'][0])
+        ulim = kwargs.get('ulim',
+            variable_info[new.varalias]['valid_range'][1])
+        ds = deepcopy(new.vars)
+        y = ds[new.varalias]
         tmpdict = {'y': y}
         df = pd.DataFrame(data=tmpdict)
         dfmask = df['y'].between(llim, ulim, inclusive='both')
-        for key in vardict:
-            if key != 'time_unit':
-                vardict[key] = list(np.array(vardict[key])[dfmask.values])
-        print(" Number of removed values:",
-              len(self.vars['time'])-len(vardict['time']))
-        print(" Number of remaining values:", len(vardict['time']))
-        self.vars = vardict
-        return self
+        idx = np.array(range(len(dfmask)))[dfmask]
+        ds = new.vars.isel(time=idx)
+        print(" Number of disregarded values:", len(dfmask[dfmask == False]))
+        print(" Number of remaining values:", len(ds.time))
+        new.vars = ds
+        return new
 
     def filter_landMask(self, **kwargs):
-        longitudes = np.array(self.vars['lons'])
-        latitudes = np.array(self.vars['lats'])
+        new = deepcopy(self)
+        longitudes = np.array(new.vars['lons'])
+        latitudes = np.array(new.vars['lats'])
         # apply land mask
         sea_mask = apply_land_mask(longitudes, latitudes, **kwargs)
         # impose on dataset
         idx = np.array(range(len(sea_mask)))
         idx = idx[sea_mask]
-        ds = self.vars.isel(time=idx)
+        ds = new.vars.isel(time=idx)
 
         indices = start_stop(sea_mask, True)
         indices_tmp = deepcopy(indices)
@@ -72,26 +72,29 @@ class filter_class:
         else:
             no_chunks = 0
             for start_idx, stop_idx in indices:
-                print(start_idx, stop_idx)
+                print(' start_idx:', start_idx, 'stop_idx:', stop_idx)
                 no_chunks += 1
                 lenofchunk = len(list(range(start_idx, stop_idx)))
-                print('Length of chunk:', lenofchunk)
-
+                print(' -> Length of chunk:', lenofchunk)
+        # add chunks to object for further use
+        new.land_sea_chunks = indices
         # Assign back to class object
-        self.vars = ds
+        new.vars = ds
         print(' Number of registered intersections with land:', no_chunks)
         print(' Number of disregarded values due to land intersections:',
               len(sea_mask[sea_mask == False]))
-        print(' Number of remaining values:', len(self.vars['time']))
-        return self
+        print(' Number of remaining values:', len(new.vars['time']))
+        print(' land_sea_chunks added to self')
+        return new
 
     def filter_distance_to_coast(self, llim=0, ulim=10000, **kwargs):
         """
         discards all values closer to shoreline than threshold
         """
         print("Apply distance_to_coast_mask")
-        longitudes = np.array(self.vars['lons'])
-        latitudes = np.array(self.vars['lats'])
+        new = deepcopy(self)
+        longitudes = np.array(new.vars['lons'])
+        latitudes = np.array(new.vars['lats'])
         w = Gshhg.wkb()
         polys = wkb.loads(w)
         mapped = mapping(polys)
@@ -105,13 +108,25 @@ class filter_class:
         # get rid of infs
         mask = np.where((A > llim) & (A < ulim))[0]
         # impose on dataset
-        ds = self.vars.isel(time=mask)
+        ds = new.vars.isel(time=mask)
         # Assign back to class object
-        self.vars = ds
-        return self
+        new.vars = ds
+        return new
 
     def filter_blockMean(self, **kwargs):
         return self
+
+    def filter_lanczos(self, **kwargs):
+        print('Apply lanczos filter')
+        new = deepcopy(self)
+        from wavy.utils import runmean
+        y = deepcopy(new.vars[new.varalias])
+        window = kwargs.get('window')
+        cutoff = kwargs.get('cutoff')
+        weights = lanczos_weights(window, cutoff)
+        ts, _ = runmean(y, window, mode='centered', weights=weights)
+        new.vars[new.varalias].data = ts
+        return new
 
     def filter_GP(self, **kwargs):
         return self
@@ -133,6 +148,31 @@ class filter_class:
 
     def despike_linearGAM(self, **kwargs):
         return self
+
+    def slider(self, **kwargs):
+        new = deepcopy(self)
+        slider = kwargs['slider']
+        overlap = kwargs.get('overlap', 0)
+
+        print('Using slider')
+        print(' Splitting up dataset in chunks of', slider)
+        print(' with overlap', overlap)
+
+        start_idx_lst = []
+        stop_idx_lst = []
+
+        # create slider chunks
+        for i in range(0, len(new.vars.time), slider):
+            start_idx = np.max([i-overlap, 0])
+            stop_idx = np.min([i+slider+overlap,
+                               len(new.vars.time)-1])
+            if start_idx != stop_idx:
+                start_idx_lst.append(start_idx)
+                stop_idx_lst.append(stop_idx)
+        indices = zip(start_idx_lst, stop_idx_lst)
+        new.slider_chunks = indices
+        print(' Number of created chunks:', len(start_idx_lst))
+        return new
 
     def filter_main(self, **kwargs):
         """ Governing function of filtermod
@@ -164,9 +204,9 @@ class filter_class:
         vardict = rm_nan_from_vardict(self.varalias,vardict)
 
         # start main filter section
-        if ( kwargs.get('land_mask') == True ):
+        if (kwargs.get('land_mask') == True ):
             del kwargs['land_mask']
-            vardict,sea_mask = apply_land_mask(vardict,**kwargs)
+            vardict, sea_mask = apply_land_mask(vardict, **kwargs)
             indices = start_stop(sea_mask, True)
             # initialize newvardict with same keys
             newvardict = deepcopy(vardict)
@@ -175,7 +215,7 @@ class filter_class:
                     newvardict[key] = []
             for start_idx, stop_idx in indices:
                 lenofchunk = len(list(range(start_idx, stop_idx)))
-                print('Length of chunk:',lenofchunk)
+                print('Length of chunk:', lenofchunk)
                 tmpdict = {}
                 for key in vardict:
                     if (key != 'time_unit' and key != 'meta'):
@@ -199,30 +239,20 @@ class filter_class:
                 # create chunks with size of slider
                 print(len(vardict['time']))
                 print(len(vardict[stdvarname]))
-                vardict = filter_slider(vardict,self.varalias,**kwargs)
+                vardict = filter_slider(vardict, self.varalias, **kwargs)
             else:
-                if kwargs.get('dtc_mask') is True:
-                    # apply distance to coast filter
-                    vardict = apply_distance_to_coast_mask(vardict,**kwargs)
-                if kwargs.get('priorOp') is not None:
-                    method = kwargs.get('priorOp')
-                    vardict = apply_priorOp(self.varalias,vardict,
-                                            method = method)
                 if kwargs.get('cleaner') is not None:
                     method = kwargs.get('cleaner')
-                    vardict = apply_cleaner(self.varalias,vardict,
-                                            method = method,
+                    vardict = apply_cleaner(self.varalias, vardict,
+                                            method=method,
                                             **kwargs)
                 if kwargs.get('smoother') is not None:
                     output_dates = kwargs.get('output_dates')
                     method = kwargs.get('smoother')
-                    vardict = apply_smoother(self.varalias,vardict,
-                                             output_dates = output_dates,
-                                             method = method,
+                    vardict = apply_smoother(self.varalias, vardict,
+                                             output_dates=output_dates,
+                                             method=method,
                                              **kwargs)
-                if kwargs.get('postOp') is not None:
-                    method = kwargs.get('postOp')
-                    vardict = apply_postOp(self.varalias,vardict,method=method)
             self.vars = vardict
         return self
 
@@ -232,7 +262,6 @@ def vardict_unique(vardict):
         if (key != 'time_unit' and key != 'meta'):
             vardict[key] = list(np.array(vardict[key])[idx])
     return vardict
-
 
 def filter_slider(vardict,varalias,**kwargs):
         slider = kwargs['slider']
@@ -326,38 +355,6 @@ def apply_limits(varalias,vardict):
         if (key != 'time_unit' and key != 'meta'):
             clean_dict[key] = list(np.array(vardict[key])[dfmask.values])
     return clean_dict
-
-def square_data(varalias,vardict):
-    stdvarname = variable_info[varalias]['standard_name']
-    newdict = deepcopy(vardict)
-    var_squared = list(np.array(vardict[stdvarname])**2)
-    newdict[stdvarname] = var_squared
-    return newdict
-
-def root_data(varalias,vardict):
-    stdvarname = variable_info[varalias]['standard_name']
-    newdict = deepcopy(vardict)
-    var_root = list(np.sqrt(np.array(vardict[stdvarname])))
-    newdict[stdvarname] = var_root
-    return newdict
-
-def apply_priorOp(varalias,vardict,method=None):
-    print("Prepare data prior to further treatment")
-    print('Apply ',method)
-    if method is None:
-        newdict = vardict
-    if method == 'square':
-        newdict = square_data(varalias,vardict)
-    return newdict
-
-def apply_postOp(varalias,vardict,method=None):
-    print("Transform data back after treatment")
-    print('Apply ',method)
-    if method is None:
-        newdict = vardict
-    if method == 'root':
-        newdict = root_data(varalias,vardict)
-    return newdict
 
 def apply_cleaner(varalias,vardict,method='linearGAM',**kwargs):
     # rigorous data cleaning use techniques like:

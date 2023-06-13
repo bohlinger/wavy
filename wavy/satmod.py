@@ -328,8 +328,6 @@ class satellite_class(qls, wc, fc):
         lst = self.list_input_files(**kwargs)
         self.pathlst = lst
 
-        print(self.pathlst)
-
         self.poi = kwargs.get('poi', None)
         print('')
         print('Checking variables..')

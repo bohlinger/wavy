@@ -77,6 +77,67 @@ def read_netcdfs(paths, dim='time', decode_times=None, use_cftime=None):
     print("... done concatenating")
     return combined
 
+def read_netcdfs_naive(paths, varnames, varalias):
+    # read all paths
+    print('read all data files')
+    darrays = [process_one_path_netCDF4(p, varnames, varalias)\
+               for p in tqdm(paths)]
+    # consolidate all data
+    print('consolidate data')
+    darray = consolidate_darrays(darrays)
+    # create xr dataset
+    print('build xr dataset')
+    ds = build_xr_ds(darray, varnames, varalias)
+    return ds
+
+def process_one_path_netCDF4(path: str, varnames: dict, varalias: str):
+    @lru_cache(maxsize=128)
+    def read_nc(path):
+        nc = netCDF4.Dataset(path)
+        time_var = nc.variables[varnames['time']]
+        dtime = netCDF4.num2date(time_var[:], time_var.units)
+        lons = nc.variables[varnames['lons']][:]
+        lats = nc.variables[varnames['lats']][:]
+        var = nc.variables[varnames[varalias]][:]
+        nc.close()
+        return var, lons, lats, dtime
+    var, lons, lats, dtime = read_nc(path)
+    return np.array([var, lons, lats, dtime])
+
+def consolidate_darrays(darrays: list) -> np.ndarray:
+    A = darrays[0]
+    for i in range(1, len(darrays)):
+        A = np.append(A, darrays[i], axis=1)
+    return A
+
+def build_xr_ds(darray: np.ndarray, varnames: dict, varalias: str):
+    import xarray as xr
+    ds = xr.Dataset({
+            varnames[varalias]: xr.DataArray(
+                    data=darray[0],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[3, :]}
+                    ),
+            varnames['lons']: xr.DataArray(
+                    data=darray[1],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[3, :]}
+                    ),
+            varnames['lats']: xr.DataArray(
+                    data=darray[2],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[3, :]}
+                    ),
+            varnames['time']: xr.DataArray(
+                    data=darray[3],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[3, :]}
+                    )
+                },
+            attrs={'title': 'wavy dataset'}
+        )
+    return ds
+
 def read_netcdfs_hidefix(paths):
     ds = xr.open_mfdataset(paths, engine='hidefix')
     return ds
