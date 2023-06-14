@@ -16,6 +16,7 @@ import pandas as pd
 import netCDF4
 import requests
 import dotenv
+import xarray as xr
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -36,6 +37,33 @@ variable_info = load_or_default('variable_def.yaml')
 variables_frost = load_or_default('variables_frost.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
 # ---------------------------------------------------------------------#
+
+def build_xr_ds(var: tuple, varnames: tuple):
+    ds = xr.Dataset({
+            varnames[0]: xr.DataArray(
+                    data=var[0],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[1]: xr.DataArray(
+                    data=var[1],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[2]: xr.DataArray(
+                    data=var[2],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[3]: xr.DataArray(
+                    data=var[3],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    )
+                },
+            attrs={'title': 'wavy dataset'}
+        )
+    return ds
 
 def get_d22_ts(sdate, edate, basedate, nID, sensor, varalias,
 pathlst, strsublst, dict_for_sub):
@@ -274,27 +302,23 @@ def get_frost_dict(**kwargs):
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
     varstr = [variables_frost[varalias]['frost_name']]
-    stdvarname = variable_info[varalias]['standard_name']
     sensor = kwargs.get('sensor', 0)
     r = call_frost_api(sdate, edate, nID, varstr, sensor)
     df, dinfo, lon, lat = get_frost_df_v1(r)
     var = df[varalias].values
     timevec = df['time'].values
     timedt = [parse_date(str(d)) for d in timevec]
+
     # rm datetime timezone info
     timedt = [d.replace(tzinfo=None) for d in timedt]
-    time = netCDF4.date2num(timedt, variable_info['time']['units'])
     lons = len(var)*[lon]
     lats = len(var)*[lat]
-    vardict = {
-                stdvarname: list(var),
-                'time': list(time),
-                'datetime': timedt,
-                'time_unit': variable_info['time']['units'],
-                'longitude': lons,
-                'latitude': lats
-                }
-    return vardict
+    varnames = (varalias, 'lons', 'lats', 'time')
+    var_tuple = (var, lons, lats, timedt)
+
+    # build xarray ds
+    ds = build_xr_ds(var_tuple, varnames)
+    return ds
 
 def get_nc_dict(**kwargs):
     sd = kwargs.get('sd')
@@ -306,7 +330,6 @@ def get_nc_dict(**kwargs):
     strsublst = kwargs.get('strsublst')
     dict_for_sub = kwargs.get('dict_for_sub')
     # loop from sdate to edate with dateincr
-    stdvarname = variable_info[varalias]['standard_name']
     tmpdate = deepcopy(sd)
     varlst = []
     lonlst = []
@@ -350,45 +373,13 @@ def get_nc_dict(**kwargs):
     latlst = flatten(latlst)
     timelst = flatten(timelst)
     dtimelst = flatten(dtimelst)
-    vardict = {
-                stdvarname: varlst,
-                'time': timelst,
-                'datetime': dtimelst,
-                'time_unit': variable_info['time']['units'],
-                'longitude': lonlst,
-                'latitude': latlst
-                }
-    # adjust conventions
-    # check if variable is one with conventions
-    if 'convention' in variable_info[varalias].keys():
-        convention_set = False
-        print('Chosen variable is defined with conventions')
-        print('... checking if correct convention is used ...')
-        # 1. check if clear from standard_name
-        file_stdvarname = find_direction_convention(filevarname, ncdict)
-        if "to_direction" in file_stdvarname:
-            print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_info[varalias]['standard_name']] = \
-                    convert_meteorologic_oceanographic(\
-                        vardict[variable_info[varalias]['standard_name']])
-            convention_set = True
-        elif "from_direction" in file_stdvarname:
-            print('standard_name indicates meteorologic convention')
-            convention_set = True
-            pass
-        # 2. overwrite convention from config file
-        if ('convention' in insitu_dict[nID].keys() and
-        insitu_dict[model]['convention'] == 'oceanographic' and
-        convention_set is False):
-            print('Convention is set in config file')
-            print('This will overwrite conventions from standard_name in file!')
-            print('\n')
-            print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_info[varalias]['standard_name']] = \
-                    convert_meteorologic_oceanographic(\
-                        vardict[variable_info[varalias]['standard_name']])
-            convention_set = True
-    return vardict
+
+    varnames = (varalias, 'lons', 'lats', 'time')
+    var_tuple = (varlst, lonlst, latlst, dtimelst)
+
+    # build xarray ds
+    ds = build_xr_ds(var_tuple, varnames)
+    return ds
 
 def parse_d22(sdate, edate, pathlst, strsublst, dict_for_sub):
     """

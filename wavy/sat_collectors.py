@@ -17,6 +17,10 @@ from urllib.parse import quote
 from ftplib import FTP
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
+import logging
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=30)
+logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import sort_files
@@ -96,64 +100,67 @@ def get_remote_files_cmems(**kwargs):
     subdict_src = make_subdict(strsublst_src,
                                class_object_dict=dict_for_sub)
     while (tmpdate <= edate):
-        # create remote path
-        path_remote = make_pathtofile(path_template_src,
-                                      strsublst_src, subdict_src,
-                                      date=tmpdate)
+        try:
+            # create remote path
+            path_remote = make_pathtofile(path_template_src,
+                                          strsublst_src, subdict_src,
+                                          date=tmpdate)
 
-        if path is None:
-            # create local path
-            path_template_dst = satellite_dict[product]['download']\
-                                    ['ftp']['trgt_tmplt']
-            strsublst_dst = satellite_dict[product]['download']\
-                                    ['ftp']['strsub']
-            subdict_dst = make_subdict(strsublst_dst,
-                                           class_object_dict=dict_for_sub)
-            path_local = make_pathtofile(path_template_dst,
-                                         strsublst_dst, subdict_dst,
-                                         date=tmpdate)
-        else:
-            path_local = path
+            if path is None:
+                # create local path
+                path_template_dst = satellite_dict[product]['download']\
+                                        ['ftp']['trgt_tmplt']
+                strsublst_dst = satellite_dict[product]['download']\
+                                        ['ftp']['strsub']
+                subdict_dst = make_subdict(strsublst_dst,
+                                               class_object_dict=dict_for_sub)
+                path_local = make_pathtofile(path_template_dst,
+                                             strsublst_dst, subdict_dst,
+                                             date=tmpdate)
+            else:
+                path_local = path
 
-        print('# ----- ')
-        print('Chosen source: ')
-        print(mission + ' values from ' + product + ': ' + server)
-        print(path_remote)
-        print('# ----- ')
-        # get list of accessable files
-        ftp = FTP(server)
-        ftp.login(user, pw)
-        ftp.cwd(path_remote)
-        content = FTP.nlst(ftp)
+            print('# ----- ')
+            print('Chosen source: ')
+            print(mission + ' values from ' + product + ': ' + server)
+            print(path_remote)
+            print('# ----- ')
+            # get list of accessable files
+            ftp = FTP(server)
+            ftp.login(user, pw)
+            ftp.cwd(path_remote)
+            content = FTP.nlst(ftp)
 
-        # choose files according to sdate/edate
-        tmplst = []
-        tmpdate_new = tmpdate-timedelta(minutes=twin)
-        tmpdate_end = edate+timedelta(minutes=twin)
-        while (tmpdate_new <= tmpdate_end):
-            matchingtmp = [s for s in content
-                           if tmpdate_new.strftime(file_search_template)
-                           in s]
-            tmplst = tmplst + matchingtmp
-            tmpdate_new = tmpdate_new + timedelta(minutes=twin)
-        matching = np.unique(tmplst)
-        print(matching)
+            # choose files according to sdate/edate
+            tmplst = []
+            tmpdate_new = tmpdate-timedelta(minutes=twin)
+            tmpdate_end = edate+timedelta(minutes=twin)
+            while (tmpdate_new <= tmpdate_end):
+                matchingtmp = [s for s in content
+                               if tmpdate_new.strftime(file_search_template)
+                               in s]
+                tmplst = tmplst + matchingtmp
+                tmpdate_new = tmpdate_new + timedelta(minutes=twin)
+            matching = np.unique(tmplst)
+            print(matching)
 
-        # check if download path_local exists if not create
-        if not os.path.exists(path_local):
-            os.makedirs(path_local, exist_ok=True)
+            # check if download path_local exists if not create
+            if not os.path.exists(path_local):
+                os.makedirs(path_local, exist_ok=True)
 
-        # Download matching files
-        print('Downloading ' + str(len(matching))
-              + ' files: .... \n')
-        print("Used number of possible simultaneous downloads "
-              + str(nproc) + "!")
-        Parallel(n_jobs=nproc)(
-                        delayed(tmploop_get_remote_files)(
-                            i, matching, user, pw, server,
-                            path_remote, path_local
-                            ) for i in range(len(matching))
-                        )
+            # Download matching files
+            print('Downloading ' + str(len(matching))
+                  + ' files: .... \n')
+            print("Used number of possible simultaneous downloads "
+                  + str(nproc) + "!")
+            Parallel(n_jobs=nproc)(
+                            delayed(tmploop_get_remote_files)(
+                                i, matching, user, pw, server,
+                                path_remote, path_local
+                                ) for i in range(len(matching))
+                            )
+        except Exception as e:
+            logger.exception(e)
         # update time
         date_incr = satellite_dict[product]['download']['ftp']\
             .get('date_incr', 'm')

@@ -92,6 +92,8 @@ class satellite_class(qls, wc, fc):
         print('# ----- ')
         print(" ### Initializing satellite_class object ###")
         print(" ")
+        print(" Given kwargs:")
+        print(kwargs)
         # initializing useful attributes from config file
         dc = init_class('satellite', kwargs.get('nID'))
         # parse and translate date input
