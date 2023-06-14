@@ -68,7 +68,7 @@ L2_20Hz_s3a:
         ftp: # downloading method
             src_tmplt: "/products/v3/data/satellite/altimeter/\
                         l2_20Hz/l2/sentinel-3_a/%Y/%j/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%j/
+            trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%j/
             strsub: ['mission']
             server: "eftp.ifremer.fr"
             date_incr: 'd'

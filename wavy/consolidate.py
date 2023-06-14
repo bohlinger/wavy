@@ -13,6 +13,7 @@ import xarray as xr
 
 # own imports
 from wavy.satmod import satellite_class as sco
+from wavy.filtermod import filter_class as fc
 from wavy.wconfig import load_or_default
 from wavy.quicklookmod import quicklook_class_sat as qls
 # ---------------------------------------------------------------------#
@@ -29,8 +30,8 @@ def consolidate_ocos(ocos):
         'sea_surface_wave_significant_height', 'time',
         'latitude', 'longitude', 'datetime'
     """
-    das = [oco.vars[oco.varalias] for oco in ocos]
-    ds = xr.concat(das, dim='time').to_dataset()
+    ds_lst = [oco.vars for oco in ocos]
+    ds = xr.concat(ds_lst, dim='time')
     return ds
 
 def find_valid_oco(ocos):
@@ -49,7 +50,7 @@ def find_valid_oco(ocos):
 
 # --------------------------------------------------------------------#
 
-class consolidate_class(qls):
+class consolidate_class(qls, fc):
     '''
     Class to handle multiple satellite_class objects
     '''
