@@ -30,6 +30,7 @@ from wavy.utils import parse_date
 from wavy.wconfig import load_or_default
 from wavy.insitu_readers import insitu_reader
 from wavy.filtermod import filter_class as fc
+from wavy.quicklookmod import quicklook_class_sat as qls
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -39,7 +40,7 @@ d22_dict = load_or_default('d22_var_dicts.yaml')
 # ---------------------------------------------------------------------#
 
 
-class insitu_class(fc):
+class insitu_class(fc, qls):
     '''
     Class to handle insitu based time series.
     '''
@@ -83,19 +84,20 @@ class insitu_class(fc):
                               dict_for_sub=vars(self),
                               **kwargs)
             self.vars = vardict
-            self.lat = np.nanmean(vardict['latitude'])
-            self.lon = np.nanmean(vardict['longitude'])
-            if fifo == 'nc':
-                print(pathtofile)
-                meta = ncdumpMeta(sd.strftime(pathtofile))
-                self.vars['meta'] = meta
-                varname = get_filevarname(varalias,
-                                          variable_info,
-                                          insitu_dict[nID],
-                                          meta)
-                self.varname = varname
-            else:
-                self.varname = varalias
+            #self.lat = np.nanmean(vardict['latitude'])
+            #self.lon = np.nanmean(vardict['longitude'])
+            #if fifo == 'nc':
+            #    print(pathtofile)
+            #    meta = ncdumpMeta(sd.strftime(pathtofile))
+            #    self.vars['meta'] = meta
+            #    varname = get_filevarname(varalias,
+            #                              variable_info,
+            #                              insitu_dict[nID],
+            #                              meta)
+            #    self.varname = varname
+            #else:
+            #    self.varname = varalias
+            self.varname = varalias
             if fifo == 'frost':
                 self.sensor = sensor
             # create label for plotting
@@ -130,25 +132,6 @@ class insitu_class(fc):
         ncdict = self.vars['meta']
         parent = finditem(ncdict, item)
         return parent
-
-    def quicklook(self, a=False, projection=None, **kwargs):
-        m = kwargs.get('m', a)
-        ts = kwargs.get('ts', a)
-        if ts is True:
-            import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(9, 3.5))
-            ax = fig.add_subplot(111)
-            colors = ['k']
-            ax.plot(self.vars['datetime'],
-                    self.vars[self.stdvarname],
-                    linestyle='None', color=colors[0],
-                    label=self.nID + ' ( ' + self.sensor + ' )',
-                    marker='o', alpha=.5, ms=2)
-            plt.ylabel(self.varalias + '[' + self.units + ']')
-            plt.legend(loc='best')
-            plt.tight_layout()
-            # ax.set_title()
-            plt.show()
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
         # divide time into months by loop over months from sdate to edate

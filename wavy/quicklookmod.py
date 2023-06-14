@@ -836,8 +836,8 @@ class quicklook_class_sat:
             fig = plt.figure(figsize=(9,3.5))
             ax = fig.add_subplot(111)
             for oco in self.ocos:
-                ax.plot(oco.vars['datetime'],
-                        oco.vars[oco.stdvarname],
+                ax.plot(oco.vars['time'],
+                        oco.vars[oco.varalias],
                         linestyle=kwargs.get('linestyle',''),
                         label=oco.label,
                         marker='o',alpha=.5,ms=2)
