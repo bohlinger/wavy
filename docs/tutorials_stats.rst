@@ -28,7 +28,7 @@ Bias = MD = :math:`\frac{1}{n}\sum_{i=1}^{n}(x_{_f}-x_{_v})_{_i}`
 
 Normalized bias or normalized mean deviation (NMD) is the bias normalized by the sum of the observations. This version of the bias is favorable when the data are related but not strictly comparable, for example, subject to seasonal variations. One downside is that the NMD is unitless.
 
-Normalized bias = NMD = :math:`\frac{\sum_{i=1}^{n}(x_{_f}-x_{_v})_{_i}}{\sum_{i=1}^{n}(x_{_v})_{_i}`
+Normalized bias = NMD = :math:`\frac{\sum_{i=1}^{n}(x_{_f}-x_{_v})_{_i}}{\sum_{i=1}^{n}(x_{_v})_{_i}}`
 
 Mean absolute deviation (MAD) is the arithmetic average of the absolute difference between the members of each pair of forecast and observed quantities. The MAD is zero if the difference between each pair is zero, and increases as discrepancies between the pairs become larger. It has the same units as the forecast and observations.
 
@@ -42,11 +42,11 @@ Normalized root mean squared deviation (NRMSD) is the RMSD, normalized by the su
 
 NRMSD = :math:`\sqrt{\frac{\sum_{i=1}^{n}(x_{_f}-x_{_v})^{2}_{_i}}{\sum_{i=1}^{n}(x_{_f})^{2}_{_i}}}`
 
-Debiased root mean squared deviation is the square root of the difference between the mean squared deviation and the squared bias.
+Debiased root mean squared deviation (DRMSD) is the square root of the difference between the mean squared deviation and the squared bias.
 
 DRMSD = :math:`\sqrt{\frac{1}{n}{\sum_{i=1}^{n}(x_{_f}-x_{_v})^{2}_{_i}-\left(\frac{1}{n}\sum_{i=1}^{n}(x_{_f}-x_{_v})_{_i}\right)^2}}`
 
-Pearson product-moment correlation coefficient is a dimensionless, single-value measure of the association between forecast and observation. It is defined as the ratio of the covariance between forecast and observation to the product of the standard deviations of each. If the correlation coefficient is zero, there is no correlation between the variables. A correlation coefficient of 1 implies perfect positive correlation, while -1 implies perfect negative correlation.
+Pearson product-moment correlation coefficient (r) is a dimensionless, single-value measure of the association between forecast and observation. It is defined as the ratio of the covariance between forecast and observation to the product of the standard deviations of each. If the correlation coefficient is zero, there is no correlation between the variables. A correlation coefficient of 1 implies perfect positive correlation, while -1 implies perfect negative correlation.
 
 :math:`r_{_{f,v}} = \frac{cov(x_{_f},x_{_v})}{std(f)\cdot std(v)}`
 
