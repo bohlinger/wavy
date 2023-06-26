@@ -34,9 +34,9 @@ class filter_class:
         print('Apply limits (crude cleaning using valid range)')
         new = deepcopy(self)
         llim = kwargs.get('llim',
-            variable_info[new.varalias]['valid_range'][0])
+                          variable_info[new.varalias]['valid_range'][0])
         ulim = kwargs.get('ulim',
-            variable_info[new.varalias]['valid_range'][1])
+                          variable_info[new.varalias]['valid_range'][1])
         ds = deepcopy(new.vars)
         y = ds[new.varalias]
         tmpdict = {'y': y}
@@ -111,15 +111,18 @@ class filter_class:
         ds = new.vars.isel(time=mask)
         # Assign back to class object
         new.vars = ds
+        print(" Number of disregarded values:",
+              (len(A)-len(mask)))
+        print(" Number of remaining values:", len(new.vars['time']))
         return new
 
     def filter_blockMean(self, **kwargs):
         return self
 
     def filter_lanczos(self, **kwargs):
+        from wavy.utils import runmean
         print('Apply lanczos filter')
         new = deepcopy(self)
-        from wavy.utils import runmean
         y = deepcopy(new.vars[new.varalias])
         window = kwargs.get('window')
         cutoff = kwargs.get('cutoff')
@@ -138,6 +141,12 @@ class filter_class:
         return self
 
     def despike_blockStd(self, **kwargs):
+        #start_times = kwargs.get('start_times')
+        #stop_times = kwargs.get('stop_times')
+        vals = self.vars[self.varalias]
+        std = np.nanstd(vals)
+        mn = np.nanmean(vals)
+        # find values outside of 
         return self
 
     def despike_GP(self, **kwargs):

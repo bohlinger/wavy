@@ -28,6 +28,34 @@ from wavy.utils import find_included_times, find_included_times_pd
 satellite_dict = load_or_default('satellite_cfg.yaml')
 variable_info = load_or_default('variable_def.yaml')
 
+def read_wavy_ncfiles(**kwargs):
+    """
+    Wrapping function to read wavy netcdf files.
+
+    param:
+        pathlst - list of paths to be parsed
+        sd - start date (datetime object)
+        ed - start date (datetime object)
+        twin - time window (temporal constraint) in minutes
+
+    return:
+        dictionary of variables for the satellite_class object
+    """
+    pathlst = kwargs.get('pathlst')
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
+    twin = kwargs.get('twin')
+
+    # adjust start and end
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+    # retrieve sliced data
+    ds = read_netcdfs(pathlst)
+    ds_sort = ds.sortby('time')
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    return ds_sliced
+
+
 def read_local_ncfiles(**kwargs):
     """
     Wrapping function to read satellite netcdf files.

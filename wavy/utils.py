@@ -492,8 +492,8 @@ def make_pathtofile(tmppath,strsublst,subdict,date=None):
                   'in substitutables not needed for destination path')
     return pathtofile
 
-def find_direction_convention(filevarname,ncdict):
-    file_stdvarname = get_item_child(ncdict,filevarname)[0]['standard_name']
+def find_direction_convention(filevarname, ncdict):
+    file_stdvarname = get_item_child(ncdict, filevarname)[0]['standard_name']
     return file_stdvarname
 
 def convert_meteorologic_oceanographic(alpha):

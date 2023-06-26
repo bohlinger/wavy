@@ -130,7 +130,7 @@ class satellite_class(qls, wc, fc):
                         dict_for_sub=vars(self)
                         )
 
-    def _get_files(self, dict_for_sub=None, path=None):
+    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
         """
         Function to retrieve list of files/paths for available
         locally stored satellite data. This list is used for
@@ -151,7 +151,10 @@ class satellite_class(qls, wc, fc):
         filelst = []
         pathlst = []
         tmpdate = self.sd-timedelta(minutes=self.twin)
-        if path is None:
+        if wavy_path is not None:
+            pathtotals = [wavy_path]
+            filelst = [wavy_path]
+        elif path is None:
             print('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
             self.cfg.wavy_input['date_incr'])):
@@ -181,6 +184,18 @@ class satellite_class(qls, wc, fc):
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
             pathtotals = [pathlst]
+
+            # limit to sd and ed based on file naming, see check_date
+            idx_start, tmp = check_date(filelst,
+                                        self.sd - timedelta(minutes=self.twin))
+            tmp, idx_end = check_date(filelst,
+                                      self.ed + timedelta(minutes=self.twin))
+            if idx_end == 0:
+                idx_end = len(pathlst)-1
+            del tmp
+            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
+
         else:
             if os.path.isdir(path):
                 pathlst = glob.glob(path+'/*')
@@ -196,24 +211,29 @@ class satellite_class(qls, wc, fc):
             #
             # separate files from path
             filelst = [p.split('/')[-1] for p in pathlst]
-            pathlst = [p[0:-len(f)] for p,f in zip(pathlst,filelst)]
-            pathtotals = [os.path.join(p, f) for p,f in zip(pathlst,filelst)]
-        idx_start, tmp = check_date(filelst,
-                                    self.sd - timedelta(minutes=self.twin))
-        tmp, idx_end = check_date(filelst,
-                                  self.ed + timedelta(minutes=self.twin))
-        if idx_end == 0:
-            idx_end = len(pathlst)-1
-        del tmp
-        pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
-        filelst = np.unique(filelst[idx_start:idx_end+1])
+            pathlst = [p[0:-len(f)] for p, f in zip(pathlst, filelst)]
+            pathtotals = [os.path.join(p, f) for p, f in zip(pathlst, filelst)]
+
+            # limit to sd and ed based on file naming, see check_date
+            idx_start, tmp = check_date(filelst,
+                                        self.sd - timedelta(minutes=self.twin))
+            tmp, idx_end = check_date(filelst,
+                                      self.ed + timedelta(minutes=self.twin))
+            if idx_end == 0:
+                idx_end = len(pathlst)-1
+            del tmp
+            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
         print(str(int(len(pathtotals))) + " valid files found")
         return pathtotals, filelst
 
     def list_input_files(self, show=False, **kwargs):
         print(" ## Find and list files ...")
         path = kwargs.get('path', None)
-        pathlst, _ = self._get_files(vars(self), path=path)
+        wavy_path = kwargs.get('wavy_path', None)
+        pathlst, _ = self._get_files(vars(self),
+                                     path=path,
+                                     wavy_path=wavy_path)
         print('source template:',
               satellite_dict[self.nID]['wavy_input']['src_tmplt'])
         if show is True:
@@ -259,14 +279,6 @@ class satellite_class(qls, wc, fc):
         """
 
         # retrieve dataset
-        #ds = self.reader(pathlst=self.pathlst,
-        #                 ncvar=self.varname,
-        #                 sd=self.sd,
-        #                 ed=self.ed,
-        #                 twin=self.twin,
-        #                 nID=self.nID,
-        #                 **kwargs
-        #                 )
         ds = self.reader(**(vars(self)))
         print(ds)
         self.vars = ds
@@ -369,6 +381,7 @@ class satellite_class(qls, wc, fc):
                 t0 = time.time()
                 print('Reading..')
                 self = self._get_sat_ts(**kwargs)
+
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
