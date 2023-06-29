@@ -9,7 +9,7 @@ from datetime import timedelta
 from wavy.utils import flatten
 import cartopy.io.shapereader as shpreader
 from sklearn.neighbors import BallTree
-from pyproj import Proj
+from pyproj import Proj, Geod
 from math import *
 
 import pyresample as pr
@@ -22,6 +22,7 @@ from shapely.geometry import Polygon, mapping
 from wavy.utils import NoStdStreams
 from wavy.utils import find_included_times, collocate_times
 from wavy.wconfig import load_or_default
+from wavy.utils import footprint_pulse_limited_radius
 
 
 ROAR = None
@@ -50,6 +51,7 @@ class filter_class:
         return new
 
     def filter_landMask(self, **kwargs):
+        print('Apply land mask')
         new = deepcopy(self)
         longitudes = np.array(new.vars['lons'])
         latitudes = np.array(new.vars['lats'])
@@ -182,6 +184,148 @@ class filter_class:
         new.slider_chunks = indices
         print(' Number of created chunks:', len(start_idx_lst))
         return new
+
+    def filter_footprint_radius(self, llim=None, ulim=None):
+        """
+        Filters all data according to given limits (llim, ulim)
+        of footprint size
+        """
+        print("Apply filter_footprint_radius")
+        new = deepcopy(self)
+        if "fpr" in list(new.vars.keys()):
+            pass
+        else:
+            new = new.compute_pulse_limited_footprint_radius()
+        new.vars = new.vars.where(new.vars.fpr < ulim, drop=True)
+        new.vars = new.vars.where(new.vars.fpr > llim, drop=True)
+        print(" Number of disregarded values:",
+              (len(self.vars.time)-len(new.vars.time)))
+        print(" Number of remaining values:", len(new.vars['time']))
+        return new
+
+    def filter_footprint_land_interaction(self, **kwargs):
+        """
+        Checks if footprint interacts with land based on footprint size.
+        Filters away the ones that do interact and returns a clean data set.
+        """
+        print("Apply filter_footprint_land_interaction")
+        domain = kwargs.get('domain', 'lonlat')
+        new = deepcopy(self)
+        if "fpr" in list(new.vars.keys()):
+            pass
+        else:
+            new = new.compute_pulse_limited_footprint_radius()
+        lons_perp_lst, lats_perp_lst, ls_idx_lst = \
+            new.generate_footprints_perpendicular_to_original_track(
+            domain)
+        lons_perp = flatten([lons_perp_lst[i] for i in ls_idx_lst])
+        lats_perp = flatten([lats_perp_lst[i] for i in ls_idx_lst])
+        new.xtrack_lons = lons_perp
+        new.xtrack_lats = lats_perp
+        new.idx_filter_footprint_land_interaction = ls_idx_lst
+        # apply indices to dataset
+        new.vars = new.vars.isel(time=new.idx_filter_footprint_land_interaction)
+        print(" Number of disregarded values:",
+              (len(self.vars.lons)-len(ls_idx_lst)))
+        print(" Number of remaining values:", len(new.vars['time']))
+        return new
+
+    def generate_footprints_perpendicular_to_original_track(self, domain):
+        n = 500 + 1
+        new = deepcopy(self)
+        lons = new.vars.lons.values
+        lats = new.vars.lats.values
+        if domain == 'cartesian':
+            pass
+        elif domain == 'lonlat':
+            lats_perp_lst = []
+            lons_perp_lst = []
+            ls_idx_lst = []
+            for i in range(len(lons)):
+                ls_idx = []
+                if i < (len(lons)-1):
+                    P1 = (lons[i], lats[i])
+                    P2 = (lons[i+1], lats[i+1])
+                else:
+                    P1 = (lons[i], lats[i])
+                    P2 = (lons[i-1], lats[i-1])
+                lons_perp_lst_tmp = []
+                lats_perp_lst_tmp = []
+                for s in range(n):
+                    P_perp_minus, P_perp_plus = \
+                        new._generate_perpendicular_footprints_in_lonlat(
+                            P1, P2, s)
+                    # check if within pulse limited footprint
+                    dist = new._distance(P1[0], P1[1],
+                                         P_perp_minus[0], P_perp_plus[1])
+                    if dist > new.vars.fpr.values[i]:
+                        pass
+                    else:
+                        lons_perp = \
+                            np.transpose(
+                                np.array([P_perp_minus, P_perp_plus]))[0]
+                        lats_perp = \
+                            np.transpose(
+                                np.array([P_perp_minus, P_perp_plus]))[1]
+                    # check if footprints intersect with land
+                    sea_mask = apply_land_mask(lons_perp, lats_perp)
+                    if False in sea_mask:
+                        #print('Polution by land is detected for index', i)
+                        #print(' -> Footprint not included!')
+                        ls_idx.append(False)
+                    else:
+                        ls_idx.append(True)
+                    # gather perpendicular footprints in lonlat
+                    lons_perp_lst_tmp.append(lons_perp)
+                    lats_perp_lst_tmp.append(lats_perp)
+                if False in ls_idx:
+                    pass
+                else:
+                    ls_idx_lst.append(i)
+                lons_perp_lst.append(lons_perp_lst_tmp)
+                lats_perp_lst.append(lats_perp_lst_tmp)
+        return lons_perp_lst, lats_perp_lst, ls_idx_lst
+
+    @staticmethod
+    def _generate_perpendicular_footprints_in_lonlat(
+            P1: tuple, P2: tuple, n=None):
+        """
+        Input are tuples (lon, lat) for points P1, P2
+        """
+        # create vector
+        V = np.array([P1[0]-P2[0], P1[1]-P2[1]])
+        # rotate 90 degree
+        theta = np.deg2rad(90)
+        R = np.array([[np.cos(theta), -np.sin(theta)],
+                      [np.sin(theta), np.cos(theta)]])
+        Vrot = np.dot(R, V)
+        # produce footprints to either side
+        n = n*0.1
+        P_perp_minus = (P1[0] - n*Vrot[0], P1[1] - n*Vrot[1])
+        P_perp_plus = (P1[0] + n*Vrot[0], P1[1] + n*Vrot[1])
+        return P_perp_minus, P_perp_plus
+
+    @staticmethod
+    def _generate_perpendicular_footprints_in_cartesian():
+        import utm
+        return
+
+    @staticmethod
+    def _lonlat_to_xy(lon, lat, utmzone):
+        P = Proj(proj='utm', zone=utmzone,
+                 ellps='WGS84', preserve_units=True)
+        return P(lon, lat)
+
+    @staticmethod
+    def _xy_to_lonlat(x, y, utmzone):
+        P = Proj(proj='utm', zone=utmzone,
+                 ellps='WGS84', preserve_units=True)
+        return P(x, y, inverse=True)
+
+    @staticmethod
+    def _distance(lon1, lat1, lon2, lat2):
+        G = Geod(ellps='WGS84')
+        return G.inv(lon1, lat1, lon2, lat2)[2]
 
     def filter_main(self, **kwargs):
         """ Governing function of filtermod
@@ -340,7 +484,6 @@ def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray):
     """
     global ROAR
 
-    print('Apply land mask')
     if ROAR is None:
         ROAR = roaring_landmask.RoaringLandmask.new()
 

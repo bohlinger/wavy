@@ -45,6 +45,7 @@ from wavy.sat_readers import read_local_files
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.writermod import writer_class as wc
 from wavy.init_class import init_class
+from wavy.utils import footprint_pulse_limited_radius
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -500,6 +501,21 @@ class satellite_class(qls, wc, fc):
             ridx = match_region_poly(LATS, LONS, region=region,
                                      grid_date=grid_date)
         return ridx
+
+    def compute_pulse_limited_footprint_radius(self):
+        """
+        Compute pulse limited footprint size
+        """
+        new = deepcopy(self)
+        Hs = new.vars['Hs'].values
+        tau = new.cfg.misc['sat_specs'][new.mission]['tau']*10**(-9)
+        h = new.cfg.misc['sat_specs'][new.mission]['h']*10**3
+        fpr = footprint_pulse_limited_radius(Hs, h, tau)
+        ds = new.vars
+        ds = ds.assign({"fpr": (("time"), fpr)})
+        ds["fpr"].attrs = variable_def["fpr"]
+        new.vars = ds
+        return new
 
     def crop_to_period(self, **kwargs):
         """

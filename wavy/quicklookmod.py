@@ -758,14 +758,21 @@ class quicklook_class_sat:
                              ls='None',marker='o',ms=5,
                              markeredgecolor='k',
                              zorder=-1)
-                lonmax,lonmin = np.max([lonmax,plonsmax]),\
-                                np.min([lonmin,plonsmin])
-                latmax,latmin = np.max([latmax,platsmax]),\
-                                np.min([latmin,platsmin])
+                lonmax, lonmin = np.max([lonmax, plonsmax]),\
+                                 np.min([lonmin, plonsmin])
+                latmax, latmin = np.max([latmax, platsmax]),\
+                                 np.min([latmin, platsmin])
             # plot sat
-            sc = ax.scatter(lons,lats,s=10,
-                            c = var,
-                            marker='o', edgecolor = 'face',
+            if "xtrack_lons" in vars(self):
+                sc2 = ax.scatter(self.xtrack_lons, self.xtrack_lats,
+                                 s=.2, c='b', marker='.',
+                                 edgecolor='face',
+                                 transform=ccrs.PlateCarree())
+            sc = ax.scatter(lons, lats, s=10,
+                            c=var,
+                            marker='o', edgecolor='face',
+                            edgecolors='k',
+                            #linewidths=0.1,
                             cmap=cmap,
                             transform=ccrs.PlateCarree())
             axins = inset_axes(ax,
@@ -778,8 +785,15 @@ class quicklook_class_sat:
                        )
             fig.colorbar(sc, cax=axins, label=self.varalias
                                         + ' [' + self.units + ']')
-            ax.set_extent(  [lonmin-1, lonmax+1,latmin-1, latmax+1],
-                             crs = projection )
+            lon_range = (lonmax - lonmin)
+            lat_range = (latmax - latmin)
+            map_extent_multiplicator = kwargs.get(
+                "map_extent_multiplicator",0.1)
+            ax.set_extent([lonmin-lon_range*map_extent_multiplicator,
+                           lonmax+lon_range*map_extent_multiplicator,
+                           latmin-lat_range*map_extent_multiplicator,
+                           latmax+lat_range*map_extent_multiplicator],
+                           crs=projection)
             #ax.coastlines(color='k')
 
             gl = ax.gridlines(draw_labels=True,crs=projection,

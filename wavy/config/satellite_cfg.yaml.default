@@ -103,5 +103,9 @@ L2_20Hz_s3a:
         processing_level:
         provider:
         obs_type:
+        sat_specs:
+            s3a:
+                tau: 3.125 # ns, pulse duration or range gate resolution
+                h: 814.5 # km, height over ground
     # optional, to ease grouping
     tags:

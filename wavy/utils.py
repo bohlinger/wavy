@@ -643,3 +643,24 @@ def date_next_year(date):
                      (date + relativedelta(years=+1)).month,\
                     1)
 
+def footprint_pulse_limited_radius(Hs: float, h: float, tau: float) -> float:
+    """
+    Pulse limited footprint radius according to Chelton et al. 2001
+    as referenced in coastal altimtery book p. 458, EQ 17.1
+
+    Footprint size across track depends on:
+    - significant wave height
+    - satellite specs:
+        - height over ground (h)
+        - pulse duration (tau)
+    """
+
+    # constants
+    c = 299792458# m/s, speed of light
+    R = 6371*10**3 # m, radius Earth
+
+    # equation
+    r = np.sqrt(((c * tau + 2*Hs)*h) / (1+(h / R)))
+
+    return r
+

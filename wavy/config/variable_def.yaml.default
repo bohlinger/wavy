@@ -189,3 +189,10 @@ colidx_y:
     long_name: 'collocation indices in y-direction'
     units: NA
     _FillValue: -999.9
+
+fpr:
+    standard_name: altimeter_pulse_limited_footprint_radius
+    long_name: 'footprint radius computed from pulse limited assumption'
+    units: 'm'
+    _FillValue: -999.9
+
