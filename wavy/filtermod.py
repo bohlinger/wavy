@@ -250,13 +250,6 @@ class filter_class:
         lowlim = meanval - (sigma_multiplyer*stdval)
         idx = [i for i in range(len(y))
                if (y[i] < uplim and y[i] > lowlim)]
-        print("------------------------")
-        print(lowlim)
-        print(uplim)
-        print(sigma_multiplyer)
-        print(idx)
-        print(y[idx])
-        print("------------------------")
         return idx
 
     def despike_blockStd(self, **kwargs):

@@ -90,10 +90,6 @@ def read_local_ncfiles(**kwargs):
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     var_sliced = ds_sliced[[varname]]
-    # rename ncvars to respective wavy aliases
-    # todo:
-    #   attribute cf-standard names to all variables
-    #   (only unique time steps?)
     return var_sliced
 
 
