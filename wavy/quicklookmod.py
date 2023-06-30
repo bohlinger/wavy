@@ -704,7 +704,7 @@ class quicklook_class_sat:
         # set plots
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
-        mode = kwargs.get('mode', 'comb') # comb,indiv
+        mode = kwargs.get('mode', 'comb')  # comb,indiv
         if m:
             import cartopy.crs as ccrs
             import cartopy.feature as cfeature
@@ -740,22 +740,22 @@ class quicklook_class_sat:
                     [-180, 180, 0, 90]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
-                    edgecolor='black',linewidth=1)
+                    edgecolor='black', linewidth=1)
             # - add land color
-            ax.add_feature( land, facecolor = 'burlywood', alpha = 0.5 )
+            ax.add_feature(land, facecolor='burlywood', alpha=0.5)
             # plot track if applicable
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
+            lonmax, lonmin = np.max(lons), np.min(lons)
+            latmax, latmin = np.max(lats), np.min(lats)
             if kwargs.get('poi') is not None:
                 plats = kwargs.get('poi').get('latitude')
-                platsmax,platsmin = np.max(plats), np.min(plats)
+                platsmax, platsmin = np.max(plats), np.min(plats)
                 plons = kwargs.get('poi').get('longitude')
-                plonsmax,plonsmin = np.max(plons), np.min(plons)
-                tc = ax.plot(plons,plats,color='cornflowerblue',
-                             ls='-',lw=1,
+                plonsmax, plonsmin = np.max(plons), np.min(plons)
+                tc = ax.plot(plons, plats, color='cornflowerblue',
+                             ls='-', lw=1,
                              zorder=-1)
-                tc = ax.plot(plons,plats,color='cornflowerblue',
-                             ls='None',marker='o',ms=5,
+                tc = ax.plot(plons, plats,color='cornflowerblue',
+                             ls='None', marker='o', ms=5,
                              markeredgecolor='k',
                              zorder=-1)
                 lonmax, lonmin = np.max([lonmax, plonsmax]),\
@@ -771,9 +771,9 @@ class quicklook_class_sat:
                                  s=.2, c='b', marker='.',
                                  edgecolor='face',
                                  transform=ccrs.PlateCarree())
-            sc = ax.scatter(lons, lats, s=15,
+            sc = ax.scatter(lons, lats, s=20,
                             c=var,
-                            marker='o', #edgecolor='face',
+                            marker='o',  # edgecolor='face',
                             edgecolors='k',
                             linewidths=0.3,
                             cmap=cmap,

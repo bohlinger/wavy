@@ -188,7 +188,7 @@ class filter_class:
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[new.varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
-                    X = x # points for prediction
+                    X = x  # points for prediction
                     ts = smoother_GP(x, y, X, **kwargs)
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
@@ -228,7 +228,7 @@ class filter_class:
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[new.varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
-                    X = x # points for prediction
+                    X = x  # points for prediction
                     ts = smoother_linearGAM(x, y, X, **kwargs)
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
