@@ -196,3 +196,9 @@ fpr:
     units: 'm'
     _FillValue: -999.9
 
+dist_to_coast:
+    standard_name: distance_to_coast
+    long_name: 'distance between footprint and nearest coast'
+    units: m
+    _FillValue: -999.9
+

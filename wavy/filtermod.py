@@ -26,7 +26,7 @@ from wavy.utils import footprint_pulse_limited_radius
 
 
 ROAR = None
-variable_info = load_or_default('variable_def.yaml')
+variable_def = load_or_default('variable_def.yaml')
 
 
 class filter_class:
@@ -35,9 +35,9 @@ class filter_class:
         print('Apply limits (crude cleaning using valid range)')
         new = deepcopy(self)
         llim = kwargs.get('llim',
-                          variable_info[new.varalias]['valid_range'][0])
+                          variable_def[new.varalias]['valid_range'][0])
         ulim = kwargs.get('ulim',
-                          variable_info[new.varalias]['valid_range'][1])
+                          variable_def[new.varalias]['valid_range'][1])
         ds = deepcopy(new.vars)
         y = ds[new.varalias]
         tmpdict = {'y': y}
@@ -106,15 +106,18 @@ class filter_class:
         coast_sdef = pr.geometry.SwathDefinition(cA[:, 1], cA[:, 0])
         _, _, _, distance_array = pr.kd_tree.get_neighbour_info(
             coast_sdef, points_sdef, 1000000, neighbours=1)
-        A = distance_array/1000.
         # get rid of infs
-        mask = np.where((A > llim) & (A < ulim))[0]
+        mask = np.where((distance_array > llim) & (distance_array < ulim))[0]
+        #new.dist_to_coast = distance_array[mask]
         # impose on dataset
         ds = new.vars.isel(time=mask)
+        # add to dataset
+        ds = ds.assign({"dist_to_coast": (("time"), distance_array[mask])})
+        ds["dist_to_coast"].attrs = variable_def["dist_to_coast"]
         # Assign back to class object
         new.vars = ds
         print(" Number of disregarded values:",
-              (len(A)-len(mask)))
+              (len(distance_array)-len(mask)))
         print(" Number of remaining values:", len(new.vars['time']))
         return new
 
@@ -122,25 +125,67 @@ class filter_class:
         return self
 
     def filter_lanczos(self, **kwargs):
-        from wavy.utils import runmean
         print('Apply lanczos filter')
+        from wavy.utils import runmean
         new = deepcopy(self)
-        y = deepcopy(new.vars[new.varalias])
-        window = kwargs.get('window')
-        cutoff = kwargs.get('cutoff')
-        weights = lanczos_weights(window, cutoff)
-        ts, _ = runmean(y, window, mode='centered', weights=weights)
-        new.vars[new.varalias].data = ts
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        ts_lst = []
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    window = kwargs.get('window')
+                    cutoff = kwargs.get('cutoff')
+                    weights = lanczos_weights(window, cutoff)
+                    ts, _ = runmean(y, window,
+                                    mode='centered',
+                                    weights=weights)
+                    ts_lst.append(ts)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+        new.vars[new.varalias].values = flatten(ts_lst)
         return new
 
     def filter_GP(self, **kwargs):
-        return self
+        print('Apply GPR filter')
+        new = deepcopy(self)
+        y = deepcopy(new.vars[new.varalias].values)
+        x = deepcopy(new.vars['time'].values).astype(float)
+        X = x # points for prediction
+        smoothed_ts = smoother_GP(x, y, X, **kwargs)
+        new.vars[new.varalias].values = smoothed_ts
+        return new
 
     def filter_NIGP(self, **kwargs):
         return self
 
     def filter_linearGAM(self, **kwargs):
-        return self
+        print('Apply LinearGAM filter')
+        new = deepcopy(self)
+        y = deepcopy(new.vars[new.varalias].values)
+        x = deepcopy(new.vars['time'].values).astype(float)
+        X = x # points for prediction
+        smoothed_ts = smoother_linearGAM(x, y, X, **kwargs)
+        new.vars[new.varalias].values = smoothed_ts
+        return new
 
     def despike_blockStd(self, **kwargs):
         #start_times = kwargs.get('start_times')
@@ -152,15 +197,55 @@ class filter_class:
         return self
 
     def despike_GP(self, **kwargs):
-        return self
+        print('Apply GPR despiking')
+        new = deepcopy(self)
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
+                    tmp_tgc_idx = cleaner_GP(x, y, **kwargs)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+        return new
 
     def despike_NIGP(self, **kwargs):
         return self
 
     def despike_linearGAM(self, **kwargs):
-        return self
+        print('Apply GAM despiking')
+        new = deepcopy(self)
+        y = deepcopy(new.vars[new.varalias].values)
+        x = deepcopy(new.vars['time'].values).astype(float)
+        idx = cleaner_linearGAM(x, y, **kwargs)
+        print(idx)
+        ds = new.vars.isel(time=idx)
+        new.vars = ds
+        return new
 
-    def slider(self, **kwargs):
+    def slider_chunks(self, **kwargs):
+        """
+        Purpose: chunk data to ease computational load
+        """
         new = deepcopy(self)
         slider = kwargs['slider']
         overlap = kwargs.get('overlap', 0)
@@ -181,9 +266,37 @@ class filter_class:
                 start_idx_lst.append(start_idx)
                 stop_idx_lst.append(stop_idx)
         indices = zip(start_idx_lst, stop_idx_lst)
-        new.slider_chunks = indices
         print(' Number of created chunks:', len(start_idx_lst))
-        return new
+        return indices
+    
+    @staticmethod
+    def time_gap_chunks(pdtime, **kwargs):
+        """
+        Purpose: chunk data according to sampling gaps to make
+                 neighbour points match up and make filtering
+                 meaningful.
+        """
+        sr = kwargs.get('sampling_rate_Hz', 20)
+        mask = (pdtime.diff() > pd.to_timedelta((1./sr)*2, 'seconds')).values
+
+        start_idx_lst = []
+        stop_idx_lst = []
+
+        # create gap chunks
+        start_idx_lst.append(0)
+        while True in mask:
+            idx = list(mask).index(True)
+            stop_idx_lst.append(idx-1)
+            start_idx_lst.append(idx)
+            mask[idx] = False
+
+        stop_idx_lst.append(len(mask)-1)
+
+        assert len(start_idx_lst) == len(stop_idx_lst)
+
+        indices = zip(start_idx_lst, stop_idx_lst)
+
+        return indices
 
     def filter_footprint_radius(self, llim=None, ulim=None):
         """
@@ -215,22 +328,16 @@ class filter_class:
             pass
         else:
             new = new.compute_pulse_limited_footprint_radius()
-        lons_perp_lst, lats_perp_lst, ls_idx_lst = \
-            new.generate_footprints_perpendicular_to_original_track(
-            domain)
-        lons_perp = flatten([lons_perp_lst[i] for i in ls_idx_lst])
-        lats_perp = flatten([lats_perp_lst[i] for i in ls_idx_lst])
-        new.xtrack_lons = lons_perp
-        new.xtrack_lats = lats_perp
-        new.idx_filter_footprint_land_interaction = ls_idx_lst
+        lons_perp, lats_perp, ls_idx_lst = \
+                new._generate_xtrack_footprints(domain)
         # apply indices to dataset
-        new.vars = new.vars.isel(time=new.idx_filter_footprint_land_interaction)
+        new.vars = new.vars.isel(time=ls_idx_lst)
         print(" Number of disregarded values:",
               (len(self.vars.lons)-len(ls_idx_lst)))
         print(" Number of remaining values:", len(new.vars['time']))
         return new
 
-    def generate_footprints_perpendicular_to_original_track(self, domain):
+    def _generate_xtrack_footprints(self, domain):
         n = 500 + 1
         new = deepcopy(self)
         lons = new.vars.lons.values
@@ -253,7 +360,7 @@ class filter_class:
                 lats_perp_lst_tmp = []
                 for s in range(n):
                     P_perp_minus, P_perp_plus = \
-                        new._generate_perpendicular_footprints_in_lonlat(
+                        new._generate_xtrack_footprints_in_lonlat(
                             P1, P2, s)
                     # check if within pulse limited footprint
                     dist = new._distance(P1[0], P1[1],
@@ -270,8 +377,8 @@ class filter_class:
                     # check if footprints intersect with land
                     sea_mask = apply_land_mask(lons_perp, lats_perp)
                     if False in sea_mask:
-                        #print('Polution by land is detected for index', i)
-                        #print(' -> Footprint not included!')
+                        # print('Polution by land is detected for index', i)
+                        # print(' -> Footprint not included!')
                         ls_idx.append(False)
                     else:
                         ls_idx.append(True)
@@ -284,10 +391,12 @@ class filter_class:
                     ls_idx_lst.append(i)
                 lons_perp_lst.append(lons_perp_lst_tmp)
                 lats_perp_lst.append(lats_perp_lst_tmp)
-        return lons_perp_lst, lats_perp_lst, ls_idx_lst
+            lons_perp = flatten([lons_perp_lst[i] for i in ls_idx_lst])
+            lats_perp = flatten([lats_perp_lst[i] for i in ls_idx_lst])
+        return lons_perp, lats_perp, ls_idx_lst
 
     @staticmethod
-    def _generate_perpendicular_footprints_in_lonlat(
+    def _generate_xtrack_footprints_in_lonlat(
             P1: tuple, P2: tuple, n=None):
         """
         Input are tuples (lon, lat) for points P1, P2
@@ -306,7 +415,7 @@ class filter_class:
         return P_perp_minus, P_perp_plus
 
     @staticmethod
-    def _generate_perpendicular_footprints_in_cartesian():
+    def _generate_xtrack_footprints_in_cartesian():
         import utm
         return
 
@@ -345,7 +454,7 @@ class filter_class:
         Returns:
             vardict
         """
-        stdvarname = variable_info[self.varalias]['standard_name']
+        stdvarname = variable_def[self.varalias]['standard_name']
         # clone ingoing vardict
         vardict = deepcopy(self.vars)
         # make ts in vardict unique
@@ -457,7 +566,7 @@ def filter_slider(vardict,varalias,**kwargs):
         return newvardict
 
 def rm_nan_from_vardict(varalias,vardict):
-    stdvarname = variable_info[varalias]['standard_name']
+    stdvarname = variable_def[varalias]['standard_name']
     nanmask = ~np.isnan(vardict[stdvarname])
     for key in vardict.keys():
         if (key != 'time_unit' and key != 'meta'):
@@ -494,12 +603,12 @@ def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray):
 
 def apply_limits(varalias,vardict):
     print('Apply limits')
-    print('Crude cleaning using valid range defined in variable_info.yaml')
-    stdvarname = variable_info[varalias]['standard_name']
+    print('Crude cleaning using valid range defined in variable_def.yaml')
+    stdvarname = variable_def[varalias]['standard_name']
     clean_dict = deepcopy(vardict)
     y = vardict[stdvarname]
-    llim = variable_info[varalias]['valid_range'][0]
-    ulim = variable_info[varalias]['valid_range'][1]
+    llim = variable_def[varalias]['valid_range'][0]
+    ulim = variable_def[varalias]['valid_range'][1]
     tmpdict = {'y':y}
     df = pd.DataFrame(data = tmpdict)
     dfmask = df['y'].between(llim, ulim, inclusive='both')
@@ -513,7 +622,7 @@ def apply_cleaner(varalias,vardict,method='linearGAM',**kwargs):
     # blockVariance, GP, GAM, (quantile regression) random forest, ...
     print('Apply cleaner')
     print('Cleaning data using method:', method)
-    stdvarname = variable_info[varalias]['standard_name']
+    stdvarname = variable_def[varalias]['standard_name']
     if kwargs.get('itr') is not None:
         itr = kwargs['itr']
     else: itr = 1
@@ -553,7 +662,7 @@ def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None
     """
     print('Apply smoother')
     print('Smooth data using method:',method)
-    stdvarname = variable_info[varalias]['standard_name']
+    stdvarname = variable_def[varalias]['standard_name']
     newdict = deepcopy(vardict)
     # determine the output grid
     if (isinstance(date_incr,int) and output_dates is None):
@@ -609,7 +718,7 @@ def apply_smoother(varalias,vardict,output_dates=None,method=None,date_incr=None
 def smoothing(varalias,vardict,output_grid,\
 output_dates, method='linearGAM', date_incr=None,
 **kwargs):
-    stdvarname = variable_info[varalias]['standard_name']
+    stdvarname = variable_def[varalias]['standard_name']
     dt = vardict['datetime']
     x = vardict['time']
     y = vardict[stdvarname]
@@ -827,6 +936,7 @@ def smoother_linearGAM(x,y,X,**kwargs):
     #                ).gridsearch(x, y)
     gam = LinearGAM( terms=s(0,basis='ps')\
                     ).gridsearch(x, y )
+    gam.summary()
     # sample on the input grid
     means = gam.predict(X)
     return means
@@ -1028,26 +1138,28 @@ def cleaner_linearGAM(x,y,**kwargs):
     #                terms=s(0,basis='ps')\
     #                ).gridsearch(X, y)
     gam = LinearGAM(terms=s(0,basis='ps')).gridsearch(X, y)
+    gam.summary()
     #gam = LinearGAM(n_splines=n_splines,terms=s(0)).gridsearch(X, y)
     # sample on the input grid
     means = gam.predict(X)
     bounds = gam.prediction_intervals(X, width=.95)
     idx = [i for i in range(len(y)) \
-            if (y[i]>bounds[i,1] or y[i]<bounds[i,0])]
+            if (y[i]<bounds[i,1] or y[i]>bounds[i,0])]
     return idx
 
-def cleaner_GP(x,y,**kwargs):
+def cleaner_GP(x, y, **kwargs):
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
     from sklearn.gaussian_process.kernels import RationalQuadratic
-    if isinstance(x,list):
+    if isinstance(x, list):
         x = np.array(x)
-    if isinstance(y,list):
+    if isinstance(y, list):
         y = np.array(y)
-    X = x.reshape(-1,1)
+    X = x.reshape(-1, 1)
     # create a zero mean process
-    Y = y.reshape(-1,1) - np.nanmean(y)
+    ymean = np.nanmean(y)
+    Y = y.reshape(-1, 1) - ymean
     # define the kernel based on kwargs
     if 'kernel' in kwargs.keys():
         print('kernel is defined by user')
@@ -1069,8 +1181,12 @@ def cleaner_GP(x,y,**kwargs):
     gp.fit(X, Y)
     print(gp.kernel_)
     y_pred, sigma = gp.predict(X, return_std=True)
-    uplim = y_pred + (2*sigma).reshape(-1,1)
-    lowlim = y_pred - (2*sigma).reshape(-1,1)
+    print('y_pred',y_pred)
+    print('sigma',sigma)
+    print('sigma',type(sigma))
+    print(y_pred + (2*sigma))
+    uplim = y_pred + (2*sigma) + ymean
+    lowlim = y_pred - (2*sigma) + ymean
     idx = [i for i in range(len(Y)) \
-            if (Y[i]>uplim[i] or Y[i]<lowlim[i])]
+            if (Y[i]<uplim[i] or Y[i]>lowlim[i])]
     return idx

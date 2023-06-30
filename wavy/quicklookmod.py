@@ -702,9 +702,9 @@ class quicklook_class_sat:
             figures
         """
         # set plots
-        m = kwargs.get('m',a)
-        ts = kwargs.get('ts',a)
-        mode = kwargs.get('mode','comb') # comb,indiv
+        m = kwargs.get('m', a)
+        ts = kwargs.get('ts', a)
+        mode = kwargs.get('mode', 'comb') # comb,indiv
         if m:
             import cartopy.crs as ccrs
             import cartopy.feature as cfeature
@@ -763,16 +763,19 @@ class quicklook_class_sat:
                 latmax, latmin = np.max([latmax, platsmax]),\
                                  np.min([latmin, platsmin])
             # plot sat
-            if "xtrack_lons" in vars(self):
-                sc2 = ax.scatter(self.xtrack_lons, self.xtrack_lats,
+            if kwargs.get("plot_xtrack_pulse_limited_fpr") is not None:
+                domain = kwargs.get('domain', 'lonlat')
+                lons_perp, lats_perp, ls_idx_lst = \
+                    self._generate_xtrack_footprints(domain)
+                sc2 = ax.scatter(lons_perp, lats_perp,
                                  s=.2, c='b', marker='.',
                                  edgecolor='face',
                                  transform=ccrs.PlateCarree())
-            sc = ax.scatter(lons, lats, s=10,
+            sc = ax.scatter(lons, lats, s=15,
                             c=var,
-                            marker='o', edgecolor='face',
+                            marker='o', #edgecolor='face',
                             edgecolors='k',
-                            #linewidths=0.1,
+                            linewidths=0.3,
                             cmap=cmap,
                             transform=ccrs.PlateCarree())
             axins = inset_axes(ax,
@@ -788,11 +791,15 @@ class quicklook_class_sat:
             lon_range = (lonmax - lonmin)
             lat_range = (latmax - latmin)
             map_extent_multiplicator = kwargs.get(
-                "map_extent_multiplicator",0.1)
-            ax.set_extent([lonmin-lon_range*map_extent_multiplicator,
-                           lonmax+lon_range*map_extent_multiplicator,
-                           latmin-lat_range*map_extent_multiplicator,
-                           latmax+lat_range*map_extent_multiplicator],
+                "map_extent_multiplicator", 0.1)
+            map_extent_multiplicator_lon = kwargs.get(
+                "map_extent_multiplicator_lon", map_extent_multiplicator)
+            map_extent_multiplicator_lat = kwargs.get(
+                "map_extent_multiplicator_lat", map_extent_multiplicator)
+            ax.set_extent([lonmin-lon_range*map_extent_multiplicator_lon,
+                           lonmax+lon_range*map_extent_multiplicator_lon,
+                           latmin-lat_range*map_extent_multiplicator_lat,
+                           latmax+lat_range*map_extent_multiplicator_lat],
                            crs=projection)
             #ax.coastlines(color='k')
 
