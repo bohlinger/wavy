@@ -167,11 +167,38 @@ class filter_class:
     def filter_GP(self, **kwargs):
         print('Apply GPR filter')
         new = deepcopy(self)
-        y = deepcopy(new.vars[new.varalias].values)
-        x = deepcopy(new.vars['time'].values).astype(float)
-        X = x # points for prediction
-        smoothed_ts = smoother_GP(x, y, X, **kwargs)
-        new.vars[new.varalias].values = smoothed_ts
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        ts_lst = []
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
+                    X = x # points for prediction
+                    ts = smoother_GP(x, y, X, **kwargs)
+                    ts_lst.append(ts)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+        new.vars[new.varalias].values = flatten(ts_lst)
+
         return new
 
     def filter_NIGP(self, **kwargs):
@@ -180,21 +207,99 @@ class filter_class:
     def filter_linearGAM(self, **kwargs):
         print('Apply LinearGAM filter')
         new = deepcopy(self)
-        y = deepcopy(new.vars[new.varalias].values)
-        x = deepcopy(new.vars['time'].values).astype(float)
-        X = x # points for prediction
-        smoothed_ts = smoother_linearGAM(x, y, X, **kwargs)
-        new.vars[new.varalias].values = smoothed_ts
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        ts_lst = [] 
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
+                    X = x # points for prediction
+                    ts = smoother_linearGAM(x, y, X, **kwargs)
+                    ts_lst.append(ts)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+        new.vars[new.varalias].values = flatten(ts_lst)
+
         return new
 
+    @staticmethod
+    def cleaner_blockStd(y, **kwargs):
+        meanval = np.nanmean(y)
+        stdval = np.nanstd(y)
+        sigma_multiplyer = kwargs.get("sigma", 2)
+        uplim = meanval + (sigma_multiplyer*stdval)
+        lowlim = meanval - (sigma_multiplyer*stdval)
+        idx = [i for i in range(len(y))
+               if (y[i] < uplim and y[i] > lowlim)]
+        print("------------------------")
+        print(lowlim)
+        print(uplim)
+        print(sigma_multiplyer)
+        print(idx)
+        print(y[idx])
+        print("------------------------")
+        return idx
+
     def despike_blockStd(self, **kwargs):
-        #start_times = kwargs.get('start_times')
-        #stop_times = kwargs.get('stop_times')
-        vals = self.vars[self.varalias]
-        std = np.nanstd(vals)
-        mn = np.nanmean(vals)
-        # find values outside of 
-        return self
+        print('Apply blockStd despiking')
+        """
+        Uses slider blocks as basis
+        """
+        new = deepcopy(self)
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            print('tmp_idx', tmp_idx)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                print('tmp_tgc_idx', tmp_idx)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    idx = new.cleaner_blockStd(y, **kwargs)
+                    print('idx', idx)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+
+        print(" Number of disregarded values:",
+              (len(self.vars.time)-len(new.vars.time)))
+        print(" Number of remaining values:", len(new.vars['time']))
+
+        return new
 
     def despike_GP(self, **kwargs):
         print('Apply GPR despiking')
@@ -219,13 +324,18 @@ class filter_class:
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[new.varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
-                    tmp_tgc_idx = cleaner_GP(x, y, **kwargs)
-                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
+                    idx = cleaner_GP(x, y, **kwargs)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
                     print("Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+
+        print(" Number of disregarded values:",
+              (len(self.vars.time)-len(new.vars.time)))
+        print(" Number of remaining values:", len(new.vars['time']))
+
         return new
 
     def despike_NIGP(self, **kwargs):
@@ -237,7 +347,6 @@ class filter_class:
         y = deepcopy(new.vars[new.varalias].values)
         x = deepcopy(new.vars['time'].values).astype(float)
         idx = cleaner_linearGAM(x, y, **kwargs)
-        print(idx)
         ds = new.vars.isel(time=idx)
         new.vars = ds
         return new
@@ -276,6 +385,8 @@ class filter_class:
                  neighbour points match up and make filtering
                  meaningful.
         """
+        print("Using time_gap_chunks")
+
         sr = kwargs.get('sampling_rate_Hz', 20)
         mask = (pdtime.diff() > pd.to_timedelta((1./sr)*2, 'seconds')).values
 
@@ -295,6 +406,8 @@ class filter_class:
         assert len(start_idx_lst) == len(stop_idx_lst)
 
         indices = zip(start_idx_lst, stop_idx_lst)
+
+        print(" Number of created chunks:", len(start_idx_lst,))
 
         return indices
 
@@ -824,10 +937,10 @@ def lanczos_weights(window,cutoff):
     w[n+1:-1] = firstfactor * sigma
     return w[1:-1]
 
-def smoother_lanczos(y,window,cutoff):
+def smoother_lanczos(y, window, cutoff):
     from wavy.utils import runmean
     weights = lanczos_weights(window,cutoff)
-    ts, _ = runmean(y,window,mode='centered',weights=weights)
+    ts, _ = runmean(y, window, mode='centered',weights=weights)
     return ts
 
 def smoother_blockMean(dt,y,output_dates,date_incr,mode='l'):
@@ -1122,13 +1235,13 @@ def cleaner_expectileGAM(x,y,**kwargs):
             if (y[i]>ulim[i] or y[i]<llim[i])]
     return idx
 
-def cleaner_linearGAM(x,y,**kwargs):
+def cleaner_linearGAM(x, y, **kwargs):
     from pygam import LinearGAM, l, s
-    if isinstance(x,list):
+    if isinstance(x, list):
         x = np.array(x)
-    if isinstance(y,list):
+    if isinstance(y, list):
         y = np.array(y)
-    X = x.reshape(len(x),1)
+    X = x.reshape(len(x), 1)
     #if 'n_splines' in kwargs.keys():
     #    n_splines = kwargs['n_splines']
     #else:
@@ -1137,14 +1250,14 @@ def cleaner_linearGAM(x,y,**kwargs):
     #gam = LinearGAM(n_splines=n_splines,\
     #                terms=s(0,basis='ps')\
     #                ).gridsearch(X, y)
-    gam = LinearGAM(terms=s(0,basis='ps')).gridsearch(X, y)
+    gam = LinearGAM(terms=s(0, basis='ps')).gridsearch(X, y)
     gam.summary()
     #gam = LinearGAM(n_splines=n_splines,terms=s(0)).gridsearch(X, y)
     # sample on the input grid
     means = gam.predict(X)
-    bounds = gam.prediction_intervals(X, width=.95)
+    bounds = gam.prediction_intervals(X, width=kwargs.get('pct', .95))
     idx = [i for i in range(len(y)) \
-            if (y[i]<bounds[i,1] or y[i]>bounds[i,0])]
+           if (y[i] < bounds[i, 1] and y[i] > bounds[i,0])]
     return idx
 
 def cleaner_GP(x, y, **kwargs):
@@ -1174,19 +1287,16 @@ def cleaner_GP(x, y, **kwargs):
                                         length_scale=1)
     else:
         print('default kernel')
-        kernel =  WhiteKernel(noise_level=1) +  1 * RBF(length_scale=1)
+        kernel = WhiteKernel(noise_level=1) + 1 * RBF(length_scale=1)
     gp = gaussian_process.GaussianProcessRegressor(
             kernel=kernel,
             n_restarts_optimizer=10)
     gp.fit(X, Y)
     print(gp.kernel_)
     y_pred, sigma = gp.predict(X, return_std=True)
-    print('y_pred',y_pred)
-    print('sigma',sigma)
-    print('sigma',type(sigma))
-    print(y_pred + (2*sigma))
-    uplim = y_pred + (2*sigma) + ymean
-    lowlim = y_pred - (2*sigma) + ymean
-    idx = [i for i in range(len(Y)) \
-            if (Y[i]<uplim[i] or Y[i]>lowlim[i])]
+    sigma_multiplyer = kwargs.get('sigma', 2)
+    uplim = y_pred + (sigma_multiplyer*sigma)
+    lowlim = y_pred - (sigma_multiplyer*sigma)
+    idx = [i for i in range(len(Y)) 
+           if (Y[i] < uplim[i] and Y[i] > lowlim[i])]
     return idx
