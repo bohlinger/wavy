@@ -200,6 +200,20 @@ def read_model_nc_output(filestr,lonsname,latsname,timename):
     f.close()
     return model_lons,model_lats,model_time_dt
 
+def read_unstr_model_nc_output(filestr):
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    filestr=filestr.replace('\\','')
+    f = netCDF4.Dataset(filestr, 'r')
+    # get coordinates and time
+    model_lons = f.variables[lonsname][:]
+    model_lats = f.variables[latsname][:]
+    model_time = f.variables[timename]
+    model_time_dt = list(
+        netCDF4.num2date(model_time[:], units=model_time.units))
+    f.close()
+    return model_lons,model_lats,model_time_dt
+
 def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     """
     fct to retrieve model data for correct time

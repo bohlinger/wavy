@@ -294,6 +294,58 @@ class filter_class:
 
         return new
 
+    @staticmethod
+    def cleaner_blockQ(y, **kwargs):
+        llim_pct = kwargs.get("llim_pct", .05)
+        ulim_pct = kwargs.get("ulim_pct", .95)
+        uplim = np.quantile(y, ulim_pct)
+        lowlim = np.quantile(y, llim_pct)
+        idx = [i for i in range(len(y))
+               if (y[i] < uplim and y[i] > lowlim)]
+        return idx
+
+    def despike_blockQ(self, **kwargs):
+        print('Apply blockStd despiking')
+        """
+        Uses slider blocks as basis
+        """
+        new = deepcopy(self)
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            print('tmp_idx', tmp_idx)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                print('tmp_tgc_idx', tmp_idx)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    idx = new.cleaner_blockQ(y, **kwargs)
+                    print('idx', idx)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+
+        print(" Number of disregarded values:",
+              (len(self.vars.time)-len(new.vars.time)))
+        print(" Number of remaining values:", len(new.vars['time']))
+
+        return new
+
     def despike_GP(self, **kwargs):
         print('Apply GPR despiking')
         new = deepcopy(self)
@@ -337,11 +389,35 @@ class filter_class:
     def despike_linearGAM(self, **kwargs):
         print('Apply GAM despiking')
         new = deepcopy(self)
-        y = deepcopy(new.vars[new.varalias].values)
-        x = deepcopy(new.vars['time'].values).astype(float)
-        idx = cleaner_linearGAM(x, y, **kwargs)
-        ds = new.vars.isel(time=idx)
-        new.vars = ds
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j+1)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
+                    X = x  # points for prediction
+                    idx = cleaner_linearGAM(x, y, **kwargs)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+
         return new
 
     def slider_chunks(self, **kwargs):
@@ -1077,24 +1153,24 @@ def smoother_expectileGAM(x,y,X,**kwargs):
     pred = gam50.predict(X)
     return pred
 
-def smoother_GP(x,y,X,**kwargs):
+def smoother_GP(x, y, X, **kwargs):
     from sklearn import gaussian_process
     from sklearn.gaussian_process.kernels import RBF
     from sklearn.gaussian_process.kernels import WhiteKernel
     from sklearn.gaussian_process.kernels import RationalQuadratic
-    if isinstance(x,list):
+    if isinstance(x, list):
         x = np.array(x)
-    if isinstance(y,list):
+    if isinstance(y, list):
         y = np.array(y)
-    if isinstance(X,list):
+    if isinstance(X, list):
         X = np.array(X)
     if X is None:
-        X = x.reshape(-1,1)
+        X = x.reshape(-1, 1)
     else:
-        X = X.reshape(-1,1)
-    x = x.reshape(-1,1)
+        X = X.reshape(-1, 1)
+    x = x.reshape(-1, 1)
     # create a zero mean process
-    Y = y.reshape(-1,1) - np.nanmean(y)
+    Y = y.reshape(-1, 1) - np.nanmean(y)
     # define the kernel based on kwargs
     if 'kernel' in kwargs.keys():
         print('kernel is defined by user')
@@ -1105,17 +1181,19 @@ def smoother_GP(x,y,X,**kwargs):
         if 'RBF' in kwargs['kernel_lst']:
             kernel += 1 * RBF(length_scale=1)
         if 'RationalQuadratic' in kwargs['kernel_lst']:
-            kernel += 1 * RationalQuadratic(alpha=1,\
-                                        length_scale=1)
+            kernel += 1 * RationalQuadratic(alpha=1, length_scale=1)
     else:
         print('default kernel')
-        kernel =  WhiteKernel(noise_level=1) +  1 * RBF(length_scale=1)
+        kernel = WhiteKernel(noise_level=1,
+                             noise_level_bounds=(.5, 1000))\
+                        + 1 * RBF(length_scale=1,
+                                  length_scale_bounds=(2, 10.0))
     gp = gaussian_process.GaussianProcessRegressor(
             kernel=kernel,
             n_restarts_optimizer=10)
     gp.fit(x, Y)
     print(gp.kernel_)
-    y_pred,_  = gp.predict(X, return_std=True)
+    y_pred, _ = gp.predict(X, return_std=True)
     y_pred = y_pred + np.nanmean(y)
     return y_pred
 
@@ -1280,7 +1358,10 @@ def cleaner_GP(x, y, **kwargs):
                                         length_scale=1)
     else:
         print('default kernel')
-        kernel = WhiteKernel(noise_level=1) + 1 * RBF(length_scale=1)
+        kernel = WhiteKernel(noise_level=1,
+                             noise_level_bounds=(.5, 1000))\
+                    + 1 * RBF(length_scale=1,
+                              length_scale_bounds=(2, 10.0))
     gp = gaussian_process.GaussianProcessRegressor(
             kernel=kernel,
             n_restarts_optimizer=10)

@@ -716,14 +716,14 @@ class quicklook_class_sat:
             lats = self.vars['lats']
             var = self.vars[self.varalias]
             # land
-            land = cfeature.GSHHSFeature(\
-                    scale=kwargs.get('land_mask_resolution','i'),\
+            land = cfeature.GSHHSFeature(
+                    scale=kwargs.get('land_mask_resolution', 'i'),
                     levels=[1],
                     facecolor=cfeature.COLORS['land'])
             if projection is None:
                 projection = ccrs.PlateCarree()
             # parse kwargs
-            vartype = variable_info[self.varalias].get('type','default')
+            vartype = variable_info[self.varalias].get('type', 'default')
             if kwargs.get('cmap') is None:
                 if vartype == 'cyclic':
                     cmap = mplcm.twilight
@@ -731,8 +731,8 @@ class quicklook_class_sat:
                     cmap = cmocean.cm.amp
             else:
                 cmap = kwargs.get('cmap')
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
+            lonmax, lonmin = np.max(lons), np.min(lons)
+            latmax, latmin = np.max(lats), np.min(lats)
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
             # add land
@@ -754,7 +754,7 @@ class quicklook_class_sat:
                 tc = ax.plot(plons, plats, color='cornflowerblue',
                              ls='-', lw=1,
                              zorder=-1)
-                tc = ax.plot(plons, plats,color='cornflowerblue',
+                tc = ax.plot(plons, plats, color='cornflowerblue',
                              ls='None', marker='o', ms=5,
                              markeredgecolor='k',
                              zorder=-1)
