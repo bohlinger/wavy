@@ -22,6 +22,8 @@ from wavy.utils import find_direction_convention
 from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.wconfig import load_or_default
+from wavy.quicklookmod import quicklook_class_sat as qls
+from wavy.init_class_mod import init_class
 
 # ---------------------------------------------------------------------#
 
@@ -200,7 +202,33 @@ def read_model_nc_output(filestr,lonsname,latsname,timename):
     f.close()
     return model_lons,model_lats,model_time_dt
 
-def read_unstr_model_nc_output(filestr):
+def read_unstr_model_nc_output(self, **kwargs):
+    print('')
+    print('Choosing reader..')
+    # define reader
+    dotenv.load_dotenv()
+    WAVY_DIR = os.getenv('WAVY_DIR', None)
+    if WAVY_DIR is None:
+        print('###########')
+        print('Environmental variable for WAVY_DIR needs to be defined!')
+        print('###########')
+    # read_ww3_unstructured
+    reader_str = kwargs.get('reader', self.cfg.reader)
+    reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
+    spec = importlib.util.spec_from_file_location(
+            'grid_readers.' + reader_str, reader_mod_str)
+
+    # create reader module
+    sat_reader = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sat_reader)
+
+    # pick reader
+    #reader = getattr(sat_reader, 'read_local_ncfiles')
+    reader = getattr(sat_reader, reader_str)
+    self.reader = reader
+    print('Chosen reader:', spec.name)
+    print('')
+
     # remove escape character because netCDF4 handles white spaces
     # but cannot handle escape characters (apparently)
     filestr=filestr.replace('\\','')
@@ -212,7 +240,7 @@ def read_unstr_model_nc_output(filestr):
     model_time_dt = list(
         netCDF4.num2date(model_time[:], units=model_time.units))
     f.close()
-    return model_lons,model_lats,model_time_dt
+    return model_lons, model_lats, model_time_dt
 
 def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     """
@@ -222,16 +250,16 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
     print("Get model data according to selected date(s) ....")
     print(filestr)
     meta = ncdumpMeta(filestr)
-    stdvarname = variable_info[varalias]['standard_name']
-    lonsname = get_filevarname('lons',variable_info,
-                               model_dict[model],meta)
-    latsname = get_filevarname('lats',variable_info,
-                               model_dict[model],meta)
-    timename = get_filevarname('time',variable_info,
-                               model_dict[model],meta)
+    stdvarname = variable_def[varalias]['standard_name']
+    lonsname = get_filevarname('lons', variable_def,
+                               model_dict[model], meta)
+    latsname = get_filevarname('lats', variable_def,
+                               model_dict[model], meta)
+    timename = get_filevarname('time', variable_def,
+                               model_dict[model], meta)
     # get other variables e.g. Hs [time,lat,lon]
-    filevarname = get_filevarname(varalias,variable_info,
-                                  model_dict[model],meta)
+    filevarname = get_filevarname(varalias, variable_def,
+                                  model_dict[model], meta)
     try:
         model_lons,model_lats,model_time_dt = \
         read_model_nc_output_lru(filestr,lonsname,latsname,timename)
@@ -241,8 +269,8 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
         model_lons,model_lats,model_time_dt = \
         read_model_nc_output(filestr,lonsname,latsname,timename)
 
-    vardict[variable_info['lons']['standard_name']] = model_lons
-    vardict[variable_info['lats']['standard_name']] = model_lats
+    vardict[variable_def['lons']['standard_name']] = model_lons
+    vardict[variable_def['lats']['standard_name']] = model_lats
 
     # remove escape character because netCDF4 handles white spaces
     # but cannot handle escape characters (apparently)
@@ -257,13 +285,13 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
         model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
         model_time_valid = float(model_time[model_time_dt.index(fc_date)])
         model_time_unit = model_time.units
-        vardict[variable_info['time']['standard_name']] = model_time_valid
+        vardict[variable_def['time']['standard_name']] = model_time_valid
         vardict['datetime'] = model_time_dt_valid
         vardict['time_unit'] = model_time_unit
         for key in filevarname.keys():
             filevarname_dummy = get_filevarname(\
                                     filevarname[key][0],
-                                    variable_info,
+                                    variable_def,
                                     model_dict[model],meta)
             if filevarname_dummy is not None:
                 print(filevarname[key][0], 'exists')
@@ -278,7 +306,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
             for i in range(1, len(filevarname[key])):
                 filevarname_dummy = get_filevarname(\
                                         filevarname[key][i],
-                                        variable_info,
+                                        variable_def,
                                         model_dict[model],meta)
                 if len(f.variables[filevarname_dummy].dimensions) == 4:
                     model_var_valid_tmp += \
@@ -296,7 +324,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
             for i in range(1, len(filevarname[key])):
                 filevarname_dummy = get_filevarname(\
                                             filevarname[key][i],
-                                            variable_info,
+                                            variable_def,
                                             model_dict[model],
                                             meta)
                 model_var_valid_tmp += \
@@ -309,7 +337,7 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
         model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
         model_time_valid = float(model_time[model_time_dt.index(fc_date)])
         model_time_unit = model_time.units
-        vardict[variable_info['time']['standard_name']] = model_time_valid
+        vardict[variable_def['time']['standard_name']] = model_time_valid
         vardict['datetime'] = model_time_dt_valid
         vardict['time_unit'] = model_time_unit
         model_var_link = f.variables[filevarname]
@@ -322,14 +350,14 @@ def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
             model_var_valid = model_var_link[:, :].squeeze()
         else:
             print('Dimension mismatch!')
-        vardict[variable_info[varalias]['standard_name']] = \
+        vardict[variable_def[varalias]['standard_name']] = \
                                                     model_var_valid
     # transform masked array to numpy array with NaNs
     f.close()
     vardict['longitude'] = vardict['longitude'].filled(np.nan)
     vardict['latitude'] = vardict['latitude'].filled(np.nan)
-    vardict[variable_info[varalias]['standard_name']] = \
-        vardict[variable_info[varalias]['standard_name']].filled(np.nan)
+    vardict[variable_def[varalias]['standard_name']] = \
+        vardict[variable_def[varalias]['standard_name']].filled(np.nan)
     vardict['meta'] = meta
     # make lats,lons 2D if only 1D (regular grid)
     if len(vardict['longitude'].shape)==1:
@@ -388,8 +416,8 @@ def get_model(model=None,
         vardict, \
         filevarname = get_model_fc_mode(filestr=filestr[0],model=model,
                                     fc_date=fc_date[0],varalias=varalias)
-        vardict[variable_info[varalias]['standard_name']]=\
-                    [vardict[variable_info[varalias]['standard_name']]]
+        vardict[variable_def[varalias]['standard_name']]=\
+                    [vardict[variable_def[varalias]['standard_name']]]
         vardict['time'] = [vardict['time']]
         vardict['datetime'] = [vardict['datetime']]
         vardict['leadtime'] = leadtime
@@ -398,12 +426,12 @@ def get_model(model=None,
             filevarname = get_model_fc_mode(\
                             filestr=filestr[i],model=model,
                             fc_date=fc_date[i],varalias=varalias)
-            vardict[variable_info[varalias]['standard_name']].append(
-                tmpdict[variable_info[varalias]['standard_name']])
+            vardict[variable_def[varalias]['standard_name']].append(
+                tmpdict[variable_def[varalias]['standard_name']])
             vardict['time'].append(tmpdict['time'])
             vardict['datetime'].append(tmpdict['datetime'])
-        vardict[variable_info[varalias]['standard_name']]=\
-            np.array(vardict[variable_info[varalias]['standard_name']])
+        vardict[variable_def[varalias]['standard_name']]=\
+            np.array(vardict[variable_def[varalias]['standard_name']])
     else:
         vardict, \
         filevarname = get_model_fc_mode(filestr=filestr,model=model,
@@ -423,7 +451,7 @@ def get_model(model=None,
         print('not yet implemented !!')
     # adjust conventions
     # check if variable is one with conventions
-    if 'convention' in variable_info[varalias].keys():
+    if 'convention' in variable_def[varalias].keys():
         convention_set = False
         print('Chosen variable is defined with conventions')
         print('... checking if correct convention is used ...')
@@ -431,9 +459,9 @@ def get_model(model=None,
         file_stdvarname = find_direction_convention(filevarname,vardict['meta'])
         if "to_direction" in file_stdvarname:
             print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_info[varalias]['standard_name']] = \
+            vardict[variable_def[varalias]['standard_name']] = \
                     convert_meteorologic_oceanographic(\
-                        vardict[variable_info[varalias]['standard_name']])
+                        vardict[variable_def[varalias]['standard_name']])
             convention_set = True
         elif "from_direction" in file_stdvarname:
             print('standard_name indicates meteorologic convention')
@@ -447,9 +475,9 @@ def get_model(model=None,
             print('This will overwrite conventions from standard_name in file!')
             print('\n')
             print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_info[varalias]['standard_name']] = \
+            vardict[variable_def[varalias]['standard_name']] = \
                     convert_meteorologic_oceanographic(\
-                        vardict[variable_info[varalias]['standard_name']])
+                        vardict[variable_def[varalias]['standard_name']])
             convention_set = True
     return vardict, fc_date, leadtime, filestr, filevarname
 
@@ -458,16 +486,38 @@ def get_model(model=None,
 
 # read yaml config files:
 model_dict = load_or_default('model_cfg.yaml')
-variable_info = load_or_default('variable_def.yaml')
+variable_def = load_or_default('variable_def.yaml')
 
 
-class model_class():
+class model_class(qlc):
     '''
     class to read and process model data
     model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
     This class should communicate with the satellite, model, and
     station classes.
     '''
+    def __init__(self, **kwargs):
+        print('# ----- ')
+        print(" ### Initializing satellite_class object ###")
+        print(" ")
+        print(" Given kwargs:")
+        print(kwargs)
+        # initializing useful attributes from config file
+        dc = init_class('model', kwargs.get('nID'))
+        # parse and translate date input
+        self.sd = parse_date(kwargs.get('sd'))
+        self.ed = parse_date(kwargs.get('ed', self.sd))
+        # add other class object variables
+        self.nID = kwargs.get('nID')
+        self.varalias = kwargs.get('varalias', 'Hs')
+        self.units = variable_def[self.varalias].get('units')
+        self.stdvarname = variable_def[self.varalias].get('standard_name')
+        self.twin = int(kwargs.get('twin', 30))
+        self.distlim = kwargs.get('distlim', 6)
+        self.filter = kwargs.get('filter', False)
+        self.region = kwargs.get('region', 'global')
+        self.cfg = dc
+
     def __init__(self,
                  model='mwam4',
                  sdate=None,
@@ -513,8 +563,8 @@ class model_class():
                             date_incr=date_incr,fc_date=fc_date,
                             leadtime=leadtime,varalias=varalias,
                             st_obj=st_obj,transform_lons=transform_lons)
-        stdname = variable_info[varalias]['standard_name']
-        units = variable_info[varalias]['units']
+        stdname = variable_def[varalias]['standard_name']
+        units = variable_def[varalias]['units']
         varname = filevarname
         # define class variables
         self.fc_date = fc_date
@@ -539,7 +589,22 @@ class model_class():
         print(" ### model_class object initialized ###")
         print('# ----- ')
 
-    def get_item_parent(self,item,attr):
+    def _get_model_ds(self, **kwargs):
+        """
+        Main function to obtain data from satellite missions.
+        reads files, apply region and temporal filter
+
+        return: adjusted dictionary according to spatial and
+                temporal constraints
+        """
+
+        # retrieve dataset
+        ds = self.reader(**(vars(self)))
+        self.vars = ds
+        self.coords = list(self.vars.coords)
+        return self
+
+    def get_item_parent(self, item, attr):
         ncdict = self.vars['meta']
         lst = [i for i in ncdict.keys() \
                 if (attr in ncdict[i].keys() \
@@ -581,7 +646,7 @@ class model_class():
             # parse kwargs
             cflevels = kwargs.get('cflevels',10)
             clevels = kwargs.get('clevels',10)
-            vartype = variable_info[self.varalias].get('type','default')
+            vartype = variable_def[self.varalias].get('type','default')
             if kwargs.get('cmap') is None:
                 if vartype == 'cyclic':
                     cmap = mplcm.twilight

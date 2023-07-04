@@ -41,10 +41,9 @@ from wavy.modelmod import read_model_nc_output_lru
 from wavy.wconfig import load_or_default
 from wavy.filtermod import filter_class as fc
 from wavy.sat_collectors import get_remote_files
-from wavy.sat_readers import read_local_files
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.writermod import writer_class as wc
-from wavy.init_class import init_class
+from wavy.init_class_sat import init_class
 from wavy.utils import footprint_pulse_limited_radius
 # ---------------------------------------------------------------------#
 
@@ -281,7 +280,6 @@ class satellite_class(qls, wc, fc):
 
         # retrieve dataset
         ds = self.reader(**(vars(self)))
-        print(ds)
         self.vars = ds
         self.coords = list(self.vars.coords)
         return self

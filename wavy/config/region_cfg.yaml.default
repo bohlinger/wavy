@@ -22,6 +22,11 @@ rect:
         llcrnrlat: 62.4
         urcrnrlon: 6.078
         urcrnrlat: 62.5
+    Fedje:
+        llcrnrlon: 4
+        llcrnrlat: 60.2
+        urcrnrlon: 5.3
+        urcrnrlat: 61.7
 
 
 # polynomial

@@ -21,17 +21,15 @@ class config_class:
     #    dc = init_class(obs_type,nID)
     #    nID: str = nID
     #    names: dict = dc.names
-            
+
 
 def parse_config_file(obs_type: str, nID: str) -> dict:
     config_file_str = obs_type + '_cfg.yaml'
     parsed_file = load_or_default(config_file_str)
     return parsed_file
 
-
-def dict_to_class(parsed_file: Dict[Any, Any]) -> config_class:
+def dict_to_class(parsed_file: dict[Any, Any]) -> config_class:
     return config_class(**parsed_file)
-
 
 def init_class(obs_type=None, nID=None) -> config_class:
     parsed_file = parse_config_file(obs_type, nID)

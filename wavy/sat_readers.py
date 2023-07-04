@@ -231,30 +231,3 @@ def read_local_ncfiles_swim(**kwargs):
     # delete varalias key from dict
     vardict.pop(varalias)
     return vardict
-
-def read_local_files(**kwargs) -> dict:
-    '''
-    wrapping function to read altimetry files
-
-    return:
-        vardict - dictionary of variables for altimeter data
-    '''
-    dispatch_reader = {
-                #'cmems_L3_NRT': read_local_ncfiles,
-                'cmems_L3_NRT': read_local_ncfiles,
-                'cmems_L3_s6a': read_local_ncfiles,
-                'cmems_L3_MY': read_local_ncfiles,
-                'cci_L2P': read_local_ncfiles,
-                'cci_L3': read_local_ncfiles,
-                'cfo_swim_L2P': read_local_ncfiles_swim,
-                'L2_20Hz_s3a': read_local_20Hz_files
-                }
-    product = kwargs.get('nID')
-    # check if product available in dispatcher
-    if product in dispatch_reader.keys():
-        pass
-    else:
-        product = 'cmems_L3_NRT'
-
-    vardict = dispatch_reader[product](**kwargs)
-    return vardict

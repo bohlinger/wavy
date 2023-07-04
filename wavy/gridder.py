@@ -79,7 +79,7 @@ class gridder_class():
                 self.olons, self.olats,
                 self.res)
         ovals, mvals, Midx = self.clean_Midx(
-                Midx, self.ovals, self.mvals, self.glons, self.glats )
+                Midx, self.ovals, self.mvals, self.glons, self.glats)
         return ovals, mvals, Midx
 
     @staticmethod
