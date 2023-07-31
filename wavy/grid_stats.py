@@ -288,18 +288,18 @@ def grid_rmse(gco,**kwargs):
     return var_grid, lon_grid, lat_grid
 
 
-def apply_metric(gco=None,**kwargs):
+def apply_metric(gco=None, **kwargs):
     '''
     dispatch table for various validation metrics
     '''
-    metric = kwargs.get('metric','all')
-    print("Computing gridded metric",metric,"...")
+    metric = kwargs.get('metric', 'all')
+    print("Computing gridded metric:", metric, "...")
     dispatch_reader = {
-            'mean':grid_mean,
-            'mean_group':grid_mean_group,
-            'rmse':grid_rmse,
-            'all':grid_stats_group,
+            'mean': grid_mean,
+            'mean_group': grid_mean_group,
+            'rmse': grid_rmse,
+            'all': grid_stats_group,
             }
-    var_gridded = dispatch_reader[metric](gco,**kwargs)
-    print("Computing gridded",metric," done")
+    var_gridded = dispatch_reader[metric](gco, **kwargs)
+    print("Computing gridded metric:", metric, " -> done")
     return var_gridded

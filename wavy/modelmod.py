@@ -489,7 +489,7 @@ model_dict = load_or_default('model_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 
 
-class model_class(qlc):
+class model_class(qls):
     '''
     class to read and process model data
     model: e.g. Hs[time,lat,lon], lat[rlat,rlon], lon[rlat,rlon]
