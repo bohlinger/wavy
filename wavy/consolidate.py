@@ -179,7 +179,7 @@ class consolidate_class(qls):
             self.vars = consolidate_scos(ocos)
             #self.region = ocos[i].region
             self.varname = ocos[i].varname
-        elif obj_type is "consolidation":
+        elif obj_type is "collocation":
             self.vars = consolidate_ccos(ocos)
             self.model = ocos[i].model
             #self.region = ocos[i].region
