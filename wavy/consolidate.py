@@ -205,10 +205,14 @@ class consolidate_class(qls):
         return
 
     def validate_collocated_values(self, **kwargs):
-        mods = self.vars['model_values']
-        obs = self.vars['obs_values']
-        validation_dict = validate_collocated_values(
-                                obs, mods, self)
+        from wavy.collocmod import collocation_class
+        if isinstance(self.ocos[0], collocation_class):
+            mods = self.vars['model_values']
+            obs = self.vars['obs_values']
+            validation_dict = validate_collocated_values(
+                                    obs, mods, self)
+        else:
+            print('Cannot be validated, not collocation_class object.')
         return validation_dict
 
 def validate_collocated_values(obs, mods, col_obj):
