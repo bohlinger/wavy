@@ -495,7 +495,7 @@ def poi_sat(indict,twin,distlim,poi,ridx,i):
     plats = [poi['latitude'][i]]*len(slats)
     dists_tmp = haversineA( slons,slats,plons,plats )
     sidx = np.argwhere(np.array(dists_tmp)<=distlim).flatten()
-    dists = list(np.array(dists_tmp)[sidx])
+    #dists = list(np.array(dists_tmp)[sidx])
     return list(np.array(tidx)[sidx])
 
 def match_poi(indict, twin, distlim, poi):

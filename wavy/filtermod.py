@@ -197,7 +197,7 @@ def apply_land_mask(vardict,**kwargs):
     latitudes = np.array(vardict['latitude'])
     land_mask = ROAR.contains_many(longitudes, latitudes)
 
-    conservative_mask = kwargs.get('conservative_mask',0)
+    #conservative_mask = kwargs.get('conservative_mask',0)
 
     sea_mask = np.invert(land_mask)
 
@@ -882,7 +882,7 @@ def cleaner_linearGAM(x,y,**kwargs):
     gam = LinearGAM(terms=s(0,basis='ps')).gridsearch(X, y)
     #gam = LinearGAM(n_splines=n_splines,terms=s(0)).gridsearch(X, y)
     # sample on the input grid
-    means = gam.predict(X)
+    #means = gam.predict(X)
     bounds = gam.prediction_intervals(X, width=.95)
     idx = [i for i in range(len(y)) \
             if (y[i]>bounds[i,1] or y[i]<bounds[i,0])]

@@ -326,19 +326,6 @@ def comp_fig(sa_obj=None,mc_obj=None,coll_obj=None,**kwargs):
     if ('showfig' in kwargs.keys() and kwargs['showfig'] == True):
         plt.show()
 
-def comp_wind(model,var,Mlons,Mlats,date,region,mode=None):
-
-    # sort out data/coordinates for plotting
-    var = var.squeeze()
-    if model == 'ww3':
-        var = (var - 180) % 360
-
-    # colors
-    if mode == 'dir':
-        cmap = cmocean.cm.phase
-        levels = range(0,360,5)
-        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
-
 def plot_sat(sa_obj,**kwargs):
 
     import matplotlib.cm as mplcm
