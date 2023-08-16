@@ -203,3 +203,20 @@ class consolidate_class(qls):
         if kwargs.get('sensor') is not None:
             self.sensor = kwargs.get('sensor')
         return
+
+    def validate_collocated_values(self, **kwargs):
+        mods = self.vars['model_values']
+        obs = self.vars['obs_values']
+        validation_dict = validate_collocated_values(
+                                obs, mods, self)
+        return validation_dict
+
+def validate_collocated_values(obs, mods, col_obj):
+    mods = col_obj.vars['model_values']
+    obs = col_obj.vars['obs_values']
+    results_dict = {'model_values': mods, 'obs_values': obs}
+    # validate
+    from wavy.validationmod import validate, disp_validation
+    validation_dict = validate(results_dict)
+    disp_validation(validation_dict)
+    return validation_dict
