@@ -177,7 +177,7 @@ class insitu_class():
         return parent
 
     def quicklook(self, a=False, projection=None, **kwargs):
-        m = kwargs.get('m', a)
+        # m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
         if ts is True:
             import matplotlib.pyplot as plt

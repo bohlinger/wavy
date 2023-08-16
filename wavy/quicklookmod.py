@@ -706,9 +706,9 @@ class quicklook_class_sat:
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
         mode = kwargs.get('mode', 'comb') # comb,indiv
-        if (isinstance(self,consolidate_class)
-        and isinstance(self.ocos[0],collocation_class)):
-            sc = kwargs.get('sc',a)
+        if (isinstance(self, consolidate_class)
+        and isinstance(self.ocos[0], collocation_class)):
+            sc = kwargs.get('sc', a)
             if m:
                 import cartopy.crs as ccrs
                 import cmocean
