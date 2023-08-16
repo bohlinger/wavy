@@ -686,7 +686,7 @@ def ts_fig(results_dict):
 
 class quicklook_class_sat:
 
-    def quicklook(self,a=False,projection=None,**kwargs):
+    def quicklook(self, a=False, projection=None, **kwargs):
         """
         Enables to explore the class object (and retrieved results)
         by plotting time series and map.
@@ -700,133 +700,274 @@ class quicklook_class_sat:
         return:
             figures
         """
+        from wavy.consolidate import consolidate_class
+        from wavy.collocmod import collocation_class
         # set plots
-        m = kwargs.get('m',a)
-        ts = kwargs.get('ts',a)
-        mode = kwargs.get('mode','comb') # comb,indiv
-        if m:
-            import cartopy.crs as ccrs
-            import cmocean
-            import matplotlib.pyplot as plt
-            import matplotlib.cm as mplcm
-            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-            lons = self.vars['longitude']
-            lats = self.vars['latitude']
-            var = self.vars[self.stdvarname]
-            if projection is None:
-                projection = ccrs.PlateCarree()
-            # parse kwargs
-            vartype = variable_info[self.varalias].get('type','default')
-            if kwargs.get('cmap') is None:
-                if vartype == 'cyclic':
-                    cmap = mplcm.twilight
+        m = kwargs.get('m', a)
+        ts = kwargs.get('ts', a)
+        mode = kwargs.get('mode', 'comb') # comb,indiv
+        if (isinstance(self,consolidate_class)
+        and isinstance(self.ocos[0],collocation_class)):
+            sc = kwargs.get('sc',a)
+            if m:
+                import cartopy.crs as ccrs
+                import cmocean
+                import matplotlib.pyplot as plt
+                import matplotlib.cm as mplcm
+                from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+                lons = self.vars['obs_lons']
+                lats = self.vars['obs_lats']
+                var = self.vars['obs_values']
+                if projection is None:
+                    projection = ccrs.PlateCarree()
+                vartype = variable_info[self.varalias].get('type','default')
+                if kwargs.get('cmap') is None:
+                    if vartype == 'cyclic':
+                        cmap = mplcm.twilight
+                    else:
+                        cmap = cmocean.cm.amp
                 else:
-                    cmap = cmocean.cm.amp
-            else:
-                cmap = kwargs.get('cmap')
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1, projection=projection)
-            # plot track if applicable
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
-            if kwargs.get('poi') is not None:
-                plats = kwargs.get('poi').get('latitude')
-                platsmax,platsmin = np.max(plats), np.min(plats)
-                plons = kwargs.get('poi').get('longitude')
-                plonsmax,plonsmin = np.max(plons), np.min(plons)
-                tc = ax.plot(plons,plats,color='cornflowerblue',
-                             ls='-',lw=1,
-                             zorder=-1)
-                tc = ax.plot(plons,plats,color='cornflowerblue',
-                             ls='None',marker='o',ms=5,
-                             markeredgecolor='k',
-                             zorder=-1)
-                lonmax,lonmin = np.max([lonmax,plonsmax]),\
-                                np.min([lonmin,plonsmin])
-                latmax,latmin = np.max([latmax,platsmax]),\
-                                np.min([latmin,platsmin])
-            # plot sat
-            sc = ax.scatter(lons,lats,s=10,
-                            c = var,
-                            marker='o', edgecolor = 'face',
-                            cmap=cmap,
-                            transform=ccrs.PlateCarree())
-            axins = inset_axes(ax,
-                       width="5%",  # width = 5% of parent_bbox width
-                       height="100%",  # height : 50%
-                       loc='lower left',
-                       bbox_to_anchor=(1.01, 0., 1, 1),
-                       bbox_transform=ax.transAxes,
-                       borderpad=0,
-                       )
-            fig.colorbar(sc, cax=axins, label=self.varalias
-                                        + ' [' + self.units + ']')
-            ax.set_extent(  [lonmin-1, lonmax+1,latmin-1, latmax+1],
-                             crs = projection )
-            ax.coastlines(color='k')
-            gl = ax.gridlines(draw_labels=True,crs=projection,
-                              linewidth=1, color='grey', alpha=0.4,
-                              linestyle='-')
-            gl.top_labels = False
-            gl.right_labels = False
-            plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            ax.set_title(self.mission + ' (' + self.provider + ')\n'
-                      + 'from ' 
-                      + (self.vars['datetime'][0]).\
-                              strftime('%Y-%m-%d %H:%M:%S')
-                      + ' to '
-                      + (self.vars['datetime'][-1]).\
-                              strftime('%Y-%m-%d %H:%M:%S'))
-            # plot from quickloop config file
-            if ('region' in vars(self).keys()
-                and self.region in quicklook_dict
-                and 'poi' in quicklook_dict[self.region]):
-                for poi in quicklook_dict[self.region]['poi']:
-                    pname = quicklook_dict[self.region]['poi'][poi]['name']
-                    plat = quicklook_dict[self.region]['poi'][poi]['lat']
-                    plon = quicklook_dict[self.region]['poi'][poi]['lon']
-                    scp = ax.scatter(plon, plat, s = 20,
-                                     c = quicklook_dict\
-                                            [self.region]['poi'][poi]\
-                                            .get('color','b'),
-                                     marker = quicklook_dict[self.region]\
-                                            ['poi'][poi]['marker'],
-                                     transform = ccrs.PlateCarree())
-                ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
-            #fig.suptitle('', fontsize=16) # unused
-            plt.show()
-        if (ts and mode == 'comb'):
-            import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(9,3.5))
-            ax = fig.add_subplot(111)
-            colors = ['k']
-            ax.plot(self.vars['datetime'],
-                    self.vars[self.stdvarname],
-                    linestyle='None',color=colors[0],
-                    label=self.label,
-                    marker='o',alpha=.5,ms=2)
-            plt.ylabel(self.varalias + ' [' + self.units + ']')
-            plt.legend(loc='best')
-            plt.tight_layout()
-            #ax.set_title()
-            plt.show()
-        elif (ts and mode == 'indiv'):
-            import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(9,3.5))
-            ax = fig.add_subplot(111)
-            for oco in self.ocos:
-                ax.plot(oco.vars['datetime'],
-                        oco.vars[oco.stdvarname],
-                        linestyle='None',
-                        label=oco.label,
+                    cmap = kwargs.get('cmap')
+                lonmax,lonmin = np.nanmax(lons),np.nanmin(lons)
+                latmax,latmin = np.nanmax(lats),np.nanmin(lats)
+                fig = plt.figure()
+                ax = fig.add_subplot(1, 1, 1, projection=projection)
+                ax.set_extent(  [lonmin, lonmax,latmin, latmax],
+                                crs = projection )
+                sc = ax.scatter(lons,lats,s=10,
+                                c = var,
+                                marker='o', edgecolor = 'face',
+                                cmap=cmap,
+                                transform=ccrs.PlateCarree())
+                axins = inset_axes(ax,
+                           width="5%",  # width = 5% of parent_bbox width
+                           height="100%",  # height : 50%
+                           loc='lower left',
+                           bbox_to_anchor=(1.01, 0., 1, 1),
+                           bbox_transform=ax.transAxes,
+                           borderpad=0,
+                           )
+                fig.colorbar(sc, cax=axins, label=self.varalias
+                                            + ' [' + self.units + ']')
+                ax.coastlines()
+                gl = ax.gridlines(draw_labels=True,crs=projection,
+                                  linewidth=1, color='grey', alpha=0.4,
+                                  linestyle='-')
+                gl.top_labels = False
+                gl.right_labels = False
+                plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+                ax.set_title(self.obsname + ' (' + self.obstype + ')\n'
+                          + 'from ' + str(self.vars['datetime'][0])
+                          + ' to ' + str(self.vars['datetime'][-1]))
+                #fig.suptitle('', fontsize=16) # unused
+                plt.show()
+            if ts:
+                import matplotlib.pyplot as plt
+                import matplotlib.dates as mdates
+                fig = plt.figure(figsize=(9,3.5))
+                ax = fig.add_subplot(111)
+                colors = ['k','orange']
+                if self.obstype == 'insitu':
+                    ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                        linestyle='None',color=colors[0],
+                        label='obs ( ' + self.nID + ' - '
+                                       + self.sensor + ' )',
                         marker='o',alpha=.5,ms=2)
-            plt.ylabel(self.varalias + ' [' + self.units + ']')
-            plt.legend(loc='best')
-            plt.tight_layout()
-            #ax.set_title()
+                elif self.obstype == 'satellite_altimeter':
+                    ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                        linestyle='None',color=colors[0],
+                        label='obs (' + self.mission + ')',
+                        marker='o',alpha=.5,ms=2)
+                else:
+                    ax.plot(self.vars['datetime'],self.vars['obs_values'],
+                        linestyle='None',color=colors[0],
+                        label='obs (' + self.obsname + ')',
+                        marker='o',alpha=.5,ms=2)
+                ax.plot(self.vars['datetime'],self.vars['model_values'],
+                        linestyle='None',color=colors[1],
+                        label='model (' + self.model + ')',
+                        marker='o',alpha=.8,ms=2)
+                plt.ylabel(self.varalias + '[' + self.units + ']')
+                plt.legend(loc='best')
+                plt.tight_layout()
+                #ax.set_title()
+                plt.show()
+            if sc:
+                from wavy.utils import compute_quantiles
+                lq = np.arange(0.01,1.01,0.01)
+                lq = kwargs.get('lq',lq)
+                modq = compute_quantiles(np.array(self.vars['model_values']),lq)
+                obsq = compute_quantiles(np.array(self.vars['obs_values']),lq)
+                import matplotlib.pyplot as plt
+                fig = plt.figure(figsize=(4,4))
+                ax = fig.add_subplot(111)
+                colors = ['k']
+                if self.obstype == 'insitu':
+                    ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                        linestyle='None',color=colors[0],
+                        marker='o',alpha=.5,ms=2)
+                    plt.xlabel='obs ( ' + self.nID + ' - '\
+                                         + self.sensor + ' )'
+                elif self.obstype == 'satellite_altimeter':
+                    ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                        linestyle='None',color=colors[0],
+                        label='obs (' + self.mission + ')',
+                        marker='o',alpha=.5,ms=2)
+                    plt.xlabel('obs ( ' + self.mission + ' )')
+                elif self.obstype == 'POI':
+                    ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                        linestyle='None',color=colors[0],
+                        marker='o',alpha=.5,ms=2)
+                    plt.xlabel('obs ( ' + self.obstype + ' )')
+                else:
+                    ax.plot(self.vars['obs_values'],self.vars['model_values'],
+                    linestyle='None',color=colors[0],
+                    label='obs (' + self.obstype + ')',
+                    marker='o',alpha=.5,ms=2)
+                    plt.xlabel('obs ( ' + self.mission + ' )')
+                # add quantiles
+                ax.plot(obsq,modq,'r')
+                # 45 degree line for orientation
+                ax.axline((0, 0), (1, 1), lw=.5, color='grey',ls='--')
+                plt.ylabel('models ( ' + self.model + ' )')
+                vartype = variable_info[self.varalias].get('type','default')
+                if vartype == 'cyclic':
+                    plt.xlim([0,360])
+                    plt.ylim([0,360])
+                else:
+                    maxv = np.nanmax([self.vars['model_values'],
+                                      self.vars['obs_values']])
+                    minv = 0
+                    plt.xlim([minv,maxv+0.15*maxv])
+                    plt.ylim([minv,maxv+0.15*maxv])
+                ax.set_title(self.varalias + '[' + self.units + ']')
+                plt.tight_layout()
+                #ax.set_title()
             plt.show()
+        else:
+            if m:
+                import cartopy.crs as ccrs
+                import cmocean
+                import matplotlib.pyplot as plt
+                import matplotlib.cm as mplcm
+                from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+                lons = self.vars['longitude']
+                lats = self.vars['latitude']
+                var = self.vars[self.stdvarname]
+                if projection is None:
+                    projection = ccrs.PlateCarree()
+                # parse kwargs
+                vartype = variable_info[self.varalias].get('type', 'default')
+                if kwargs.get('cmap') is None:
+                    if vartype == 'cyclic':
+                        cmap = mplcm.twilight
+                    else:
+                        cmap = cmocean.cm.amp
+                else:
+                    cmap = kwargs.get('cmap')
+                lonmax,lonmin = np.max(lons),np.min(lons)
+                latmax,latmin = np.max(lats),np.min(lats)
+                fig = plt.figure()
+                ax = fig.add_subplot(1, 1, 1, projection=projection)
+                # plot track if applicable
+                lonmax,lonmin = np.max(lons),np.min(lons)
+                latmax,latmin = np.max(lats),np.min(lats)
+                if kwargs.get('poi') is not None:
+                    plats = kwargs.get('poi').get('latitude')
+                    platsmax,platsmin = np.max(plats), np.min(plats)
+                    plons = kwargs.get('poi').get('longitude')
+                    plonsmax,plonsmin = np.max(plons), np.min(plons)
+                    tc = ax.plot(plons,plats,color='cornflowerblue',
+                                 ls='-',lw=1,
+                                 zorder=-1)
+                    tc = ax.plot(plons,plats,color='cornflowerblue',
+                                 ls='None',marker='o',ms=5,
+                                 markeredgecolor='k',
+                                 zorder=-1)
+                    lonmax,lonmin = np.max([lonmax,plonsmax]),\
+                                    np.min([lonmin,plonsmin])
+                    latmax,latmin = np.max([latmax,platsmax]),\
+                                    np.min([latmin,platsmin])
+                # plot sat
+                sc = ax.scatter(lons,lats,s=10,
+                                c = var,
+                                marker='o', edgecolor = 'face',
+                                cmap=cmap,
+                                transform=ccrs.PlateCarree())
+                axins = inset_axes(ax,
+                           width="5%",  # width = 5% of parent_bbox width
+                           height="100%",  # height : 50%
+                           loc='lower left',
+                           bbox_to_anchor=(1.01, 0., 1, 1),
+                           bbox_transform=ax.transAxes,
+                           borderpad=0,
+                           )
+                fig.colorbar(sc, cax=axins, label=self.varalias
+                                            + ' [' + self.units + ']')
+                ax.set_extent(  [lonmin-1, lonmax+1,latmin-1, latmax+1],
+                                 crs = projection )
+                ax.coastlines(color='k')
+                gl = ax.gridlines(draw_labels=True,crs=projection,
+                                  linewidth=1, color='grey', alpha=0.4,
+                                  linestyle='-')
+                gl.top_labels = False
+                gl.right_labels = False
+                plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+                ax.set_title(self.mission + ' (' + self.provider + ')\n'
+                          + 'from ' 
+                          + (self.vars['datetime'][0]).\
+                                  strftime('%Y-%m-%d %H:%M:%S')
+                          + ' to '
+                          + (self.vars['datetime'][-1]).\
+                                  strftime('%Y-%m-%d %H:%M:%S'))
+                # plot from quickloop config file
+                if ('region' in vars(self).keys()
+                    and self.region in quicklook_dict
+                    and 'poi' in quicklook_dict[self.region]):
+                    for poi in quicklook_dict[self.region]['poi']:
+                        pname = quicklook_dict[self.region]['poi'][poi]['name']
+                        plat = quicklook_dict[self.region]['poi'][poi]['lat']
+                        plon = quicklook_dict[self.region]['poi'][poi]['lon']
+                        scp = ax.scatter(plon, plat, s = 20,
+                                         c = quicklook_dict\
+                                                [self.region]['poi'][poi]\
+                                                .get('color','b'),
+                                         marker = quicklook_dict[self.region]\
+                                                ['poi'][poi]['marker'],
+                                         transform = ccrs.PlateCarree())
+                    ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
+                #fig.suptitle('', fontsize=16) # unused
+                plt.show()
+            if (ts and mode == 'comb'):
+                import matplotlib.pyplot as plt
+                fig = plt.figure(figsize=(9,3.5))
+                ax = fig.add_subplot(111)
+                colors = ['k']
+                ax.plot(self.vars['datetime'],
+                        self.vars[self.stdvarname],
+                        linestyle='None',color=colors[0],
+                        label=self.label,
+                        marker='o',alpha=.5,ms=2)
+                plt.ylabel(self.varalias + ' [' + self.units + ']')
+                plt.legend(loc='best')
+                plt.tight_layout()
+                #ax.set_title()
+                plt.show()
+            elif (ts and mode == 'indiv'):
+                import matplotlib.pyplot as plt
+                fig = plt.figure(figsize=(9,3.5))
+                ax = fig.add_subplot(111)
+                for oco in self.ocos:
+                    ax.plot(oco.vars['datetime'],
+                            oco.vars[oco.stdvarname],
+                            linestyle='None',
+                            label=oco.label,
+                            marker='o',alpha=.5,ms=2)
+                plt.ylabel(self.varalias + ' [' + self.units + ']')
+                plt.legend(loc='best')
+                plt.tight_layout()
+                #ax.set_title()
+                plt.show()
 
 """
 from abc import abstractmethod
