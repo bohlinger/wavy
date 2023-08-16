@@ -947,21 +947,22 @@ class collocation_class():
         # for reading
         # cco = pickle.load( open( pathtofile, "rb" ) )
 
-    def validate_collocated_values(self,**kwargs):
+    def validate_collocated_values(self, **kwargs):
         dtime = self.vars['datetime']
         mods = self.vars['model_values']
         obs = self.vars['obs_values']
         sdate = self.vars['datetime'][0]
         edate = self.vars['datetime'][-1]
         validation_dict = validate_collocated_values(
-                                dtime,obs,mods,\
-                                sdate=sdate,edate=edate,\
+                                dtime, obs, mods,\
+                                sdate=sdate, edate=edate,\
                                 **kwargs)
         return validation_dict
 
-def validate_collocated_values(dtime,obs,mods,**kwargs):
+def validate_collocated_values(dtime, obs, mods, **kwargs):
     target_t, sdate, edate, twin = None, None, None, None
     if ('col_obj' in kwargs.keys() and kwargs['col_obj'] is not None):
+        col_obj = kwargs.get('col_obj')
         mods = col_obj.vars['model_values']
         obs = col_obj.vars['obs_values']
         dtime = col_obj.vars['datetime']
@@ -981,9 +982,9 @@ def validate_collocated_values(dtime,obs,mods,**kwargs):
                           twin=twin)
     mods = np.array(mods)[idx]
     obs = np.array(obs)[idx]
-    results_dict = {'model_values':mods,'obs_values':obs}
+    results_dict = {'model_values': mods, 'obs_values': obs}
     # validate
-    from wavy.validationmod import validate,disp_validation
+    from wavy.validationmod import validate, disp_validation
     validation_dict = validate(results_dict)
     disp_validation(validation_dict)
     return validation_dict

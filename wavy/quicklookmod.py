@@ -693,7 +693,8 @@ class quicklook_class_sat:
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
         mode = kwargs.get('mode', 'comb') # comb,indiv
-        if (isinstance(self, consolidate_class)
+        if ('ocos' in vars(self).keys()
+        and isinstance(self, consolidate_class)
         and isinstance(self.ocos[0], collocation_class)):
             sc = kwargs.get('sc', a)
             if m:

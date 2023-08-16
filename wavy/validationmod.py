@@ -73,26 +73,26 @@ def calc_drmsd(a,b):
     drmsd = np.sqrt(dmsd)
     return dmsd, drmsd
 
-def calc_scatter_index(obs,model):
+def calc_scatter_index(obs, model):
     '''
     Scatter index based on rmse and on std of diff
     '''
-    msd,rmsd = calc_rmsd(obs,model)
+    _, rmsd = calc_rmsd(obs, model)
     stddiff = np.nanstd(obs-model)
     SIrmse = rmsd/np.nanmean(obs)*100.
     SIstd = stddiff/np.nanmean(obs)*100.
-    return SIrmse,SIstd
+    return SIrmse, SIstd
 
-def calc_corrcoef(a,b):
+def calc_corrcoef(a, b):
     '''
     if nans exist the prinziple of marginalization is applied
     input: np.arrays with np.nan for invalids
     '''
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
-    corr = np.corrcoef(a1,b1)[1,0]
+    a1 = a[idx]
+    b1 = b[idx]
+    corr = np.corrcoef(a1, b1)[1, 0]
     return corr
 
 def calc_bias(a,b):
@@ -176,50 +176,53 @@ def validate(results_dict,boot=None):
     scatter index --> SI
     """
     #date_matches = results_dict['datetime']
-    if isinstance(results_dict['model_values'],list):
+    if isinstance(results_dict['model_values'], list):
         model_matches = np.array(results_dict['model_values'])
     else: model_matches = results_dict['model_values']
-    if isinstance(results_dict['obs_values'],list):
+    if isinstance(results_dict['obs_values'], list):
         obs_matches = np.array(results_dict['obs_values'])
     else: obs_matches = results_dict['obs_values']
-    if (boot is None or boot ==  False):
+    if (boot is None or boot == False):
         mop = np.nanmean(model_matches)
         mor = np.nanmean(obs_matches)
-        msd, rmsd = calc_rmsd(model_matches,obs_matches)
-        nmsd, nrmsd = calc_nrmsd(model_matches,obs_matches)
-        dmsd, drmsd = calc_drmsd(model_matches,obs_matches)
+        msd, rmsd = calc_rmsd(model_matches, obs_matches)
+        #nmsd, nrmsd = calc_nrmsd(model_matches,obs_matches)
+        _, nrmsd = calc_nrmsd(model_matches, obs_matches)
+        #dmsd, drmsd = calc_drmsd(model_matches,obs_matches)
+        _, drmsd = calc_drmsd(model_matches, obs_matches)
         #nov = len(obs_matches)
-        nov = number_of_valid_values(model_matches,obs_matches)
-        mad = calc_mad(model_matches,obs_matches)
-        corr = calc_corrcoef(model_matches,obs_matches)
-        bias = calc_bias(model_matches,obs_matches)
-        nbias = calc_nbias(model_matches,obs_matches)
-        SI = calc_scatter_index(model_matches,obs_matches)
-        mar = calc_model_activity_ratio(model_matches,obs_matches)
+        nov = number_of_valid_values(model_matches, obs_matches)
+        mad = calc_mad(model_matches, obs_matches)
+        corr = calc_corrcoef(model_matches, obs_matches)
+        bias = calc_bias(model_matches, obs_matches)
+        nbias = calc_nbias(model_matches, obs_matches)
+        SI = calc_scatter_index(model_matches, obs_matches)
+        mar = calc_model_activity_ratio(model_matches, obs_matches)
         validation_dict = {
-            'mop':mop,
-            'mor':mor,
-            'msd':msd,
-            'nov':nov,
-            'rmsd':rmsd,
-            'nrmsd':nrmsd,
-            'drmsd':drmsd,
-            'corr':corr,
-            'mad':mad,
-            'bias':bias,
-            'nbias':nbias,
-            'SI':SI,
-            'mar':mar}
+            'mop': mop,
+            'mor': mor,
+            'msd': msd,
+            'nov': nov,
+            'rmsd': rmsd,
+            'nrmsd': nrmsd,
+            'drmsd': drmsd,
+            'corr': corr,
+            'mad': mad,
+            'bias': bias,
+            'nbias': nbias,
+            'SI': SI,
+            'mar': mar}
     elif boot is True:
         from wavy.utils import bootstr, marginalize
-        reps=1000
-        newmodel,newobs,newidx = marginalize(model_matches,obs_matches)
-        obs_boot,boot_idx=bootstr(newobs,reps)
-        print (len(obs_boot[np.isnan(obs_boot)]))
-        RMSD=np.zeros(reps)*np.nan
-        MSD=np.zeros(reps)*np.nan
-        BIAS=np.zeros(reps)*np.nan
-        CORR=np.zeros(reps)*np.nan
+        reps = 1000
+        #newmodel, newobs, newidx = marginalize(model_matches, obs_matches)
+        newmodel, newobs, _ = marginalize(model_matches, obs_matches)
+        obs_boot, boot_idx = bootstr(newobs, reps)
+        print(len(obs_boot[np.isnan(obs_boot)]))
+        RMSD = np.zeros(reps)*np.nan
+        MSD = np.zeros(reps)*np.nan
+        BIAS = np.zeros(reps)*np.nan
+        CORR = np.zeros(reps)*np.nan
         for i in range(reps):
             results_dict = {
                         #'date_matches':date_matches[newidx[boot_idx[:,i]]],
