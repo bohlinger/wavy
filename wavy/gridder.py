@@ -69,8 +69,8 @@ class gridder_class():
         """
         returns grid coordinates
         """
-        lons = np.arange(self.bb[0], self.bb[1], self.res[0])
-        lats = np.arange(self.bb[2], self.bb[3], self.res[1])
+        lons = np.arange(self.bb[0], self.bb[1]+self.res[0]/2, self.res[0])
+        lats = np.arange(self.bb[2], self.bb[3]+self.res[1]/2, self.res[1])
         return np.array(lons), np.array(lats)
 
     def get_obs_grid_idx(self):

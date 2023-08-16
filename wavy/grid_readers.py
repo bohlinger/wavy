@@ -16,9 +16,7 @@ import xarray as xr
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs
-#from wavy.ncmod import read_netcdfs_hidefix
 from wavy.ncmod import tpe_hidefix
-#from wavy.ncmod import read_mf_netcdfs
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
@@ -167,8 +165,8 @@ def grid_point_cloud_interp_ds(values, lons, lats, **kwargs):
     res = kwargs.get('res')
     bb = kwargs.get('bb')
 
-    x, y = np.arange(bb[0], bb[1] + res[0], res[0]),\
-           np.arange(bb[2], bb[3] + res[1], res[1])
+    x, y = np.arange(bb[0], bb[1] + res[0]/2, res[0]),\
+           np.arange(bb[2], bb[3] + res[1]/2, res[1])
     lon_grid, lat_grid = np.meshgrid(x, y)
 
     points = [[lons[i], lats[i]] for i in range(len(lons))]
