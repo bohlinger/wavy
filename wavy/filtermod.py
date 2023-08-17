@@ -510,7 +510,7 @@ class filter_class:
             pass
         else:
             new = new.compute_pulse_limited_footprint_radius()
-        lons_perp, lats_perp, ls_idx_lst = \
+        lons_perp, lats_perp, _, _, ls_idx_lst = \
                 new._generate_xtrack_footprints(domain)
         # apply indices to dataset
         new.vars = new.vars.isel(time=ls_idx_lst)
@@ -575,7 +575,7 @@ class filter_class:
                 lats_perp_lst.append(lats_perp_lst_tmp)
             lons_perp = flatten([lons_perp_lst[i] for i in ls_idx_lst])
             lats_perp = flatten([lats_perp_lst[i] for i in ls_idx_lst])
-        return lons_perp, lats_perp, ls_idx_lst
+        return lons_perp, lats_perp, lons_perp_lst, lats_perp_lst, ls_idx_lst
 
     @staticmethod
     def _generate_xtrack_footprints_in_lonlat(

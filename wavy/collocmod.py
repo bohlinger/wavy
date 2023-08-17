@@ -43,10 +43,9 @@ from wavy.consolidate import consolidate_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-model_dict = load_or_default('model_specs.yaml')
-insitu_dict = load_or_default('insitu_specs.yaml')
-collocation_dict = load_or_default('collocation_specs.yaml')
-variable_info = load_or_default('variable_info.yaml')
+model_dict = load_or_default('model_cfg.yaml')
+insitu_dict = load_or_default('insitu_cfg.yaml')
+variable_info = load_or_default('variable_def.yaml')
 
 def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
     grid = pyresample.geometry.GridDefinition(
@@ -890,54 +889,7 @@ class collocation_class():
             print('Erroneous collocation_class file detected')
             print('--> dump to netCDF not possible !')
         else:
-            tmpdate = self.sdate
-            edate = self.edate
-            while tmpdate <= edate:
-                if pathtofile is None:
-                    path_template = collocation_dict[self.obstype]\
-                                                ['dst']\
-                                                ['path_template'][0]
-                    file_template = collocation_dict[self.obstype]\
-                                                ['dst']\
-                                                ['file_template']
-                    strsublst = collocation_dict[self.obstype]\
-                                                ['dst']['strsub']
-                    subdict = make_subdict(strsublst,
-                                           class_object_dict=vars(self))
-                    if 'filterData' in vars(self).keys():
-                        file_template = 'filtered_' + file_template
-                    tmppath = os.path.join(path_template,file_template)
-                    if isinstance(self.leadtime,str):
-                        leadtimestr=self.leadtime
-                    else:
-                        leadtimestr="{:0>3d}h".format(self.leadtime)
-                    if self.obstype=='insitu':
-                        pathtofile = make_pathtofile(tmppath,strsublst,
-                                            subdict,date=tmpdate)
-                    elif self.obstype=='satellite_altimeter':
-                        pathtofile = make_pathtofile(tmppath,strsublst,
-                                            subdict,date=tmpdate)
-                if self.obstype=='insitu':
-                    title = ( 'Collocation of ' + self.stdvarname
-                            + ' observations from '
-                            + self.nID + ' ' + self.sensor
-                            + ' vs ' + self.model)
-                elif self.obstype=='satellite_altimeter':
-                    title = ( 'Collocation of ' + self.stdvarname
-                            + ' observations from ' + self.mission
-                            + ' vs ' + self.model)
-                dumptonc_ts_collocation(self,pathtofile,title)
-                # determine date increment
-                if file_date_incr is None:
-                    file_date_incr = collocation_dict[self.obstype]\
-                                    ['dst'].get('file_date_incr','m')
-                if file_date_incr == 'm':
-                    tmpdate += relativedelta(months = +1)
-                elif file_date_incr == 'Y':
-                    tmpdate += relativedelta(years = +1)
-                elif file_date_incr == 'd':
-                    tmpdate += timedelta(days = +1)
-        return
+            print('to be implemented ...')
 
     def write_to_pickle(self,pathtofile=None):
         import pickle
@@ -962,6 +914,7 @@ class collocation_class():
 def validate_collocated_values(dtime,obs,mods,**kwargs):
     target_t, sdate, edate, twin = None, None, None, None
     if ('col_obj' in kwargs.keys() and kwargs['col_obj'] is not None):
+        col_obj = kwargs['col_obj']
         mods = col_obj.vars['model_values']
         obs = col_obj.vars['obs_values']
         dtime = col_obj.vars['datetime']

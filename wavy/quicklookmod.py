@@ -765,7 +765,7 @@ class quicklook_class_sat:
             # plot sat
             if kwargs.get("plot_xtrack_pulse_limited_fpr") is not None:
                 domain = kwargs.get('domain', 'lonlat')
-                lons_perp, lats_perp, ls_idx_lst = \
+                lons_perp, lats_perp, _, _, ls_idx_lst = \
                     self._generate_xtrack_footprints(domain)
                 sc2 = ax.scatter(lons_perp, lats_perp,
                                  s=.2, c='b', marker='.',
