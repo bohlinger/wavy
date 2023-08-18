@@ -3,6 +3,7 @@ utility fcts for the verification
 """
 import numpy as np
 import netCDF4
+import xarray as xr
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from math import radians, cos, sin, asin, sqrt, floor
@@ -664,3 +665,30 @@ def footprint_pulse_limited_radius(Hs: float, h: float, tau: float) -> float:
 
     return r
 
+
+def build_xr_ds(var: tuple, varnames: tuple):
+    ds = xr.Dataset({
+            varnames[0]: xr.DataArray(
+                    data=var[0],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[1]: xr.DataArray(
+                    data=var[1],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[2]: xr.DataArray(
+                    data=var[2],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    ),
+            varnames[3]: xr.DataArray(
+                    data=var[3],
+                    dims=[varnames[3]],
+                    coords={varnames[3]: var[3]}
+                    )
+                },
+            attrs={'title': 'wavy dataset'}
+        )
+    return ds

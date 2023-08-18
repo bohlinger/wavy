@@ -11,6 +11,7 @@ import numpy as np
 from datetime import timedelta
 import netCDF4
 import pandas as pd
+import xarray as xr
 
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
@@ -22,6 +23,7 @@ from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
 from wavy.utils import find_included_times, find_included_times_pd
+from wavy.utils import build_xr_ds
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -143,34 +145,6 @@ def read_local_20Hz_files(**kwargs):
     # build xarray ds
     ds_new = build_xr_ds(var, varnames)
     return ds_new
-
-def build_xr_ds(var: tuple, varnames: tuple):
-    import xarray as xr
-    ds = xr.Dataset({
-            varnames[0]: xr.DataArray(
-                    data=var[0],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    ),
-            varnames[1]: xr.DataArray(
-                    data=var[1],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    ),
-            varnames[2]: xr.DataArray(
-                    data=var[2],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    ),
-            varnames[3]: xr.DataArray(
-                    data=var[3],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    )
-                },
-            attrs={'title': 'wavy dataset'}
-        )
-    return ds
 
 def read_local_ncfiles_swim(**kwargs):
     """

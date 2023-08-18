@@ -48,11 +48,13 @@ def test_manually_specified_reader(tmpdir, test_data):
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
+    print(vlst)
     assert len(vlst) == 20
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) == 32
+    print(flst)
+    assert len(flst) == 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -77,7 +79,7 @@ def test_default_reader(tmpdir, test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) == 32
+    assert len(flst) == 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -103,7 +105,7 @@ def test_polygon_region(tmpdir, test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) == 32
+    assert len(flst) == 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -127,7 +129,7 @@ def test_rectangular_region(tmpdir, test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) == 32
+    assert len(flst) == 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 

@@ -29,6 +29,7 @@ from wavy.utils import make_subdict
 from wavy.utils import parse_date
 from wavy.utils import flatten
 from wavy.utils import find_direction_convention
+from wavy.utils import build_xr_ds
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 # read yaml config files:
@@ -37,33 +38,6 @@ variable_info = load_or_default('variable_def.yaml')
 variables_frost = load_or_default('variables_frost.yaml')
 d22_dict = load_or_default('d22_var_dicts.yaml')
 # ---------------------------------------------------------------------#
-
-def build_xr_ds(var: tuple, varnames: tuple):
-    ds = xr.Dataset({
-            varnames[0]: xr.DataArray(
-                    data=var[0],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    ),
-            varnames[1]: xr.DataArray(
-                    data=var[1],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    ),
-            varnames[2]: xr.DataArray(
-                    data=var[2],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    ),
-            varnames[3]: xr.DataArray(
-                    data=var[3],
-                    dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
-                    )
-                },
-            attrs={'title': 'wavy dataset'}
-        )
-    return ds
 
 def get_d22_ts(sdate, edate, basedate, nID, sensor, varalias,
 pathlst, strsublst, dict_for_sub):
