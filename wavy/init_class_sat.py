@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 @dataclass
 class config_class:
     nID: str = None
-    names: dict = None
+    name: dict = None
     download: dict = None
     wavy_input: dict = None
     wavy_output: dict = None
@@ -20,7 +20,7 @@ class config_class:
     #def __post_init(self,obs_type=obs_type,nID=nID):
     #    dc = init_class(obs_type,nID)
     #    nID: str = nID
-    #    names: dict = dc.names
+    #    name: dict = dc.name
 
 
 def parse_config_file(obs_type: str, nID: str) -> dict:

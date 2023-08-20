@@ -50,8 +50,8 @@ def make_frost_reference_time_period(sdate, edate):
                             edate.strftime(formatstr))
     return refstr
 
-def call_frost_api(\
-    sdate: datetime, edate: datetime,\
+def call_frost_api(
+    sdate: datetime, edate: datetime,
     nID: str, varstr: str, sensor: str) -> 'requests.models.Response':
     """
     make frost api call
@@ -62,7 +62,7 @@ def call_frost_api(\
     frost_reference_time = make_frost_reference_time_period(sdate, edate)
     if client_id is None:
         print("No Frost CLIENT_ID given!")
-    sensor = insitu_dict[nID]['sensor'][sensor]
+    sensor = insitu_dict[nID]['name'][sensor]
     r = call_frost_api_v1(nID, varstr,
                           frost_reference_time,
                           client_id, sensor)
@@ -77,7 +77,7 @@ def call_frost_api(\
     else:
         return r
 
-def call_frost_api_v1(\
+def call_frost_api_v1(
         nID: str, varstr: str, frost_reference_time: str,
         client_id: str, sensor: str)\
     -> 'requests.models.Response':
@@ -121,7 +121,7 @@ def get_frost_df_v1(r: 'requests.models.Response')\
     # empy sensor id lst
     # base df
     df = pd.json_normalize(r.json()['data']['tseries'])
-    # coordinates for statisc station (sensor 0)
+    # coordinates for static station (sensor 0)
     lon = float(df['header.extra.station.location'][0][0]['value']['longitude'])
     lat = float(df['header.extra.station.location'][0][0]['value']['latitude'])
     # df to be concatenated initialized with time
@@ -131,32 +131,32 @@ def get_frost_df_v1(r: 'requests.models.Response')\
     no_of_ts = min(4, no_of_ts)
     lenlst = []
     for t in range(no_of_ts):
-        lenlst.append(len(pd.json_normalize(r.json()\
-                      ['data']['tseries'][t]['observations'])['time']\
+        lenlst.append(len(pd.json_normalize(r.json()
+                      ['data']['tseries'][t]['observations'])['time']
                       .to_frame()))
     time_idx = lenlst.index(max(lenlst))
     dfc = pd.json_normalize(r.json()
-      ['data']['tseries'][time_idx]['observations'])['time'].to_frame()
-    dinfo = {'sensor':{},'level':{},'parameterid':{},
-             'geometric height':{},'masl':{}}
+            ['data']['tseries'][time_idx]['observations'])['time'].to_frame()
+    dinfo = {'sensor': {}, 'level': {}, 'parameterid': {},
+             'geometric height': {}, 'masl': {}}
     for vn in variables_frost:
         frostvar = variables_frost[vn]['frost_name']
-        idx = np.array(df['header.extra.element.id']\
-                [df['header.extra.element.id']==frostvar].index.to_list())
+        idx = np.array(df['header.extra.element.id']
+                [df['header.extra.element.id'] == frostvar].index.to_list())
         sensors = df['header.id.sensor'][idx].values
         parameterids = df['header.id.parameterid'][idx].values
         levels = df['header.id.level'][idx].values
         if len(sensors) != len(np.unique(sensors)):
-            print("-> id.sensor was not unique " \
+            print("-> id.sensor was not unique " 
                     + "selecting according to variable_def.yaml")
             print("   affected variable: ", frostvar)
             # 1. prioritize according to parameterid
             if len(np.unique(parameterids)) > 1:
-                print('multiple parameterids (',\
+                print('multiple parameterids (',
                         len(np.unique(parameterids)), ')')
-                print('parameterids:',np.unique(parameterids))
-                idx = find_preferred(\
-                        idx, sensors, parameterids,\
+                print('parameterids:', np.unique(parameterids))
+                idx = find_preferred(
+                        idx, sensors, parameterids,
                         variables_frost[vn]['prime_parameterid'])
                 sensors = df['header.id.sensor'][idx].values
                 parameterids = df['header.id.parameterid'][idx].values
@@ -164,14 +164,14 @@ def get_frost_df_v1(r: 'requests.models.Response')\
             # 2. prioritize according to level
             if len(np.unique(levels)) > 1:
                 print('multiple levels (', len(np.unique(levels)), ')')
-                print('unique(levels):',np.unique(levels))
-                idx = find_preferred(\
-                        idx, sensors, levels, \
+                print('unique(levels):', np.unique(levels))
+                idx = find_preferred(
+                        idx, sensors, levels,
                         variables_frost[vn]['prime_level'])
                 sensors = df['header.id.sensor'][idx].values
                 parameterids = df['header.id.parameterid'][idx].values
                 levels = df['header.id.level'][idx].values
-        for n,i in enumerate(idx):
+        for n, i in enumerate(idx):
             dftmp = pd.json_normalize(r.json()\
                         ['data']['tseries'][i]['observations'])\
                         ['body.value'].to_frame()
@@ -195,8 +195,8 @@ def get_frost_df_v1(r: 'requests.models.Response')\
 
 
 def get_frost_dict(**kwargs):
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
+    sdate = kwargs.get('sd')
+    edate = kwargs.get('ed')
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
     varstr = [variables_frost[varalias]['frost_name']]
@@ -278,23 +278,6 @@ def get_nc_dict(**kwargs):
     # build xarray ds
     ds = build_xr_ds(var_tuple, varnames)
     return ds
-
-def floater(s):
-    """
-    Function that converts 's' to float32 or nan if floater throws exception
-    """
-    try:
-        x = np.float32(s)
-    except:
-        x = np.nan
-    return x
-
-def check_sensor_availability(idxlst, nID, sensor):
-    idxyaml = insitu_dict[nID]['sensor'][sensor]
-    if idxyaml in idxlst:
-        return idxlst.index(idxyaml)
-    else:
-        return None
 
 def insitu_reader(**kwargs):
     '''

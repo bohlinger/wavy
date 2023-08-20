@@ -101,7 +101,7 @@ class satellite_class(qls, wc, fc):
         self.ed = parse_date(kwargs.get('ed', self.sd))
         # add other class object variables
         self.nID = kwargs.get('nID')
-        self.mission = dc.names[kwargs.get('mission', 's3a')]
+        self.mission = dc.name[kwargs.get('mission', 's3a')]
         self.varalias = kwargs.get('varalias', 'Hs')
         self.units = variable_def[self.varalias].get('units')
         self.stdvarname = variable_def[self.varalias].get('standard_name')
@@ -408,7 +408,7 @@ class satellite_class(qls, wc, fc):
                 print(" ")
                 print(' ## Summary:')
                 print(str(len(self.vars['time'])) + " footprints retrieved.")
-                print("Time used for retrieving satellite data:")
+                print("Time used for retrieving data:")
                 print(round(t1-t0, 2), "seconds")
                 print(" ")
                 print(" ### satellite_class object populated ###")
@@ -420,8 +420,8 @@ class satellite_class(qls, wc, fc):
                 print('Error encountered')
                 print('satellite_class object not populated')
         else:
-            print('No satellite data found')
-            print('satellite_class object not populated')
+            print('No data data found')
+            print('insitu_class object not populated')
             print('# ----- ')
         return self
 
@@ -432,7 +432,7 @@ class satellite_class(qls, wc, fc):
         from tqdm import tqdm
         print('Match up poi locations')
         # increase with 1 degree in all directions to ensure
-        # that distlim is still teh determining factor
+        # that distlim is still the determining factor
         region = {'llcrnrlat': np.min(poi['latitude']-1),
                   'urcrnrlat': np.max(poi['latitude']+1),
                   'llcrnrlon': np.min(poi['longitude']-1),
