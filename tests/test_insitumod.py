@@ -34,7 +34,7 @@ def test_from_frost_v1():
     assert len(vars(ico).keys()) >= 12
     new = ico.populate()
     print(new.vars.keys())
-    #assert len(ico.vars.keys()) >= 6
-    #assert not 'error' in vars(ico).keys()
+    print(len(new.vars.keys()))
+    assert len(new.vars.keys()) >= 3
 
 #def test_cmems_insitu(test_data):

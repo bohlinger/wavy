@@ -63,7 +63,7 @@ class insitu_class(qls, wc, fc):
         print('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
         # add other class object variables
         self.nID = kwargs.get('nID')
-        self.sensor = dc.name[kwargs.get('sensor', 's3a')]
+        self.sensor = kwargs.get('sensor')
         self.varalias = kwargs.get('varalias', 'Hs')
         self.stdvarnam = variable_def[self.varalias]['standard_name']
         self.units = variable_def[self.varalias].get('units')

@@ -84,7 +84,7 @@ def call_frost_api_v1(
     """
     frost call, retrieve data from frost v1
     """
-    ID = insitu_dict[nID]['ID']
+    ID = insitu_dict[nID]['misc']['ID']
     endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/kvkafka/get?'
     parameters = {
                 'stationids': ID,
@@ -92,8 +92,8 @@ def call_frost_api_v1(
                 'time': frost_reference_time,
                 'levels': 'all',
                 'incobs': 'true',
-                #'sensors': '0,1,2,3,4,5',
-                'sensors': sensor, # limit to one sensor
+                # 'sensors': '0,1,2,3,4,5',
+                'sensors': sensor,  # limit to one sensor
                 'typeids': str(get_typeid(insitu_dict, nID))
                 }
     print('parameters forst api call: ', parameters)
