@@ -54,10 +54,11 @@ D_Breisundet_wave: # object nID (nameID)
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt:
-        fl_tmplt:
-        strsub:
-        date_incr:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/\
+                    obs/buoy-svv-e39/%Y/%m/"
+        fl_tmplt: "%Y%m_E39_nID.nc"
+        strsub: ['nID']
+        date_incr: 'm'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
@@ -66,7 +67,7 @@ D_Breisundet_wave: # object nID (nameID)
         strsub:
         file_date_incr:
     # optional, if not defined the class default is used
-    reader: read_local_ncfiles
+    reader: get_thredds_dict
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef: 
         Hs: Hm0

@@ -218,6 +218,17 @@ def get_frost_dict(**kwargs):
     ds = build_xr_ds(var_tuple, varnames)
     return ds
 
+def get_thredds_dict(**kwargs):
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
+    nID = kwargs.get('nID')
+    #sensor = kwargs.get('sensor')
+    varalias = kwargs.get('varalias')
+    src_tmplt = kwargs.get('cfg').wavy_input['src_tmplt']
+    print('HERE')
+    ds = None
+    return ds
+
 def get_nc_dict(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
@@ -225,8 +236,11 @@ def get_nc_dict(**kwargs):
     #sensor = kwargs.get('sensor')
     varalias = kwargs.get('varalias')
     pathlst = kwargs.get('pathlst')
+    print(pathlst)
     strsublst = kwargs.get('strsublst')
+    print(strsublst)
     dict_for_sub = kwargs.get('dict_for_sub')
+    print(dict_for_sub)
     # loop from sdate to edate with dateincr
     tmpdate = deepcopy(sd)
     varlst = []
@@ -291,6 +305,6 @@ def insitu_reader(**kwargs):
                 'nc': get_nc_dict,
                 'thredds': get_nc_dict,
                 }
-    product = kwargs.get('fifo') # change to reader
+    product = kwargs.get('fifo')  # change to reader
     vardict = dispatch_reader[product](**kwargs)
     return vardict
