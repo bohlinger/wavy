@@ -21,10 +21,10 @@ def grab_PID():
     import os
     # retrieve PID
     PID = os.getpid()
-    print ("\n")
-    print ("PID - with the license to kill :) ")
-    print (str(PID))
-    print ("\n")
+    print("\n")
+    print("PID - with the license to kill :) ")
+    print(str(PID))
+    print("\n")
     return
 
 def haversineP(lon1, lat1, lon2, lat2):
@@ -53,10 +53,10 @@ def haversine_np(lon1, lat1, lon2, lat2):
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = ( np.sin(dlat/2.0)**2
-        + np.cos(lat1)
-        * np.cos(lat2)
-        * np.sin(dlon/2.0)**2 )
+    a = (np.sin(dlat/2.0)**2
+       + np.cos(lat1)
+       * np.cos(lat2)
+       * np.sin(dlon/2.0)**2)
     c = 2 * np.arcsin(np.sqrt(a))
     km = 6367 * c
     return km
@@ -68,13 +68,13 @@ def haversineA(lon1, lat1, lon2, lat2):
     Note: lon1,lat1,lon2, and lat2 can be lists
     """
     # convert decimal degrees to radians
-    rads = np.deg2rad(np.array([lon1,lat1,lon2,lat2]))
+    rads = np.deg2rad(np.array([lon1, lat1, lon2, lat2]))
     # haversine formula
-    if isinstance(lon1,list):
-        dlon = rads[2,:] - rads[0,:]
-        dlat = rads[3,:] - rads[1,:]
+    if isinstance(lon1, list):
+        dlon = rads[2, :] - rads[0, :]
+        dlat = rads[3, :] - rads[1, :]
         a = np.sin(dlat/2)**2 \
-            + np.cos(rads[1,:]) * np.cos(rads[3,:]) * np.sin(dlon/2)**2
+            + np.cos(rads[1, :]) * np.cos(rads[3, :]) * np.sin(dlon/2)**2
         c = 2 * np.arcsin(np.sqrt(a))
         km = 6367 * c
         return list(km)
@@ -87,7 +87,7 @@ def haversineA(lon1, lat1, lon2, lat2):
         km = 6367 * c
         return [km]
 
-def runmean(vec,win,mode=None,weights=None) -> tuple:
+def runmean(vec, win, mode=None, weights=None) -> tuple:
     """
     Computes the running mean with various configurations.
 
@@ -103,21 +103,21 @@ def runmean(vec,win,mode=None,weights=None) -> tuple:
     """
     win = int(win)
     if mode is None:
-        mode='centered'
+        mode = 'centered'
     out = np.zeros(len(vec))*np.nan
     std = np.zeros(len(vec))*np.nan
     length = len(vec)-win+1
-    if mode=='left':
+    if mode == 'left':
         count = win-1
         start = win-1
         for i in range(length):
             out[count] = np.mean(vec[count-start:count+1])
             std[count] = np.std(vec[count-start:count+1])
             count = count+1
-    elif mode=='centered':
+    elif mode == 'centered':
         start = int(floor(win/2))
-        for i in range(start,length):
-            if win%2==0:
+        for i in range(start, length):
+            if win % 2 == 0:
                 sys.exit("window length needs to be odd!")
             else:
                 sidx = int(i-start)
@@ -127,7 +127,7 @@ def runmean(vec,win,mode=None,weights=None) -> tuple:
                 else:
                     out[i] = np.mean(vec[sidx:eidx])
                 std[i] = np.std(vec[sidx:eidx])
-    elif mode=='right':
+    elif mode == 'right':
         count = int(0)
         for i in range(length):
             out[count] = np.mean(vec[i:i+win])
@@ -157,16 +157,16 @@ def runmean_conv(x: np.ndarray, win: int, mode='flat') -> np.ndarray:
         raise ValueError("smooth only accepts 1 dimension arrays.")
     if x.size < win:
         raise ValueError("Input vector needs to be bigger than window size.")
-    if win<3:
+    if win < 3:
         print("window length too small -> returning original signal")
         return x
-    s=np.r_[x[win-1:0:-1],x,x[-2:-win-1:-1]]
-    if mode == 'flat': #moving average
-        w=np.ones(win,'d')
+    s = np.r_[x[win-1:0:-1], x, x[-2:-win-1:-1]]
+    if mode == 'flat':  # moving average
+        w = np.ones(win, 'd')
     else:
         # ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']
-        w=eval('numpy.' + mode + '(win)')
-    out=np.convolve(w/w.sum(),s,mode='valid')
+        w = eval('numpy.' + mode + '(win)')
+    out = np.convolve(w/w.sum(), s, mode='valid')
     return out
 
 def bootstr(a, reps):
@@ -183,8 +183,8 @@ def bootstr(a, reps):
     b = np.random.choice(a, (n, reps))
     bidx = np.zeros(b.shape) * np.nan
     for i in range(len(a)):
-        tmp = np.where(b==a[i])
-        bidx[tmp[0],tmp[1]] = i
+        tmp = np.where(b == a[i])
+        bidx[tmp[0], tmp[1]] = i
         del tmp
     return b, bidx.astype('int')
 
@@ -199,46 +199,46 @@ def marginalize(a, b=None):
     else:
         comb = a + b
         idx = np.array(range(len(a)))[~np.isnan(comb)]
-        a1=a[idx]
-        b1=b[idx]
-        return a1,b1,idx
+        a1 = a[idx]
+        b1 = b[idx]
+        return a1, b1, idx
 
 def hour_rounder(t):
     '''
     Rounds to nearest hour by adding a timedelta hour if minute >= 30
     '''
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
-               +timedelta(hours=t.minute//30))
+          + timedelta(hours=t.minute//30))
 
-def sort_files(dirpath,filelst,product,sat):
+def sort_files(dirpath, filelst, product, sat):
     """
     mv files to sub-folders of year and month
     """
     if product == 'cmems_L3_NRT':
-        sort_cmems_l3_nrt(dirpath,filelst,sat)
+        sort_cmems_l3_nrt(dirpath, filelst, sat)
     elif product == 'cmems_L3_s6a':
-        sort_cmems_l3_s6a(dirpath,filelst,sat)
+        sort_cmems_l3_s6a(dirpath, filelst, sat)
     elif product == 'cmems_L3_MY':
-        sort_cmems_l3_my(dirpath,filelst,sat)
+        sort_cmems_l3_my(dirpath, filelst, sat)
     elif (product == 'cci_L2P' or product == 'cci_L3'):
-        sort_cci(dirpath,filelst)
+        sort_cci(dirpath, filelst)
     elif product == 'eumetsat_L2':
-        sort_eumetsat_l2(dirpath,filelst)
+        sort_eumetsat_l2(dirpath, filelst)
     elif product == 'cfo_swim_L2P':
-        sort_aviso_l2p(dirpath,filelst)
+        sort_aviso_l2p(dirpath, filelst)
 
 def sort_aviso_l2p(dirpath: str, filelst: list):
     '''
     Sort AVISO files according to year and month.
     '''
     for e in filelst:
-        if os.path.isfile(os.path.join(dirpath,e)):
+        if os.path.isfile(os.path.join(dirpath, e)):
             tmp = e.split('_')
             d1 = parse(tmp[-2])
             #d2 = parse(tmp[-1].split('.')[0])
             year, month = d1.strftime("%Y"), d1.strftime("%m")
-            folder = os.path.join(dirpath,year,month)
-            os.makedirs(folder,exist_ok=True)
+            folder = os.path.join(dirpath, year, month)
+            os.makedirs(folder, exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -247,11 +247,11 @@ def sort_cmems_l3_nrt(dirpath: str, filelst: list, sat: str):
     Sort L3 files according to year and month.
     '''
     for e in filelst:
-        if os.path.isfile(os.path.join(dirpath,e)):
+        if os.path.isfile(os.path.join(dirpath, e)):
             tmp = 'global_vavh_l3_rt_' + sat + '_'
-            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
-            folder = os.path.join(dirpath,year,month)
-            os.makedirs(folder,exist_ok=True)
+            year, month = e[len(tmp):len(tmp)+4], e[len(tmp)+4:len(tmp)+6]
+            folder = os.path.join(dirpath, year, month)
+            os.makedirs(folder, exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -268,16 +268,16 @@ def sort_cmems_l3_s6a(dirpath: str, filelst: list, sat: str):
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
-def sort_cmems_l3_my(dirpath: str,filelst: list,sat: str):
+def sort_cmems_l3_my(dirpath: str, filelst: list, sat: str):
     '''
     Sort L3 files according to year and month.
     '''
     for e in filelst:
-        if os.path.isfile(os.path.join(dirpath,e)):
+        if os.path.isfile(os.path.join(dirpath, e)):
             tmp = 'global_vavh_l3_rep_' + sat + '_'
-            year, month = e[len(tmp):len(tmp)+4],e[len(tmp)+4:len(tmp)+6]
-            folder = os.path.join(dirpath,year,month)
-            os.makedirs(folder,exist_ok=True)
+            year, month = e[len(tmp):len(tmp)+4], e[len(tmp)+4:len(tmp)+6]
+            folder = os.path.join(dirpath, year, month)
+            os.makedirs(folder, exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -286,11 +286,11 @@ def sort_cci(dirpath: str, filelst: list):
     Sort L2P and L3 files according to year and month.
     '''
     for e in filelst:
-        if os.path.isfile(os.path.join(dirpath,e)):
+        if os.path.isfile(os.path.join(dirpath, e)):
             tmp = e.split('-')[-2]
-            year, month = tmp[0:4],tmp[4:6]
-            folder = os.path.join(dirpath,year,month)
-            os.makedirs(folder,exist_ok=True)
+            year, month = tmp[0:4], tmp[4:6]
+            folder = os.path.join(dirpath, year, month)
+            os.makedirs(folder, exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
@@ -300,12 +300,12 @@ def sort_eumetsat_l2(dirpath: str, filelst: list):
     '''
     for e in filelst:
         splits = e.split('____')
-        if os.path.isfile(os.path.join(dirpath,e)):
-            year, month = splits[1][0:4],splits[1][4:6]
-            print(year,month)
-            folder = os.path.join(dirpath,year,month)
+        if os.path.isfile(os.path.join(dirpath, e)):
+            year, month = splits[1][0:4], splits[1][4:6]
+            print(year, month)
+            folder = os.path.join(dirpath, year, month)
             print(folder)
-            os.makedirs(folder,exist_ok=True)
+            os.makedirs(folder, exist_ok=True)
             cmd = 'mv ' + dirpath + '/' + e + ' ' + folder
             os.system(cmd)
 
