@@ -410,7 +410,7 @@ def system_call(command: str):
     p = subprocess.Popen([command], stdout=subprocess.PIPE, shell=True)
     return p.stdout.read()
 
-def make_subdict(strsublst,class_object=None,class_object_dict=None):
+def make_subdict(strsublst, class_object=None, class_object_dict=None):
     if class_object_dict is None:
         class_object_dict = vars(class_object)
     subdict = {}
@@ -418,15 +418,19 @@ def make_subdict(strsublst,class_object=None,class_object_dict=None):
         if strsub in class_object_dict:
             subdict[strsub] = class_object_dict[strsub]
         else:
-            print(strsub,'is not available and not substituted')
+            print(strsub, 'is not available and not substituted')
     return subdict
 
-def get_pathtofile(pathlst,strsublst,subdict,date):
+def get_pathtofile(pathlst, strsublst, subdict, date):
     '''
     Finds and returns path of file given templates and keywords and date.
     '''
     i = 0
     switch = False
+    if isinstance(pathlst, list):
+        pass
+    else:
+        pathlst = [pathlst]
     while switch is False:
         try:
             pathtofile = date.strftime(pathlst[i])
@@ -436,7 +440,7 @@ def get_pathtofile(pathlst,strsublst,subdict,date):
             print('-> returning None')
             return None
         for strsub in strsublst:
-            pathtofile = pathtofile.replace(strsub,subdict[strsub])
+            pathtofile = pathtofile.replace(strsub, subdict[strsub])
             #pathtofile = pathtofile.replace(strsub,kwargs[strsub])
         # check if thredds and if accessible using netCDF4a
         if ('thredds' in pathtofile and pathtofile[-3::] == '.nc'):

@@ -31,7 +31,6 @@ from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
 from wavy.utils import convert_meteorologic_oceanographic
 from wavy.wconfig import load_or_default
-from wavy.insitu_readers import insitu_reader
 from wavy.writermod import writer_class as wc
 from wavy.filtermod import filter_class as fc
 from wavy.quicklookmod import quicklook_class_sat as qls

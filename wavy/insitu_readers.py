@@ -22,6 +22,7 @@ import xarray as xr
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_varlst_from_nc_1D
 from wavy.ncmod import get_filevarname
+from wavy.ncmod import read_netcdfs
 from wavy.utils import collocate_times
 from wavy.utils import get_pathtofile
 from wavy.utils import convert_meteorologic_oceanographic
@@ -30,11 +31,12 @@ from wavy.utils import parse_date
 from wavy.utils import flatten
 from wavy.utils import find_direction_convention
 from wavy.utils import build_xr_ds
+from wavy.utils import date_dispatcher
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 # read yaml config files:
 insitu_dict = load_or_default('insitu_cfg.yaml')
-variable_info = load_or_default('variable_def.yaml')
+variable_def = load_or_default('variable_def.yaml')
 variables_frost = load_or_default('variables_frost.yaml')
 # ---------------------------------------------------------------------#
 
@@ -194,7 +196,7 @@ def get_frost_df_v1(r: 'requests.models.Response')\
     return dfc, dinfo, lon, lat
 
 
-def get_frost_dict(**kwargs):
+def get_frost(**kwargs):
     sdate = kwargs.get('sd')
     edate = kwargs.get('ed')
     nID = kwargs.get('nID')
@@ -218,93 +220,36 @@ def get_frost_dict(**kwargs):
     ds = build_xr_ds(var_tuple, varnames)
     return ds
 
-def get_thredds_dict(**kwargs):
+def get_nc_thredds(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     nID = kwargs.get('nID')
     #sensor = kwargs.get('sensor')
     varalias = kwargs.get('varalias')
     src_tmplt = kwargs.get('cfg').wavy_input['src_tmplt']
-    print('HERE')
-    ds = None
-    return ds
-
-def get_nc_dict(**kwargs):
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    nID = kwargs.get('nID')
-    #sensor = kwargs.get('sensor')
-    varalias = kwargs.get('varalias')
-    pathlst = kwargs.get('pathlst')
-    print(pathlst)
-    strsublst = kwargs.get('strsublst')
-    print(strsublst)
-    dict_for_sub = kwargs.get('dict_for_sub')
-    print(dict_for_sub)
+    fl_tmplt = kwargs.get('cfg').wavy_input['fl_tmplt']
+    pth_tmplt = src_tmplt + '/' + fl_tmplt
+    strsub = kwargs.get('cfg').wavy_input['strsub']
+    dict_for_sub = vars(kwargs.get('cfg'))
+    date_incr = kwargs.get('cfg').wavy_input['date_incr']
+    subdict = make_subdict(strsub, class_object_dict=dict_for_sub)
     # loop from sdate to edate with dateincr
     tmpdate = deepcopy(sd)
-    varlst = []
-    lonlst = []
-    latlst = []
-    timelst = []
-    dtimelst = []
-    # make subdict
-    subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
-    while datetime(tmpdate.year, tmpdate.month, 1)\
-    <= datetime(ed.year, ed.month, 1):
+    pathlst = []
+    while (datetime(tmpdate.year, tmpdate.month, 1)
+    <= datetime(ed.year, ed.month, 1)):
         # get pathtofile
-        pathtofile = get_pathtofile(pathlst, strsublst,
+        pathtofile = get_pathtofile(pth_tmplt, strsub,
                                     subdict, tmpdate)
-        # get ncdump
-        ncdict = ncdumpMeta(pathtofile)
-        # retrieve filevarname for varalias
-        filevarname = get_filevarname(varalias,
-                                      variable_info,
-                                      insitu_dict[nID],
-                                      ncdict)
-        varstrlst = [filevarname, 'longitude', 'latitude', 'time']
-        # query
-        vardict = get_varlst_from_nc_1D(pathtofile,
-                                        varstrlst,
-                                        sd, ed)
-        varlst.append(list(vardict[filevarname]))
-        lonlst.append(list(vardict['longitude']))
-        latlst.append(list(vardict['latitude']))
-        timelst.append(list(vardict['time']))
-        dtimelst.append(list(vardict['dtime']))
-        # determine date increment
-        file_date_incr = insitu_dict[nID]['src'].get('file_date_incr', 'm')
-        if file_date_incr == 'm':
-            tmpdate += relativedelta(months=+1)
-        elif file_date_incr == 'Y':
-            tmpdate += relativedelta(years=+1)
-        elif file_date_incr == 'd':
-            tmpdate += timedelta(days=+1)
-    varlst = flatten(varlst)
-    lonlst = flatten(lonlst)
-    latlst = flatten(latlst)
-    timelst = flatten(timelst)
-    dtimelst = flatten(dtimelst)
-
-    varnames = (varalias, 'lons', 'lats', 'time')
-    var_tuple = (varlst, lonlst, latlst, dtimelst)
-
-    # build xarray ds
-    ds = build_xr_ds(var_tuple, varnames)
-    return ds
-
-def insitu_reader(**kwargs):
-    '''
-    wrapping function to read insitu files
-
-    return:
-        vardict - dictionary of variables for insitu data
-    '''
-    dispatch_reader = {
-                'frost': get_frost_dict,
-                'nc': get_nc_dict,
-                'thredds': get_nc_dict,
-                }
-    product = kwargs.get('fifo')  # change to reader
-    vardict = dispatch_reader[product](**kwargs)
-    return vardict
+        pathlst.append(pathtofile)
+        tmpdate = date_dispatcher(tmpdate, date_incr)
+    # determine ncvarname
+    meta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname(varalias, variable_def,
+                            insitu_dict[nID], meta)
+    # read all paths
+    ds = read_netcdfs(pathlst)
+    ds_sort = ds.sortby('time')
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    var_sliced = ds_sliced[[ncvar, 'longitude', 'latitude']]
+    return var_sliced

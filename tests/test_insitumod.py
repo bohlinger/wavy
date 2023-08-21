@@ -25,13 +25,10 @@ def test_from_thredds():
     assert len(vars(ico).keys()) >= 12
     new = ico.populate()
     print(new.vars.keys())
-    #print(len(new.vars.keys()))
-    #assert len(new.vars.keys()) >= 3
-
+    print(len(new.vars.keys()))
+    assert len(new.vars.keys()) >= 3
 
 #def test_to_nc(tmpdir):
-#
-
 
 def test_from_frost_v1():
     nID = 'draugen'
@@ -42,6 +39,7 @@ def test_from_frost_v1():
     assert ico.__class__.__name__ == 'insitu_class'
     assert len(vars(ico).keys()) >= 12
     new = ico.populate()
+    print(new.vars.keys())
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) >= 3
 
