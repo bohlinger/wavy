@@ -65,23 +65,6 @@ ARCMFC3:
     tags:
 
 ww3_4km:
-    # not mandatory for models
-    name: ww3_4km
-    # mandatory when downloading
-    # where to store downloaded data
-    download:
-    # optional: where to read from
-    #           can be defined directly when calling wavy
-    wavy_input:
-        src_tmplt: "https://thredds.met.no/thredds/dodsC/\
-                    ww3_4km_archive_files/%Y/%m/%d/"
-        fl_tmplt: ww3_4km_%Y%m%dT%HZ.nc
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-    # optional, if not defined the class default is used
-    reader: read_ww3_4km
-    # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: hs
         time: time
@@ -93,7 +76,12 @@ ww3_4km:
         lons: longitude
         lats: latitude
     coords:
-    # optional, info that can be used by class functions
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/\
+                    ww3_4km_archive_files/%Y/%m/%d/"
+        fl_tmplt: ww3_4km_%Y%m%dT%HZ.nc
+    wavy_output:
+    reader:
     misc:
         init_times: [0,6,12,18]
         init_step: 6
@@ -103,12 +91,9 @@ ww3_4km:
                 +o_lat_p=22 +R=6.371e+06 +no_defs"
         grid_date: 2021-11-16 00:00:00
         convention: meteorological
-    # optional, to ease grouping
     tags:
 
 ww3_unstr:
-    name:
-    download:
     vardef:
         Hs: hs
         time: time

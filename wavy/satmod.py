@@ -362,12 +362,12 @@ class satellite_class(qls, wc, fc):
                 'sat_readers.' + reader_str, reader_mod_str)
 
         # create reader module
-        sat_reader = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(sat_reader)
+        reader_tmp = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(reader_tmp)
 
         # pick reader
         #reader = getattr(sat_reader, 'read_local_ncfiles')
-        reader = getattr(sat_reader, reader_str)
+        reader = getattr(reader_tmp, reader_str)
         self.reader = reader
         print('Chosen reader:', spec.name)
         print('')
@@ -421,7 +421,7 @@ class satellite_class(qls, wc, fc):
                 print('satellite_class object not populated')
         else:
             print('No data data found')
-            print('insitu_class object not populated')
+            print('satellite_class object not populated')
             print('# ----- ')
         return self
 

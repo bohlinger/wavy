@@ -17,12 +17,6 @@ class config_class:
     misc: dict = None
     tags: list = None
 
-    #def __post_init(self,obs_type=obs_type,nID=nID):
-    #    dc = init_class(obs_type,nID)
-    #    nID: str = nID
-    #    name: dict = dc.name
-
-
 def parse_config_file(obs_type: str, nID: str) -> dict:
     config_file_str = obs_type + '_cfg.yaml'
     parsed_file = load_or_default(config_file_str)

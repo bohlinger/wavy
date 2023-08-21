@@ -215,7 +215,7 @@ def read_unstr_model_nc_output(self, **kwargs):
         print('###########')
     # read_ww3_unstructured
     reader_str = kwargs.get('reader', self.cfg.reader)
-    reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
+    reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
     spec = importlib.util.spec_from_file_location(
             'grid_readers.' + reader_str, reader_mod_str)
 
@@ -414,6 +414,7 @@ def get_model(model=None,
     filestr = make_model_filename_wrapper(model=model,
                                           fc_date=fc_date,
                                           leadtime=leadtime)
+    #filestr_lst = make_list_of_model_filenames(model, fc_date, lt)
     if (isinstance(filestr, list) and st_obj is None):
         vardict, \
         filevarname = get_model_fc_mode(filestr=filestr[0], model=model,
@@ -432,7 +433,7 @@ def get_model(model=None,
                 tmpdict[variable_def[varalias]['standard_name']])
             vardict['time'].append(tmpdict['time'])
             vardict['datetime'].append(tmpdict['datetime'])
-        vardict[variable_def[varalias]['standard_name']] =
+        vardict[variable_def[varalias]['standard_name']] =\
             np.array(vardict[variable_def[varalias]['standard_name']])
     else:
         vardict, \
@@ -500,15 +501,18 @@ class model_class(qls):
     '''
     def __init__(self, **kwargs):
         print('# ----- ')
-        print(" ### Initializing satellite_class object ###")
+        print(" ### Initializing model_class object ###")
         print(" ")
         print(" Given kwargs:")
         print(kwargs)
+
         # initializing useful attributes from config file
         dc = init_class('model', kwargs.get('nID'))
         # parse and translate date input
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
+        print('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
+
         # add other class object variables
         self.nID = kwargs.get('nID')
         self.varalias = kwargs.get('varalias', 'Hs')
@@ -518,7 +522,218 @@ class model_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
+        self.leadtime = kwargs.get('leadtime', 'best')
         self.cfg = dc
+
+        print(" ")
+        print(" ### model_class object initialized ### ")
+        print('# ----- ')
+
+    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
+        """
+        Function to retrieve list of files/paths for available
+        locally stored data. This list is used for other functions
+        to query and parsing.
+
+        param:
+            sd - start date (datetime object)
+            ed - end date (datetime object)
+            twin - time window (temporal constraint) in minutes
+            nID - nID as of model_cfg.yaml
+            dict_for_sub - dictionary for substitution in templates
+            path - a path if defined
+
+        return:
+            pathlst - list of paths
+            filelst - list of files
+        """
+        filelst = []
+        pathlst = []
+        tmpdate = self.sd-timedelta(minutes=self.twin)
+        if wavy_path is not None:
+            pathtotals = [wavy_path]
+            filelst = [wavy_path]
+        elif path is None:
+            print('path is None -> checking config file')
+            while (tmpdate <= date_dispatcher(self.ed,
+            self.cfg.wavy_input['date_incr'])):
+                try:
+                    # create local path for each time
+                    path_template = \
+                            satellite_dict[self.nID]['wavy_input'].get(
+                                                  'src_tmplt')
+                    strsublst = \
+                        satellite_dict[self.nID]['wavy_input'].get('strsub')
+                    subdict = \
+                        make_subdict(strsublst,
+                                     class_object_dict=dict_for_sub)
+                    path = make_pathtofile(path_template,
+                                           strsublst, subdict)
+                    path = tmpdate.strftime(path)
+                    if os.path.isdir(path):
+                        tmplst = np.sort(os.listdir(path))
+                        filelst.append(tmplst)
+                        pathlst.append([os.path.join(path, e)
+                                        for e in tmplst])
+                    path = None
+                except Exception as e:
+                    logger.exception(e)
+                tmpdate = date_dispatcher(tmpdate,
+                            self.cfg.wavy_input['date_incr'])
+            filelst = np.sort(flatten(filelst))
+            pathlst = np.sort(flatten(pathlst))
+            pathtotals = [pathlst]
+
+            # limit to sd and ed based on file naming, see check_date
+            idx_start, tmp = check_date(filelst,
+                                        self.sd - timedelta(minutes=self.twin))
+            tmp, idx_end = check_date(filelst,
+                                      self.ed + timedelta(minutes=self.twin))
+            if idx_end == 0:
+                idx_end = len(pathlst)-1
+            del tmp
+            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
+
+        else:
+            if os.path.isdir(path):
+                pathlst = glob.glob(path+'/*')
+            else:
+                pathlst = glob.glob(path+'*')
+            #
+            # interesting other approach using pathlibs glob
+            # https://stackoverflow.com/questions/3348753/\
+            #        search-for-a-file-using-a-wildcard
+            # from pathlib import Path
+            # filelst = [p.name for p in Path(path).glob("*")]
+            # pathlst = [str(p.parent) for p in Path(path).glob("*")]
+            #
+            # separate files from path
+            filelst = [p.split('/')[-1] for p in pathlst]
+            pathlst = [p[0:-len(f)] for p, f in zip(pathlst, filelst)]
+            pathtotals = [os.path.join(p, f) for p, f in zip(pathlst, filelst)]
+
+            # limit to sd and ed based on file naming, see check_date
+            idx_start, tmp = check_date(filelst,
+                                        self.sd - timedelta(minutes=self.twin))
+            tmp, idx_end = check_date(filelst,
+                                      self.ed + timedelta(minutes=self.twin))
+            if idx_end == 0:
+                idx_end = len(pathlst)-1
+            del tmp
+            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
+        print(str(int(len(pathtotals))) + " valid files found")
+        return pathtotals, filelst
+
+    def list_input_files(self, show=False, **kwargs):
+        print(" ## Find and list files ...")
+        path = kwargs.get('path', None)
+        wavy_path = kwargs.get('wavy_path', None)
+        pathlst, _ = self._get_files(vars(self),
+                                     path=path,
+                                     wavy_path=wavy_path)
+        print('source template:',
+              model_dict[self.nID]['wavy_input']['src_tmplt'])
+        if show is True:
+            print(" ")
+            print(pathlst)
+            print(" ")
+        return pathlst
+
+    def populate(self, **kwargs):
+        print(" ### Read files and populate model_class object")
+
+
+        # if local
+        flst = self.list_input_files(**kwargs)
+        self.pathlst = flst
+        # else create file list
+        fc_dates = make_fc_dates(sdate, edate, date_incr)
+        flst = make_list_of_model_filenames(model, fc_dates, lt)
+
+
+        print('')
+        print('Checking variables..')
+        self.meta = ncdumpMeta(self.pathlst[0])
+        ncvar = get_filevarname(self.varalias, variable_def,
+                                model_dict[self.nID], self.meta)
+        print('')
+        print('Choosing reader..')
+        # define reader
+        dotenv.load_dotenv()
+        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        if WAVY_DIR is None:
+            print('###########')
+            print('Environmental variable for WAVY_DIR needs to be defined!')
+            print('###########')
+        reader_str = kwargs.get('reader', self.cfg.reader)
+        reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
+        spec = importlib.util.spec_from_file_location(
+                'model_readers.' + reader_str, reader_mod_str)
+
+        # create reader module
+        reader_tmp = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(reader_tmp)
+
+        # pick reader
+        reader = getattr(reader_tmp, reader_str)
+        self.reader = reader
+        print('Chosen reader:', spec.name)
+        print('')
+
+        # possible to select list of variables
+        self.varname = ncvar
+
+        if len(lst) > 0:
+            try:
+                t0 = time.time()
+                print('Reading..')
+                self = self._get_sat_ts(**kwargs)
+
+                self = self._change_varname_to_aliases()
+                self = self._change_stdvarname_to_cfname()
+                self = self._enforce_meteorologic_convention()
+
+                # convert longitude
+                ds = self.vars
+                ds_new = self._enforce_longitude_format(ds)
+                self.vars = ds_new
+
+                # adjust varalias if other return_var
+                if kwargs.get('return_var') is not None:
+                    newvaralias = kwargs.get('return_var')
+                else:
+                    newvaralias = self.varalias
+
+                # define more class object variables
+                if kwargs.get('return_var') is not None:
+                    self.varalias = kwargs.get('return_var')
+                    self.stdvarname = \
+                        variable_def[newvaralias].get('standard_name')
+                    self.units = variable_def[newvaralias].get('units')
+                # create label for plotting
+                self.label = self.mission
+                t1 = time.time()
+                print(" ")
+                print(' ## Summary:')
+                print(str(len(self.vars['time'])) + " footprints retrieved.")
+                print("Time used for retrieving data:")
+                print(round(t1-t0, 2), "seconds")
+                print(" ")
+                print(" ### model_class object populated ###")
+                print('# ----- ')
+            except Exception as e:
+                logger.exception(e)
+                #logger.debug(traceback.format_exc())
+                print(e)
+                print('Error encountered')
+                print('model_class object not populated')
+        else:
+            print('No data data found')
+            print('model_class object not populated')
+            print('# ----- ')
+        return self
 
     def __init__(self,
                  model='mwam4',
