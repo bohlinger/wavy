@@ -103,6 +103,8 @@ ww3_4km:
                 +o_lat_p=22 +R=6.371e+06 +no_defs"
         grid_date: 2021-11-16 00:00:00
         convention: meteorological
+        date_incr_unit: h
+        date_incr: 1
     # optional, to ease grouping
     tags:
 

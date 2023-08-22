@@ -9,12 +9,12 @@ files for further use.
 # standard library igports
 import numpy as np
 from datetime import timedelta
-import xarray as xr
+import netCDF4
 
 # own imports
-from wavy.ncmod import read_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import build_xr_ds
+import xarray as xr
 
 # ---------------------------------------------------------------------#
 # read yaml config files:
@@ -24,20 +24,32 @@ variable_info = load_or_default('variable_def.yaml')
 
 def read_ww3_4km(**kwargs):
     pathlst = kwargs.get('pathlst')
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    twin = kwargs.get('twin')
-
-    # adjust start and end
-    sd = sd - timedelta(minutes=twin)
-    ed = ed + timedelta(minutes=twin)
+    nID = kwargs.get('nID')
+    fc_dates = kwargs.get('fc_dates')
+    varname = kwargs.get('varname')
+    ds_lst = []
     # retrieve sliced data
-    ds = read_netcdfs(pathlst)
-    ds_sort = ds.sortby('time')
+    for i in range(len(fc_dates)):
+        d = fc_dates[i]
+        p = pathlst[i]
+        ds = xr.open_dataset(p)
+        ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
+        ds_sliced = ds_sliced[[varname,
+                               model_dict[nID]['vardef']['lons'],
+                               model_dict[nID]['vardef']['lats']]]
 
-    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+        ds_lst.append(ds_sliced)
 
-    return ds_sliced
+    print("Concatenate ...")
+    combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
+                         coords='minimal',
+                         data_vars='minimal',
+                         compat='override',
+                         combine_attrs='override',
+                         join='override')
+    print("... done concatenating")
+
+    return combined
 
 def read_ww3_unstructured(**kwargs):
     return ds

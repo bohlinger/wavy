@@ -482,7 +482,7 @@ def finditem(search_dict, field):
                         fields_found.append(another_result)
     return fields_found
 
-def make_pathtofile(tmppath,strsublst,subdict,date=None):
+def make_pathtofile(tmppath, strsublst, subdict, date=None):
     '''
     Creates a path given templates and keywords and date.
     '''
@@ -491,7 +491,7 @@ def make_pathtofile(tmppath,strsublst,subdict,date=None):
     else: pathtofile = tmppath
     for strsub in strsublst:
         if strsub in subdict:
-            pathtofile = pathtofile.replace(strsub,subdict[strsub])
+            pathtofile = pathtofile.replace(strsub, subdict[strsub])
         else:
             print(strsub,
                   'in substitutables not needed for destination path')
@@ -621,31 +621,31 @@ def expand_nID_for_sensors(nID,obstype):
     sensors = list(obsdict[nID]['sensor'])
     return sensors
 
-def date_dispatcher(date, date_incr='d'):
+def date_dispatcher(date, date_incr='d', incr=1):
     dispatch_date = {
                 'h': date_next_hour,
                 'd': date_next_day,
                 'm': date_next_month,
                 'y': date_next_year
                 }
-    return dispatch_date[date_incr](date)
+    return dispatch_date[date_incr](date, incr)
 
-def date_next_hour(date):
-    date += timedelta(hours=1)
+def date_next_hour(date, incr):
+    date += timedelta(hours=incr)
     return date
 
-def date_next_day(date):
-    date += timedelta(days=1)
+def date_next_day(date, incr):
+    date += timedelta(days=incr)
     return date
 
-def date_next_month(date):
-    return datetime( (date + relativedelta(months=+1)).year,\
-                     (date + relativedelta(months=+1)).month,\
+def date_next_month(date, incr):
+    return datetime((date + relativedelta(months=+incr)).year,
+                    (date + relativedelta(months=+incr)).month,
                     1)
 
-def date_next_year(date):
-    return datetime( (date + relativedelta(years=+1)).year,\
-                     (date + relativedelta(years=+1)).month,\
+def date_next_year(date, incr):
+    return datetime((date + relativedelta(years=+incr)).year,
+                    (date + relativedelta(years=+incr)).month,
                     1)
 
 def footprint_pulse_limited_radius(Hs: float, h: float, tau: float) -> float:

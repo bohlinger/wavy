@@ -47,11 +47,11 @@ definition of some global functions
 def check_if_ncfile_accessible(fstr):
     # remove escape character because xarray handles white spaces
     # but cannot handle escape characters (apparently)
-    fstr_repl=fstr.replace('\\','')
+    fstr_repl = fstr.replace('\\', '')
     try:
-        xs=xr.open_dataset(fstr_repl)
+        xs = xr.open_dataset(fstr_repl)
         return True
-    except (OSError,FileNotFoundError) as e:
+    except (OSError, FileNotFoundError) as e:
         print("Desired file not accessible")
         print(e)
         return False

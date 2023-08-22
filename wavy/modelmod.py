@@ -13,19 +13,58 @@ from datetime import datetime, timedelta
 import time
 from functools import lru_cache
 from tqdm import tqdm
+import importlib.util
+import dotenv
+import os
+import glob
+
+import logging
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=30)
+logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import hour_rounder, make_fc_dates
 from wavy.utils import finditem, parse_date, NoStdStreams
 from wavy.utils import convert_meteorologic_oceanographic
+from wavy.utils import date_dispatcher
 from wavy.utils import find_direction_convention
+from wavy.utils import flatten
+from wavy.utils import make_pathtofile, make_subdict
+
 from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
+
 from wavy.wconfig import load_or_default
+
 from wavy.quicklookmod import quicklook_class_sat as qls
+
 from wavy.init_class_mod import init_class
 
 # ---------------------------------------------------------------------#
+
+def crop_to_period(ds, sd, ed):
+    """
+    Function to crop the dataset to a given period
+    """
+    ds_sliced = ds.sel(time=slice(sd, ed))
+    return ds_sliced
+
+def check_date(filelst, date):
+    '''
+    Checks if str in lst according to desired date (sd, ed)
+
+    return: idx for file
+    '''
+    idx = []
+    for i in range(len(filelst)):
+        element = filelst[i]
+        tmp = element.find(date.strftime('%Y%m%d'))
+        if tmp >= 0:
+            idx.append(i)
+    if len(idx) <= 0:
+        idx = [0]
+    return idx[0], idx[-1]
 
 def get_model_filedate(model, fc_date, leadtime):
     '''
@@ -51,10 +90,10 @@ def get_model_filedate(model, fc_date, leadtime):
     date_hour = hour_rounder(date).hour
     if date_hour in init_times:
         print('Leadtime', leadtime , \
-              'available for date' ,fc_date)
+              'available for date', fc_date)
         init_diffs = date_hour - init_times
         init_diffs[init_diffs < 0] = np.nan
-        h_idx = np.where(init_diffs==\
+        h_idx = np.where(init_diffs == \
                         np.min(init_diffs[~np.isnan(init_diffs)]))
         h = int(init_times[h_idx[0][0]])
         return datetime(date.year, date.month, date.day, h)
@@ -105,8 +144,10 @@ def make_model_filename(model, fc_date, leadtime):
         else:
             filedate = get_model_filedate(model, fc_date, leadtime)
             filename =\
-                (filedate.strftime(model_dict[model]['path_template'])\
-                + filedate.strftime(model_dict[model]['file_template']))
+                (filedate.strftime(model_dict[model]\
+                                   ['wavy_input']['src_tmplt'])\
+                + filedate.strftime(model_dict[model]\
+                                    ['wavy_input']['fl_tmplt']))
     else:
         raise ValueError("Chosen model is not specified in model_specs.yaml")
     # replace/escape special characters
@@ -170,7 +211,7 @@ def make_list_of_model_filenames(model, fc_dates, lt):
     #fn = make_model_filename_wrapper('mwam4',datetime(2021,1,1,1),1)
     flst = []
     for d in fc_dates:
-        fn = make_model_filename_wrapper(model ,d, lt)
+        fn = make_model_filename_wrapper(model, d, lt)
         flst.append(fn)
     return flst
 
@@ -232,7 +273,7 @@ def read_unstr_model_nc_output(self, **kwargs):
 
     # remove escape character because netCDF4 handles white spaces
     # but cannot handle escape characters (apparently)
-    filestr=filestr.replace('\\','')
+    filestr=filestr.replace('\\', '')
     f = netCDF4.Dataset(filestr, 'r')
     # get coordinates and time
     model_lons = f.variables[lonsname][:]
@@ -379,12 +420,12 @@ def generate_bestguess_leadtime(model, fc_date, lidx=None):
             [generate_bestguess_leadtime(model, date) for date in fc_date]
     else:
         init_times = \
-            np.array(model_dict[model]['init_times']).astype('float')
+            np.array(model_dict[model]['misc']['init_times']).astype('float')
         diffs = fc_date.hour - np.array(init_times)
         gtz = diffs[diffs >= 0]
         if len(gtz) == 0:
             leadtime = int(np.abs(np.min(np.abs(diffs))
-                                - model_dict[model]['init_step']))
+                                - model_dict[model]['misc']['init_step']))
         elif (len(gtz) > 0 and lidx is not None):
             leadtime = int(np.sort(diffs[diffs >= 0])[lidx])
         else:
@@ -518,7 +559,6 @@ class model_class(qls):
         self.varalias = kwargs.get('varalias', 'Hs')
         self.units = variable_def[self.varalias].get('units')
         self.stdvarname = variable_def[self.varalias].get('standard_name')
-        self.twin = int(kwargs.get('twin', 30))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
@@ -529,6 +569,56 @@ class model_class(qls):
         print(" ### model_class object initialized ### ")
         print('# ----- ')
 
+
+    def get_item_parent(self, item, attr):
+        """
+        Offers possibility to explore netcdf meta info.
+        by specifying what you are looking for (item),
+        e.g. part of a string, and in which attribute (attr),
+        e.g. standard_name, this function returns the
+        parent parameter name of the query string.
+
+        param:
+            item - (partial) string e.g. [m]
+            attr - attribute e.g. units
+
+        return: list of matching parameter strings
+
+        e.g. for satellite_class object sco:
+
+        .. code ::
+
+            sco.get_item_parent('m','units')
+        """
+
+        lst = [i for i in self.meta.keys()
+               if (attr in self.meta[i].keys()
+               and item in self.meta[i][attr])
+               ]
+        if len(lst) >= 1:
+            return lst
+        else:
+            return None
+
+    def get_item_child(self, item):
+        """
+        Gets all attributes connected to given parameter name.
+
+        param:
+            item - (partial) string e.g. [m]
+
+        return: matching parameter string
+
+        e.g. for satellite_class object sco:
+
+        .. code ::
+
+            sco.get_item_child('time')
+        """
+
+        parent = finditem(self.meta, item)
+        return parent
+
     def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
         """
         Function to retrieve list of files/paths for available
@@ -538,7 +628,6 @@ class model_class(qls):
         param:
             sd - start date (datetime object)
             ed - end date (datetime object)
-            twin - time window (temporal constraint) in minutes
             nID - nID as of model_cfg.yaml
             dict_for_sub - dictionary for substitution in templates
             path - a path if defined
@@ -549,21 +638,21 @@ class model_class(qls):
         """
         filelst = []
         pathlst = []
-        tmpdate = self.sd-timedelta(minutes=self.twin)
+        tmpdate = self.sd
         if wavy_path is not None:
             pathtotals = [wavy_path]
             filelst = [wavy_path]
         elif path is None:
             print('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
-            self.cfg.wavy_input['date_incr'])):
+            self.cfg.misc['date_incr_unit'], self.cfg.misc['date_incr'])):
                 try:
                     # create local path for each time
                     path_template = \
-                            satellite_dict[self.nID]['wavy_input'].get(
+                            model_dict[self.nID]['wavy_input'].get(
                                                   'src_tmplt')
                     strsublst = \
-                        satellite_dict[self.nID]['wavy_input'].get('strsub')
+                        model_dict[self.nID]['wavy_input'].get('strsub')
                     subdict = \
                         make_subdict(strsublst,
                                      class_object_dict=dict_for_sub)
@@ -579,16 +668,15 @@ class model_class(qls):
                 except Exception as e:
                     logger.exception(e)
                 tmpdate = date_dispatcher(tmpdate,
-                            self.cfg.wavy_input['date_incr'])
+                            self.cfg.misc['date_incr_unit'],
+                            self.cfg.misc['date_incr'])
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
             pathtotals = [pathlst]
 
             # limit to sd and ed based on file naming, see check_date
-            idx_start, tmp = check_date(filelst,
-                                        self.sd - timedelta(minutes=self.twin))
-            tmp, idx_end = check_date(filelst,
-                                      self.ed + timedelta(minutes=self.twin))
+            idx_start, tmp = check_date(filelst, self.sd)
+            tmp, idx_end = check_date(filelst, self.ed)
             if idx_end == 0:
                 idx_end = len(pathlst)-1
             del tmp
@@ -614,10 +702,8 @@ class model_class(qls):
             pathtotals = [os.path.join(p, f) for p, f in zip(pathlst, filelst)]
 
             # limit to sd and ed based on file naming, see check_date
-            idx_start, tmp = check_date(filelst,
-                                        self.sd - timedelta(minutes=self.twin))
-            tmp, idx_end = check_date(filelst,
-                                      self.ed + timedelta(minutes=self.twin))
+            idx_start, tmp = check_date(filelst, self.sd)
+            tmp, idx_end = check_date(filelst, self.ed)
             if idx_end == 0:
                 idx_end = len(pathlst)-1
             del tmp
@@ -627,31 +713,101 @@ class model_class(qls):
         return pathtotals, filelst
 
     def list_input_files(self, show=False, **kwargs):
-        print(" ## Find and list files ...")
-        path = kwargs.get('path', None)
-        wavy_path = kwargs.get('wavy_path', None)
-        pathlst, _ = self._get_files(vars(self),
-                                     path=path,
-                                     wavy_path=wavy_path)
-        print('source template:',
-              model_dict[self.nID]['wavy_input']['src_tmplt'])
+
+        if (kwargs.get('path') is None and kwargs.get('wavy_path') is None):
+            fc_dates = make_fc_dates(self.sd, self.ed,
+                                     self.cfg.misc['date_incr'])
+            pathlst = make_list_of_model_filenames(self.nID,
+                        fc_dates, self.leadtime)
+
+        else:
+            # if defined path local
+            print(" ## Find and list files ...")
+            path = kwargs.get('path', None)
+            wavy_path = kwargs.get('wavy_path', None)
+            pathlst, _ = self._get_files(vars(self),
+                                         path=path,
+                                         wavy_path=wavy_path)
+
         if show is True:
             print(" ")
             print(pathlst)
             print(" ")
         return pathlst
 
+    def _get_model(self, **kwargs):
+        """
+        Main function to obtain data from satellite missions.
+        reads files, apply region and temporal filter
+
+        return: adjusted dictionary according to spatial and
+                temporal constraints
+        """
+
+        # retrieve dataset
+        ds = self.reader(fc_dates=kwargs.get('fc_dates'), **(vars(self)))
+        self.vars = ds
+        self.coords = list(self.vars.coords)
+        return self
+
+    @staticmethod
+    def _enforce_longitude_format(ds):
+        # adjust longitude -180/180
+        attrs = ds.lons.attrs
+        attrs['valid_min'] = -180
+        attrs['valid_max'] = 180
+        attrs['comments'] = 'forced to range: -180 to 180'
+        ds.lons.values = ((ds.lons.values-180) % 360)-180
+        return ds
+
+    def _enforce_meteorologic_convention(self):
+        ncvars = list(self.vars.variables)
+        for ncvar in ncvars:
+            if ('convention' in model_dict[self.nID].keys() and
+            model_dict[self.nID]['convention'] == 'oceanographic'):
+                print('Convert from oceanographic to meteorologic convention')
+                self.vars[ncvar] =\
+                    convert_meteorologic_oceanographic(self.vars[ncvar])
+            elif 'to_direction' in self.vars[ncvar].attrs['standard_name']:
+                print('Convert from oceanographic to meteorologic convention')
+                self.vars[ncvar] =\
+                    convert_meteorologic_oceanographic(self.vars[ncvar])
+
+        return self
+
+    def _change_varname_to_aliases(self):
+        # variables
+        ncvar = get_filevarname(self.varalias, variable_def,
+                                model_dict[self.nID], self.meta)
+        self.vars = self.vars.rename({ncvar: self.varalias})
+        # coords
+        coords = ['time', 'lons', 'lats']
+        for c in coords:
+            ncvar = get_filevarname(c, variable_def,
+                                    model_dict[self.nID], self.meta)
+            self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
+        return self
+
+    def _change_stdvarname_to_cfname(self):
+        # enforce standard_name for coordinate aliases
+        self.vars['lons'].attrs['standard_name'] = \
+            variable_def['lons'].get('standard_name')
+        self.vars['lats'].attrs['standard_name'] = \
+            variable_def['lats'].get('standard_name')
+        self.vars['time'].attrs['standard_name'] = \
+            variable_def['time'].get('standard_name')
+        # enforce standard_name for variable alias
+        self.vars[self.varalias].attrs['standard_name'] = \
+            self.stdvarname
+        return self
+
     def populate(self, **kwargs):
         print(" ### Read files and populate model_class object")
 
+        fc_dates = make_fc_dates(self.sd, self.ed,
+                                 self.cfg.misc['date_incr'])
 
-        # if local
-        flst = self.list_input_files(**kwargs)
-        self.pathlst = flst
-        # else create file list
-        fc_dates = make_fc_dates(sdate, edate, date_incr)
-        flst = make_list_of_model_filenames(model, fc_dates, lt)
-
+        self.pathlst = self.list_input_files(**kwargs)
 
         print('')
         print('Checking variables..')
@@ -685,11 +841,13 @@ class model_class(qls):
         # possible to select list of variables
         self.varname = ncvar
 
-        if len(lst) > 0:
+        kwargs['fc_dates'] = fc_dates
+
+        if len(self.pathlst) > 0:
             try:
                 t0 = time.time()
                 print('Reading..')
-                self = self._get_sat_ts(**kwargs)
+                self = self._get_model(**kwargs)
 
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
@@ -713,11 +871,10 @@ class model_class(qls):
                         variable_def[newvaralias].get('standard_name')
                     self.units = variable_def[newvaralias].get('units')
                 # create label for plotting
-                self.label = self.mission
                 t1 = time.time()
                 print(" ")
                 print(' ## Summary:')
-                print(str(len(self.vars['time'])) + " footprints retrieved.")
+                print(str(len(self.vars['time'])) + " time steps retrieved.")
                 print("Time used for retrieving data:")
                 print(round(t1-t0, 2), "seconds")
                 print(" ")
@@ -734,177 +891,3 @@ class model_class(qls):
             print('model_class object not populated')
             print('# ----- ')
         return self
-
-    def __init__(self,
-                 model='mwam4',
-                 sdate=None,
-                 edate=None,
-                 date_incr=1,
-                 fc_date=None,
-                 leadtime=None,
-                 varalias='Hs',
-                 st_obj=None,
-                 transform_lons=None):
-        print('# ----- ')
-        print(" ### Initializing model_class object ###")
-        print(' ')
-        # parse and translate date input
-        sdate = parse_date(sdate)
-        edate = parse_date(edate)
-        fc_date = parse_date(fc_date)
-        if st_obj is not None:
-            sdate = st_obj.sdate
-            edate = st_obj.edate
-            varalias = st_obj.varalias
-        if fc_date is not None:
-            print("Requested time: ", str(fc_date))
-        elif (edate is None and fc_date is None and sdate is not None):
-            fc_date = sdate
-            print("Requested time: ", str(fc_date))
-        elif (sdate is None and edate is None and fc_date is None):
-            now = datetime.now()
-            fc_date = datetime(now.year, now.month, now.day, now.hour)
-            print("Requested time: ", str(fc_date))
-        elif (sdate is not None and edate is not None
-              and date_incr is not None):
-            fc_date = sdate
-            print("Requested time frame: " + str(sdate) + " - " + str(edate))
-
-        print(" ")
-        print(" ## Read files ...")
-        t0 = time.time()
-        vardict, \
-        fc_date, leadtime, \
-        filestr, \
-        filevarname = get_model(model=model,sdate=sdate,edate=edate,
-                            date_incr=date_incr,fc_date=fc_date,
-                            leadtime=leadtime,varalias=varalias,
-                            st_obj=st_obj,transform_lons=transform_lons)
-        stdname = variable_def[varalias]['standard_name']
-        units = variable_def[varalias]['units']
-        varname = filevarname
-        # define class variables
-        self.fc_date = fc_date
-        self.sdate = sdate
-        self.edate = edate
-        self.leadtime = leadtime
-        self.model = model
-        self.varalias = varalias
-        self.varname = varname
-        self.stdvarname = stdname
-        self.units = units
-        self.vars = vardict
-        self.filestr = filestr
-        # create label for plotting
-        self.label = self.model
-        t1 = time.time()
-        print(" ")
-        print( '## Summary:')
-        print("Time used for retrieving model data:", round(t1 - t0, 2),
-              "seconds")
-        print(" ")
-        print(" ### model_class object initialized ###")
-        print('# ----- ')
-
-    def _get_model_ds(self, **kwargs):
-        """
-        Main function to obtain data from satellite missions.
-        reads files, apply region and temporal filter
-
-        return: adjusted dictionary according to spatial and
-                temporal constraints
-        """
-
-        # retrieve dataset
-        ds = self.reader(**(vars(self)))
-        self.vars = ds
-        self.coords = list(self.vars.coords)
-        return self
-
-    def get_item_parent(self, item, attr):
-        ncdict = self.vars['meta']
-        lst = [i for i in ncdict.keys() \
-                if (attr in ncdict[i].keys() \
-                and item in ncdict[i][attr]) \
-                ]
-        if len(lst) >= 1:
-            return lst
-        else: return None
-
-    def get_item_child(self,item):
-        ncdict = self.vars['meta']
-        parent = finditem(ncdict,item)
-        return parent
-
-    def quicklook(self,a=True,projection=None,date=None,**kwargs):
-        m = kwargs.get('m',a)
-        if m is True:
-            import cartopy.crs as ccrs
-            import cmocean
-            import matplotlib.pyplot as plt
-            import matplotlib.cm as mplcm
-            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-            dt = parse_date(date)
-            lons = self.vars['longitude']
-            lats = self.vars['latitude']
-            var = self.vars[self.stdvarname]
-            fc_date = self.fc_date
-            if date is not None:
-                # find date in self.vars and give a snapshot
-                idx = self.vars['datetime'].index(dt)
-                var = self.vars[self.stdvarname][idx,:]
-                fc_date = self.fc_date[idx]
-            elif (date is None and len(var.shape)==3):
-                # find date in self.vars and give a snapshot
-                var = self.vars[self.stdvarname][0,:]
-                fc_date = self.fc_date[0]
-            if projection is None:
-                projection = ccrs.PlateCarree()
-            # parse kwargs
-            cflevels = kwargs.get('cflevels',10)
-            clevels = kwargs.get('clevels',10)
-            vartype = variable_def[self.varalias].get('type','default')
-            if kwargs.get('cmap') is None:
-                if vartype == 'cyclic':
-                    cmap = mplcm.twilight
-                    cflevels = kwargs.get('cflevels',range(0,365,5))
-                    clevels = kwargs.get('clevels',range(0,365,5))
-                else:
-                    cmap = cmocean.cm.amp
-            else:
-                cmap = kwargs.get('cmap')
-            lonmax,lonmin = np.max(lons),np.min(lons)
-            latmax,latmin = np.max(lats),np.min(lats)
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1, projection=projection)
-            ax.set_extent(  [lonmin, lonmax,latmin, latmax],
-                            crs = projection )
-            cf = ax.contourf(lons,lats, var,
-                            cmap=cmap,levels=cflevels,
-                            transform=ccrs.PlateCarree())
-            c = ax.contour(lons,lats, var,
-                           cmap=cmap,levels=clevels,
-                           transform=ccrs.PlateCarree())
-            axins = inset_axes(ax,
-                       width="5%",  # width = 5% of parent_bbox width
-                       height="100%",  # height : 50%
-                       loc='lower left',
-                       bbox_to_anchor=(1.01, 0., 1, 1),
-                       bbox_transform=ax.transAxes,
-                       borderpad=0,
-                       )
-            fig.colorbar(cf, cax=axins, label=self.varalias
-                                        + ' [' + self.units + ']')
-            ax.coastlines()
-            ax.gridlines()
-            plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            ax.set_title(self.model + ' for ' + str(fc_date))
-            plt.show()
-
-    def write_to_pickle(self,pathtofile=None):
-        import pickle
-        # writing
-        pickle.dump( self, open( pathtofile, "wb" ) )
-        print('model_class object written to:',pathtofile)
-        # for reading
-        # mco = pickle.load( open( pathtofile, "rb" ) )

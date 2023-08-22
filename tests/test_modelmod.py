@@ -1,12 +1,13 @@
-#from datetime import datetime
+from wavy.modelmod import model_class as mc
 
-#def test_model_class():
-#    from wavy.modelmod import model_class as mc
-#    model = "mwam4"
-#    fc_date = "2020-10-1 12"
-#    #get_model
-#    mc_obj = mc(model=model,fc_date=fc_date)
-#    assert mc_obj.__class__.__name__ == 'model_class'
-#    assert len(vars(mc_obj).keys()) >= 9
-#    assert len(mc_obj.vars.keys()) >= 7
-#    assert not 'error' in vars(mc_obj).keys()
+def test_model_class_init():
+    #get_model
+    mco = mc(nID='ww3_4km', sd="2023-6-1", ed="2023-6-1 01")
+    assert mco.__class__.__name__ == 'model_class'
+
+def test_ww3_4km_reader():
+    #get_model
+    mco = mc(nID='ww3_4km', sd="2023-6-1", ed="2023-6-1 01")
+    mco.populate()
+    #assert len(vars(mco).keys()) >= 9
+    #assert len(mco.vars.keys()) >= 7
