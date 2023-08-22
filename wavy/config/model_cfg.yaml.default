@@ -121,12 +121,15 @@ ww3_unstr:
     wavy_input:
         src_tmplt: "/lustre/storeB/project/fou/om/sfiblues/\
                     wave_hindcast/hindcast_v1/field/"
-        fl_tmplt: ww3_%Y%m.nc
+        fl_tmplt: ww3.%Y%m.nc
     wavy_output:
-    reader: read_ww3_unstructured
+    reader: read_ww3_unstructured_grid
     misc:
         init_times: [0]
         init_step: 24
         proj4: "unstructured"
         grid_date: 2021-11-16 00:00:00
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 1
     tags:

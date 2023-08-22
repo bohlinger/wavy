@@ -17,6 +17,7 @@ import importlib.util
 import dotenv
 import os
 import glob
+from copy import deepcopy
 
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -79,9 +80,9 @@ def get_model_filedate(model, fc_date, leadtime):
         suitable datetime to create model filename
     '''
     if ('init_times' in model_dict[model].keys()
-            and model_dict[model]['init_times'] is not None):
+            and model_dict[model]['misc']['init_times'] is not None):
         init_times = \
-            np.array(model_dict[model]['init_times']).astype('float')
+            np.array(model_dict[model]['misc']['init_times']).astype('float')
     else:
         print('init_times for chosen model not specified in config file')
         print('Assuming continuous simulation with hourly values')
@@ -189,7 +190,7 @@ def make_model_filename_wrapper(model, fc_date, leadtime, max_lt=None):
             if (switch is False):
                 print("Desired file:", filename, " not accessible")
                 print("Continue to look for date with extended leadtime")
-                leadtime = leadtime + model_dict[model]['init_step']
+                leadtime = leadtime + model_dict[model]['misc']['init_step']
             if max_lt is not None and leadtime > max_lt:
                 print("Leadtime:", leadtime,
                       "is greater as maximum allowed leadtime:", max_lt)
@@ -215,202 +216,6 @@ def make_list_of_model_filenames(model, fc_dates, lt):
         flst.append(fn)
     return flst
 
-@lru_cache(maxsize=32)
-def read_model_nc_output_lru(filestr, lonsname, latsname, timename):
-    # remove escape character because netCDF4 handles white spaces
-    # but cannot handle escape characters (apparently)
-    filestr = filestr.replace('\\', '')
-    f = netCDF4.Dataset(filestr, 'r')
-    # get coordinates and time
-    model_lons = f.variables[lonsname][:]
-    model_lats = f.variables[latsname][:]
-    model_time = f.variables[timename]
-    model_time_dt = list(
-        netCDF4.num2date(model_time[:], units=model_time.units))
-    f.close()
-    return model_lons, model_lats, model_time_dt
-
-def read_model_nc_output(filestr, lonsname, latsname, timename):
-    # remove escape character because netCDF4 handles white spaces
-    # but cannot handle escape characters (apparently)
-    filestr = filestr.replace('\\', '')
-    f = netCDF4.Dataset(filestr, 'r')
-    # get coordinates and time
-    model_lons = f.variables[lonsname][:]
-    model_lats = f.variables[latsname][:]
-    model_time = f.variables[timename]
-    model_time_dt = list(
-        netCDF4.num2date(model_time[:], units=model_time.units))
-    f.close()
-    return model_lons, model_lats, model_time_dt
-
-def read_unstr_model_nc_output(self, **kwargs):
-    print('')
-    print('Choosing reader..')
-    # define reader
-    dotenv.load_dotenv()
-    WAVY_DIR = os.getenv('WAVY_DIR', None)
-    if WAVY_DIR is None:
-        print('###########')
-        print('Environmental variable for WAVY_DIR needs to be defined!')
-        print('###########')
-    # read_ww3_unstructured
-    reader_str = kwargs.get('reader', self.cfg.reader)
-    reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
-    spec = importlib.util.spec_from_file_location(
-            'grid_readers.' + reader_str, reader_mod_str)
-
-    # create reader module
-    sat_reader = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(sat_reader)
-
-    # pick reader
-    #reader = getattr(sat_reader, 'read_local_ncfiles')
-    reader = getattr(sat_reader, reader_str)
-    self.reader = reader
-    print('Chosen reader:', spec.name)
-    print('')
-
-    # remove escape character because netCDF4 handles white spaces
-    # but cannot handle escape characters (apparently)
-    filestr=filestr.replace('\\', '')
-    f = netCDF4.Dataset(filestr, 'r')
-    # get coordinates and time
-    model_lons = f.variables[lonsname][:]
-    model_lats = f.variables[latsname][:]
-    model_time = f.variables[timename]
-    model_time_dt = list(
-        netCDF4.num2date(model_time[:], units=model_time.units))
-    f.close()
-    return model_lons, model_lats, model_time_dt
-
-def get_model_fc_mode(filestr, model, fc_date, varalias=None, **kwargs):
-    """
-    fct to retrieve model data for correct time
-    """
-    vardict = {}
-    print("Get model data according to selected date(s) ....")
-    print(filestr)
-    meta = ncdumpMeta(filestr)
-    stdvarname = variable_def[varalias]['standard_name']
-    lonsname = get_filevarname('lons', variable_def,
-                               model_dict[model], meta)
-    latsname = get_filevarname('lats', variable_def,
-                               model_dict[model], meta)
-    timename = get_filevarname('time', variable_def,
-                               model_dict[model], meta)
-    # get other variables e.g. Hs [time,lat,lon]
-    filevarname = get_filevarname(varalias, variable_def,
-                                  model_dict[model], meta)
-    try:
-        model_lons, model_lats, model_time_dt = \
-        read_model_nc_output_lru(filestr, lonsname, latsname, timename)
-    except Exception as e:
-        print(e)
-        print('continue with uncached retrieval')
-        model_lons, model_lats, model_time_dt = \
-        read_model_nc_output(filestr, lonsname, latsname, timename)
-
-    vardict[variable_def['lons']['standard_name']] = model_lons
-    vardict[variable_def['lats']['standard_name']] = model_lats
-
-    # remove escape character because netCDF4 handles white spaces
-    # but cannot handle escape characters (apparently)
-    filestr = filestr.replace('\\', '')
-    f = netCDF4.Dataset(filestr, 'r')
-    model_time = f.variables[timename]
-    l = kwargs.get('vertical_level', 0)
-    if (type(filevarname) is dict):
-        print(
-            'Target variable can be computed from vector \n'
-            'components with the following aliases: ', filevarname)
-        model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
-        model_time_valid = float(model_time[model_time_dt.index(fc_date)])
-        model_time_unit = model_time.units
-        vardict[variable_def['time']['standard_name']] = model_time_valid
-        vardict['datetime'] = model_time_dt_valid
-        vardict['time_unit'] = model_time_unit
-        for key in filevarname.keys():
-            filevarname_dummy = get_filevarname(
-                                    filevarname[key][0],
-                                    variable_def,
-                                    model_dict[model], meta)
-            if filevarname_dummy is not None:
-                print(filevarname[key][0], 'exists')
-                break
-        print('Use aliases:', filevarname[key])
-        model_var_dummy = f.variables[filevarname_dummy]
-        if len(model_var_dummy.dimensions) == 4:
-            model_var_dummy = model_var_dummy[:, l, :, :].squeeze()
-        if len(model_var_dummy.shape) == 3:  # for multiple time steps
-            model_var_valid_tmp = \
-                model_var_dummy[model_time_dt.index(fc_date), :, :]\
-                .squeeze()**2
-            for i in range(1, len(filevarname[key])):
-                filevarname_dummy = get_filevarname(
-                                        filevarname[key][i],
-                                        variable_def,
-                                        model_dict[model], meta)
-                if len(f.variables[filevarname_dummy].dimensions) == 4:
-                    model_var_valid_tmp += \
-                        f.variables[filevarname_dummy][
-                            model_time_dt.index(fc_date), l, :, :
-                            ].squeeze()**2
-                elif len(f.variables[filevarname_dummy].dimensions) == 3:
-                    model_var_valid_tmp += \
-                        f.variables[filevarname_dummy][
-                            model_time_dt.index(fc_date), :, :
-                            ].squeeze()**2
-            model_var_valid = np.sqrt(model_var_valid_tmp)
-        elif len(model_var_dummy.dimensions) == 2:
-            model_var_valid_tmp = model_var_dummy[:, :]**2
-            for i in range(1, len(filevarname[key])):
-                filevarname_dummy = get_filevarname(
-                                            filevarname[key][i],
-                                            variable_def,
-                                            model_dict[model],
-                                            meta)
-                model_var_valid_tmp += \
-                    f.variables[filevarname_dummy][:, :]**2
-            model_var_valid = np.sqrt(model_var_valid_tmp)
-        else:
-            print('Dimension mismatch!')
-        vardict[stdvarname] = model_var_valid
-    else:
-        model_time_dt_valid = model_time_dt[model_time_dt.index(fc_date)]
-        model_time_valid = float(model_time[model_time_dt.index(fc_date)])
-        model_time_unit = model_time.units
-        vardict[variable_def['time']['standard_name']] = model_time_valid
-        vardict['datetime'] = model_time_dt_valid
-        vardict['time_unit'] = model_time_unit
-        model_var_link = f.variables[filevarname]
-        if len(model_var_link.dimensions) == 4:
-            model_var_link = model_var_link[:, l, :, :].squeeze()
-        if len(model_var_link.shape) == 3:  # for multiple time steps
-            model_var_valid = \
-                model_var_link[model_time_dt.index(fc_date), :, :].squeeze()
-        elif len(model_var_link.dimensions) == 2:
-            model_var_valid = model_var_link[:, :].squeeze()
-        else:
-            print('Dimension mismatch!')
-        vardict[variable_def[varalias]['standard_name']] = \
-                                                    model_var_valid
-    # transform masked array to numpy array with NaNs
-    f.close()
-    vardict['longitude'] = vardict['longitude'].filled(np.nan)
-    vardict['latitude'] = vardict['latitude'].filled(np.nan)
-    vardict[variable_def[varalias]['standard_name']] = \
-        vardict[variable_def[varalias]['standard_name']].filled(np.nan)
-    vardict['meta'] = meta
-    # make lats,lons 2D if only 1D (regular grid)
-    if len(vardict['longitude'].shape) == 1:
-        LATS, LONS = np.meshgrid(vardict['latitude'],
-                                vardict['longitude'])
-        vardict['longitude'] = np.transpose(LONS)
-        vardict['latitude'] = np.transpose(LATS)
-    return vardict, filevarname
-
-
 def generate_bestguess_leadtime(model, fc_date, lidx=None):
     """
     fct to return leadtimes for bestguess
@@ -432,99 +237,22 @@ def generate_bestguess_leadtime(model, fc_date, lidx=None):
             leadtime = int(np.min(diffs[diffs >= 0]))
     return leadtime
 
-def get_model(model=None,
-              sdate=None,
-              edate=None,
-              date_incr=None,
-              fc_date=None,
-              leadtime=None,
-              varalias=None,
-              st_obj=None,
-              transform_lons=None):
-    """
-    toplevel function to get model data
-    """
-    if st_obj is not None:
-        sdate = st_obj.sdate
-        edate = st_obj.edate
-        varalias = st_obj.varalias
-    if (sdate is not None
-        and edate is not None
-        and date_incr is not None):
-        fc_date = make_fc_dates(sdate, edate, date_incr)
-    filestr = make_model_filename_wrapper(model=model,
-                                          fc_date=fc_date,
-                                          leadtime=leadtime)
-    #filestr_lst = make_list_of_model_filenames(model, fc_date, lt)
-    if (isinstance(filestr, list) and st_obj is None):
-        vardict, \
-        filevarname = get_model_fc_mode(filestr=filestr[0], model=model,
-                                    fc_date=fc_date[0], varalias=varalias)
-        vardict[variable_def[varalias]['standard_name']] = \
-                    [vardict[variable_def[varalias]['standard_name']]]
-        vardict['time'] = [vardict['time']]
-        vardict['datetime'] = [vardict['datetime']]
-        vardict['leadtime'] = leadtime
-        for i in tqdm(range(1, len(filestr))):
-            tmpdict, \
-            filevarname = get_model_fc_mode(
-                            filestr=filestr[i], model=model,
-                            fc_date=fc_date[i], varalias=varalias)
-            vardict[variable_def[varalias]['standard_name']].append(
-                tmpdict[variable_def[varalias]['standard_name']])
-            vardict['time'].append(tmpdict['time'])
-            vardict['datetime'].append(tmpdict['datetime'])
-        vardict[variable_def[varalias]['standard_name']] =\
-            np.array(vardict[variable_def[varalias]['standard_name']])
-    else:
-        vardict, \
-        filevarname = get_model_fc_mode(filestr=filestr, model=model,
-                                    fc_date=fc_date, varalias=varalias)
-        vardict['time'] = [vardict['time']]
-        vardict['datetime'] = [vardict['datetime']]
-        vardict['leadtime'] = leadtime
-    # transform to datetime
-    with NoStdStreams():
-        tmpd = [parse_date(str(d)) for d in vardict['datetime']]
-    vardict['datetime'] = tmpd
-    del tmpd
-    if transform_lons==180:
-        # transform longitudes from -180 to 180
-        vardict['longitude'] = ((vardict['longitude'] - 180) % 360) - 180
-    elif transform_lons==360:
-        print('not yet implemented !!')
-    # adjust conventions
-    # check if variable is one with conventions
-    if 'convention' in variable_def[varalias].keys():
-        convention_set = False
-        print('Chosen variable is defined with conventions')
-        print('... checking if correct convention is used ...')
-        # 1. check if clear from standard_name
-        file_stdvarname = find_direction_convention(filevarname,vardict['meta'])
-        if "to_direction" in file_stdvarname:
-            print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_def[varalias]['standard_name']] = \
-                    convert_meteorologic_oceanographic(\
-                        vardict[variable_def[varalias]['standard_name']])
-            convention_set = True
-        elif "from_direction" in file_stdvarname:
-            print('standard_name indicates meteorologic convention')
-            convention_set = True
-            pass
-        # 2. overwrite convention from config file
-        if ('convention' in model_dict[model].keys() and
-        model_dict[model]['convention'] == 'oceanographic' and
-        convention_set is False):
-            print('Convention is set in config file')
-            print('This will overwrite conventions from standard_name in file!')
-            print('\n')
-            print('Convert from oceanographic to meteorologic convention')
-            vardict[variable_def[varalias]['standard_name']] = \
-                    convert_meteorologic_oceanographic(\
-                        vardict[variable_def[varalias]['standard_name']])
-            convention_set = True
-    return vardict, fc_date, leadtime, filestr, filevarname
-
+# function used by satmod
+# should probably be placed somewhere else
+@lru_cache(maxsize=32)
+def read_model_nc_output_lru(filestr, lonsname, latsname, timename):
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    filestr = filestr.replace('\\', '')
+    f = netCDF4.Dataset(filestr, 'r')
+    # get coordinates and time
+    model_lons = f.variables[lonsname][:]
+    model_lats = f.variables[latsname][:]
+    model_time = f.variables[timename]
+    model_time_dt = list(
+        netCDF4.num2date(model_time[:], units=model_time.units))
+    f.close()
+    return model_lons, model_lats, model_time_dt
 
 # ---------------------------------------------------------------------#
 
@@ -569,6 +297,19 @@ class model_class(qls):
         print(" ### model_class object initialized ### ")
         print('# ----- ')
 
+
+    def crop_to_period(self, **kwargs):
+        """
+        Function to crop the variable dictionary to a given period
+        """
+        new = deepcopy(self)
+        sd = parse_date(kwargs.get('sd', str(new.sd)))
+        ed = parse_date(kwargs.get('ed', str(new.ed)))
+        print('Crop to time period:', sd, 'to', ed)
+        new.vars = new.vars.sel(time=slice(sd, ed))
+        new.sd = sd
+        new.ed = ed
+        return new
 
     def get_item_parent(self, item, attr):
         """
@@ -745,7 +486,8 @@ class model_class(qls):
         """
 
         # retrieve dataset
-        ds = self.reader(fc_dates=kwargs.get('fc_dates'), **(vars(self)))
+        ds = self.reader(**kwargs, **(vars(self)))
+
         self.vars = ds
         self.coords = list(self.vars.coords)
         return self
