@@ -503,34 +503,43 @@ class model_class(qls):
         return ds
 
     def _enforce_meteorologic_convention(self):
-        ncvars = list(self.vars.variables)
-        for ncvar in ncvars:
-            if ('convention' in model_dict[self.nID].keys() and
-            model_dict[self.nID]['convention'] == 'oceanographic'):
-                print('Convert from oceanographic to meteorologic convention')
-                self.vars[ncvar] =\
-                    convert_meteorologic_oceanographic(self.vars[ncvar])
-            elif 'to_direction' in self.vars[ncvar].attrs['standard_name']:
-                print('Convert from oceanographic to meteorologic convention')
-                self.vars[ncvar] =\
-                    convert_meteorologic_oceanographic(self.vars[ncvar])
-
+        print(' enforcing meteorological convention')
+        if ('convention' in model_dict[self.nID].keys() and
+        model_dict[self.nID]['convention'] == 'oceanographic'):
+            print('Convert from oceanographic to meteorologic convention')
+            self.vars[self.varalias] =\
+                convert_meteorologic_oceanographic(self.vars[self.varalias])
+        elif 'to_direction' in self.vars[self.varalias].attrs['standard_name']:
+            print('Convert from oceanographic to meteorologic convention')
+            self.vars[self.varalias] =\
+                convert_meteorologic_oceanographic(self.vars[self.varalias])
         return self
 
     def _change_varname_to_aliases(self):
+        print(' changing variables to aliases')
         # variables
         ncvar = get_filevarname(self.varalias, variable_def,
                                 model_dict[self.nID], self.meta)
-        self.vars = self.vars.rename({ncvar: self.varalias})
+        if self.varalias in list(self.vars.keys()):
+            print('  ', ncvar, 'is alreade named correctly and'
+                + ' therefore not adjusted')
+        else:
+            self.vars = self.vars.rename({ncvar: self.varalias})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
             ncvar = get_filevarname(c, variable_def,
                                     model_dict[self.nID], self.meta)
-            self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
+            if c in list(self.vars.keys()):
+                print('  ', c, 'is alreade named correctly and'
+                    + ' therefore not adjusted')
+            else:
+                self.vars = self.vars.rename({ncvar: c})\
+                                        .set_index(time='time')
         return self
 
     def _change_stdvarname_to_cfname(self):
+        print(' complying to cf standard names')
         # enforce standard_name for coordinate aliases
         self.vars['lons'].attrs['standard_name'] = \
             variable_def['lons'].get('standard_name')
@@ -590,7 +599,7 @@ class model_class(qls):
                 t0 = time.time()
                 print('Reading..')
                 self = self._get_model(**kwargs)
-                print(self.vars)
+
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()

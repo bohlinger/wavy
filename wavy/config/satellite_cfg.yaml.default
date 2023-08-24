@@ -19,29 +19,29 @@ cmems_L3_NRT:
         ftp: # downloading method
             src_tmplt: "/Core/\
                         WAVE_GLO_PHY_SWH_L3_NRT_014_001/\
-                        cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/\
+                        cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S/\
                         %Y/%m/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
             date_incr: 'm'
             #search_str: '%Y%m%dT%H'
             search_str: '%Y%m%dT'
-            strsub: ['mission']
+            strsub: ['name']
             server: "nrt.cmems-du.eu"
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
-        fl_tmplt: "varalias_mission_region_\
+        src_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
+        fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['mission']
+        strsub: ['name']
         date_incr: 'm'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/mission/%Y/%m
-        fl_tmplt: "varalias_mission_region_\
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
+        fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','mission','region']
+        strsub: ['varalias','name','region']
         file_date_incr: m
     # optional, if not defined the class default is used
     reader: read_local_ncfiles
@@ -68,26 +68,26 @@ L2_20Hz_s3a:
         ftp: # downloading method
             src_tmplt: "/products/v3/data/satellite/altimeter/\
                         l2_20Hz/l2/sentinel-3_a/%Y/%j/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%j/
-            strsub: ['mission']
+            trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+            strsub: ['name']
             server: "eftp.ifremer.fr"
             date_incr: 'd'
             search_str: '%Y%m%d'
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%j/
-        fl_tmplt: "varalias_mission_region_\
+        src_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['mission']
+        strsub: ['name']
         date_incr: 'd'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/mission/%Y/%j/
-        fl_tmplt: "varalias_mission_region_\
+        trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','mission','region']
+        strsub: ['varalias','name','region']
         file_date_incr: 'm'
     # optional, if not defined the default is used
     reader: read_local_20Hz_files

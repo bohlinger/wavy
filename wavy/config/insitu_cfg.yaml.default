@@ -48,6 +48,7 @@ draugen: # object nID (nameID)
     tags: ['oilrig','arcmfc']
 
 ### E39 project ###
+
 D_Breisundet_wave: # object nID (nameID)
     name: # sensor
         wavescan:
@@ -93,3 +94,4 @@ D_Breisundet_wave: # object nID (nameID)
         date_incr:
     # optional, to ease grouping
     tags: ['E39','wave','pytest']
+

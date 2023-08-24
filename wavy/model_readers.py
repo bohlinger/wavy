@@ -45,14 +45,14 @@ def read_ww3_4km(**kwargs):
 
         ds_lst.append(ds_sliced)
 
-    print("Concatenate ...")
+    print(" Concatenate ...")
     combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print("... done concatenating")
+    print(" ... done concatenating")
 
     return combined
 
@@ -91,14 +91,14 @@ def read_field(**kwargs):
         ds_lst.append(build_xr_ds(var_tuple, varnames)\
                       .sel({timename: fc_dates[i]}))
 
-    print("Concatenate ...")
+    print(" Concatenate ...")
     combined = xr.concat(ds_lst, timename,
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print("... done concatenating")
+    print(" ... done concatenating")
 
     return combined
 

@@ -110,7 +110,7 @@ class satellite_class(qls, wc, fc):
         self.ed = parse_date(kwargs.get('ed', self.sd))
         # add other class object variables
         self.nID = kwargs.get('nID')
-        self.mission = dc.name[kwargs.get('mission', 's3a')]
+        self.name = dc.name[kwargs.get('name', 's3a')]
         self.varalias = kwargs.get('varalias', 'Hs')
         self.units = variable_def[self.varalias].get('units')
         self.stdvarname = variable_def[self.varalias].get('standard_name')
@@ -135,7 +135,7 @@ class satellite_class(qls, wc, fc):
                         sd=kwargs.get('sd', self.sd),
                         ed=kwargs.get('ed', self.ed),
                         nID=self.nID,
-                        mission=self.mission,
+                        name=self.name,
                         dict_for_sub=vars(self)
                         )
 
@@ -318,18 +318,30 @@ class satellite_class(qls, wc, fc):
 
         return self
 
+
     def _change_varname_to_aliases(self):
+        print(' changing variables to aliases')
         # variables
         ncvar = get_filevarname(self.varalias, variable_def,
                                 satellite_dict[self.nID], self.meta)
-        self.vars = self.vars.rename({ncvar: self.varalias})
+        if self.varalias in list(self.vars.keys()):
+            print('  ', ncvar, 'is alreade named correctly and'
+                + ' therefore not adjusted')
+        else:
+            self.vars = self.vars.rename({ncvar: self.varalias})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
             ncvar = get_filevarname(c, variable_def,
                                     satellite_dict[self.nID], self.meta)
-            self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
+            if c in list(self.vars.keys()):
+                print('  ', c, 'is alreade named correctly and'
+                    + ' therefore not adjusted')
+            else:
+                self.vars = self.vars.rename({ncvar: c})#\
+                                        #.set_index(time='time')
         return self
+
 
     def _change_stdvarname_to_cfname(self):
         # enforce standard_name for coordinate aliases
@@ -412,7 +424,6 @@ class satellite_class(qls, wc, fc):
                         variable_def[newvaralias].get('standard_name')
                     self.units = variable_def[newvaralias].get('units')
                 # create label for plotting
-                self.label = self.mission
                 t1 = time.time()
                 print(" ")
                 print(' ## Summary:')
@@ -515,8 +526,8 @@ class satellite_class(qls, wc, fc):
         """
         new = deepcopy(self)
         Hs = new.vars['Hs'].values
-        tau = new.cfg.misc['sat_specs'][new.mission]['tau']*10**(-9)
-        h = new.cfg.misc['sat_specs'][new.mission]['h']*10**3
+        tau = new.cfg.misc['sat_specs'][new.name]['tau']*10**(-9)
+        h = new.cfg.misc['sat_specs'][new.name]['h']*10**3
         fpr = footprint_pulse_limited_radius(Hs, h, tau)
         ds = new.vars
         ds = ds.assign({"fpr": (("time"), fpr)})

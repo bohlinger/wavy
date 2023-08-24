@@ -23,7 +23,7 @@ from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
 from wavy.utils import find_included_times, find_included_times_pd
-from wavy.utils import build_xr_ds
+from wavy.ncmod import build_xr_ds
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -140,10 +140,11 @@ def read_local_20Hz_files(**kwargs):
     lons = ds_sort[lonstr].values[idx]
     lats = ds_sort[latstr].values[idx]
     nptime = nptime[idx]
-    varnames = (varname, lonstr, latstr, timestr)
+    varnames = {varalias: varname, 'lons': lonstr,
+                'lats': latstr, 'time': timestr}
     var = (var_sliced, lons, lats, nptime)
     # build xarray ds
-    ds_new = build_xr_ds(var, varnames)
+    ds_new = build_xr_ds(var, varnames, varalias)
     return ds_new
 
 def read_local_ncfiles_swim(**kwargs):
@@ -173,10 +174,10 @@ def read_local_ncfiles_swim(**kwargs):
     edate = edate + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias,variable_info,
-                            satellite_dict[product],ncmeta)
+    ncvar = get_filevarname(varalias, variable_info,
+                            satellite_dict[product], ncmeta)
     # retrieve data
-    vardict = read_swim_netcdfs(pathlst,varalias)
+    vardict = read_swim_netcdfs(pathlst, varalias)
     # rm NaN from 'time'
     tmpt = np.array(vardict['time'])
     tmpt = tmpt[~np.isnan(tmpt)]
@@ -184,12 +185,13 @@ def read_local_ncfiles_swim(**kwargs):
     dtime = [parse_date(d) for d in np.array(tmpt).astype(str)]
     vardict['datetime'] = dtime
     vardict['time_unit'] = variable_info['time']['units']
-    vardict['time'] = netCDF4.date2num(vardict['datetime'],vardict['time_unit'])
+    vardict['time'] = netCDF4.date2num(vardict['datetime'],\
+                                       vardict['time_unit'])
     # lon tranformation
     tlons = list(((np.array(vardict['longitude']) - 180) % 360) - 180)
     vardict['longitude'] = tlons
     # find idx for time period
-    tidx = find_included_times(dtime,sdate=sdate,edate=edate)
+    tidx = find_included_times(dtime, sdate=sdate, edate=edate)
     # adjust dict
     for key in vardict.keys():
         if key != 'meta' and key != 'time_unit':

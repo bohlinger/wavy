@@ -78,7 +78,7 @@ def get_remote_files_cmems(**kwargs):
     edate = kwargs.get('ed')
     twin = int(np.max([kwargs.get('twin', 30), 30]))
     nproc = kwargs.get('nproc', 1)
-    mission = kwargs.get('mission', 's3a')
+    name = kwargs.get('name', 's3a')
     dict_for_sub = kwargs.get('dict_for_sub')
     # define path
     path = kwargs.get('path', None)
@@ -122,7 +122,7 @@ def get_remote_files_cmems(**kwargs):
 
             print('# ----- ')
             print('Chosen source: ')
-            print(mission + ' values from ' + product + ': ' + server)
+            print(name + ' values from ' + product + ': ' + server)
             print(path_remote)
             print('# ----- ')
             # get list of accessable files
@@ -182,7 +182,7 @@ def get_remote_files_aviso(**kwargs):
     edate = kwargs.get('edate')
     twin = kwargs.get('twin', 30)
     nproc = kwargs.get('nproc', 1)
-    mission = kwargs.get('mission', 'cfo')
+    name = kwargs.get('name', 'cfo')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
@@ -212,7 +212,7 @@ def get_remote_files_aviso(**kwargs):
             filesort = True
         print('# ----- ')
         print('Chosen source: ')
-        print(mission + ' values from ' + product + ': ' + server)
+        print(name + ' values from ' + product + ': ' + server)
         print('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -253,7 +253,7 @@ def get_remote_files_aviso(**kwargs):
               + "year and month ...")
         filelst = [f for f in os.listdir(path_local)
                    if os.path.isfile(os.path.join(path_local, f))]
-        sort_files(path_local, filelst, product, mission)
+        sort_files(path_local, filelst, product, name)
     print('Files downloaded to: \n', path_local)
 
 
@@ -267,7 +267,7 @@ def get_remote_files_cci(**kwargs):
     edate = kwargs.get('edate')
     twin = kwargs.get('twin', 30)
     nproc = kwargs.get('nproc', 1)
-    mission = kwargs.get('mission', 'multi')
+    name = kwargs.get('name', 'multi')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
     # credentials
@@ -283,15 +283,15 @@ def get_remote_files_cci(**kwargs):
                                       ['path_template']
         strsublst = satellite_dict[product]['src']\
                                   ['strsub']
-        dict_for_sub['mission'] =\
-                        satellite_dict[product]['mission'][mission]
+        dict_for_sub['name'] =\
+                        satellite_dict[product]['name'][name]
         subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
         path_remote = make_pathtofile(path_template,
                                       strsublst, subdict,
                                       date=tmpdate)
         if path_local is None:
             # create local path
-            subdict['mission'] = mission
+            subdict['name'] = name
             path_template = satellite_dict[product]['dst']\
                                           ['path_template']
             strsublst = satellite_dict[product]['dst']\
@@ -302,7 +302,7 @@ def get_remote_files_cci(**kwargs):
             filesort = True
         print('# ----- ')
         print('Chosen source: ')
-        print(mission + ' values from ' + product + ': ' + server)
+        print(name + ' values from ' + product + ': ' + server)
         print('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
@@ -348,7 +348,7 @@ def get_remote_files_cci(**kwargs):
         print(path_local)
         filelst = [f for f in os.listdir(path_local)
                    if os.path.isfile(os.path.join(path_local, f))]
-        sort_files(path_local, filelst, product, mission)
+        sort_files(path_local, filelst, product, name)
     print('Files downloaded to: \n', path_local)
 
 

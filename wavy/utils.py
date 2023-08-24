@@ -14,6 +14,10 @@ from dateutil.parser import parse
 import math
 from wavy.wconfig import load_or_default
 
+# ---------------------------------------------------------------------#
+variable_def = load_or_default('variable_def.yaml')
+# ---------------------------------------------------------------------#
+
 def grab_PID():
     """
     Retrieves PID and prints it
@@ -675,22 +679,26 @@ def build_xr_ds(var: tuple, varnames: tuple):
             varnames[0]: xr.DataArray(
                     data=var[0],
                     dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
+                    coords={'time': var[3]},
+                    attrs=variable_def[varnames[0]],
                     ),
             varnames[1]: xr.DataArray(
                     data=var[1],
                     dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
+                    coords={'time': var[3]},
+                    attrs=variable_def[varnames[1]],
                     ),
             varnames[2]: xr.DataArray(
                     data=var[2],
                     dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
+                    coords={'time': var[3]},
+                    attrs=variable_def[varnames[2]],
                     ),
             varnames[3]: xr.DataArray(
                     data=var[3],
                     dims=[varnames[3]],
-                    coords={varnames[3]: var[3]}
+                    coords={'time': var[3]},
+                    attrs=variable_def[varnames[3]],
                     )
                 },
             attrs={'title': 'wavy dataset'}
