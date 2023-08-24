@@ -42,7 +42,7 @@ from wavy.init_class_insitu import init_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-insitu_dict = load_or_default('insitu_cfg.yaml')
+#insitu_dict = load_or_default('insitu_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 # ---------------------------------------------------------------------#
 
@@ -76,8 +76,14 @@ class insitu_class(qls, wc, fc):
         print(" ")
         print(" Given kwargs:")
         print(kwargs)
+        # check for twinID
+        nID = kwargs.get('nID')
         # initializing useful attributes from config file
-        dc = init_class('insitu', kwargs.get('nID'))
+        if kwargs.get('twinID') is None:
+            dc = init_class('insitu', kwargs.get('nID'))
+        else:
+            dc = init_class('insitu', kwargs.get('twinID'))
+            dc.nID = nID
         # parse and translate date input
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
@@ -85,7 +91,7 @@ class insitu_class(qls, wc, fc):
         # add other class object variables
         self.nID = kwargs.get('nID')
         self.name = kwargs.get('name',
-                               list(insitu_dict[self.nID]['name'].keys())[0])
+                               list(dc.name.keys())[0])
         self.varalias = kwargs.get('varalias', 'Hs')
         self.stdvarname = variable_def[self.varalias]['standard_name']
         self.units = variable_def[self.varalias].get('units')
@@ -177,10 +183,9 @@ class insitu_class(qls, wc, fc):
                 try:
                     # create local path for each time
                     path_template = \
-                            insitu_dict[self.nID]['wavy_input'].get(
-                                                  'src_tmplt')
+                            self.cfg.nID['wavy_input'].get('src_tmplt')
                     strsublst = \
-                        insitu_dict[self.nID]['wavy_input'].get('strsub')
+                            self.cfg.nID['wavy_input'].get('strsub')
                     subdict = \
                         make_subdict(strsublst,
                                      class_object_dict=dict_for_sub)
@@ -269,8 +274,8 @@ class insitu_class(qls, wc, fc):
     def _enforce_meteorologic_convention(self):
         ncvars = list(self.vars.variables)
         for ncvar in ncvars:
-            if ('convention' in insitu_dict[self.nID].keys() and
-            insitu_dict[self.nID]['convention'] == 'oceanographic'):
+            if ('convention' in self.cfg.misc.keys() and
+            self.cfg.misc['convention'] == 'oceanographic'):
                 print('Convert from oceanographic to meteorologic convention')
                 self.vars[ncvar] =\
                     convert_meteorologic_oceanographic(self.vars[ncvar])
@@ -284,13 +289,13 @@ class insitu_class(qls, wc, fc):
     def _change_varname_to_aliases(self):
         # variables
         ncvar = get_filevarname(self.varalias, variable_def,
-                                insitu_dict[self.nID], self.meta)
+                                vars(self.cfg), self.meta)
         self.vars = self.vars.rename({ncvar: self.varalias})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
             ncvar = get_filevarname(c, variable_def,
-                                    insitu_dict[self.nID], self.meta)
+                                    vars(self.cfg), self.meta)
             self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
         return self
 

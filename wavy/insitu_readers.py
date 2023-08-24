@@ -222,14 +222,14 @@ def get_frost(**kwargs):
 def get_nc_thredds(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
-    nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
     pathlst = kwargs.get('pathlst')
+    cfg = vars(kwargs['cfg'])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname(varalias, variable_def,
-                            insitu_dict[nID], meta)
+                            cfg, meta)
     # read all paths
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby('time')

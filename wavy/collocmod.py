@@ -33,7 +33,7 @@ from wavy.utils import compute_quantiles
 from wavy.wconfig import load_or_default
 from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import get_model_filedate
-from wavy.modelmod import model_class, get_model
+from wavy.modelmod import model_class #, get_model
 from wavy.ncmod import dumptonc_ts_collocation
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.satmod import satellite_class
