@@ -499,7 +499,7 @@ class model_class(qls):
         attrs['valid_min'] = -180
         attrs['valid_max'] = 180
         attrs['comments'] = 'forced to range: -180 to 180'
-        ds.lons.values = ((ds.lons.values-180) % 360)-180
+        ds.lons.assign_coords({"lons": (((ds.lons + 180) % 360) - 180)})
         return ds
 
     def _enforce_meteorologic_convention(self):
@@ -590,11 +590,11 @@ class model_class(qls):
                 t0 = time.time()
                 print('Reading..')
                 self = self._get_model(**kwargs)
-
+                print(self.vars)
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
-
+                
                 # convert longitude
                 ds = self.vars
                 ds_new = self._enforce_longitude_format(ds)

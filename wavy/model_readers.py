@@ -102,67 +102,7 @@ def read_field(**kwargs):
 
     return combined
 
-def read_ww3_unstructured_grid(**kwargs):
-    """
-    Wrapping function to read satellite netcdf files.
-
-    param:
-        pathlst - list of paths to be parsed
-        product - product as specified in satellite_cfg.yaml
-        sd - start date (datetime object)
-        ed - start date (datetime object)
-
-    return:
-        dictionary of variables for the satellite_class object
-    """
-    print("Reading unstructured grid...")
-
-    pathlst = kwargs.get('pathlst')
-    nID = kwargs.get('nID')
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-
-    # establish coords if defined in config file
-    timestr = model_dict[nID]['vardef']['time']
-    lonstr = model_dict[nID]['vardef']['lons']
-    latstr = model_dict[nID]['vardef']['lats']
-
-    varname = kwargs.get('varname')
-    # retrieve sliced data
-    ds_lst = []
-    for p in pathlst:
-        ds = xr.open_dataset(p)
-        # subsample times accroding to temporal range
-        if sd == ed:
-            ds = ds.sel({timestr: sd})
-            times = [ds[timestr].data]
-        else:
-            ds = ds.sel({timestr: slice(sd, ed)})
-            times = ds[timestr].data
-        for t in times:
-            dt = parse_date(str(t))
-            if (dt >= sd and dt <= ed):
-                # varnames = (varname, lonstr, latstr, timestr)
-                if len(times) < 2:
-                    var = (ds[varname].data,
-                           ds[lonstr].data,
-                           ds[latstr].data,
-                           t.reshape((1,)))
-                else:
-                    var = (ds[varname].sel({timestr: t}).data,
-                           ds[lonstr].data,
-                           ds[latstr].data,
-                           t.reshape((1,)))
-                new = get_gridded_dataset(var, t, **kwargs)
-                ds_lst.append(new)
-
-    print("Concatenate ...")
-    combined = xr.concat(ds_lst, 'time',
-                         coords='minimal',
-                         data_vars='minimal',
-                         compat='override',
-                         combine_attrs='override',
-                         join='override')
-    print("... done concatenating")
-
-    return combined
+def read_ww3_unstructured_to_grid(**kwargs):
+    from wavy.grid_readers import read_ww3_unstructured_to_grid
+    ds = read_ww3_unstructured_to_grid(**kwargs)
+    return ds

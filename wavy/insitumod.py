@@ -16,6 +16,8 @@ import os
 from dateutil.relativedelta import relativedelta
 import importlib.util
 import dotenv
+from copy import deepcopy
+import glob
 import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -30,6 +32,8 @@ from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
 from wavy.utils import convert_meteorologic_oceanographic
+from wavy.utils import date_dispatcher
+from wavy.utils import flatten
 from wavy.wconfig import load_or_default
 from wavy.writermod import writer_class as wc
 from wavy.filtermod import filter_class as fc
@@ -42,6 +46,24 @@ insitu_dict = load_or_default('insitu_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 # ---------------------------------------------------------------------#
 
+def check_date(filelst, date):
+    '''
+    Checks if str in lst according to desired date (sd, ed)
+
+    return: idx for file
+    '''
+    idx = []
+    for i in range(len(filelst)):
+        element = filelst[i]
+        tmp = element.find(date.strftime('%Y%m%d'))
+        if tmp >= 0:
+            idx.append(i)
+    if len(idx) <= 0:
+        idx = [0]
+    return idx[0], idx[-1]
+
+
+# ---------------------------------------------------------------------#
 
 class insitu_class(qls, wc, fc):
     '''
@@ -62,7 +84,8 @@ class insitu_class(qls, wc, fc):
         print('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
         # add other class object variables
         self.nID = kwargs.get('nID')
-        self.sensor = kwargs.get('sensor')
+        self.name = kwargs.get('name',
+                               list(insitu_dict[self.nID]['name'].keys())[0])
         self.varalias = kwargs.get('varalias', 'Hs')
         self.stdvarname = variable_def[self.varalias]['standard_name']
         self.units = variable_def[self.varalias].get('units')
@@ -75,20 +98,148 @@ class insitu_class(qls, wc, fc):
         print(" ### insitu_class object initialized ### ")
         print('# ----- ')
 
+    def _create_pathlst(self, **kwargs):
+        src_tmplt = self.cfg.wavy_input['src_tmplt']
+        fl_tmplt = self.cfg.wavy_input['fl_tmplt']
+        pth_tmplt = src_tmplt + '/' + fl_tmplt
+        strsub = self.cfg.wavy_input['strsub']
+        dict_for_sub = vars(self.cfg)
+        file_date_incr = self.cfg.wavy_input['file_date_incr']
+        file_date_incr_unit = self.cfg\
+                              .wavy_input['file_date_incr_unit']
+        subdict = make_subdict(strsub, class_object_dict=dict_for_sub)
+        # loop from sdate to edate with dateincr
+        tmpdate = deepcopy(self.sd)
+        pathlst = []
+
+        while (datetime(tmpdate.year, tmpdate.month, 1)
+        <= datetime(self.ed.year, self.ed.month, 1)):
+            # get pathtofile
+            pathtofile = get_pathtofile(pth_tmplt, strsub,
+                                        subdict, tmpdate)
+            pathlst.append(pathtofile)
+            tmpdate = date_dispatcher(tmpdate,
+                                      file_date_incr_unit,
+                                      file_date_incr)
+        return pathlst
+
     def list_input_files(self, show=False, **kwargs):
-        print(" ## Find and list files ...")
-        path = kwargs.get('path', None)
-        wavy_path = kwargs.get('wavy_path', None)
-        pathlst, _ = self._get_files(vars(self),
-                                     path=path,
-                                     wavy_path=wavy_path)
-        print('source template:',
-              insitu_dict[self.nID]['wavy_input']['src_tmplt'])
+        try:
+            if (kwargs.get('path') is None and kwargs.get('wavy_path') is None):
+                pathlst = self._create_pathlst(**kwargs)
+            else:
+                # if defined path local
+                print(" ## Find and list files ...")
+                path = kwargs.get('path', None)
+                wavy_path = kwargs.get('wavy_path', None)
+                pathlst, _ = self._get_files(vars(self),
+                                             path=path,
+                                             wavy_path=wavy_path)
+        except Exception as e:
+            #logger.exception(e)
+            pathlst = None
+            print(' no netcdf meta data retrieved')
+
         if show is True:
             print(" ")
+            print("pathlst:")
             print(pathlst)
             print(" ")
         return pathlst
+
+    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
+        """
+        Function to retrieve list of files/paths for available
+        locally stored data. This list is used for other functions
+        to query and parsing.
+
+        param:
+            sd - start date (datetime object)
+            ed - end date (datetime object)
+            nID - nID as of model_cfg.yaml
+            dict_for_sub - dictionary for substitution in templates
+            path - a path if defined
+
+        return:
+            pathlst - list of paths
+            filelst - list of files
+        """
+        filelst = []
+        pathlst = []
+        tmpdate = self.sd
+        if wavy_path is not None:
+            pathtotals = [wavy_path]
+            filelst = [wavy_path]
+        elif path is None:
+            print('path is None -> checking config file')
+            while (tmpdate <= date_dispatcher(self.ed,
+            self.cfg.misc['date_incr_unit'], self.cfg.misc['date_incr'])):
+                try:
+                    # create local path for each time
+                    path_template = \
+                            insitu_dict[self.nID]['wavy_input'].get(
+                                                  'src_tmplt')
+                    strsublst = \
+                        insitu_dict[self.nID]['wavy_input'].get('strsub')
+                    subdict = \
+                        make_subdict(strsublst,
+                                     class_object_dict=dict_for_sub)
+                    path = make_pathtofile(path_template,
+                                           strsublst, subdict)
+                    path = tmpdate.strftime(path)
+                    if os.path.isdir(path):
+                        tmplst = np.sort(os.listdir(path))
+                        filelst.append(tmplst)
+                        pathlst.append([os.path.join(path, e)
+                                        for e in tmplst])
+                    path = None
+                except Exception as e:
+                    logger.exception(e)
+                tmpdate = date_dispatcher(tmpdate,
+                            self.cfg.misc['date_incr_unit'],
+                            self.cfg.misc['date_incr'])
+            filelst = np.sort(flatten(filelst))
+            pathlst = np.sort(flatten(pathlst))
+            pathtotals = [pathlst]
+
+            # limit to sd and ed based on file naming, see check_date
+            idx_start, tmp = check_date(filelst, self.sd)
+            tmp, idx_end = check_date(filelst, self.ed)
+            if idx_end == 0:
+                idx_end = len(pathlst)-1
+            del tmp
+            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
+
+        else:
+            if os.path.isdir(path):
+                pathlst = glob.glob(path+'/*')
+            else:
+                pathlst = glob.glob(path+'*')
+            #
+            # interesting other approach using pathlibs glob
+            # https://stackoverflow.com/questions/3348753/\
+            #        search-for-a-file-using-a-wildcard
+            # from pathlib import Path
+            # filelst = [p.name for p in Path(path).glob("*")]
+            # pathlst = [str(p.parent) for p in Path(path).glob("*")]
+            #
+            # separate files from path
+            filelst = [p.split('/')[-1] for p in pathlst]
+            pathlst = [p[0:-len(f)] for p, f in zip(pathlst, filelst)]
+            pathtotals = [os.path.join(p, f) for p, f in zip(pathlst, filelst)]
+
+            # limit to sd and ed based on file naming, see check_date
+            idx_start, tmp = check_date(filelst, self.sd)
+            tmp, idx_end = check_date(filelst, self.ed)
+            if idx_end == 0:
+                idx_end = len(pathlst)-1
+            del tmp
+            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
+            filelst = np.unique(filelst[idx_start:idx_end+1])
+        print(str(int(len(pathtotals))) + " valid files found")
+        return pathtotals, filelst
+
 
     def _get_insitu_ts(self, **kwargs):
         """
@@ -156,18 +307,29 @@ class insitu_class(qls, wc, fc):
             self.stdvarname
         return self
 
+    @staticmethod
+    def _return_extension(fstr: str):
+        from pathlib import Path
+        # if m.endswith('.mp3'):
+        # for case sensitive and multiple checks
+        # m.lower().endswith(('.png', '.jpg', '.jpeg'))
+        return Path(fstr).suffix
+
     def populate(self, **kwargs):
         print(" ### Read files and populate insitu_class object")
 
-        # list input files or data origin if remote
-        #lst = self.list_input_files(**kwargs)
-        #self.pathlst = lst
+        try:
+            self.pathlst = self.list_input_files(**kwargs)
 
-        #print('')
-        #print('Checking variables..')
-        #self.meta = ncdumpMeta(self.pathlst[0])
-        #ncvar = get_filevarname(self.varalias, variable_def,
-        #                        insitu_dict[self.nID], self.meta)
+            # only possible if netcdf
+            if self._return_extension(self.pathlst[0]) == '.nc':
+                self.meta = ncdumpMeta(self.pathlst[0])
+            else:
+                self.meta = None
+        except Exception as e:
+            #logger.exception(e)
+            self.meta = None
+            print(' no netcdf meta data retrieved')
 
         print('')
         print('Choosing reader..')
@@ -200,7 +362,8 @@ class insitu_class(qls, wc, fc):
                 print('Reading..')
                 self = self._get_insitu_ts(**kwargs)
 
-                self = self._change_varname_to_aliases()
+                if self.meta is not None:
+                    self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
 
@@ -222,7 +385,6 @@ class insitu_class(qls, wc, fc):
                         variable_def[newvaralias].get('standard_name')
                     self.units = variable_def[newvaralias].get('units')
                 # create label for plotting
-                self.label = self.mission
                 t1 = time.time()
                 print(" ")
                 print(' ## Summary:')
@@ -259,52 +421,6 @@ class insitu_class(qls, wc, fc):
         ncdict = self.vars['meta']
         parent = finditem(ncdict, item)
         return parent
-
-
-#        if sensor is None:
-#            sensor = list(insitu_dict[nID]['sensor'].keys())[0]
-#            print('Sensor was not chosen')
-#            print('Automatic choice:', sensor)
-#        # for i in range(1):
-#        try:
-#            self.stdvarname = stdvarname
-#            self.varalias = varalias
-#            self.units = variable_info[varalias].get('units')
-#            self.sensor = sensor
-#            self.obstype = 'insitu'
-#            if ('tags' in insitu_dict[nID].keys() and
-#            len(insitu_dict[nID]['tags']) > 0):
-#                self.tags = insitu_dict[nID]['tags']
-#            print(" ")
-#            print(" ## Read files ...")
-#            t0 = time.time()
-#            vardict, fifo, pathtofile = \
-#                get_insitu_ts(nID=nID, sensor=sensor,
-#                              sd=sd, ed=ed,
-#                              varalias=varalias,
-#                              basedate=self.basedate,
-#                              dict_for_sub=vars(self),
-#                              **kwargs)
-#            self.vars = vardict
-#            self.varname = varalias
-#            if fifo == 'frost':
-#                self.sensor = sensor
-#            # create label for plotting
-#            self.label = self.nID + '_' + self.sensor
-#            t1 = time.time()
-#            print(" ")
-#            print('## Summary:')
-#            print(str(len(self.vars['time'])) + " values retrieved.")
-#            print("Time used for retrieving insitu data:",
-#                   round(t1-t0, 2), "seconds")
-#            print(" ")
-#            print(" ### insitu_class object initialized ### ")
-#        except Exception as e:
-#            logger.exception(e)
-#            print(e)
-#            self.error = e
-#            print("! No insitu_class object initialized !")
-#        print('# ----- ')
 
     def get_item_parent(self, item, attr):
         ncdict = self.vars['meta']

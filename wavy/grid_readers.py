@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-The main task of this module is to read satellite altimetry
-files for further use.
+The main task of this module is to read data directly into grids.
 '''
 # --- import libraries ------------------------------------------------#
 # standard library igports
@@ -28,7 +27,7 @@ satellite_dict = load_or_default('satellite_cfg.yaml')
 model_dict = load_or_default('model_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 
-def read_ww3_unstructured(**kwargs):
+def read_ww3_unstructured_to_grid(**kwargs):
     """
     Wrapping function to read satellite netcdf files.
 
@@ -48,16 +47,19 @@ def read_ww3_unstructured(**kwargs):
     varalias = kwargs.get('varalias')
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
-
-    # establish coords if defined in config file
-    timestr = model_dict[nID]['vardef']['time']
-    lonstr = model_dict[nID]['vardef']['lons']
-    latstr = model_dict[nID]['vardef']['lats']
+    meta = kwargs.get('meta')
 
     # get meta data
-    ncmeta = ncdumpMeta(pathlst[0])
-    varname = get_filevarname(varalias, variable_def,
-                              model_dict[nID], ncmeta)
+    varstr = get_filevarname(varalias, variable_def,
+                              model_dict[nID], meta)
+    lonstr = get_filevarname('lons', variable_def,
+                              model_dict[nID], meta)
+    latstr = get_filevarname('lats', variable_def,
+                              model_dict[nID], meta)
+    timestr = get_filevarname('time', variable_def,
+                              model_dict[nID], meta)
+
+
     # retrieve sliced data
     ds_lst = []
     for p in pathlst:
@@ -70,16 +72,17 @@ def read_ww3_unstructured(**kwargs):
             ds = ds.sel({timestr: slice(sd, ed)})
             times = ds[timestr].data
         for t in times:
-            print(t)
-            if (t >= sd and t <= ed):
+            # convert to datetime for comparison
+            dt = parse_date(str(t))
+            if (dt >= sd and dt <= ed):
                 # varnames = (varname, lonstr, latstr, timestr)
                 if len(times) < 2:
-                    var = (ds[varname].data,
+                    var = (ds[varstr].data,
                            ds[lonstr].data,
                            ds[latstr].data,
                            t.reshape((1,)))
                 else:
-                    var = (ds[varname].sel({timestr: t}).data,
+                    var = (ds[varstr].sel({timestr: t}).data,
                            ds[lonstr].data,
                            ds[latstr].data,
                            t.reshape((1,)))
@@ -99,7 +102,16 @@ def read_ww3_unstructured(**kwargs):
     return combined
 
 def get_gridded_dataset(var, t, **kwargs):
-    varalias = kwargs.get('varalias')
+    nID = kwargs.get('nID')
+    meta = kwargs.get('meta')
+    varstr = get_filevarname(kwargs.get('varalias'), variable_def,
+                              model_dict[nID], meta)
+    lonstr = get_filevarname('lons', variable_def,
+                              model_dict[nID], meta)
+    latstr = get_filevarname('lats', variable_def,
+                              model_dict[nID], meta)
+    timestr = get_filevarname('time', variable_def,
+                              model_dict[nID], meta)
 
     if kwargs.get('interp') is None:
         print("Apply gridding, no interpolation")
@@ -124,24 +136,41 @@ def get_gridded_dataset(var, t, **kwargs):
     ds = build_xr_ds_grid(
             var_means,
             np.unique(lon_grid), np.unique(lat_grid),
-            t.reshape((1,)), varalias)
+            t.reshape((1,)),
+            varstr=varstr,
+            lonstr=lonstr,
+            latstr=latstr,
+            timestr=timestr)
     return ds
 
 
-def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, varalias):
-    import xarray as xr
+def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, **kwargs):
+    varstr = kwargs.get('varstr')
+    lonstr = kwargs.get('lonstr', 'lons')
+    latstr = kwargs.get('latstr', 'lats')
+    timestr = kwargs.get('timestr', 'time')
 
     ds = xr.Dataset({
-            varalias: xr.DataArray(
-                    data=var_means,
-                    dims=['lats', 'lons', 'time'],
-                    coords={'lats': lat_grid,
-                            'lons': lon_grid,
-                            'time': t},
-                    )
-                },
-            attrs={'title': 'wavy dataset'}
-        )
+            varstr: xr.DataArray(
+                     data=var_means,
+                     dims=[latstr, lonstr, timestr],
+                     coords={latstr: lat_grid,
+                             lonstr: lon_grid,
+                             timestr: t},
+                     ),
+            lonstr: xr.DataArray(
+                     data=lon_grid,
+                     dims=[lonstr],
+                     coords={lonstr: lon_grid},
+                     ),
+            latstr: xr.DataArray(
+                     data=lat_grid,
+                     dims=[latstr],
+                     coords={latstr: lat_grid},
+                     ),
+                 },
+             attrs={'title': 'wavy dataset'}
+         )
     return ds
 
 

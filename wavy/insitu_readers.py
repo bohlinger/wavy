@@ -64,7 +64,6 @@ def call_frost_api(
     frost_reference_time = make_frost_reference_time_period(sdate, edate)
     if client_id is None:
         print("No Frost CLIENT_ID given!")
-    sensor = insitu_dict[nID]['name'][sensor]
     r = call_frost_api_v1(nID, varstr,
                           frost_reference_time,
                           client_id, sensor)
@@ -120,7 +119,7 @@ def get_frost_df_v1(r: 'requests.models.Response')\
     """
     create pandas dataframe from frost call for v1
     """
-    # empy sensor id lst
+    # empty sensor id lst
     # base df
     df = pd.json_normalize(r.json()['data']['tseries'])
     # coordinates for static station (sensor 0)
@@ -202,7 +201,7 @@ def get_frost(**kwargs):
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
     varstr = [variables_frost[varalias]['frost_name']]
-    sensor = kwargs.get('sensor', 0)
+    sensor = insitu_dict[nID]['name'][kwargs.get('name', 0)]
     r = call_frost_api(sdate, edate, nID, varstr, sensor)
     df, dinfo, lon, lat = get_frost_df_v1(r)
     var = df[varalias].values
@@ -224,25 +223,9 @@ def get_nc_thredds(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     nID = kwargs.get('nID')
-    #sensor = kwargs.get('sensor')
     varalias = kwargs.get('varalias')
-    src_tmplt = kwargs.get('cfg').wavy_input['src_tmplt']
-    fl_tmplt = kwargs.get('cfg').wavy_input['fl_tmplt']
-    pth_tmplt = src_tmplt + '/' + fl_tmplt
-    strsub = kwargs.get('cfg').wavy_input['strsub']
-    dict_for_sub = vars(kwargs.get('cfg'))
-    date_incr = kwargs.get('cfg').wavy_input['date_incr']
-    subdict = make_subdict(strsub, class_object_dict=dict_for_sub)
-    # loop from sdate to edate with dateincr
-    tmpdate = deepcopy(sd)
-    pathlst = []
-    while (datetime(tmpdate.year, tmpdate.month, 1)
-    <= datetime(ed.year, ed.month, 1)):
-        # get pathtofile
-        pathtofile = get_pathtofile(pth_tmplt, strsub,
-                                    subdict, tmpdate)
-        pathlst.append(pathtofile)
-        tmpdate = date_dispatcher(tmpdate, date_incr)
+    pathlst = kwargs.get('pathlst')
+
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname(varalias, variable_def,

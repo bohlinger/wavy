@@ -123,7 +123,7 @@ ww3_unstr:
                     wave_hindcast/hindcast_v1/field/"
         fl_tmplt: ww3.%Y%m.nc
     wavy_output:
-    reader: read_ww3_unstructured_grid
+    reader: read_ww3_unstructured_to_grid
     misc:
         init_times: [0]
         init_step: 24

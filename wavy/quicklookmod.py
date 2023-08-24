@@ -809,7 +809,7 @@ class quicklook_class_sat:
             gl.top_labels = False
             gl.right_labels = False
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            auto_title = (self.mission + '\n'
+            auto_title = (self.nID + ' ' + self.name + '\n'
                           + 'from ' 
                           + (parse_date(str(self.vars['time'][0].values))).\
                               strftime('%Y-%m-%d %H:%M:%S')
@@ -845,7 +845,7 @@ class quicklook_class_sat:
                     self.vars[self.varalias],
                     color=colors[0],
                     linestyle=kwargs.get('linestyle',''),
-                    label=self.label,
+                    label=self.name,
                     marker='o',alpha=.5,ms=2)
             plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')

@@ -42,6 +42,8 @@ draugen: # object nID (nameID)
                 lat: 64.35
                 lon: 7.78
         obs_type:
+        date_incr_unit:
+        date_incr:
     # optional, to ease grouping
     tags: ['oilrig','arcmfc']
 
@@ -58,14 +60,16 @@ D_Breisundet_wave: # object nID (nameID)
                     obs/buoy-svv-e39/%Y/%m/"
         fl_tmplt: "%Y%m_E39_nID.nc"
         strsub: ['nID']
-        date_incr: 'm'
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
         trgt_tmplt:
         fl_tmplt:
         strsub:
-        file_date_incr:
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_nc_thredds
     # optional, needs to be defined if not cf and in variable_info.yaml
@@ -85,5 +89,7 @@ D_Breisundet_wave: # object nID (nameID)
                 lon:
         operator: SVV
         obs_type:
+        date_incr_unit:
+        date_incr:
     # optional, to ease grouping
     tags: ['E39','wave','pytest']
