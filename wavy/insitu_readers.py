@@ -215,6 +215,12 @@ def get_frost(**kwargs):
     varnames = (varalias, 'lons', 'lats', 'time')
     var_tuple = (var, lons, lats, timedt)
 
+    print('HERE')
+    print(var_tuple)
+    print(var_tuple[0])
+    print(var_tuple[3])
+    print('HERE')
+
     # build xarray ds
     ds = build_xr_ds(var_tuple, varnames)
     return ds

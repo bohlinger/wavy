@@ -38,7 +38,6 @@ from wavy.utils import flatten
 from wavy.utils import date_dispatcher
 from wavy.utils import convert_meteorologic_oceanographic
 
-from wavy.modelmod import make_model_filename_wrapper
 from wavy.modelmod import read_model_nc_output_lru
 
 from wavy.wconfig import load_or_default
@@ -711,10 +710,12 @@ def match_region_poly(LATS, LONS, region, grid_date):
         poly = Polygon(list(zip(region['lons'],
                        region['lats'])), closed=True)
     elif (isinstance(region, str) is True and region in model_dict):
+        # init model_class object
+        from wavy.modelmod import model_class as mc
+        mco = mc(nID=region)
         try:
             print('Use date for retrieving grid: ', grid_date)
-            filestr = make_model_filename_wrapper(
-                                    region, grid_date, 'best')
+            filestr = mco._make_model_filename_wrapper(grid_date, 'best')
             meta = ncdumpMeta(filestr)
             flon = get_filevarname('lons', variable_def,
                                    model_dict[region], meta)
@@ -735,8 +736,7 @@ def match_region_poly(LATS, LONS, region, grid_date):
                                     datetime.now().month,
                                     datetime.now().day
                                     )
-            filestr = make_model_filename_wrapper(
-                                    region, grid_date, 'best')
+            filestr = mco._make_model_filename_wrapper(grid_date, 'best')
             meta = ncdumpMeta(filestr)
             flon = get_filevarname('lons', variable_def,
                                    model_dict[region], meta)

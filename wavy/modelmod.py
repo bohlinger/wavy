@@ -67,155 +67,6 @@ def check_date(filelst, date):
         idx = [0]
     return idx[0], idx[-1]
 
-def get_model_filedate(model, fc_date, leadtime):
-    '''
-    get init_date for latest model output file and checks if available
-
-    param:
-        model - modelname type(str)
-        fc_date - datetime object
-        leadtime - integer in hours
-
-    return:
-        suitable datetime to create model filename
-    '''
-    if ('init_times' in model_dict[model].keys()
-            and model_dict[model]['misc']['init_times'] is not None):
-        init_times = \
-            np.array(model_dict[model]['misc']['init_times']).astype('float')
-    else:
-        print('init_times for chosen model not specified in config file')
-        print('Assuming continuous simulation with hourly values')
-        init_times = np.array(range(25)).astype('float')
-    date = fc_date - timedelta(hours=leadtime)
-    date_hour = hour_rounder(date).hour
-    if date_hour in init_times:
-        print('Leadtime', leadtime , \
-              'available for date', fc_date)
-        init_diffs = date_hour - init_times
-        init_diffs[init_diffs < 0] = np.nan
-        h_idx = np.where(init_diffs == \
-                        np.min(init_diffs[~np.isnan(init_diffs)]))
-        h = int(init_times[h_idx[0][0]])
-        return datetime(date.year, date.month, date.day, h)
-    else:
-        #print('Leadtime', leadtime , \
-        #      'not available for date' ,fc_date, '!')
-        return False
-
-
-def make_model_filename(model, fc_date, leadtime):
-    """
-    creates/returns filename based on fc_date,leadtime
-
-        param:
-        model - modelname type(str)
-        fc_date - datetime object
-        leadtime - integer in hours
-
-    return:
-        filename (consists of path + filename)
-
-    comment:
-            - special characters are escaped by adding "\\"
-            - the escapes need to be removed for certain libraries
-              like xarray and netCDF4
-    """
-    if model in model_dict:
-        if 'xtra_h' in model_dict[model]:
-            filedate = get_model_filedate(model, fc_date, leadtime)
-            pathdate = filedate + timedelta(hours=leadtime) \
-                                * model_dict[model]['lt_switch_p']
-            tmpstr = model_dict[model]['file_template']
-            for i in range(model_dict[model]['nr_filedates']):
-                filedatestr = model_dict[model]['filedate_formats'][i]
-                replacestr = (filedate \
-                            + timedelta(hours = leadtime \
-                                    - (leadtime % \
-                                        model_dict[model]['init_step']))
-                                    * model_dict[model]['lt_switch_f'][i]
-                            + timedelta(hours = \
-                                    model_dict[model]['xtra_h'][i])).\
-                            strftime(filedatestr)
-                tmpstr = tmpstr.replace('filedate', replacestr, 1)
-            filename = (
-                        pathdate.strftime(\
-                            model_dict[model]['path_template'])
-                        + tmpstr)
-        else:
-            filedate = get_model_filedate(model, fc_date, leadtime)
-            filename =\
-                (filedate.strftime(model_dict[model]\
-                                   ['wavy_input']['src_tmplt'])\
-                + filedate.strftime(model_dict[model]\
-                                    ['wavy_input']['fl_tmplt']))
-    else:
-        raise ValueError("Chosen model is not specified in model_specs.yaml")
-    # replace/escape special characters
-    filename = filename.replace(" ", "\\ ")\
-                       .replace("?", "\\?")\
-                       .replace("&", "\\&")\
-                       .replace("(", "\\(")\
-                       .replace(")", "\\)")\
-                       .replace("*", "\\*")\
-                       .replace("<", "\\<")\
-                       .replace(">", "\\>")
-    return filename
-
-
-def make_model_filename_wrapper(model, fc_date, leadtime, max_lt=None):
-    """
-    Wrapper function of make_model_filename. Organizes various cases.
-
-    param:
-        model - modelname type(str)
-        fc_date - datetime object
-        leadtime - integer in hours
-        max_lt - maximum lead time allowed
-
-    return:
-        filename
-    """
-    if leadtime is None:
-        leadtime = 'best'
-    if (isinstance(fc_date, datetime) and leadtime != 'best'):
-        filename = make_model_filename(model, fc_date, leadtime)
-    elif (isinstance(fc_date, datetime) and leadtime == 'best'):
-        switch = False
-        leadtime = generate_bestguess_leadtime(model, fc_date)
-        while switch is False:
-            filename = make_model_filename(model, fc_date, leadtime)
-            # check if file is accessible
-            switch = check_if_ncfile_accessible(filename)
-            if (switch is False):
-                print("Desired file:", filename, " not accessible")
-                print("Continue to look for date with extended leadtime")
-                leadtime = leadtime + model_dict[model]['misc']['init_step']
-            if max_lt is not None and leadtime > max_lt:
-                print("Leadtime:", leadtime,
-                      "is greater as maximum allowed leadtime:", max_lt)
-                return None
-    elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
-        filename = [make_model_filename(model, date, leadtime)
-                    for date in fc_date]
-    elif (isinstance(fc_date, list) and leadtime == 'best'):
-        leadtime = generate_bestguess_leadtime(model, fc_date)
-        filename = [make_model_filename(model, fc_date[i], leadtime[i])
-                    for i in range(len(fc_date))]
-    return filename
-
-def make_list_of_model_filenames(model, fc_dates, lt):
-    """
-    return: flst - list of model files to be opened
-            dlst - list of dates to be chosen within each file
-    """
-    #fn = make_model_filename_wrapper('mwam4',datetime(2021,1,1,1),1)
-    flst = []
-    for d in fc_dates:
-        fn = make_model_filename_wrapper(model, d, lt)
-        flst.append(fn)
-    return flst
-
 def generate_bestguess_leadtime(model, fc_date, lidx=None):
     """
     fct to return leadtimes for bestguess
@@ -360,6 +211,151 @@ class model_class(qls):
         parent = finditem(self.meta, item)
         return parent
 
+    def _get_model_filedate(self, fc_date, leadtime):
+        '''
+        get init_date for latest model output file and checks if available
+
+        param:
+            fc_date - datetime object
+            leadtime - integer in hours
+
+        return:
+            suitable datetime to create model filename
+        '''
+        if ('init_times' in vars(self.cfg)['misc'].keys()
+                and vars(self.cfg)['misc']['init_times'] is not None):
+            init_times = \
+                np.array(vars(self.cfg)['misc']['init_times']).astype('float')
+        else:
+            print('init_times for chosen model not specified in config file')
+            print('Assuming continuous simulation with hourly values')
+            init_times = np.array(range(25)).astype('float')
+        date = fc_date - timedelta(hours=leadtime)
+        date_hour = hour_rounder(date).hour
+        if date_hour in init_times:
+            print('Leadtime', leadtime, \
+                  'available for date', fc_date)
+            init_diffs = date_hour - init_times
+            init_diffs[init_diffs < 0] = np.nan
+            h_idx = np.where(init_diffs == \
+                            np.min(init_diffs[~np.isnan(init_diffs)]))
+            h = int(init_times[h_idx[0][0]])
+            return datetime(date.year, date.month, date.day, h)
+        else:
+            #print('Leadtime', leadtime , \
+            #      'not available for date' ,fc_date, '!')
+            return False
+
+    def _make_model_filename(self, fc_date, leadtime):
+        """
+        creates/returns filename based on fc_date,leadtime
+
+            param:
+            fc_date - datetime object
+            leadtime - integer in hours
+
+        return:
+            filename (consists of path + filename)
+
+        comment:
+                - special characters are escaped by adding "\\"
+                - the escapes need to be removed for certain libraries
+                  like xarray and netCDF4
+        """
+        if self.nID in model_dict:
+            if 'xtra_h' in vars(self.cfg):
+                filedate = self._get_model_filedate(fc_date, leadtime)
+                pathdate = filedate + timedelta(hours=leadtime) \
+                                    * vars(self.cfg)['misc']['lt_switch_p']
+                tmpstr = vars(self.cfg)['wavy_input']['fl_tmplt']
+                for i in range(vars(self.cfg)['misc']['nr_filedates']):
+                    filedatestr = vars(self.cfg)['misc']['filedate_formats'][i]
+                    replacestr = (filedate \
+                                + timedelta(hours=leadtime\
+                                    - (leadtime % \
+                                        vars(self.cfg)['misc']['init_step']))
+                                    * vars(self.cfg)['misc']['lt_switch_f'][i]
+                                + timedelta(hours=\
+                                      vars(self.cfg)['misc']['xtra_h'][i])).\
+                                      strftime(filedatestr)
+                    tmpstr = tmpstr.replace('filedate', replacestr, 1)
+                filename = (
+                            pathdate.strftime(\
+                                vars(self.cfg)['wavy_input']['src_tmplt'])
+                            + tmpstr)
+            else:
+                filedate = self._get_model_filedate(fc_date, leadtime)
+                filename = (filedate.strftime(vars(self.cfg)
+                                ['wavy_input']['src_tmplt'])
+                          + filedate.strftime(vars(self.cfg)
+                                ['wavy_input']['fl_tmplt']))
+        else:
+            raise ValueError("Chosen model is not specified in model_cfg.yaml")
+        # replace/escape special characters
+        filename = filename.replace(" ", "\\ ")\
+                           .replace("?", "\\?")\
+                           .replace("&", "\\&")\
+                           .replace("(", "\\(")\
+                           .replace(")", "\\)")\
+                           .replace("*", "\\*")\
+                           .replace("<", "\\<")\
+                           .replace(">", "\\>")
+        return filename
+
+    def _make_model_filename_wrapper(self, fc_date, leadtime, max_lt=None):
+        """
+        Wrapper function of make_model_filename. Organizes various cases.
+
+        param:
+            model - modelname type(str)
+            fc_date - datetime object
+            leadtime - integer in hours
+            max_lt - maximum lead time allowed
+
+        return:
+            filename
+        """
+        if leadtime is None:
+            leadtime = 'best'
+        if (isinstance(fc_date, datetime) and leadtime != 'best'):
+            filename = self._make_model_filename(fc_date, leadtime)
+        elif (isinstance(fc_date, datetime) and leadtime == 'best'):
+            switch = False
+            leadtime = generate_bestguess_leadtime(self.nID, fc_date)
+            while switch is False:
+                filename = self._make_model_filename(fc_date, leadtime)
+                # check if file is accessible
+                switch = check_if_ncfile_accessible(filename)
+                if (switch is False):
+                    print("Desired file:", filename, " not accessible")
+                    print("Continue to look for date with extended leadtime")
+                    leadtime = leadtime + vars(self.cfg)['misc']['init_step']
+                if max_lt is not None and leadtime > max_lt:
+                    print("Leadtime:", leadtime,
+                          "is greater as maximum allowed leadtime:", max_lt)
+                    return None
+        elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
+            filename = [self._make_model_filename(date, leadtime)
+                        for date in fc_date]
+        elif (isinstance(fc_date, list) and leadtime == 'best'):
+            leadtime = generate_bestguess_leadtime(self.nID, fc_date)
+            filename = [self._make_model_filename(fc_date[i], leadtime[i])
+                        for i in range(len(fc_date))]
+        return filename
+
+    def _make_list_of_model_filenames(self, fc_dates, lt):
+        """
+        return: flst - list of model files to be opened
+                dlst - list of dates to be chosen within each file
+        """
+        #fn = make_model_filename_wrapper(datetime(2021,1,1,1),1)
+        flst = []
+        for d in fc_dates:
+            fn = self._make_model_filename_wrapper(d, lt)
+            flst.append(fn)
+        return flst
+
+
     def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
         """
         Function to retrieve list of files/paths for available
@@ -390,10 +386,8 @@ class model_class(qls):
                 try:
                     # create local path for each time
                     path_template = \
-                            model_dict[self.nID]['wavy_input'].get(
-                                                  'src_tmplt')
-                    strsublst = \
-                        model_dict[self.nID]['wavy_input'].get('strsub')
+                            vars(self.cfg)['wavy_input'].get('src_tmplt')
+                    strsublst = vars(self.cfg)['wavy_input'].get('strsub')
                     subdict = \
                         make_subdict(strsublst,
                                      class_object_dict=dict_for_sub)
@@ -458,8 +452,7 @@ class model_class(qls):
         if (kwargs.get('path') is None and kwargs.get('wavy_path') is None):
             fc_dates = make_fc_dates(self.sd, self.ed,
                                      self.cfg.misc['date_incr'])
-            pathlst = make_list_of_model_filenames(self.nID,
-                        fc_dates, self.leadtime)
+            pathlst = self._make_list_of_model_filenames(fc_dates, self.leadtime)
 
         else:
             # if defined path local
@@ -504,8 +497,8 @@ class model_class(qls):
 
     def _enforce_meteorologic_convention(self):
         print(' enforcing meteorological convention')
-        if ('convention' in model_dict[self.nID].keys() and
-        model_dict[self.nID]['convention'] == 'oceanographic'):
+        if ('convention' in vars(self.cfg)['misc'].keys() and
+        vars(self.cfg)['misc']['convention'] == 'oceanographic'):
             print('Convert from oceanographic to meteorologic convention')
             self.vars[self.varalias] =\
                 convert_meteorologic_oceanographic(self.vars[self.varalias])
@@ -519,7 +512,7 @@ class model_class(qls):
         print(' changing variables to aliases')
         # variables
         ncvar = get_filevarname(self.varalias, variable_def,
-                                model_dict[self.nID], self.meta)
+                                vars(self.cfg), self.meta)
         if self.varalias in list(self.vars.keys()):
             print('  ', ncvar, 'is alreade named correctly and'
                 + ' therefore not adjusted')
@@ -529,7 +522,7 @@ class model_class(qls):
         coords = ['time', 'lons', 'lats']
         for c in coords:
             ncvar = get_filevarname(c, variable_def,
-                                    model_dict[self.nID], self.meta)
+                                    vars(self.cfg), self.meta)
             if c in list(self.vars.keys()):
                 print('  ', c, 'is alreade named correctly and'
                     + ' therefore not adjusted')
@@ -564,7 +557,7 @@ class model_class(qls):
         print('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
         ncvar = get_filevarname(self.varalias, variable_def,
-                                model_dict[self.nID], self.meta)
+                                vars(self.cfg), self.meta)
         print('')
         print('Choosing reader..')
         # define reader
