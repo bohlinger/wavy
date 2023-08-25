@@ -17,6 +17,20 @@ def test_from_thredds():
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) == 3
 
+def test_from_thredds_twinID():
+    nID = 'A_Sulafjorden_wave'
+    twinID = 'D_Breisundet_wave'
+    sensor = 'wavescan'
+    ico = ic(nID=nID, twinID=twinID, sd=sd, ed=ed, varalias=varalias, sensor=sensor)
+    print(ico)
+    print(vars(ico).keys())
+    assert ico.__class__.__name__ == 'insitu_class'
+    assert len(vars(ico).keys()) == 12
+    new = ico.populate()
+    print(new.vars.keys())
+    print(len(new.vars.keys()))
+    assert len(new.vars.keys()) == 3
+
 
 def test_from_frost_v1():
     nID = 'draugen'
