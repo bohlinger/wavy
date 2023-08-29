@@ -13,6 +13,7 @@ import os
 from dateutil.parser import parse
 import math
 from wavy.wconfig import load_or_default
+import pandas as pd
 
 # ---------------------------------------------------------------------#
 variable_def = load_or_default('variable_def.yaml')
@@ -214,6 +215,14 @@ def hour_rounder(t):
     return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
           + timedelta(hours=t.minute//30))
 
+def hour_rounder_pd(times):
+    '''
+    Rounds to nearest hour by adding a timedelta hour if minute >= 30
+    '''
+    df = pd.DataFrame(columns=['time'], data=times)
+    rounded = df.time.round('H').values
+    return rounded
+
 def sort_files(dirpath, filelst, product, sat):
     """
     mv files to sub-folders of year and month
@@ -400,14 +409,19 @@ flat_list.append(item)
 '''
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def make_fc_dates(sdate: datetime, edate: datetime, date_incr: int) -> list:
+def make_fc_dates(sdate: datetime, edate: datetime,
+date_incr_unit: str, date_incr: int) -> list:
     '''
     fct to create forecast date vector
     '''
+    sdate = parse_date(str(sdate))
+    edate = parse_date(str(edate))
     fc_dates = []
     while sdate <= edate:
         fc_dates.append(sdate)
-        sdate += timedelta(hours=date_incr)
+        tmp_date = parse_date(str(sdate))
+        sdate = date_dispatcher(tmp_date, date_incr=date_incr_unit,
+                                incr=date_incr)
     return fc_dates
 
 def system_call(command: str):
@@ -601,7 +615,7 @@ def compute_quantiles(ts,lq):
         qA - numpy array of quantiles
     """
     ts = marginalize(ts)
-    return np.array([np.quantile(ts,q) for q in lq])
+    return np.array([np.quantile(ts, q) for q in lq])
 
 def get_obsdict(obstype):
     if obstype == 'insitu':
@@ -609,18 +623,18 @@ def get_obsdict(obstype):
     elif obstype == 'satellite_altimeter':
         obsdict = load_or_default('satellite_specs.yaml')
     else:
-        print("obstype",obstype,"is not applicable")
+        print("obstype", obstype, "is not applicable")
         obsdict = None
     return obsdict
 
-def find_tagged_obs(tags,obstype):
+def find_tagged_obs(tags, obstype):
     d = get_obsdict(obstype)
     l = []
     for t in tags:
-        l += [k for k in d if t in d[k].get('tags',[''])]
+        l += [k for k in d if t in d[k].get('tags', [''])]
     return list(np.unique(l))
 
-def expand_nID_for_sensors(nID,obstype):
+def expand_nID_for_sensors(nID, obstype):
     obsdict = get_obsdict(obstype)
     sensors = list(obsdict[nID]['sensor'])
     return sensors

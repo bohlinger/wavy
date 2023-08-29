@@ -54,7 +54,11 @@ def read_ww3_4km(**kwargs):
                          join='override')
     print(" ... done concatenating")
 
+    print(' Build dataset')
+    print(' dataset ready!')
+
     return combined
+
 
 @lru_cache(maxsize=32)
 def read_single_field_lru(

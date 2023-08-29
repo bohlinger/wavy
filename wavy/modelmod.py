@@ -451,6 +451,7 @@ class model_class(qls):
 
         if (kwargs.get('path') is None and kwargs.get('wavy_path') is None):
             fc_dates = make_fc_dates(self.sd, self.ed,
+                                     self.cfg.misc['date_incr_unit'],
                                      self.cfg.misc['date_incr'])
             pathlst = self._make_list_of_model_filenames(fc_dates, self.leadtime)
 
@@ -549,6 +550,7 @@ class model_class(qls):
         print(" ### Read files and populate model_class object")
 
         fc_dates = make_fc_dates(self.sd, self.ed,
+                                 self.cfg.misc['date_incr_unit'],
                                  self.cfg.misc['date_incr'])
 
         self.pathlst = self.list_input_files(**kwargs)
