@@ -1,38 +1,36 @@
-#import sys
-#import os
-#from datetime import datetime, timedelta
-#import pytest
-#
-#from wavy.wconfig import load_or_default
-#import wavy.satmod
-#from wavy.satmod import satellite_class as sc
-#from wavy.collocmod import collocation_class as cc
-#from wavy.insitumod import insitu_class as ic
-#
-#varalias = 'Hs'
-#
-#satellite_dict = load_or_default('satellite_specs.yaml')
+import sys
+import os
+from datetime import datetime, timedelta
+import pytest
 
+from wavy.satmod import satellite_class as sc
+from wavy.collocmod import collocation_class as cc
+from wavy.insitumod import insitu_class as ic
 
-#def test_sat_collocation_and_validation(test_data,tmpdir):
-#    sd = "2020-11-1 12"
-#    ed = "2020-11-1 12"
-#    region = 'NordicSeas'
-#    sat = 's3a'
-#    product = 'cmems_L3_NRT'
-#    twin = 30
-#    # read sat data
-#    sco = sc(sdate=sd,edate=ed,
-#             region=region,sat=sat,
-#             twin=twin,varalias=varalias,
-#             product=product,
-#             path_local=str(test_data/"L3"))
-#    # collocate
-#    cco = cc(model='mwam4',obs_obj_in=sco,distlim=6,
-#             leadtime='best',date_incr=1)
-#    assert len(vars(cco).keys()) >= 12
-#    assert len(cco.vars.keys()) >= 13
-#    assert not 'error' in vars(sco).keys()
+# include possibility for collocating different variable
+# varalias = 'Hs', 'U', aso...
+
+def test_sat_collocation_and_validation(test_data,tmpdir):
+    # evoke fct get_remote_files
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    name = 's3a'
+    varalias = 'Hs'
+    twin = 30
+    nID = 'cmems_L3_NRT'
+    model = 'ww3_4km'
+    region = model
+    # init satellite_object and check for polygon region
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
+             varalias=varalias, region=region,
+             twin=twin)
+    # read data
+    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3/s3a"))
+
+    # collocate
+    cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
+    assert len(vars(cco).keys()) >= 12
+    assert len(cco.vars.keys()) >= 13
 #    # write to nc
 #    cco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
 #    # test validation

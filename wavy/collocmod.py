@@ -563,11 +563,11 @@ class collocation_class(qls):
         return results_dict
 
 
-    def _collocate_satellite_ts(self, **kwargs):
+    def _collocate_track(self, **kwargs):
         """
         Some info
         """
-        print("run: collocate_satellite_ts")
+        print("run: _collocate_track")
 
         # use only dates with a model time step closeby
         # given the time constrains
@@ -689,7 +689,7 @@ class collocation_class(qls):
                             +'\n###'
                             )
         if ((self.model is not None) and (self.oco is not None)):
-            results_dict = self._collocate_satellite_ts(**kwargs)
+            results_dict = self._collocate_track(**kwargs)
         # same needed for insitu, multiins, multisat, consolidate
         return results_dict
 

@@ -6,9 +6,6 @@ import pytest
 from wavy.wconfig import load_or_default
 from wavy.satmod import satellite_class as sc
 
-satellite_dict = load_or_default('satellite_cfg.yaml')
-
-#def test_ftp_files_and_satellite_class_features(tmpdir):
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3(tmpdir):
     sco = sc(sd='2023-2-1 12', ed='2023-2-1 12',
