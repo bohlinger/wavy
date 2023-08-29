@@ -19,6 +19,7 @@ import importlib.util
 import pyproj
 import dotenv
 import glob
+import xarray as xr
 #import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -285,10 +286,12 @@ class satellite_class(qls, wc, fc):
               'footprints found')
         return new
 
-    def _get_sat_ts(self, **kwargs):
+    def _get_sat_ts_blind(self, **kwargs):
         """
         Main function to obtain data from satellite missions.
         reads files, apply region and temporal filter
+
+        fct is insensitive to region
 
         return: adjusted dictionary according to spatial and
                 temporal constraints
@@ -298,6 +301,48 @@ class satellite_class(qls, wc, fc):
         ds = self.reader(**(vars(self)))
         self.vars = ds
         self.coords = list(self.vars.coords)
+        return self
+
+    def _get_sat_ts(self, **kwargs):
+        """
+        Main function to obtain data from satellite missions.
+        reads files, apply region and temporal filter
+
+        fct will crop to region on the fly if given in init kwargs
+        chunk_size determines number of files read before region filter
+
+        return: adjusted dictionary according to spatial and
+                temporal constraints
+        """
+        new = deepcopy(self)
+
+        pathlst = self.pathlst
+        chunk_size = kwargs.get('chunk_size', 6)
+
+        ds_lst = []
+        count = 0
+        while count <= len(pathlst):
+            if count >= len(pathlst):
+                new.pathlst = pathlst[count:len(pathlst)-1]
+            else:
+                new.pathlst = pathlst[count:count+chunk_size]
+            # retrieve dataset
+            ds = new.reader(**(vars(new)))
+            new.vars = ds
+            new.coords = new.vars.coords
+            ds_lst.append(new._change_varname_to_aliases()
+                          .crop_to_region(self.region).vars)
+            count += chunk_size
+
+        combined = xr.concat(ds_lst, 'time',
+                             coords='minimal',
+                             data_vars='minimal',
+                             compat='override',
+                             combine_attrs='override',
+                             join='override')
+        self.vars = combined
+        self.coords = list(self.vars.coords)
+
         return self
 
     @staticmethod
@@ -367,7 +412,7 @@ class satellite_class(qls, wc, fc):
         print(" ### Read files and populate satellite_class object")
 
         lst = self.list_input_files(**kwargs)
-        self.pathlst = lst
+        self.pathlst = kwargs.get('pathlst', lst)
 
         self.poi = kwargs.get('poi', None)
         print('')
