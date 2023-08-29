@@ -19,18 +19,18 @@ def test_sat_collocation_and_validation(test_data,tmpdir):
     twin = 30
     nID = 'cmems_L3_NRT'
     model = 'ww3_4km'
-    region = model
     # init satellite_object and check for polygon region
     sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias, region=region,
-             twin=twin)
+             varalias=varalias, twin=twin)
     # read data
     sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3/s3a"))
+    # crop to region
+    sco = sco.crop_to_region(model)
 
     # collocate
     cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
-    assert len(vars(cco).keys()) >= 12
-    assert len(cco.vars.keys()) >= 13
+    assert len(vars(cco).keys()) == 15
+    assert len(cco.vars.keys()) == 9
 #    # write to nc
 #    cco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
 #    # test validation
