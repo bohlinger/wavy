@@ -38,6 +38,7 @@ from wavy.multisat import multisat_class
 from wavy.insitumod import insitu_class
 from wavy.consolidate import consolidate_class
 from wavy.modelmod import model_class as mc
+from wavy.quicklookmod import quicklook_class_sat as qls
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -382,120 +383,6 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     results_dict = col_obj.vars
     return results_dict
 
-def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
-    leadtime=None,date_incr=None,twin=None):
-    """
-    Some info
-    """
-    print("run: collocate_satellite_ts")
-
-    # use only dates with a model time step closeby
-    # given the time constrains
-    print('Filtering valid dates ...')
-    if twin is None:
-        twin = obs_obj.twin
-    t1=time.time()
-    od = np.array([d.timestamp() for d in obs_obj.vars['datetime']]) + twin*60
-    res = 2*twin*60
-    nd = od - od%res
-    nduq = np.unique(nd)
-    ndt = [datetime.fromtimestamp(ts) for ts in nduq]
-
-    ndt_valid = find_valid_fc_dates_for_model_and_leadtime(\
-                                        ndt,model,leadtime)
-
-    fc_date = ndt_valid
-    t2=time.time()
-
-    print(f'... done, used {t2-t1:.2f} seconds')
-
-    print("Start collocation ...")
-    results_dict = {
-            'valid_date':[],
-            'time':[],
-            'time_unit':obs_obj.vars['time_unit'],
-            'datetime':[],
-            'distance':[],
-            'model_values':[],
-            'model_lons':[],
-            'model_lats':[],
-            'obs_values':[],
-            'obs_lons':[],
-            'obs_lats':[],
-            'collocation_idx_x':[],
-            'collocation_idx_y':[],
-            }
-    for i in tqdm(range(len(fc_date))):
-#    for i in range(len(fc_date)):
-#        for f in range(1):
-        with NoStdStreams():
-#            for t in range(1):
-            try:
-                # filter needed obs within time period
-                idx = collocate_times( obs_obj.vars['datetime'],
-                                       target_t = [fc_date[i]],
-                                       twin = twin )
-                # make tmp obs_obj with filtered data
-                obs_obj_tmp = deepcopy(obs_obj)
-                obs_obj_tmp.vars['time'] = list(\
-                        np.array(obs_obj.vars['time'])[idx] )
-                obs_obj_tmp.vars['latitude'] = list(\
-                        np.array(obs_obj.vars['latitude'])[idx] )
-                obs_obj_tmp.vars['longitude'] = list(\
-                        np.array(obs_obj.vars['longitude'])[idx] )
-                obs_obj_tmp.vars[obs_obj.stdvarname] = \
-                        list(np.array(\
-                        obs_obj.vars[obs_obj.stdvarname])[idx] )
-                vardict,_,_,_,_ = get_model(model=model,
-                                    fc_date=fc_date[i],
-                                    varalias=obs_obj.varalias,
-                                    leadtime=leadtime,
-                                    transform_lons=180)
-                results_dict_tmp = collocate_field(\
-                                datein=fc_date[i],\
-                                model_lats=vardict['latitude'],\
-                                model_lons=vardict['longitude'],\
-                                model_vals=vardict[obs_obj.stdvarname],\
-                                obs_obj=obs_obj_tmp,\
-                                distlim=distlim,twin=twin)
-                # append to dict
-                results_dict['valid_date'].append(fc_date[i])
-                results_dict['time'].append(results_dict_tmp['time'])
-                results_dict['datetime'].append(results_dict_tmp['datetime'])
-                results_dict['distance'].append(results_dict_tmp['distance'])
-                results_dict['model_values'].append(results_dict_tmp['model_values'])
-                results_dict['model_lons'].append(results_dict_tmp['model_lons'])
-                results_dict['model_lats'].append(results_dict_tmp['model_lats'])
-                results_dict['obs_values'].append(results_dict_tmp['obs_values'])
-                results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
-                results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
-                results_dict['collocation_idx_x'].append(\
-                                results_dict_tmp['collocation_idx_x'])
-                results_dict['collocation_idx_y'].append(\
-                                results_dict_tmp['collocation_idx_y'])
-                if 'results_dict_tmp' in locals():
-                    del results_dict_tmp
-            except (ValueError,FileNotFoundError,OSError) as e:
-                # ValueError, pass if no collocation
-                # FileNotFoundError, pass if file not accessible
-                # OSError, pass if file not accessible from thredds
-                print(e)
-    # flatten all aggregated entries
-    results_dict['time'] = flatten(results_dict['time'])
-    results_dict['datetime'] = flatten(results_dict['datetime'])
-    results_dict['distance'] = flatten(results_dict['distance'])
-    results_dict['model_values'] = flatten(results_dict['model_values'])
-    results_dict['model_lons'] = flatten(results_dict['model_lons'])
-    results_dict['model_lats'] = flatten(results_dict['model_lats'])
-    results_dict['obs_values'] = flatten(results_dict['obs_values'])
-    results_dict['obs_lats'] = flatten(results_dict['obs_lats'])
-    results_dict['obs_lons'] = flatten(results_dict['obs_lons'])
-    results_dict['collocation_idx_x'] = flatten(\
-                                results_dict['collocation_idx_x'])
-    results_dict['collocation_idx_y'] = flatten(\
-                                results_dict['collocation_idx_y'])
-    return results_dict
-
 def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
                     datein=None,model_lats=None,model_lons=None,
                     model_vals=None,twin=None):
@@ -580,155 +467,54 @@ def collocate_field(mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
                                  col_obj.vars['collocation_idx_y'] ])
     return results_dict
 
-def collocate(mc_obj=None,obs_obj=None,col_obj=None,poi=None,
-    model=None,distlim=None,leadtime=None,date_incr=None,
-    varalias=None,twin=None,max_lt=None):
-    """
-    get obs value for model value for given
-        temporal and spatial constraints
-    """
-    if (poi is None and len(obs_obj.vars[obs_obj.stdvarname]) < 1):
-        raise Exception ( '\n###\n'
-                        + 'Collocation not possible, '
-                        + 'no observation values for collocation!'
-                        + '\n###'
-                        )
-    if ((mc_obj is None or len(mc_obj.vars[mc_obj.stdvarname]) < 1)
-    and model is None):
-        raise Exception ( '\n###\n'
-                        + 'Collocation not possible, '
-                        + 'no model values available for collocation!'
-                        + '\n###'
-                        )
-    if (mc_obj is None and model is not None and obs_obj is not None\
-    and isinstance(obs_obj,insitu_class)):
-        results_dict = collocate_station_ts(obs_obj=obs_obj,
-                                            model=model,\
-                                            distlim=distlim,\
-                                            leadtime=leadtime,\
-                                            date_incr=date_incr)
-    elif (
-    (mc_obj is None and model is not None and obs_obj is not None\
-    and 
-    (   isinstance(obs_obj,satellite_class)
-     or isinstance(obs_obj,consolidate_class)
-     or isinstance(obs_obj,multisat_class)))
-    ):
-        results_dict = collocate_satellite_ts(obs_obj=obs_obj,
-                                            model=model,\
-                                            distlim=distlim,\
-                                            leadtime=leadtime,\
-                                            date_incr=date_incr,
-                                            twin=twin)
-    elif poi is not None:
-        results_dict = collocate_poi_ts(poi,model=model,\
-                                        distlim=distlim,\
-                                        leadtime=leadtime,\
-                                        date_incr=date_incr,\
-                                        varalias=varalias,\
-                                        twin=twin,max_lt=max_lt)
-    else:
-        results_dict = collocate_field( mc_obj=mc_obj,\
-                                        obs_obj=obs_obj,\
-                                        col_obj=col_obj,\
-                                        distlim=distlim,
-                                        twin=twin)
-    return results_dict
-
-
-class collocation_class():
+class collocation_class(qls):
     '''
     draft of envisioned collocation class object
     '''
 
-    def __init__(self, mc_obj_in=None, obs_obj_in=None, poi=None,
-        col_obj_in=None, model=None, distlim=None, leadtime=None,
-        date_incr=1, varalias='Hs', twin=30, max_lt = None):
+    def __init__(self, oco=None, mco=None, model=None, poi=None,
+            distlim=None, leadtime=None, max_lt=None, **kwargs):
+        #twin=30, distlim=6):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")
+        # initialize model class object if not existing
+        if mco is None:
+            mco = mc(nID=model, sd=oco.sd, ed=oco.ed, leadtime=leadtime)
         # make clones to prevent overwriting
-        mc_obj = deepcopy(mc_obj_in)
-        obs_obj = deepcopy(obs_obj_in)
-        col_obj = deepcopy(col_obj_in)
-        self.varalias = varalias
-        if mc_obj is not None:
-            model = mc_obj.model
+        self.varalias = oco.varalias
         self.model = model
-        if (isinstance(obs_obj,satellite_class) or \
-        isinstance(obs_obj,multisat_class)):
-            self.obsname = obs_obj.mission
-            self.mission = obs_obj.mission
-            self.obstype = "satellite_altimeter"
-            self.stdvarname = obs_obj.stdvarname
-            self.region = obs_obj.region
-            self.units = variable_info[varalias].get('units')
-            self.sdate = obs_obj.sdate
-            self.edate = obs_obj.edate
-            self.label = self.mission
-        elif isinstance(obs_obj,consolidate_class):
-            self.obsname = obs_obj.mission # NA
-            self.mission = obs_obj.mission # NA
-            self.nID = obs_obj.nID # NA
-            self.sensor = obs_obj.sensor # NA
-            self.obstype = "consolidated_obs"
-            self.stdvarname = obs_obj.stdvarname
-            self.units = variable_info[varalias].get('units')
-            self.sdate = obs_obj.sdate
-            self.edate = obs_obj.edate
-            self.label = "consolidated_obs"
-        elif isinstance(obs_obj,insitu_class):
-            obs_obj.twin = insitu_dict[obs_obj.nID].get('twin',None)
-            self.obsname = obs_obj.nID + '_' +  obs_obj.sensor
-            self.obstype = 'insitu'
-            self.nID = obs_obj.nID
-            self.sensor = obs_obj.sensor
-            self.stdvarname = obs_obj.stdvarname
-            self.units = variable_info[self.varalias].get('units')
-            self.sdate = obs_obj.sdate
-            self.edate = obs_obj.edate
-            self.label = self.nID + '_' + self.sensor
-        if poi is not None:
-            # poi is of type dict
-            self.nID = poi['nID']
-            self.obsname = poi['nID']
-            self.obstype = 'POI'
-            stdvarname = variable_info[varalias]['standard_name']
-            self.stdvarname = stdvarname
-            self.units = variable_info[varalias].get('units')
-            self.sdate = parse_date(poi['time'][0])
-            self.edate = parse_date(poi['time'][-1])
-            self.label = self.nID
-        # define class variables
+        self.mco = mco
         self.leadtime = leadtime
-        if leadtime is None:
-            self.leadtime = 'best'
-            self.leadtimestr = 'best'
-        elif isinstance(self.leadtime,str):
-            self.leadtime = leadtime
-            leadtimestr = leadtime
-            self.leadtimestr = leadtime
-        else:
-            leadtimestr="{:0>3d}".format(self.leadtime)
-            self.leadtime = leadtime
-            self.leadtimestr = leadtimestr
-        # get vars dictionary
+        self.oco = oco
+        self.nID = oco.nID
+        self.name = oco.name
+        self.obstype = str(type(oco))[8:-2]
+        self.stdvarname = oco.stdvarname
+        self.region = oco.region
+        self.units = variable_info[self.varalias].get('units')
+        self.sd = oco.sd
+        self.ed = oco.ed
+        self.twin = kwargs.get('twin', oco.twin)
+        self.distlim = kwargs.get('distlim', 6)
+        #if poi is not None:
+        #    !an oco should be created!
+        #    # poi is of type dict
+        #    self.nID = poi['nID']
+        #    self.obsname = poi['nID']
+        #    self.obstype = 'POI'
+        #    stdvarname = variable_info[varalias]['standard_name']
+        #    self.stdvarname = stdvarname
+        #    self.units = variable_info[varalias].get('units')
+        #    self.sdate = parse_date(poi['time'][0])
+        #    self.edate = parse_date(poi['time'][-1])
+        #    self.label = self.nID
         print(" ")
         print(" ## Collocate ... ")
 #        for t in range(1):
         try:
             t0=time.time()
-            results_dict = collocate(mc_obj=mc_obj,
-                                    obs_obj=obs_obj,
-                                    col_obj=col_obj,
-                                    poi=poi,
-                                    model=model,
-                                    distlim=distlim,
-                                    leadtime=self.leadtime,
-                                    date_incr=date_incr,
-                                    varalias=self.varalias,
-                                    max_lt = max_lt,
-                                    twin = twin)
+            results_dict = self.collocate()
             self.vars = results_dict
             self.fc_date = results_dict['datetime']
             t1=time.time()
@@ -744,6 +530,150 @@ class collocation_class():
             print ("! No collocation_class object initialized !")
         # add class variables
         print ('# ----- ')
+
+    def _collocate_satellite_ts(self):
+        """
+        Some info
+        """
+        print("run: collocate_satellite_ts")
+
+        # use only dates with a model time step closeby
+        # given the time constrains
+        print('Filtering valid dates ...')
+        t1=time.time()
+
+        ndt = self.vars.time.data
+        ndt_valid = find_valid_fc_dates_for_model_and_leadtime(\
+                                    ndt,self.model,self.leadtime)
+
+        ndt_valid = np.unique(ndt_valid)
+        fc_date = ndt_valid
+        t2=time.time()
+
+        print(f'... done, used {t2-t1:.2f} seconds')
+
+        print("Start collocation ...")
+        results_dict = {
+                'valid_date':[],
+                'time':[],
+                'time_unit':obs_obj.vars['time_unit'],
+                'datetime':[],
+                'distance':[],
+                'model_values':[],
+                'model_lons':[],
+                'model_lats':[],
+                'obs_values':[],
+                'obs_lons':[],
+                'obs_lats':[],
+                'collocation_idx_x':[],
+                'collocation_idx_y':[],
+                }
+        for i in tqdm(range(len(fc_date))):
+    #    for i in range(len(fc_date)):
+    #        for f in range(1):
+            with NoStdStreams():
+    #            for t in range(1):
+                try:
+                    # filter needed obs within time period
+                    idx = collocate_times(self.oco.vars['time'],
+                                          target_t = [fc_date[i]],
+                                          twin = self.twin)
+                    # make tmp obs_obj with filtered data
+                    obs_obj_tmp = deepcopy(self.oco)
+                    obs_obj_tmp.vars['time'] = list(\
+                            np.array(self.oco.vars['time'])[idx] )
+                    obs_obj_tmp.vars['lats'] = list(\
+                            np.array(self.oco.vars['lats'])[idx] )
+                    obs_obj_tmp.vars['lons'] = list(\
+                            np.array(self.oco.vars['lons'])[idx] )
+                    obs_obj_tmp.vars[oco.stdvarname] = \
+                            list(np.array(\
+                            oco.vars[oco.stdvarname])[idx] )
+                    #vardict,_,_,_,_ = get_model(model=model,
+                    #                    fc_date=fc_date[i],
+                    #                    varalias=oco.varalias,
+                    #                    leadtime=leadtime,
+                    #                    transform_lons=180)
+                    mco = mc(sd=fc_date[i], ed=fc_date[i],
+                             leadtime=self.leadtime, varalias=self.varalias,
+                             **kwargs)
+                    mco = mco.populate(**kwargs)
+                    results_dict_tmp = collocate_field(
+                                    datein=fc_date[i],
+                                    model_lats=mco.vars['lats'],
+                                    model_lons=mco.vars['lons'],
+                                    model_vals=mco.vars[self.stdvarname],
+                                    obs_obj=obs_obj_tmp,
+                                    distlim=self.distlim,
+                                    twin=self.twin)
+                    # append to dict
+                    results_dict['valid_date'].append(fc_date[i])
+                    results_dict['time'].append(results_dict_tmp['time'])
+                    results_dict['datetime'].append(results_dict_tmp['datetime'])
+                    results_dict['distance'].append(results_dict_tmp['distance'])
+                    results_dict['model_values'].append(results_dict_tmp['model_values'])
+                    results_dict['model_lons'].append(results_dict_tmp['model_lons'])
+                    results_dict['model_lats'].append(results_dict_tmp['model_lats'])
+                    results_dict['obs_values'].append(results_dict_tmp['obs_values'])
+                    results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
+                    results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
+                    results_dict['collocation_idx_x'].append(\
+                                    results_dict_tmp['collocation_idx_x'])
+                    results_dict['collocation_idx_y'].append(\
+                                    results_dict_tmp['collocation_idx_y'])
+                    if 'results_dict_tmp' in locals():
+                        del results_dict_tmp
+                except (ValueError,FileNotFoundError,OSError) as e:
+                    # ValueError, pass if no collocation
+                    # FileNotFoundError, pass if file not accessible
+                    # OSError, pass if file not accessible from thredds
+                    print(e)
+        # flatten all aggregated entries
+        results_dict['time'] = flatten(results_dict['time'])
+        results_dict['datetime'] = flatten(results_dict['datetime'])
+        results_dict['distance'] = flatten(results_dict['distance'])
+        results_dict['model_values'] = flatten(results_dict['model_values'])
+        results_dict['model_lons'] = flatten(results_dict['model_lons'])
+        results_dict['model_lats'] = flatten(results_dict['model_lats'])
+        results_dict['obs_values'] = flatten(results_dict['obs_values'])
+        results_dict['obs_lats'] = flatten(results_dict['obs_lats'])
+        results_dict['obs_lons'] = flatten(results_dict['obs_lons'])
+        results_dict['collocation_idx_x'] = flatten(\
+                                    results_dict['collocation_idx_x'])
+        results_dict['collocation_idx_y'] = flatten(\
+                                results_dict['collocation_idx_y'])
+        return results_dict
+
+
+    def collocate(self):
+        """
+        get obs value for model value for given
+            temporal and spatial constraints
+        """
+        if (self.oco is None and len(self.oco.vars[self.oco.stdvarname]) < 1):
+            raise Exception ( '\n###\n'
+                            + 'Collocation not possible, '
+                            + 'no observation values for collocation!'
+                            + '\n###'
+                            )
+        if (self.model is None and self.mco is None):
+            raise Exception ( '\n###\n'
+                            + 'Collocation not possible, '
+                            + 'no model available for collocation!'
+                            + '\n###'
+                            )
+        if ((self.mco is None or self.model is not None)
+        and (self.oco is not None)):
+            results_dict = self._collocate_satellite_ts(
+                                                obs_obj=obs_obj,
+                                                model=model,
+                                                distlim=distlim,
+                                                leadtime=leadtime,
+                                                date_incr=date_incr,
+                                                twin=twin)
+        # same needed for insitu, multiins, multisat, consolidate
+        return results_dict
+
 
     def quicklook(self,a=False,projection=None,**kwargs):
         # set plots

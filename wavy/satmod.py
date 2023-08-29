@@ -191,7 +191,15 @@ class satellite_class(qls, wc, fc):
                             self.cfg.wavy_input['date_incr'])
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
-            pathtotals = [pathlst]
+
+            # check if type iterable
+            try:
+                iter(pathlst)
+                pathtotals = pathlst
+            except TypeError:
+                pathtotals = [pathlst]
+            else:
+                print("Object is iterable")
 
             # limit to sd and ed based on file naming, see check_date
             idx_start, tmp = check_date(filelst,
@@ -759,7 +767,7 @@ def match_region_poly(LATS, LONS, region, grid_date):
         except IndexError:
             print('proj4 not defined in netcdf-file')
             print('Using proj4 from model config file')
-            proj4 = model_dict[region]['proj4']
+            proj4 = model_dict[region]['misc']['proj4']
         proj_model = pyproj.Proj(proj4)
         Mx, My = proj_model(model_lons, model_lats, inverse=False)
         Vx, Vy = proj_model(LONS, LATS, inverse=False)
