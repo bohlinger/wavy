@@ -286,7 +286,7 @@ class satellite_class(qls, wc, fc):
               'footprints found')
         return new
 
-    def _get_sat_ts_blind(self, **kwargs):
+    def _get_sat_ts_blunt(self, **kwargs):
         """
         Main function to obtain data from satellite missions.
         reads files, apply region and temporal filter
