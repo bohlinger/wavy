@@ -19,11 +19,8 @@ from shapely.geometry import Polygon, mapping
 
 
 # own imports
-from wavy.utils import NoStdStreams
 from wavy.utils import find_included_times, collocate_times
 from wavy.wconfig import load_or_default
-from wavy.utils import footprint_pulse_limited_radius
-
 
 ROAR = None
 variable_def = load_or_default('variable_def.yaml')

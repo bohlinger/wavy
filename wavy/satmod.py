@@ -20,6 +20,7 @@ import pyproj
 import dotenv
 import glob
 import xarray as xr
+from tqdm import tqdm
 #import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -31,6 +32,7 @@ from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import get_filevarname
 from wavy.ncmod import find_attr_in_nc
 
+from wavy.utils import NoStdStreams
 from wavy.utils import find_included_times
 from wavy.utils import parse_date
 from wavy.utils import make_pathtofile, make_subdict
@@ -321,18 +323,19 @@ class satellite_class(qls, wc, fc):
 
         ds_lst = []
         count = 0
-        while count <= len(pathlst):
-            if count >= len(pathlst):
-                new.pathlst = pathlst[count:len(pathlst)-1]
-            else:
+        print('Reading', int((len(pathlst)+chunk_size)/chunk_size)+1,
+              'chunks of files with chunk size', chunk_size)
+        print('Total of', len(pathlst), 'files')
+        for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
+            if count < len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
-            # retrieve dataset
-            ds = new.reader(**(vars(new)))
-            new.vars = ds
-            new.coords = new.vars.coords
-            ds_lst.append(new._change_varname_to_aliases()
-                          .crop_to_region(self.region).vars)
-            count += chunk_size
+                with NoStdStreams():
+                    # retrieve dataset
+                    ds = new.reader(**(vars(new)))
+                    new.vars = ds
+                    new.coords = new.vars.coords
+                    ds_lst.append(new._change_varname_to_aliases()
+                                  .crop_to_region(self.region).vars)
 
         combined = xr.concat(ds_lst, 'time',
                              coords='minimal',

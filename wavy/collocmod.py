@@ -20,23 +20,15 @@ from copy import deepcopy
 import xarray as xr
 
 # own imports
-from wavy.utils import collocate_times, find_included_times
+from wavy.utils import collocate_times
 from wavy.utils import make_fc_dates
-from wavy.utils import make_pathtofile
 from wavy.utils import hour_rounder, hour_rounder_pd
 from wavy.utils import NoStdStreams
-from wavy.utils import make_subdict
 from wavy.utils import parse_date
-from wavy.utils import haversineA
 from wavy.utils import flatten
 from wavy.utils import compute_quantiles
 from wavy.wconfig import load_or_default
-from wavy.ncmod import dumptonc_ts_collocation
 from wavy.ncmod import ncdumpMeta, get_filevarname
-from wavy.satmod import satellite_class
-from wavy.multisat import multisat_class
-from wavy.insitumod import insitu_class
-from wavy.consolidate import consolidate_class
 from wavy.modelmod import model_class as mc
 from wavy.quicklookmod import quicklook_class_sat as qls
 # ---------------------------------------------------------------------#

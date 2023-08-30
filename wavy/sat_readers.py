@@ -77,7 +77,17 @@ def read_local_ncfiles(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
-    varname = kwargs.get('varname')
+    varalias = kwargs.get('varalias')
+    nID = kwargs.get('nID')
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    # varnames
+    varname = get_filevarname(varalias, variable_info,
+                              satellite_dict[nID], ncmeta)
+    lonsname = get_filevarname('lons', variable_info,
+                              satellite_dict[nID], ncmeta)
+    latsname = get_filevarname('lats', variable_info,
+                              satellite_dict[nID], ncmeta)
 
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
@@ -91,7 +101,7 @@ def read_local_ncfiles(**kwargs):
     #
     ds_sort = ds.sortby('time')
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
-    var_sliced = ds_sliced[[varname]]
+    var_sliced = ds_sliced[[varname, lonsname, latsname]]
     return var_sliced
 
 
@@ -117,11 +127,6 @@ def read_local_20Hz_files(**kwargs):
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
 
-    # establish coords if defined in config file
-    timestr = satellite_dict[nID]['vardef']['time']
-    lonstr = satellite_dict[nID]['vardef']['lons']
-    latstr = satellite_dict[nID]['vardef']['lats']
-
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
@@ -129,6 +134,14 @@ def read_local_20Hz_files(**kwargs):
     ncmeta = ncdumpMeta(pathlst[0])
     varname = get_filevarname(varalias, variable_info,
                               satellite_dict[nID], ncmeta)
+    lonstr = get_filevarname('lons', variable_info,
+                              satellite_dict[nID], ncmeta)
+    latstr = get_filevarname('lats', variable_info,
+                              satellite_dict[nID], ncmeta)
+    timestr = get_filevarname('time', variable_info,
+                              satellite_dict[nID], ncmeta)
+
+
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
     ds_sort = ds.sortby(timestr)
