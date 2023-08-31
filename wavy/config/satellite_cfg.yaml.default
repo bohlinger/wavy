@@ -22,7 +22,8 @@ cmems_L3_NRT:
                         cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S/\
                         %Y/%m/"
             trgt_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
-            path_date_incr: 'm'
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
             #search_str: '%Y%m%dT%H'
             search_str: '%Y%m%dT'
             strsub: ['name']
@@ -34,7 +35,8 @@ cmems_L3_NRT:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
-        path_date_incr: 'm'
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
@@ -71,7 +73,8 @@ L2_20Hz_s3a:
             trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
             strsub: ['name']
             server: "eftp.ifremer.fr"
-            path_date_incr: 'd'
+            path_date_incr_unit: 'd'
+            path_date_incr: 1
             search_str: '%Y%m%d'
     # optional: where to read from
     #           can be defined directly when calling wavy
@@ -80,7 +83,8 @@ L2_20Hz_s3a:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
-        path_date_incr: 'd'
+        path_date_incr_unit: 'd'
+        path_date_incr: 1
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
