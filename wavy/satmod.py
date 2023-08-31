@@ -121,9 +121,12 @@ class satellite_class(qls, wc, fc):
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
         self.cfg = dc
+        self.poi = kwargs.get('poi', None)
+        if self.poi is not None:
+            self.sd = parse_date(self.poi['datetime'][0])
+            self.ed = parse_date(self.poi['datetime'][-1])
 
         # super(config_class,self).__init__('satellite', kwargs.get('nID'))
-        # self.poi = kwargs.get('poi',None)
         print(" ")
         print(" ### satellite_class object initialized ###")
         print('# ----- ')
@@ -168,7 +171,8 @@ class satellite_class(qls, wc, fc):
         elif path is None:
             print('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
-            self.cfg.wavy_input['date_incr'])):
+            self.cfg.wavy_input['path_date_incr_unit'],
+            self.cfg.wavy_input['path_date_incr'])):
                 try:
                     # create local path for each time
                     path_template = \
@@ -190,8 +194,10 @@ class satellite_class(qls, wc, fc):
                     path = None
                 except Exception as e:
                     logger.exception(e)
+
                 tmpdate = date_dispatcher(tmpdate,
-                            self.cfg.wavy_input['date_incr'])
+                            self.cfg.wavy_input['path_date_incr_unit'],
+                            self.cfg.wavy_input['path_date_incr'])
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
 
@@ -261,18 +267,14 @@ class satellite_class(qls, wc, fc):
             print(" ")
         return pathlst
 
-    def crop_to_poi(self, poi):
+    def crop_to_poi(self):
         new = deepcopy(self)
-        vardict = {}
-        idx = new._match_poi(poi)
-        for element in new.vars:
-            if element != 'time_unit':
-                vardict[element] = list(np.array(
-                                        new.vars[element]
-                                        )[idx])
-            else:
-                vardict[element] = new.vars[element]
-        print('For chosen poi: ', len(vardict['time']), 'footprints found')
+        print('Crop to poi region')
+        idx = new._match_poi(self.poi)
+        new.vars = new.vars.sel(time=new.vars.time[idx])
+        print('Region mask applied based on poi')
+        print('For chosen poi region: ', len(new.vars['time']),
+              'footprints found')
         return new
 
     def crop_to_region(self, region):
@@ -326,16 +328,22 @@ class satellite_class(qls, wc, fc):
         print('Reading', int((len(pathlst)+chunk_size)/chunk_size)+1,
               'chunks of files with chunk size', chunk_size)
         print('Total of', len(pathlst), 'files')
+
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count < len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
-                with NoStdStreams():
+                for i in range(1):
+                #with NoStdStreams():
                     # retrieve dataset
                     ds = new.reader(**(vars(new)))
                     new.vars = ds
                     new.coords = new.vars.coords
-                    ds_lst.append(new._change_varname_to_aliases()
-                                  .crop_to_region(self.region).vars)
+                    if self.poi is None:
+                        ds_lst.append(new._change_varname_to_aliases()
+                                      .crop_to_region(self.region).vars)
+                    else:
+                        ds_lst.append(new._change_varname_to_aliases()
+                                      .crop_to_poi().vars)
 
         combined = xr.concat(ds_lst, 'time',
                              coords='minimal',
@@ -387,14 +395,21 @@ class satellite_class(qls, wc, fc):
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
-            ncvar = get_filevarname(c, variable_def,
-                                    satellite_dict[self.nID], self.meta)
-            if c in list(self.vars.keys()):
-                print('  ', c, 'is alreade named correctly and'
-                    + ' therefore not adjusted')
-            else:
-                self.vars = self.vars.rename({ncvar: c})#\
-                                        #.set_index(time='time')
+            try:
+                ncvar = get_filevarname(c, variable_def,
+                                        satellite_dict[self.nID], self.meta)
+                if c in list(self.vars.keys()):
+                    print('  ', c, 'is alreade named correctly and'
+                        + ' therefore not adjusted')
+                else:
+                    self.vars = self.vars.rename({ncvar: c})#\
+                                            #.set_index(time='time')
+            except Exception as e:
+                print(' ', ncvar, 'is not renamed')
+                #logger.exception(e)
+                #logger.debug(traceback.format_exc())
+                print(e)
+
         return self
 
 
@@ -417,7 +432,6 @@ class satellite_class(qls, wc, fc):
         lst = self.list_input_files(**kwargs)
         self.pathlst = kwargs.get('pathlst', lst)
 
-        self.poi = kwargs.get('poi', None)
         print('')
         print('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
@@ -512,8 +526,8 @@ class satellite_class(qls, wc, fc):
                   'urcrnrlat': np.max(poi['latitude']+1),
                   'llcrnrlon': np.min(poi['longitude']-1),
                   'urcrnrlon': np.max(poi['longitude']+1)}
-        ridx = match_region_rect(self.vars['latitude'],
-                                 self.vars['longitude'],
+        ridx = match_region_rect(self.vars['lats'],
+                                 self.vars['lons'],
                                  region=region)
         newdict = deepcopy(self.vars)
         idx = [self._poi_sat(newdict, self.twin, self.distlim, poi, ridx, i)
@@ -527,12 +541,14 @@ class satellite_class(qls, wc, fc):
         return: indices for values matching the spatial and
                 temporal constraints
         """
+        target_t = poi['datetime'][i]
+        unfiltered_t = [parse_date(str(d)) for d in ds['time'][ridx].values]
         tidx = find_included_times(
-                    list(np.array(ds['datetime'])[ridx]),
-                    target_t=poi['datetime'][i],
+                    unfiltered_t,
+                    target_t=target_t,
                     twin=twin)
-        slons = list(np.array(ds['longitude'])[ridx][tidx])
-        slats = list(np.array(ds['latitude'])[ridx][tidx])
+        slons = list(np.array(ds['lons'])[ridx][tidx])
+        slats = list(np.array(ds['lats'])[ridx][tidx])
         plons = [poi['longitude'][i]]*len(slons)
         plats = [poi['latitude'][i]]*len(slats)
         dists_tmp = haversineA(slons, slats, plons, plats)

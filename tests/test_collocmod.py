@@ -1,6 +1,3 @@
-import sys
-import os
-from datetime import datetime, timedelta
 import pytest
 
 from wavy.satmod import satellite_class as sc
@@ -10,8 +7,7 @@ from wavy.insitumod import insitu_class as ic
 # include possibility for collocating different variable
 # varalias = 'Hs', 'U', aso...
 
-def test_sat_collocation_and_validation(test_data,tmpdir):
-    # evoke fct get_remote_files
+def test_sat_collocation_and_validation(test_data, tmpdir):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
     name = 's3a'
@@ -31,6 +27,33 @@ def test_sat_collocation_and_validation(test_data,tmpdir):
     cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
     assert len(vars(cco).keys()) == 15
     assert len(cco.vars.keys()) == 9
+
+    # validate
+
+
+def test_insitu_collocation_and_validation(test_data, tmpdir):
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    varalias = 'Hs'
+    twin = 30
+    model = 'ww3_4km'
+    nID = 'D_Breisundet_wave'
+    name = 'wavescan'
+
+    # init insitu_object and check for polygon region
+    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias,
+             name=name, twin=twin)
+
+    # read data
+    ico.populate()
+
+    # collocate
+    cco = cc(oco=ico, model=model, leadtime='best', distlim=6)
+    assert len(vars(cco).keys()) == 15
+    assert len(cco.vars.keys()) == 9
+
+    # validate
+
 #    # write to nc
 #    cco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
 #    # test validation

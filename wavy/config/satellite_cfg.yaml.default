@@ -22,7 +22,7 @@ cmems_L3_NRT:
                         cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S/\
                         %Y/%m/"
             trgt_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
-            date_incr: 'm'
+            path_date_incr: 'm'
             #search_str: '%Y%m%dT%H'
             search_str: '%Y%m%dT'
             strsub: ['name']
@@ -34,7 +34,7 @@ cmems_L3_NRT:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
-        date_incr: 'm'
+        path_date_incr: 'm'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
@@ -71,7 +71,7 @@ L2_20Hz_s3a:
             trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
             strsub: ['name']
             server: "eftp.ifremer.fr"
-            date_incr: 'd'
+            path_date_incr: 'd'
             search_str: '%Y%m%d'
     # optional: where to read from
     #           can be defined directly when calling wavy
@@ -80,7 +80,7 @@ L2_20Hz_s3a:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
-        date_incr: 'd'
+        path_date_incr: 'd'
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
@@ -109,3 +109,56 @@ L2_20Hz_s3a:
                 h: 814.5 # km, height over ground
     # optional, to ease grouping
     tags:
+
+CCIv1_L3:
+    # mandatory
+    name:
+        multi: multi
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/neodc/esacci/sea_state/data/v1.1_release/\
+                        l3/v1.1/%Y/%m/%d/"
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+            strsub: ['name', 'nID']
+            server: "ftp.ceda.ac.uk"
+            path_date_incr_unit: 'd'
+            path_date_incr: 1
+            search_str: '%Y%m%d'
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varlias','name','region','nID']
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region','nID']
+        file_date_incr_unit: 'd'
+        file_date_incr: 1
+    # optional, if not defined the default is used
+    reader: read_local_ncfiles
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef: # varalias: varname
+        Hs: swh_denoised # time
+        U: wind_speed_alt # time
+        time: time
+        lats: lat
+        lons: lon
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level: L3
+        provider: cci
+        obs_type:
+    # optional, to ease grouping
+    tags:
+

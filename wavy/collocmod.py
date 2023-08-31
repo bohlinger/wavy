@@ -18,6 +18,11 @@ import pyresample
 from tqdm import tqdm
 from copy import deepcopy
 import xarray as xr
+#import traceback
+import logging
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=30)
+logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import collocate_times
@@ -256,127 +261,6 @@ def collocate_poi_ts(indict, model=None, distlim=None,\
     return results_dict
 
 
-def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
-    leadtime=None,date_incr=None):
-    """
-    Some info
-    """
-    print("run: collocate_station_ts")
-    fc_date = make_fc_dates(obs_obj.sdate,obs_obj.edate,date_incr)
-    # get coinciding date between fc_date and dates in obs_obj
-    idx1 = collocate_times( unfiltered_t = obs_obj.vars['datetime'],
-                                target_t = fc_date, twin = obs_obj.twin )
-    # find valid/coinciding fc_dates
-    if len(idx1) > len(fc_date):
-        print('Muliple assignments within given time window')
-        print('--> only closest to time stamp is chosen')
-        idx_closest = get_closest_date(\
-                    list(np.array(obs_obj.vars['datetime'])[idx1]),\
-                    fc_date)
-        idx1 = list(np.array(idx1)[idx_closest])
-    # adjust obs_obj according to valid dates
-    for key in obs_obj.vars.keys():
-        if (key != 'time_unit' and key !='meta'):
-            obs_obj.vars[key] = list(np.array(obs_obj.vars[key])[idx1])
-    # adjust again assumed fc_dates by filtered obs dates
-    fc_date = obs_obj.vars['datetime']
-    # find valid dates for given leadtime and model
-    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
-                                    fc_date,model,leadtime)
-    # check if file exists and if it includes desired time
-    # if not check next possible file
-    check = False
-    for d in range(len(fc_date)):
-        check = check_if_file_is_valid(fc_date[d],model,leadtime)
-        if check == True:
-            break
-    if check == True:
-        mc_obj = model_class( model=model,
-                              fc_date=fc_date[d],
-                              leadtime=leadtime,
-                              varalias=obs_obj.varalias,
-                              transform_lons=180)
-        col_obj = collocation_class( mc_obj_in=mc_obj,
-                                     obs_obj_in=obs_obj,
-                                     distlim=distlim )
-        model_vals = [col_obj.vars['model_values'][0]]
-        tmpdate = hour_rounder(col_obj.vars['datetime'][0])
-        model_datetime = [ datetime(tmpdate.year,
-                                    tmpdate.month,
-                                    tmpdate.day,
-                                    tmpdate.hour) ]
-        model_time = [netCDF4.date2num(model_datetime[0],
-                        units=col_obj.vars['time_unit'])]
-    if check == False:
-        print('No valid model file available!')
-    else:
-        print('Collocating and appending values ...')
-        for i in tqdm(range(d+1,len(fc_date))):
-            with NoStdStreams():
-                try:
-                    check = check_if_file_is_valid(fc_date[i],model,leadtime)
-                    if check == False:
-                        raise FileNotFoundError
-                    mc_obj = model_class( model=model,
-                                          fc_date=fc_date[i],
-                                          leadtime=leadtime,
-                                          varalias=obs_obj.varalias,
-                                          transform_lons=180 )
-                    model_vals.append(
-                            mc_obj.vars[\
-                                mc_obj.stdvarname][ \
-                                    col_obj.vars['collocation_idx_x'],\
-                                    col_obj.vars['collocation_idx_y']\
-                                ][0] )
-                    model_time.append(mc_obj.vars['time'][0])
-                    model_datetime.append( datetime(\
-                                mc_obj.vars['datetime'][0].year,
-                                mc_obj.vars['datetime'][0].month,
-                                mc_obj.vars['datetime'][0].day,
-                                mc_obj.vars['datetime'][0].hour ) )
-                except FileNotFoundError as e:
-                    print(e)
-        # potentially there are different number of values
-        # for obs and model
-        # double check and use only coherent datetimes
-        idx2 = collocate_times( model_datetime,
-                                target_t = obs_obj.vars['datetime'],
-                                twin = obs_obj.twin)
-        col_obj.vars['model_values'] = list(np.array(\
-                                                    model_vals)[idx2])
-        col_obj.vars['time'] = list(np.array(model_time)\
-                                            [idx2])
-        col_obj.vars['datetime'] = list(np.array(\
-                                            model_datetime)[idx2])
-        idx3 = collocate_times(  \
-                            unfiltered_t = obs_obj.vars['datetime'],
-                            target_t = col_obj.vars['datetime'],
-                            twin = obs_obj.twin)
-        col_obj.vars['obs_values'] = list(np.array(
-                                        obs_obj.vars[
-                                            obs_obj.stdvarname
-                                                    ])[idx3])
-    # valid_date is meaningless for ts application and set to None
-    col_obj.vars['valid_date'] = None
-    # inflate length of constant sized variables
-    col_obj.vars['dist'] = col_obj.vars['dist']*\
-                                    len(col_obj.vars['datetime'])
-    col_obj.vars['obs_lats'] = col_obj.vars['obs_lats']*\
-                                    len(col_obj.vars['datetime'])
-    col_obj.vars['obs_lons'] = col_obj.vars['obs_lons']*\
-                                    len(col_obj.vars['datetime'])
-    col_obj.vars['collocation_idx_x'] = col_obj.vars['collocation_idx_x']*\
-                                    len(col_obj.vars['datetime'])
-    col_obj.vars['collocation_idx_y'] = col_obj.vars['collocation_idx_y']*\
-                                    len(col_obj.vars['datetime'])
-    col_obj.vars['model_lats'] = col_obj.vars['model_lats']*\
-                                    len(col_obj.vars['datetime'])
-    col_obj.vars['model_lons'] = col_obj.vars['model_lons']*\
-                                    len(col_obj.vars['datetime'])
-    results_dict = col_obj.vars
-    return results_dict
-
-
 class collocation_class(qls):
     '''
     draft of envisioned collocation class object
@@ -506,9 +390,6 @@ class collocation_class(qls):
         return ds
 
     def _collocate_field(self, mco, tmp_dict, **kwargs):
-    #mc_obj=None,obs_obj=None,col_obj=None,distlim=None,
-    #datein=None,model_lats=None,model_lons=None,
-    #model_vals=None,twin=None):
         """
         Some info
         """
@@ -593,11 +474,8 @@ class collocation_class(qls):
                 'collocation_idx_y': [],
                 }
         for i in tqdm(range(len(fc_date))):
-#        for i in range(len(fc_date)):
-#            for f in range(1):
-#            with NoStdStreams():
-                for t in range(1):
-#                try:
+            try:
+                with NoStdStreams():
                     # filter needed obs within time period
                     target_date = [parse_date(str(fc_date[i]))]
                     idx = collocate_times(ndt_datetime,
@@ -641,11 +519,12 @@ class collocation_class(qls):
                                     results_dict_tmp['collocation_idx_y'])
                     if 'results_dict_tmp' in locals():
                         del results_dict_tmp
-#                except (ValueError,FileNotFoundError,OSError) as e:
-#                    # ValueError, pass if no collocation
-#                    # FileNotFoundError, pass if file not accessible
-#                    # OSError, pass if file not accessible from thredds
-#                    print(e)
+            except (ValueError, FileNotFoundError, OSError) as e:
+                # ValueError, pass if no collocation
+                # FileNotFoundError, pass if file not accessible
+                # OSError, pass if file not accessible from thredds
+                logger.exception(e)
+                print(e)
         # flatten all aggregated entries
         results_dict['model_time'] = results_dict['model_time']
         results_dict['obs_time'] = flatten(results_dict['obs_time'])
@@ -669,11 +548,10 @@ class collocation_class(qls):
             temporal and spatial constraints
         """
         if (self.oco is None and len(self.oco.vars[self.oco.stdvarname]) < 1):
-            raise Exception ('\n###\n'
-                            +'Collocation not possible, '
-                            +'no observation values for collocation!'
-                            +'\n###'
-                            )
+            raise Exception('\n###\n'
+                    + 'Collocation not possible, '
+                    + 'no observation values for collocation!'
+                    + '\n###')
         if (self.model is None):
             raise Exception ('\n###\n'
                             +'Collocation not possible, '

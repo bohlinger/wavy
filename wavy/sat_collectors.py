@@ -162,9 +162,12 @@ def get_remote_files_cmems(**kwargs):
         except Exception as e:
             logger.exception(e)
         # update time
-        date_incr = satellite_dict[product]['download']['ftp']\
-            .get('date_incr', 'm')
-        tmpdate = date_dispatcher(tmpdate, date_incr=date_incr)
+        path_date_incr_unit = satellite_dict[product]['download']['ftp']\
+            .get('path_date_incr_unit', 'm')
+        path_date_incr = satellite_dict[product]['download']['ftp']\
+            .get('path_date_incr', 1)
+        tmpdate = date_dispatcher(tmpdate,
+                                  path_date_incr_unit, path_date_incr)
         print('####################################')
         print(path_local)
         print('####################################')
@@ -365,7 +368,7 @@ def get_remote_files(**kwargs):
                 'cmems_L3_MY': get_remote_files_cmems,
                 'cfo_swim_L2P': get_remote_files_aviso,
                 'cci_L2P': get_remote_files_cci,
-                'cci_L3': get_remote_files_cci,
+                'CCIv1_L3': get_remote_files_cci,
                 }
     product = kwargs.get('product')
     # check if product available in dispatcher
