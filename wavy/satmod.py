@@ -321,7 +321,7 @@ class satellite_class(qls, wc, fc):
         new = deepcopy(self)
 
         pathlst = self.pathlst
-        chunk_size = kwargs.get('chunk_size', 6)
+        chunk_size = kwargs.get('chunk_size', 1)
 
         ds_lst = []
         count = 0
@@ -332,8 +332,8 @@ class satellite_class(qls, wc, fc):
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count < len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
-                for i in range(1):
-                #with NoStdStreams():
+                #for i in range(1):
+                with NoStdStreams():
                     # retrieve dataset
                     ds = new.reader(**(vars(new)))
                     new.vars = ds
