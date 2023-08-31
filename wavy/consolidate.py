@@ -12,7 +12,7 @@ from datetime import datetime
 import xarray as xr
 
 # own imports
-from wavy.satmod import satellite_class as sco
+from wavy.satellite_module import satellite_class as sco
 from wavy.filtermod import filter_class as fc
 from wavy.wconfig import load_or_default
 from wavy.quicklookmod import quicklook_class_sat as qls

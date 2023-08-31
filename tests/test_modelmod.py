@@ -1,4 +1,4 @@
-from wavy.modelmod import model_class as mc
+from wavy.model_module import model_class as mc
 
 def test_model_class_init():
     #get_model
@@ -16,7 +16,6 @@ def test_ww3_4km_reader():
 
 def test_ww3_unstr_reader():
     #get_model
-    from wavy.modelmod import model_class as mc
 
     bb = (5.8, 6.61, 62.3, 63.1)
     res = (0.01, 0.01)  # lon/lat

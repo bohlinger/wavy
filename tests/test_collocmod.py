@@ -1,8 +1,8 @@
 import pytest
 
-from wavy.satmod import satellite_class as sc
-from wavy.collocmod import collocation_class as cc
-from wavy.insitumod import insitu_class as ic
+from wavy.satellite_module import satellite_class as sc
+from wavy.collocation_module import collocation_class as cc
+from wavy.insitu_module import insitu_class as ic
 
 # include possibility for collocating different variable
 # varalias = 'Hs', 'U', aso...

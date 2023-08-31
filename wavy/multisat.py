@@ -2,7 +2,7 @@
 import numpy as np
 from copy import deepcopy
 # wavy imports
-from wavy.satmod import satellite_class as sc
+from wavy.satellite_module import satellite_class as sc
 from wavy.consolidate import consolidate_class as cs
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.utils import parse_date

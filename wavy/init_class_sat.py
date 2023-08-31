@@ -12,6 +12,7 @@ class config_class:
     wavy_input: dict = None
     wavy_output: dict = None
     reader: str = None
+    collector: str = None
     vardef: dict = None
     coords: dict = None
     misc: dict = None

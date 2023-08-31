@@ -166,7 +166,7 @@ def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, **kwargs):
 
 def grid_point_cloud_ds(values, lons, lats, t, **kwargs):
     print(' gridding point cloud')
-    from wavy.gridder import gridder_class as gc
+    from wavy.gridder_module import gridder_class as gc
     from wavy.grid_stats import apply_metric
 
     bb = kwargs.get('bb')

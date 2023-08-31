@@ -1,4 +1,4 @@
-from wavy.insitumod import insitu_class as ic
+from wavy.insitu_module import insitu_class as ic
 
 varalias = 'Hs'  # default
 sd = "2021-8-2 01"

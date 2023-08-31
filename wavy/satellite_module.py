@@ -41,13 +41,14 @@ from wavy.utils import flatten
 from wavy.utils import date_dispatcher
 from wavy.utils import convert_meteorologic_oceanographic
 
-from wavy.modelmod import read_model_nc_output_lru
+from wavy.model_module import read_model_nc_output_lru
+from wavy.model_module import model_class as mc
 
 from wavy.wconfig import load_or_default
 
 from wavy.filtermod import filter_class as fc
 
-from wavy.sat_collectors import get_remote_files
+from wavy.satellite_collectors import get_remote_files
 
 from wavy.quicklookmod import quicklook_class_sat as qls
 
@@ -132,6 +133,31 @@ class satellite_class(qls, wc, fc):
         print('# ----- ')
 
     def download(self, path=None, nproc=1, **kwargs):
+        print('')
+        print('Choosing collector..')
+        # define reader
+        dotenv.load_dotenv()
+        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        if WAVY_DIR is None:
+            print('###########')
+            print('Environmental variable for WAVY_DIR needs to be defined!')
+            print('###########')
+        collector_str = kwargs.get('collector', self.cfg.collector)
+        collector_mod_str = WAVY_DIR + '/wavy/satellite_collectors.py'
+        spec = importlib.util.spec_from_file_location(
+                'satellite_collectors.' + collector_str, collector_mod_str)
+
+        # create collector module
+        collector_tmp = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(collector_tmp)
+
+        # pick reader
+        #reader = getattr(satellite_collector, 'get_remote_files_cmems')
+        collector = getattr(collector_tmp, collector_str)
+        self.collector = collector
+        print('Chosen collector:', spec.name)
+        print('')
+
         print("Downloading files ...")
         get_remote_files(
                         path=path,
@@ -143,6 +169,8 @@ class satellite_class(qls, wc, fc):
                         name=self.name,
                         dict_for_sub=vars(self)
                         )
+        # self.collector(**(vars(self)))
+
 
     def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
         """
@@ -447,9 +475,9 @@ class satellite_class(qls, wc, fc):
             print('Environmental variable for WAVY_DIR needs to be defined!')
             print('###########')
         reader_str = kwargs.get('reader', self.cfg.reader)
-        reader_mod_str = WAVY_DIR + '/wavy/sat_readers.py'
+        reader_mod_str = WAVY_DIR + '/wavy/satellite_readers.py'
         spec = importlib.util.spec_from_file_location(
-                'sat_readers.' + reader_str, reader_mod_str)
+                'satellite_readers.' + reader_str, reader_mod_str)
 
         # create reader module
         reader_tmp = importlib.util.module_from_spec(spec)
@@ -783,7 +811,6 @@ def match_region_poly(LATS, LONS, region, grid_date):
                        region['lats'])), closed=True)
     elif (isinstance(region, str) is True and region in model_dict):
         # init model_class object
-        from wavy.modelmod import model_class as mc
         mco = mc(nID=region)
         try:
             print('Use date for retrieving grid: ', grid_date)

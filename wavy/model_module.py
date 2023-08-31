@@ -88,7 +88,7 @@ def generate_bestguess_leadtime(model, fc_date, lidx=None):
             leadtime = int(np.min(diffs[diffs >= 0]))
     return leadtime
 
-# function used by satmod
+# function used by satellite_module
 # should probably be placed somewhere else
 @lru_cache(maxsize=32)
 def read_model_nc_output_lru(filestr, lonsname, latsname, timename):

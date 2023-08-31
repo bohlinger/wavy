@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 
 from wavy.wconfig import load_or_default
-from wavy.satmod import satellite_class as sc
+from wavy.satellite_module import satellite_class as sc
 
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3(tmpdir):

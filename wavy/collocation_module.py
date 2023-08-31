@@ -34,7 +34,7 @@ from wavy.utils import flatten
 from wavy.utils import compute_quantiles
 from wavy.wconfig import load_or_default
 from wavy.ncmod import ncdumpMeta, get_filevarname
-from wavy.modelmod import model_class as mc
+from wavy.model_module import model_class as mc
 from wavy.quicklookmod import quicklook_class_sat as qls
 # ---------------------------------------------------------------------#
 

@@ -51,6 +51,7 @@ ARCMFC3:
         fl_tmplt: "filedate_MyWaveWam3_bfiledate.nc"
     wavy_output:
     reader:
+    collector:
     misc:
         xtra_h: [0,6] # h bias adjustment according to position in filename
         lt_switch_f: [1,0] # should lead time adjust filedate [False/True]
@@ -81,6 +82,7 @@ ww3_4km:
     wavy_output:
     # optional, if not defined the class default is used
     reader: read_ww3_4km
+    collector:
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: hs
@@ -124,6 +126,7 @@ ww3_unstr:
         fl_tmplt: ww3.%Y%m.nc
     wavy_output:
     reader: read_ww3_unstructured_to_grid
+    collector:
     misc:
         init_times: [0]
         init_step: 24

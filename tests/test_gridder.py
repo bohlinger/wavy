@@ -4,7 +4,7 @@
 #from datetime import datetime
 #import pytest
 #
-#from wavy.satmod import satellite_class as sc
+#from wavy.satellite_module import satellite_class as sc
 #from wavy.gridder import gridder_class as gc
 #from wavy.grid_stats import apply_metric
 
