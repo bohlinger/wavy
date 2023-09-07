@@ -58,7 +58,7 @@ def test_cmems_insitu_monthly(test_data):
     sd = "2023-7-2 00"
     ed = "2023-7-3 00"
     nID = 'MO_Draugen_monthly'
-    name = 'NA'
+    name = 'Draugen'
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())
@@ -75,7 +75,7 @@ def test_cmems_insitu_daily(test_data):
     sd = "2023-8-20 00"
     ed = "2023-8-21 00"
     nID = 'MO_Draugen_daily'
-    name = 'NA'
+    name = 'Draugen'
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())

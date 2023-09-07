@@ -120,15 +120,15 @@ D_Breisundet_wave: # object nID (nameID)
 ### cmems insitu monthly ###
 MO_Draugen_monthly: # object nID (nameID)
     name: # sensor
-        NA:
+        Draugen:
     download:
         ftp:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
         src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
-        fl_tmplt: "AR_TS_MO_Draugen_%Y%m.nc"
-        strsub: ['nID']
+        fl_tmplt: "AR_TS_MO_name_%Y%m.nc"
+        strsub: ['name']
         file_date_incr_unit: 'm'
         file_date_incr: 1
     # optional: where to write to

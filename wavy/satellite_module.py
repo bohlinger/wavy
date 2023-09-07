@@ -188,7 +188,6 @@ class satellite_class(qls, wc, fc):
 
         return:
             pathlst - list of paths
-            filelst - list of files
         """
         filelst = []
         pathlst = []
@@ -226,6 +225,7 @@ class satellite_class(qls, wc, fc):
                 tmpdate = date_dispatcher(tmpdate,
                             self.cfg.wavy_input['path_date_incr_unit'],
                             self.cfg.wavy_input['path_date_incr'])
+
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
 
@@ -277,16 +277,21 @@ class satellite_class(qls, wc, fc):
             del tmp
             pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
             filelst = np.unique(filelst[idx_start:idx_end+1])
-        print(str(int(len(pathtotals))) + " valid files found")
-        return pathtotals, filelst
+
+        return pathtotals
 
     def list_input_files(self, show=False, **kwargs):
         print(" ## Find and list files ...")
         path = kwargs.get('path', None)
         wavy_path = kwargs.get('wavy_path', None)
-        pathlst, _ = self._get_files(vars(self),
+        pathlst = self._get_files(vars(self),
                                      path=path,
                                      wavy_path=wavy_path)
+
+        # remove None values from pathlst
+        pathlst = list(filter(lambda item: item is not None, pathlst))
+        print(str(int(len(pathlst))) + " valid files found")
+
         print('source template:',
               satellite_dict[self.nID]['wavy_input']['src_tmplt'])
         if show is True:

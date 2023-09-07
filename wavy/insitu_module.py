@@ -137,7 +137,8 @@ class insitu_class(qls, wc, fc):
         fl_tmplt = self.cfg.wavy_input['fl_tmplt']
         pth_tmplt = src_tmplt + '/' + fl_tmplt
         strsub = self.cfg.wavy_input['strsub']
-        dict_for_sub = vars(self.cfg)
+        #dict_for_sub = vars(self.cfg)
+        dict_for_sub = vars(self)
         file_date_incr = self.cfg.wavy_input['file_date_incr']
         file_date_incr_unit = self.cfg\
                               .wavy_input['file_date_incr_unit']
@@ -146,8 +147,7 @@ class insitu_class(qls, wc, fc):
         tmpdate = deepcopy(self.sd)
         pathlst = []
 
-        while (datetime(tmpdate.year, tmpdate.month, 1)
-        <= datetime(self.ed.year, self.ed.month, 1)):
+        while (tmpdate <= self.ed):
             # get pathtofile
             pathtofile = get_pathtofile(pth_tmplt, strsub,
                                         subdict, tmpdate)
@@ -163,12 +163,13 @@ class insitu_class(qls, wc, fc):
                 pathlst = self._create_pathlst(**kwargs)
             else:
                 # if defined path local
-                print(" ## Find and list files ...")
+                print(" ## Find and list files based on given path...")
                 path = kwargs.get('path', None)
                 wavy_path = kwargs.get('wavy_path', None)
                 pathlst = self._get_files(vars(self),
                                              path=path,
                                              wavy_path=wavy_path)
+
                 # remove None values from pathlst
                 pathlst = list(filter(lambda item: item is not None, pathlst))
                 print(str(int(len(pathlst))) + " valid files found")
@@ -199,8 +200,7 @@ class insitu_class(qls, wc, fc):
             path - a path if defined
 
         return:
-            pathlst - list of paths
-            filelst - list of files
+            pathtotals - list of paths
         """
         filelst = []
         pathlst = []
@@ -211,7 +211,8 @@ class insitu_class(qls, wc, fc):
         elif path is None:
             print('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
-            self.cfg.misc['date_incr_unit'], self.cfg.misc['date_incr'])):
+            self.cfg.misc['date_incr_unit'],
+            self.cfg.misc['date_incr'])):
                 try:
                     # create local path for each time
                     path_template = \
@@ -232,12 +233,22 @@ class insitu_class(qls, wc, fc):
                     path = None
                 except Exception as e:
                     logger.exception(e)
+
                 tmpdate = date_dispatcher(tmpdate,
                             self.cfg.misc['date_incr_unit'],
                             self.cfg.misc['date_incr'])
+
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
-            pathtotals = [pathlst]
+
+            # check if type iterable
+            try:
+                iter(pathlst)
+                pathtotals = pathlst
+            except TypeError:
+                pathtotals = [pathlst]
+            else:
+                print("Object is iterable")
 
             # limit to sd and ed based on file naming, see check_date
             idx_start, tmp = check_date(filelst, self.sd)
