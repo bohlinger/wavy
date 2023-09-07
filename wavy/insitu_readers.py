@@ -254,6 +254,9 @@ def get_cmems(**kwargs):
     varalias = kwargs.get('varalias')
     pathlst = kwargs.get('pathlst')
     cfg = vars(kwargs['cfg'])
+    # check if dimensions are fixed
+    fixed_dim_str = list(cfg['misc']['fixed_dim'].keys())[0]
+    fixed_dim_idx = cfg['misc']['fixed_dim'][fixed_dim_str]
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
@@ -268,9 +271,6 @@ def get_cmems(**kwargs):
 
     var_list = [ncvar, lonstr, latstr]
 
-    print('HERE')
-    print(var_list)
-
     ds_list = []
 
     # build a list of datasets using files that matches given dates
@@ -280,23 +280,17 @@ def get_cmems(**kwargs):
 
                 # use it after closing each original file
                 ds.load()
-                print('HERE2')
-                print(ds)
                 ds = ds[var_list]
-                print('HERE3')
-                print(ds)
 
                 # builds the dictionary given as an argument to
-                # build_xr_ds_cmems
                 dict_var = {coord: ds.coords[coord].values
                             for coord in list(ds.coords)}
-                print('HERE4')
-                print(ds[[ncvar]].isel(DEPTH = 0))
-                dict_var.update({var : ds[[var]].isel(DEPTH = 0).to_array().values[0] for var in list(ds.data_vars)})
-                print('HERE5')
-                print(dict_var[ncvar][0:6])
 
-                # build an xr.dataset with as the only coordinate
+                dict_var.update({var: ds[[var]]
+                    .isel({fixed_dim_str: fixed_dim_idx})
+                    .to_array().values[0] for var in list(ds.data_vars)})
+
+                # build an xr.dataset with timestr as the only coordinate
                 # using build_xr_ds function
                 ds_list.append(build_xr_ds_cmems(dict_var, timestr))
 
@@ -310,10 +304,10 @@ def get_cmems(**kwargs):
                          combine_attrs='override',
                          join='override')
 
-    #ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
     ds_sort = ds_combined.sortby(timestr)
+    ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
 
-    return ds_sort
+    return ds_sliced
 
 def build_xr_ds_cmems(dict_var, var_name_ref):
     ds = xr.Dataset({

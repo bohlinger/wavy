@@ -97,7 +97,7 @@ D_Breisundet_wave: # object nID (nameID)
     tags: ['E39','wave','pytest']
 
 ### cmems insitu ###
-MO_Ekofisk_monthly: # object nID (nameID)
+MO_Draugen_monthly: # object nID (nameID)
     name: # sensor
         NA:
     download:
@@ -106,7 +106,7 @@ MO_Ekofisk_monthly: # object nID (nameID)
     #           can be defined directly when calling wavy
     wavy_input:
         src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
-        fl_tmplt: "AR_TS_MO_Ekofisk_%Y%m.nc"
+        fl_tmplt: "AR_TS_MO_Draugen_%Y%m.nc"
         strsub: ['nID']
         file_date_incr_unit: 'm'
         file_date_incr: 1
@@ -139,6 +139,40 @@ MO_Ekofisk_monthly: # object nID (nameID)
         obs_type:
         date_incr_unit:
         date_incr:
+        fixed_dim:
+            DEPTH: 2
+    # optional, to ease grouping
+    tags:
+
+### cmems insitu ###
+MO_Draugen_daily: # object nID (nameID)
+    name: # sensor
+        NA:
+    download:
+        ftp:
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        fl_tmplt: "AR_TS_MO_Draugen_%Y%m%d.nc"
+        strsub: ['nID']
+        file_date_incr_unit: 'd'
+        file_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_cmems
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: VAVH
+        lats: LATITUDE
+        lons: LONGITUDE
+        time: TIME
+    misc:
+        fixed_dim:
+            DEPTH: 2
     # optional, to ease grouping
     tags:
 

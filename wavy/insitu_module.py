@@ -138,13 +138,17 @@ class insitu_class(qls, wc, fc):
                 print(" ## Find and list files ...")
                 path = kwargs.get('path', None)
                 wavy_path = kwargs.get('wavy_path', None)
-                pathlst, _ = self._get_files(vars(self),
+                pathlst = self._get_files(vars(self),
                                              path=path,
                                              wavy_path=wavy_path)
         except Exception as e:
             #logger.exception(e)
             pathlst = None
             print(' no netcdf meta data retrieved')
+
+        ## remove None values from pathlst
+        pathlst = list(filter(lambda item: item is not None, pathlst))
+        print(str(int(len(pathlst))) + " valid files found")
 
         if show is True:
             print(" ")
@@ -242,8 +246,8 @@ class insitu_class(qls, wc, fc):
             del tmp
             pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
             filelst = np.unique(filelst[idx_start:idx_end+1])
-        print(str(int(len(pathtotals))) + " valid files found")
-        return pathtotals, filelst
+
+        return pathtotals
 
 
     def _get_insitu_ts(self, **kwargs):
