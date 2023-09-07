@@ -176,7 +176,6 @@ def read_local_ncfiles_swim(**kwargs):
         dictionary of variables for the satellite_class object
     """
     pathlst = kwargs.get('pathlst')
-    product = kwargs.get('product')
     varalias = kwargs.get('varalias')
     sdate = kwargs.get('sdate')
     edate = kwargs.get('edate')
@@ -185,10 +184,6 @@ def read_local_ncfiles_swim(**kwargs):
     # adjust start and end
     sdate = sdate - timedelta(minutes=twin)
     edate = edate + timedelta(minutes=twin)
-    # get meta data
-    ncmeta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_info,
-                            satellite_dict[product], ncmeta)
     # retrieve data
     vardict = read_swim_netcdfs(pathlst, varalias)
     # rm NaN from 'time'
@@ -198,7 +193,7 @@ def read_local_ncfiles_swim(**kwargs):
     dtime = [parse_date(d) for d in np.array(tmpt).astype(str)]
     vardict['datetime'] = dtime
     vardict['time_unit'] = variable_info['time']['units']
-    vardict['time'] = netCDF4.date2num(vardict['datetime'],\
+    vardict['time'] = netCDF4.date2num(vardict['datetime'],
                                        vardict['time_unit'])
     # lon tranformation
     tlons = list(((np.array(vardict['longitude']) - 180) % 360) - 180)
@@ -208,9 +203,9 @@ def read_local_ncfiles_swim(**kwargs):
     # adjust dict
     for key in vardict.keys():
         if key != 'meta' and key != 'time_unit':
-            vardict[key]=list(np.array(vardict[key])[tidx])
+            vardict[key] = list(np.array(vardict[key])[tidx])
     # if peak wave length transform to peak period
-    if kwargs.get('return_var',varalias) == 'Tp':
+    if kwargs.get('return_var', varalias) == 'Tp':
         Tp = calc_deep_water_T(np.array(vardict[varalias]))
         vardict[variable_info['Tp']['standard_name']] = Tp
         # change varalias to stdvarname from variable_info

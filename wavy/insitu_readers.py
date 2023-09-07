@@ -207,7 +207,7 @@ def get_frost(**kwargs):
     varstr = [variables_frost[varalias]['frost_name']]
     sensor = insitu_dict[nID]['name'][kwargs.get('name', 0)]
     r = call_frost_api(sdate, edate, nID, varstr, sensor)
-    df, dinfo, lon, lat = get_frost_df_v1(r)
+    df, _, lon, lat = get_frost_df_v1(r)
     var = df[varalias].values
     timevec = df['time'].values
     timedt = [parse_date(str(d)) for d in timevec]

@@ -175,7 +175,7 @@ class insitu_class(qls, wc, fc):
                 print(str(int(len(pathlst))) + " valid files found")
 
         except Exception as e:
-            #logger.exception(e)
+            logger.exception(e)
             pathlst = None
             print(' no netcdf meta data retrieved')
 
@@ -375,7 +375,7 @@ class insitu_class(qls, wc, fc):
             else:
                 self.meta = None
         except Exception as e:
-            #logger.exception(e)
+            logger.exception(e)
             self.meta = None
             print(' no netcdf meta data retrieved')
 

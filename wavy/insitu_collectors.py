@@ -48,7 +48,7 @@ def tmploop_get_remote_files(i: int, matching: str,
     dlstr = ('ftp://' + user + ':' + pw + '@'
              + server + remote_path + matching[i])
     for attempt in range(10):
-        print("Attempt to download data: ")
+        print(attempt, "attempt to download data: ")
         try:
             print("Downloading file")
             urlretrieve(dlstr, os.path.join(path_local, matching[i]))

@@ -15,6 +15,7 @@ def test_ww3_4km_reader():
     assert len(vars(mco).keys()) == 17
     assert len(mco.vars.keys()) == 3
 
+@pytest.mark.need_credentials
 def test_ww3_unstr_reader():
     #get_model
 

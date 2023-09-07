@@ -230,7 +230,7 @@ class gridder_class():
                                 + ' [' + metric_units + ']')
 
         # ax.coastlines()
-        gl = ax.gridlines(draw_labels=True,crs=projection,
+        gl = ax.gridlines(draw_labels=True, crs=projection,
                           linewidth=1, color='grey', alpha=0.4,
                           linestyle='-')
         gl.top_labels = False
