@@ -1,5 +1,26 @@
 --- # in-situ observations
 
+### minima example ###
+valhall: # object nID (nameID)
+    name: # sensor
+        SAABWaveRadar_1: 0
+        SAABWaveRadar_2: 1
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76939
+    # optional, to ease grouping
+    tags:
+
+
 ### oil rigs ###
 draugen: # object nID (nameID)
     name: # sensor
@@ -120,7 +141,7 @@ MO_Draugen_monthly: # object nID (nameID)
         file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
-    collector:
+    collector: get_remote_cmems
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH

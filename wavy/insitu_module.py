@@ -42,7 +42,6 @@ from wavy.init_class_insitu import init_class
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-#insitu_dict = load_or_default('insitu_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 # ---------------------------------------------------------------------#
 
@@ -141,14 +140,14 @@ class insitu_class(qls, wc, fc):
                 pathlst = self._get_files(vars(self),
                                              path=path,
                                              wavy_path=wavy_path)
+                # remove None values from pathlst
+                pathlst = list(filter(lambda item: item is not None, pathlst))
+                print(str(int(len(pathlst))) + " valid files found")
+
         except Exception as e:
             #logger.exception(e)
             pathlst = None
             print(' no netcdf meta data retrieved')
-
-        ## remove None values from pathlst
-        pathlst = list(filter(lambda item: item is not None, pathlst))
-        print(str(int(len(pathlst))) + " valid files found")
 
         if show is True:
             print(" ")
