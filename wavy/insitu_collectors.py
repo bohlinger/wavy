@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-This module comprises functions to collect remote satellite data.
+This module comprises functions to collect remote insitu data.
 '''
 # --- import libraries ------------------------------------------------#
 # standard library imports
@@ -31,7 +31,7 @@ from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-satellite_dict = load_or_default('satellite_cfg.yaml')
+insitu_dict = load_or_default('insitu_cfg.yaml')
 
 # --- def functions ---------------------------------------------------#
 
@@ -68,35 +68,35 @@ def tmploop_get_remote_files(i: int, matching: str,
 
 def get_remote_files_cmems(**kwargs):
     '''
-    Download swath files from CMEMS and store them at defined
+    Insitu files from CMEMS and store them at defined
     location. Time stamps in file name stand for:
 
     from, to, creation
     '''
+    cfg = kwargs.get('cfg')
     product = kwargs.get('nID')
     sdate = kwargs.get('sd')
     edate = kwargs.get('ed')
     twin = int(np.max([kwargs.get('twin', 30), 30]))
     nproc = kwargs.get('nproc', 1)
-    name = kwargs.get('name', 's3a')
-    dict_for_sub = kwargs.get('dict_for_sub')
+    name = kwargs.get('name')
+    dict_for_sub = kwargs
+
     # define path
     path = kwargs.get('path', None)
+
     # check if search str template
-    file_search_template = kwargs.get('search_str')
-    if file_search_template is None:
-        file_search_template = \
-            satellite_dict[product]['download']['ftp']\
-            .get('search_str', '%Y%m%dT%H')
+    file_search_template = cfg.download['ftp']\
+        .get('search_str', '%Y%m%dT')
+
     # credentials
-    server = satellite_dict[product]['download']['ftp']['server']
+    server = insitu_dict[product]['download']['ftp']['server']
     user, pw = get_credentials(remoteHostName=server)
+
+    # create paths
     tmpdate = deepcopy(sdate)
-    path_template_src = satellite_dict\
-                            [product]['download']['ftp']\
-                            ['src_tmplt']
-    strsublst_src = satellite_dict[product]['download']\
-                            ['ftp']['strsub']
+    path_template_src = cfg.download['ftp']['src_tmplt']
+    strsublst_src = cfg.download['ftp']['strsub']
     subdict_src = make_subdict(strsublst_src,
                                class_object_dict=dict_for_sub)
     while (tmpdate <= edate):
@@ -108,12 +108,10 @@ def get_remote_files_cmems(**kwargs):
 
             if path is None:
                 # create local path
-                path_template_dst = satellite_dict[product]['download']\
-                                        ['ftp']['trgt_tmplt']
-                strsublst_dst = satellite_dict[product]['download']\
-                                        ['ftp']['strsub']
+                path_template_dst = cfg.download['ftp']['trgt_tmplt']
+                strsublst_dst = cfg.download['ftp']['strsub']
                 subdict_dst = make_subdict(strsublst_dst,
-                                               class_object_dict=dict_for_sub)
+                                           class_object_dict=dict_for_sub)
                 path_local = make_pathtofile(path_template_dst,
                                              strsublst_dst, subdict_dst,
                                              date=tmpdate)
@@ -162,9 +160,9 @@ def get_remote_files_cmems(**kwargs):
         except Exception as e:
             logger.exception(e)
         # update time
-        path_date_incr_unit = satellite_dict[product]['download']['ftp']\
+        path_date_incr_unit = cfg.download['ftp']\
             .get('path_date_incr_unit', 'm')
-        path_date_incr = satellite_dict[product]['download']['ftp']\
+        path_date_incr = cfg.download['ftp']\
             .get('path_date_incr', 1)
         tmpdate = date_dispatcher(tmpdate,
                                   path_date_incr_unit, path_date_incr)
@@ -173,208 +171,3 @@ def get_remote_files_cmems(**kwargs):
         print('####################################')
 
     print('Files downloaded to: \n', path_local)
-
-
-def get_remote_files_aviso(**kwargs):
-    '''
-    Download swath files from AVISO+ and store them at defined
-    location.
-    '''
-    product = kwargs.get('nID')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
-    twin = kwargs.get('twin', 30)
-    nproc = kwargs.get('nproc', 1)
-    name = kwargs.get('name', 'cfo')
-    path_local = kwargs.get('path_local')
-    dict_for_sub = kwargs.get('dict_for_sub')
-    # credentials
-    server = satellite_dict[product]['src']['server']
-    user, pw = get_credentials(remoteHostName=server)
-    tmpdate = deepcopy(sdate)
-    filesort = False
-    while (tmpdate <= edate):
-        # create remote path
-        path_template = satellite_dict[product]['src']\
-                                      ['path_template']
-        strsublst = satellite_dict[product]['src']\
-                                  ['strsub']
-        subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
-        path_remote = make_pathtofile(path_template,\
-                                      strsublst, subdict,\
-                                      date=tmpdate)
-        if path_local is None:
-            # create local path
-            path_template = satellite_dict[product]['dst']\
-                                          ['path_template']
-            strsublst = satellite_dict[product]['dst']\
-                                      ['strsub']
-            path_local = make_pathtofile(path_template,\
-                                     strsublst, subdict,\
-                                     date=sdate)
-            filesort = True
-        print('# ----- ')
-        print('Chosen source: ')
-        print(name + ' values from ' + product + ': ' + server)
-        print('# ----- ')
-        # get list of accessable files
-        ftp = FTP(server)
-        ftp.login(user, pw)
-        ftp.cwd(path_remote)
-        content=FTP.nlst(ftp)
-        #choose files according to sdate/edate
-        tmplst=[]
-        tmpdate_new = tmpdate-timedelta(minutes=twin)
-        tmpdate_end = edate+timedelta(minutes=twin)
-        while (tmpdate_new <= tmpdate_end):
-            matchingtmp = [s for s in content
-                           if tmpdate_new.strftime('%Y%m%dT%H')
-                           in s]
-            tmplst = tmplst + matchingtmp
-            tmpdate_new = tmpdate_new + timedelta(minutes=twin)
-        matching = np.unique(tmplst)
-        # check if download path exists if not create
-        if not os.path.exists(path_local):
-            os.makedirs(path_local, exist_ok=True)
-        # Download matching files
-        print('Downloading ' + str(len(matching))
-              + ' files: .... \n')
-        print("Used number of possible simultaneous downloads "
-              + str(nproc) + "!")
-        Parallel(n_jobs=nproc)(
-                        delayed(tmploop_get_remote_files)(
-                            i, matching, user, pw, server,
-                            path_remote, path_local
-                            ) for i in range(len(matching))
-                        )
-        # update time
-        tmpdate = datetime((tmpdate + relativedelta(years=+1)).year,
-                           (tmpdate + relativedelta(years=+1)).month, 1)
-    if filesort is True:
-        # sort files
-        print("Data is being sorted into subdirectories "
-              + "year and month ...")
-        filelst = [f for f in os.listdir(path_local)
-                   if os.path.isfile(os.path.join(path_local, f))]
-        sort_files(path_local, filelst, product, name)
-    print('Files downloaded to: \n', path_local)
-
-
-def get_remote_files_cci(**kwargs):
-    '''
-    Download swath files from CCI and store them at defined
-    location.
-    '''
-    product = kwargs.get('product')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
-    twin = kwargs.get('twin', 30)
-    nproc = kwargs.get('nproc', 1)
-    name = kwargs.get('name', 'multi')
-    path_local = kwargs.get('path_local')
-    dict_for_sub = kwargs.get('dict_for_sub')
-    # credentials
-    server = satellite_dict[product]['src']['server']
-    level = satellite_dict[product]['processing_level']
-    user, pw = get_credentials(remoteHostName=server)
-    tmpdate = deepcopy(sdate)
-    filesort = False
-    while (tmpdate <= edate):
-        print(tmpdate)
-        # create remote path
-        path_template = satellite_dict[product]['src']\
-                                      ['path_template']
-        strsublst = satellite_dict[product]['src']\
-                                  ['strsub']
-        dict_for_sub['name'] =\
-                        satellite_dict[product]['name'][name]
-        subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
-        path_remote = make_pathtofile(path_template,
-                                      strsublst, subdict,
-                                      date=tmpdate)
-        if path_local is None:
-            # create local path
-            subdict['name'] = name
-            path_template = satellite_dict[product]['dst']\
-                                          ['path_template']
-            strsublst = satellite_dict[product]['dst']\
-                                      ['strsub']
-            path_local = make_pathtofile(path_template,
-                                         strsublst, subdict,
-                                         date=sdate)
-            filesort = True
-        print('# ----- ')
-        print('Chosen source: ')
-        print(name + ' values from ' + product + ': ' + server)
-        print('# ----- ')
-        # get list of accessable files
-        ftp = FTP(server)
-        ftp.login(user, pw)
-        ftp.cwd(path_remote)
-        content = FTP.nlst(ftp)
-        #choose files according to sdate/edate
-        tmplst = []
-        tmpdate_new = tmpdate-timedelta(minutes=twin)
-        tmpdate_end = edate+timedelta(minutes=twin)
-        while (tmpdate_new <= tmpdate_end):
-            if level == 'L2P':
-                matchingtmp = [s for s in content
-                               if tmpdate_new.strftime('-%Y%m%dT%H')
-                               in s]
-            elif level == 'L3':
-                matchingtmp = [s for s in content
-                               if tmpdate_new.strftime('-%Y%m%d')
-                               in s]
-            tmplst = tmplst + matchingtmp
-            tmpdate_new = tmpdate_new + timedelta(minutes=twin)
-        matching = np.unique(tmplst)
-        # check if download path exists if not create
-        if not os.path.exists(path_local):
-            os.makedirs(path_local, exist_ok=True)
-        # Download matching files
-        print('Downloading ' + str(len(matching))
-              + ' files: .... \n')
-        print("Used number of simultaneous downloads "
-              + str(nproc) + "!")
-        Parallel(n_jobs=nproc)(
-                        delayed(tmploop_get_remote_files)(
-                            i, matching, user, pw, server,
-                            path_remote, path_local
-                            ) for i in range(len(matching))
-                        )
-        # update time
-        tmpdate += timedelta(days=1)
-    if filesort is True:
-        # sort files
-        print("Data is being sorted into subdirectories "
-              + "year and month ...")
-        print(path_local)
-        filelst = [f for f in os.listdir(path_local)
-                   if os.path.isfile(os.path.join(path_local, f))]
-        sort_files(path_local, filelst, product, name)
-    print('Files downloaded to: \n', path_local)
-
-
-def get_remote_files(**kwargs):
-    '''
-    Download swath files and store them at defined location.
-    It is currently possible to download L3 altimeter data from
-    CMEMS, L3 and L2P from CEDA CCI, and L2 from EUMETSAT,
-    as well as L2P from aviso+ for cfosat swim data.
-    '''
-    dispatch_collector = {
-                'cmems_L3_NRT': get_remote_files_cmems,
-                'cmems_L3_s6a': get_remote_files_cmems,
-                'cmems_L3_MY': get_remote_files_cmems,
-                'cfo_swim_L2P': get_remote_files_aviso,
-                'cci_L2P': get_remote_files_cci,
-                'CCIv1_L3': get_remote_files_cci,
-                }
-    product = kwargs.get('product')
-    # check if product available in dispatcher
-    if product in dispatch_collector.keys():
-        pass
-    else:
-        product = 'cmems_L3_NRT'
-
-    dispatch_collector[product](**kwargs)

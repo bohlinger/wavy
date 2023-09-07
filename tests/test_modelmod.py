@@ -1,4 +1,5 @@
 from wavy.model_module import model_class as mc
+import pytest
 
 def test_model_class_init():
     #get_model

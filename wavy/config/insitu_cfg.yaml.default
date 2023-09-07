@@ -117,7 +117,7 @@ D_Breisundet_wave: # object nID (nameID)
     # optional, to ease grouping
     tags: ['E39','wave','pytest']
 
-### cmems insitu ###
+### cmems insitu monthly ###
 MO_Draugen_monthly: # object nID (nameID)
     name: # sensor
         NA:
@@ -141,7 +141,7 @@ MO_Draugen_monthly: # object nID (nameID)
         file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
-    collector: get_remote_cmems
+    collector: get_remote_files_cmems
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH
@@ -165,18 +165,28 @@ MO_Draugen_monthly: # object nID (nameID)
     # optional, to ease grouping
     tags:
 
-### cmems insitu ###
+### cmems insitu daily ###
 MO_Draugen_daily: # object nID (nameID)
     name: # sensor
-        NA:
+        Draugen:
     download:
         ftp:
+            src_tmplt: "/Core/\
+                        INSITU_GLO_PHYBGCWAV_DISCRETE_MYNRT_013_030/\
+                        cmems_obs-ins_glo_phybgcwav_mynrt_na_irr/\
+                        latest/%Y%m%d/"
+            trgt_tmplt: /home/patrikb/tmp_insitu/NRT/name/%Y/%m
+            path_date_incr_unit: 'd'
+            path_date_incr: 1
+            search_str: 'Draugen_%Y%m%d'
+            strsub: ['name']
+            server: "nrt.cmems-du.eu"
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
         src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
-        fl_tmplt: "AR_TS_MO_Draugen_%Y%m%d.nc"
-        strsub: ['nID']
+        fl_tmplt: "AR_TS_MO_name_%Y%m%d.nc"
+        strsub: ['name']
         file_date_incr_unit: 'd'
         file_date_incr: 1
     # optional: where to write to
@@ -184,7 +194,7 @@ MO_Draugen_daily: # object nID (nameID)
     wavy_output:
     # optional, if not defined the class default is used
     reader: get_cmems
-    collector:
+    collector: get_remote_files_cmems
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH

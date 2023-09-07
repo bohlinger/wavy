@@ -24,7 +24,6 @@ cmems_L3_NRT:
             trgt_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
             path_date_incr_unit: 'm'
             path_date_incr: 1
-            #search_str: '%Y%m%dT%H'
             search_str: '%Y%m%dT'
             strsub: ['name']
             server: "nrt.cmems-du.eu"

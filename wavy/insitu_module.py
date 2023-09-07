@@ -103,6 +103,35 @@ class insitu_class(qls, wc, fc):
         print(" ### insitu_class object initialized ### ")
         print('# ----- ')
 
+    def download(self, path=None, nproc=1, **kwargs):
+        print('')
+        print('Choosing collector..')
+        # define reader
+        dotenv.load_dotenv()
+        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        if WAVY_DIR is None:
+            print('###########')
+            print('Environmental variable for WAVY_DIR needs to be defined!')
+            print('###########')
+        collector_str = kwargs.get('collector', self.cfg.collector)
+        collector_mod_str = WAVY_DIR + '/wavy/insitu_collectors.py'
+        spec = importlib.util.spec_from_file_location(
+                'insitu_collectors.' + collector_str, collector_mod_str)
+
+        # create collector module
+        collector_tmp = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(collector_tmp)
+
+        # pick reader
+        collector = getattr(collector_tmp, collector_str)
+        self.collector = collector
+        print('Chosen collector:', spec.name)
+        print('')
+
+        print("Downloading files ...")
+        nproc = kwargs.get('nproc', 1)
+        self.collector(nproc=nproc, path=path, **(vars(self)))
+
     def _create_pathlst(self, **kwargs):
         src_tmplt = self.cfg.wavy_input['src_tmplt']
         fl_tmplt = self.cfg.wavy_input['fl_tmplt']
