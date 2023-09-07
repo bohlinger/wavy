@@ -142,3 +142,18 @@ AromeArctic:
     init_step: 3
     leadtimes: [0,3,6] # ...
     grid_date: 2021-11-17 06:00:00
+
+dnora_swan:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/home/user/dnora/Project_SWAN/"
+    file_template: "SWAN_20200914.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 1
+    grid_date: 2021-11-26 00:00:00
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
