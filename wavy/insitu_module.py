@@ -469,19 +469,3 @@ class insitu_class(qls, wc, fc):
         ncdict = self.vars['meta']
         parent = finditem(ncdict, item)
         return parent
-
-    def get_item_parent(self, item, attr):
-        ncdict = self.vars['meta']
-        lst = [i for i in ncdict.keys() \
-                if (attr in ncdict[i].keys() \
-                and item in ncdict[i][attr]) \
-                ]
-        if len(lst) >= 1:
-            return lst
-        else:
-            return None
-
-    def get_item_child(self, item):
-        ncdict = self.vars['meta']
-        parent = finditem(ncdict, item)
-        return parent

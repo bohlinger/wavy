@@ -10,10 +10,8 @@
 # standard library imports
 import numpy as np
 import netCDF4
-from datetime import datetime, timedelta
-import os
+from datetime import datetime
 import time
-from dateutil.relativedelta import relativedelta
 import pyresample
 from tqdm import tqdm
 from copy import deepcopy
@@ -27,7 +25,7 @@ logger = logging.getLogger(__name__)
 # own imports
 from wavy.utils import collocate_times
 from wavy.utils import make_fc_dates
-from wavy.utils import hour_rounder, hour_rounder_pd
+from wavy.utils import hour_rounder_pd
 from wavy.utils import NoStdStreams
 from wavy.utils import parse_date
 from wavy.utils import flatten
@@ -51,7 +49,8 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
     swath = pyresample.geometry.SwathDefinition(lons=obs_lons,
                                                 lats=obs_lats)
     # Determine nearest (great circle distance) neighbour in the grid.
-    valid_input_index, valid_output_index, index_array, distance_array = \
+    # valid_input_index, valid_output_index, index_array, distance_array = \
+    _, valid_output_index, index_array, distance_array = \
                             pyresample.kd_tree.get_neighbour_info(
                                 source_geo_def=grid,
                                 target_geo_def=swath,
@@ -133,7 +132,7 @@ def collocate_poi_ts(indict, model=None, distlim=None,\
     else:
         print('no valid time/datetime format for poi')
         print('use either str or datetime')
-    fc_date = make_fc_dates(poi_dtimes[0],poi_dtimes[-1],date_incr)
+    fc_date = make_fc_dates(poi_dtimes[0], poi_dtimes[-1], date_incr)
     # get coinciding date between fc_date and dates in obs_obj
     idx1 = collocate_times( unfiltered_t = poi_dtimes,
                                 target_t = fc_date, twin = twin )

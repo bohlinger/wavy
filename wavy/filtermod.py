@@ -407,7 +407,7 @@ class filter_class:
                     y = tmp_ds[new.varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
                     X = x  # points for prediction
-                    idx = cleaner_linearGAM(x, y, **kwargs)
+                    idx = cleaner_linearGAM(X, y, **kwargs)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
                     print("Chunk size to small -> not filtered and rejected")
@@ -507,8 +507,7 @@ class filter_class:
             pass
         else:
             new = new.compute_pulse_limited_footprint_radius()
-        lons_perp, lats_perp, _, _, ls_idx_lst = \
-                new._generate_xtrack_footprints(domain)
+        _, _, _, _, ls_idx_lst = new._generate_xtrack_footprints(domain)
         # apply indices to dataset
         new.vars = new.vars.isel(time=ls_idx_lst)
         print(" Number of disregarded values:",
