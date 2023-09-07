@@ -393,7 +393,7 @@ class insitu_class(qls, wc, fc):
                 t1 = time.time()
                 print(" ")
                 print(' ## Summary:')
-                print(str(len(self.vars['time'])) + " footprints retrieved.")
+                print(str(len(self.vars['time'])) + " values retrieved.")
                 print("Time used for retrieving data:")
                 print(round(t1-t0, 2), "seconds")
                 print(" ")

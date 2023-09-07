@@ -17,6 +17,10 @@ import netCDF4
 import requests
 import dotenv
 import xarray as xr
+import logging
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=30)
+logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -230,9 +234,93 @@ def get_nc_thredds(**kwargs):
     meta = ncdumpMeta(pathlst[0])
     ncvar = get_filevarname(varalias, variable_def,
                             cfg, meta)
+    lonstr = get_filevarname('lons', variable_def,
+                             cfg, meta)
+    latstr = get_filevarname('lats', variable_def,
+                             cfg, meta)
+    timestr = get_filevarname('time', variable_def,
+                              cfg, meta)
+
     # read all paths
-    ds = read_netcdfs(pathlst)
-    ds_sort = ds.sortby('time')
-    ds_sliced = ds_sort.sel(time=slice(sd, ed))
-    var_sliced = ds_sliced[[ncvar, 'longitude', 'latitude']]
+    ds = read_netcdfs(pathlst, dim=timestr)
+    ds_sort = ds.sortby(timestr)
+    ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
+    var_sliced = ds_sliced[[ncvar, lonstr, latstr]]
     return var_sliced
+
+def get_cmems(**kwargs):
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
+    varalias = kwargs.get('varalias')
+    pathlst = kwargs.get('pathlst')
+    cfg = vars(kwargs['cfg'])
+
+    # determine ncvarname
+    meta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname(varalias, variable_def,
+                            cfg, meta)
+    lonstr = get_filevarname('lons', variable_def,
+                             cfg, meta)
+    latstr = get_filevarname('lats', variable_def,
+                             cfg, meta)
+    timestr = get_filevarname('time', variable_def,
+                              cfg, meta)
+
+    var_list = [ncvar, lonstr, latstr]
+
+    print('HERE')
+    print(var_list)
+
+    ds_list = []
+
+    # build a list of datasets using files that matches given dates
+    for p in pathlst:
+        try:
+            with xr.open_dataset(p) as ds:
+
+                # use it after closing each original file
+                ds.load()
+                print('HERE2')
+                print(ds)
+                ds = ds[var_list]
+                print('HERE3')
+                print(ds)
+
+                # builds the dictionary given as an argument to
+                # build_xr_ds_cmems
+                dict_var = {coord: ds.coords[coord].values
+                            for coord in list(ds.coords)}
+                print('HERE4')
+                print(ds[[ncvar]].isel(DEPTH = 0))
+                dict_var.update({var : ds[[var]].isel(DEPTH = 0).to_array().values[0] for var in list(ds.data_vars)})
+                print('HERE5')
+                print(dict_var[ncvar][0:6])
+
+                # build an xr.dataset with as the only coordinate
+                # using build_xr_ds function
+                ds_list.append(build_xr_ds_cmems(dict_var, timestr))
+
+        except Exception as e:
+            logger.exception(e)
+
+    ds_combined = xr.concat(ds_list, timestr,
+                         coords='minimal',
+                         data_vars='minimal',
+                         compat='override',
+                         combine_attrs='override',
+                         join='override')
+
+    #ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
+    ds_sort = ds_combined.sortby(timestr)
+
+    return ds_sort
+
+def build_xr_ds_cmems(dict_var, var_name_ref):
+    ds = xr.Dataset({
+        var_name: xr.DataArray(
+            data=dict_var[var_name],
+            dims=[var_name_ref],
+            coords={var_name_ref: dict_var[var_name_ref]}
+            ) for var_name in dict_var.keys()},
+                attrs={'title': 'wavy dataset'})
+    return ds

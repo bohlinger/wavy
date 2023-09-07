@@ -49,7 +49,6 @@ draugen: # object nID (nameID)
     tags: ['oilrig','arcmfc']
 
 ### E39 project ###
-
 D_Breisundet_wave: # object nID (nameID)
     name: # sensor
         wavescan:
@@ -96,4 +95,50 @@ D_Breisundet_wave: # object nID (nameID)
         date_incr:
     # optional, to ease grouping
     tags: ['E39','wave','pytest']
+
+### cmems insitu ###
+MO_Ekofisk_monthly: # object nID (nameID)
+    name: # sensor
+        NA:
+    download:
+        ftp:
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        fl_tmplt: "AR_TS_MO_Ekofisk_%Y%m.nc"
+        strsub: ['nID']
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt:
+        fl_tmplt:
+        strsub:
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
+    # optional, if not defined the class default is used
+    reader: get_cmems
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: VAVH
+        lats: LATITUDE
+        lons: LONGITUDE
+        time: TIME
+    misc:
+        ID:
+        manufacturer:
+            NA:
+        coords:
+            NA:
+                lat:
+                lon:
+        operator:
+        obs_type:
+        date_incr_unit:
+        date_incr:
+    # optional, to ease grouping
+    tags:
 
