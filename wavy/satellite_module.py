@@ -44,6 +44,8 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.model_module import read_model_nc_output_lru
 from wavy.model_module import model_class as mc
 
+from wavy.insitu_module import poi_class as pc
+
 from wavy.wconfig import load_or_default
 
 from wavy.filtermod import filter_class as fc
@@ -124,8 +126,8 @@ class satellite_class(qls, wc, fc):
         self.cfg = dc
         self.poi = kwargs.get('poi', None)
         if self.poi is not None:
-            self.sd = parse_date(self.poi['datetime'][0])
-            self.ed = parse_date(self.poi['datetime'][-1])
+            self.sd = parse_date(str(self.poi['time'][0]))
+            self.ed = parse_date(str(self.poi['time'][-1]))
 
         # super(config_class,self).__init__('satellite', kwargs.get('nID'))
         print(" ")
@@ -562,16 +564,16 @@ class satellite_class(qls, wc, fc):
         print('Match up poi locations')
         # increase with 1 degree in all directions to ensure
         # that distlim is still the determining factor
-        region = {'llcrnrlat': np.min(poi['latitude']-1),
-                  'urcrnrlat': np.max(poi['latitude']+1),
-                  'llcrnrlon': np.min(poi['longitude']-1),
-                  'urcrnrlon': np.max(poi['longitude']+1)}
+        region = {'llcrnrlat': poi['lats'].min()-1,
+                  'urcrnrlat': poi['lats'].max()+1,
+                  'llcrnrlon': poi['lons'].min()-1,
+                  'urcrnrlon': poi['lons'].max()+1}
         ridx = match_region_rect(self.vars['lats'],
                                  self.vars['lons'],
                                  region=region)
         newdict = deepcopy(self.vars)
         idx = [self._poi_sat(newdict, self.twin, self.distlim, poi, ridx, i)
-               for i in tqdm(range(len(poi['datetime'])))]
+               for i in tqdm(range(len(poi['time'])))]
         idx = list(np.array(ridx)[flatten(idx)])
         return idx
 
@@ -581,7 +583,7 @@ class satellite_class(qls, wc, fc):
         return: indices for values matching the spatial and
                 temporal constraints
         """
-        target_t = poi['datetime'][i]
+        target_t = parse_date(str(poi['time'][i]))
         unfiltered_t = [parse_date(str(d)) for d in ds['time'][ridx].values]
         tidx = find_included_times(
                     unfiltered_t,
@@ -589,8 +591,8 @@ class satellite_class(qls, wc, fc):
                     twin=twin)
         slons = list(np.array(ds['lons'])[ridx][tidx])
         slats = list(np.array(ds['lats'])[ridx][tidx])
-        plons = [poi['longitude'][i]]*len(slons)
-        plats = [poi['latitude'][i]]*len(slats)
+        plons = [poi['lons'].data[i]]*len(slons)
+        plats = [poi['lats'].data[i]]*len(slats)
         dists_tmp = haversineA(slons, slats, plons, plats)
         sidx = np.argwhere(np.array(dists_tmp) <= distlim).flatten()
         #dists = list(np.array(dists_tmp)[sidx])
@@ -707,45 +709,6 @@ class satellite_class(qls, wc, fc):
 
         parent = finditem(self.meta, item)
         return parent
-
-
-def poi_sat(indict, twin, distlim, poi, ridx, i):
-    """
-    return: indices for values matching the spatial and
-            temporal constraints
-    """
-    tidx = find_included_times(
-                list(np.array(indict['datetime'])[ridx]),
-                target_t=poi['datetime'][i],
-                twin=twin)
-    slons = list(np.array(indict['longitude'])[ridx][tidx])
-    slats = list(np.array(indict['latitude'])[ridx][tidx])
-    plons = [poi['longitude'][i]]*len(slons)
-    plats = [poi['latitude'][i]]*len(slats)
-    dists_tmp = haversineA(slons, slats, plons, plats)
-    sidx = np.argwhere(np.array(dists_tmp) <= distlim).flatten()
-    #dists = list(np.array(dists_tmp)[sidx])
-    return list(np.array(tidx)[sidx])
-
-
-def match_poi(ds, twin, distlim, poi):
-    """
-    return: idx that match to region
-    """
-    from tqdm import tqdm
-    print('Match up poi locations')
-    region = {'llcrnrlat': np.min(poi['latitude']),
-              'urcrnrlat': np.max(poi['latitude']),
-              'llcrnrlon': np.min(poi['longitude']),
-              'urcrnrlon': np.max(poi['longitude'])}
-    ridx = match_region_rect(ds['latitude'].values,
-                             ds['longitude'].values,
-                             region=region)
-    new_ds = deepcopy(ds)
-    idx = [poi_sat(new_ds, twin, distlim, poi, ridx, i) 
-           for i in tqdm(range(len(poi['datetime'])))]
-    idx = list(np.array(ridx)[flatten(idx)])
-    return idx
 
 
 def match_region_rect(LATS, LONS, region):

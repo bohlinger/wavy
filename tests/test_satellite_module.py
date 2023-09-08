@@ -140,7 +140,7 @@ def test_poi_storm_track(test_data):
     lats = f.lat.values
 
     # define poi dictionary for track
-    poi_dict = {'datetime': dt, 'longitude': lons, 'latitude': lats}
+    poi_dict = {'time': dt, 'lons': lons, 'lats': lats}
 
     # retrievals
     sco = sc(twin=180, distlim=200, name='multi',
@@ -152,6 +152,7 @@ def test_poi_storm_track(test_data):
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
+    print(vlst)
     assert len(vlst) == 19
     # compare number of available functions
     dlst = dir(sco)

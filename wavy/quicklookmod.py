@@ -747,9 +747,10 @@ class quicklook_class_sat:
             lonmax, lonmin = np.max(lons), np.min(lons)
             latmax, latmin = np.max(lats), np.min(lats)
             if kwargs.get('poi') is not None:
-                plats = kwargs.get('poi').get('latitude')
+                poi = kwargs.get('poi')
+                plats = poi.lats.data
                 platsmax, platsmin = np.max(plats), np.min(plats)
-                plons = kwargs.get('poi').get('longitude')
+                plons = poi.lons.data
                 plonsmax, plonsmin = np.max(plons), np.min(plons)
                 tc = ax.plot(plons, plats, color='cornflowerblue',
                              ls='-', lw=1,
