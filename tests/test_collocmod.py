@@ -19,7 +19,8 @@ def test_sat_collocation_and_validation(test_data, tmpdir):
     sco = sc(sd=sd, ed=ed, nID=nID, name=name,
              varalias=varalias, twin=twin)
     # read data
-    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3/s3a"))
+    sco = sco.populate(reader='read_local_ncfiles',
+                       path=str(test_data/"L3/s3a"))
     # crop to region
     sco = sco.crop_to_region(model)
 
@@ -45,7 +46,7 @@ def test_insitu_collocation_and_validation(test_data, tmpdir):
              name=name, twin=twin)
 
     # read data
-    ico.populate()
+    ico = ico.populate()
 
     # collocate
     cco = cc(oco=ico, model=model, leadtime='best', distlim=6)

@@ -40,7 +40,8 @@ def test_manually_specified_reader(test_data):
              varalias=varalias,
              twin=twin)
     # read data
-    sco.populate(reader='read_local_ncfiles', path=str(test_data/"L3/s3a"))
+    sco = sco.populate(reader='read_local_ncfiles',
+                       path=str(test_data/"L3/s3a"))
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
@@ -66,7 +67,7 @@ def test_default_reader(test_data):
              varalias=varalias,
              twin=twin)
     # read data
-    sco.populate(path=str(test_data/"L3/s3a"))
+    sco = sco.populate(path=str(test_data/"L3/s3a"))
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
@@ -90,7 +91,7 @@ def test_polygon_region(test_data):
              varalias=varalias,
              twin=twin)
     # read data
-    sco.populate(path=str(test_data/"L3/s3a"))
+    sco = sco.populate(path=str(test_data/"L3/s3a"))
     sco = sco.crop_to_region('NordicSeas')
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
@@ -113,7 +114,7 @@ def test_rectangular_region(test_data):
     sco = sc(sd=sd, ed=ed, nID=nID, name=name,
              varalias=varalias)
     # read data
-    sco.populate(path=str(test_data/"L3/s3a"))
+    sco = sco.populate(path=str(test_data/"L3/s3a"))
     sco = sco.crop_to_region('Sulafj')
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
@@ -146,7 +147,7 @@ def test_poi_storm_track(test_data):
          nID='CCIv1_L3', varalias='Hs',  # default
          poi=poi_dict)
 
-    sco.populate(path=str(test_data/"L3/multi"))
+    sco = sco.populate(path=str(test_data/"L3/multi"))
 
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
