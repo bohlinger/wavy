@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 from wavy.ncmod import ncdumpMeta
 from wavy.ncmod import dumptonc_ts_insitu
 from wavy.ncmod import get_filevarname
+from wavy.ncmod import build_xr_ds_from_dict
 from wavy.utils import make_pathtofile, get_pathtofile
 from wavy.utils import finditem, make_subdict
 from wavy.utils import parse_date
@@ -469,3 +470,65 @@ class insitu_class(qls, wc, fc):
         ncdict = self.vars['meta']
         parent = finditem(ncdict, item)
         return parent
+
+class poi_class(qls, wc, fc):
+    '''
+    Class to handle poi based time series.
+    '''
+    def __init__(self, poi: dict, **kwargs):
+        # parse and translate date input
+        print('# ----- ')
+        print(" ### Initializing poi_class object ###")
+        print(" ")
+        print(" Given kwargs:")
+        print(kwargs)
+
+        # check for nID
+        self.nID = poi.get('nID', kwargs.get('nID'))
+        if self.nID is None:
+            self.nID = 'NA'
+
+        # check if all need variables are in poi
+        # those are: lons, lats, time
+        for v in ['lons', 'lats', 'time']:
+            if v not in list(poi.keys()):
+                raise Exception(v, 'is needed yet not in poi')
+
+        # ancillary
+        if 'var' not in list(poi.keys()):
+            print(' ', 'No variable specified in poi')
+            poi['var'] = np.zeros(len(poi['time']))*np.nan
+
+        # check if varalias is specified, default is Hs
+        self.varalias = poi.get('varalias', kwargs.get('varalias', 'Hs'))
+        # rename var to varalias
+        poi[self.varalias] = poi.pop('var')
+
+        # parse all dates and return as datetime objects
+        poi_times = [parse_date(d) for d in poi['time']]
+        poi['time'] = poi_times
+
+        self.sd = poi['time'][0]
+        self.ed = poi['time'][-1]
+
+        print('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
+
+        # add other class object variables
+        self.stdvarname = variable_def[self.varalias]['standard_name']
+        self.units = variable_def[self.varalias].get('units')
+        self.twin = int(kwargs.get('twin', 30))
+        self.distlim = kwargs.get('distlim', 6)
+        self.filter = kwargs.get('filter', False)
+        self.region = kwargs.get('region', 'global')
+        self.name = kwargs.get('name', self.nID)
+
+        # build xarray dataset
+        self.vars = self._build_xr_ds(poi)
+
+        print(" ")
+        print(" ### insitu_class object initialized ### ")
+        print('# ----- ')
+
+    def _build_xr_ds(self, poi):
+        ds = build_xr_ds_from_dict(poi, 'time')
+        return ds

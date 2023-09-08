@@ -159,6 +159,10 @@ def test_poi_storm_track(test_data):
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
+    # get closest only
+
+
+
 # def test_write_to_nc(test_data):
     # write to nc
     #sco.write_to_nc(pathtofile=tmpdir.join('test.nc'))

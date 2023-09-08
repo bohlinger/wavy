@@ -547,6 +547,8 @@ class satellite_class(qls, wc, fc):
             print('# ----- ')
         return self
 
+    #def closest_only(self):
+
     def _match_poi(self, poi):
         """
         return: idx that match to region

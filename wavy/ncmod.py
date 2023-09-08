@@ -138,6 +138,16 @@ def build_xr_ds(darray: np.ndarray, varnames: dict, varalias: str):
         )
     return ds
 
+def build_xr_ds_from_dict(dict_var, var_name_ref):
+    ds = xr.Dataset({
+        var_name: xr.DataArray(
+            data=dict_var[var_name],
+            dims=[var_name_ref],
+            coords={var_name_ref: dict_var[var_name_ref]}
+            ) for var_name in dict_var.keys()},
+                attrs={'title': 'wavy dataset'})
+    return ds
+
 def read_netcdfs_hidefix(paths):
     ds = xr.open_mfdataset(paths, engine='hidefix')
     return ds
