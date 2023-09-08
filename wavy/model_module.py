@@ -486,15 +486,16 @@ class model_class(qls):
         self.coords = list(self.vars.coords)
         return self
 
-    @staticmethod
-    def _enforce_longitude_format(ds):
+    def _enforce_longitude_format(self):
+        new = deepcopy(self)
         # adjust longitude -180/180
-        attrs = ds.lons.attrs
-        attrs['valid_min'] = -180
+        attrs = new.vars.lons.attrs
+        print(' enforcing lon max min = -180/180')
         attrs['valid_max'] = 180
+        attrs['valid_min'] = -180
         attrs['comments'] = 'forced to range: -180 to 180'
-        ds.lons.assign_coords({"lons": (((ds.lons + 180) % 360) - 180)})
-        return ds
+        new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
+        return new
 
     def _enforce_meteorologic_convention(self):
         print(' enforcing meteorological convention')
@@ -600,9 +601,7 @@ class model_class(qls):
                 self = self._enforce_meteorologic_convention()
                 
                 # convert longitude
-                ds = self.vars
-                ds_new = self._enforce_longitude_format(ds)
-                self.vars = ds_new
+                self = self._enforce_longitude_format()
 
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:

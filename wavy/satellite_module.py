@@ -373,9 +373,11 @@ class satellite_class(qls, wc, fc):
                     new.coords = new.vars.coords
                     if self.poi is None:
                         ds_lst.append(new._change_varname_to_aliases()
+                                      ._enforce_longitude_format()
                                       .crop_to_region(self.region).vars)
                     else:
                         ds_lst.append(new._change_varname_to_aliases()
+                                      ._enforce_longitude_format()
                                       .crop_to_poi().vars)
 
         combined = xr.concat(ds_lst, 'time',
@@ -384,58 +386,61 @@ class satellite_class(qls, wc, fc):
                              compat='override',
                              combine_attrs='override',
                              join='override')
-        self.vars = combined
-        self.coords = list(self.vars.coords)
+        new.vars = combined
+        new.coords = list(new.vars.coords)
 
-        return self
+        return new
 
-    @staticmethod
-    def _enforce_longitude_format(ds):
+    def _enforce_longitude_format(self):
+        new = deepcopy(self)
         # adjust longitude -180/180
-        attrs = ds.lons.attrs
-        attrs['valid_min'] = -180
+        attrs = new.vars.lons.attrs
+        print(' enforcing lon max min = -180/180')
         attrs['valid_max'] = 180
+        attrs['valid_min'] = -180
         attrs['comments'] = 'forced to range: -180 to 180'
-        ds.lons.values = ((ds.lons.values-180) % 360)-180
-        return ds
+        new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
+        return new
 
     def _enforce_meteorologic_convention(self):
-        ncvars = list(self.vars.variables)
+        new = deepcopy(self)
+        ncvars = list(new.vars.variables)
         for ncvar in ncvars:
-            if ('convention' in satellite_dict[self.nID].keys() and
-            satellite_dict[self.nID]['convention'] == 'oceanographic'):
+            if ('convention' in satellite_dict[new.nID].keys() and
+            satellite_dict[new.nID]['convention'] == 'oceanographic'):
                 print('Convert from oceanographic to meteorologic convention')
-                self.vars[ncvar] =\
-                    convert_meteorologic_oceanographic(self.vars[ncvar])
-            elif 'to_direction' in self.vars[ncvar].attrs['standard_name']:
+                new.vars[ncvar] =\
+                    convert_meteorologic_oceanographic(new.vars[ncvar])
+            elif 'to_direction' in new.vars[ncvar].attrs['standard_name']:
                 print('Convert from oceanographic to meteorologic convention')
-                self.vars[ncvar] =\
-                    convert_meteorologic_oceanographic(self.vars[ncvar])
+                new.vars[ncvar] =\
+                    convert_meteorologic_oceanographic(new.vars[ncvar])
 
-        return self
+        return new
 
 
     def _change_varname_to_aliases(self):
         print(' changing variables to aliases')
+        new = deepcopy(self)
         # variables
-        ncvar = get_filevarname(self.varalias, variable_def,
-                                satellite_dict[self.nID], self.meta)
-        if self.varalias in list(self.vars.keys()):
+        ncvar = get_filevarname(new.varalias, variable_def,
+                                satellite_dict[new.nID], new.meta)
+        if new.varalias in list(new.vars.keys()):
             print('  ', ncvar, 'is alreade named correctly and'
                 + ' therefore not adjusted')
         else:
-            self.vars = self.vars.rename({ncvar: self.varalias})
+            new.vars = new.vars.rename({ncvar: new.varalias})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
             try:
                 ncvar = get_filevarname(c, variable_def,
-                                        satellite_dict[self.nID], self.meta)
-                if c in list(self.vars.keys()):
+                                        satellite_dict[new.nID], new.meta)
+                if c in list(new.vars.keys()):
                     print('  ', c, 'is alreade named correctly and'
                         + ' therefore not adjusted')
                 else:
-                    self.vars = self.vars.rename({ncvar: c})#\
+                    new.vars = new.vars.rename({ncvar: c})#\
                                             #.set_index(time='time')
             except Exception as e:
                 print(' ', ncvar, 'is not renamed')
@@ -443,21 +448,22 @@ class satellite_class(qls, wc, fc):
                 #logger.debug(traceback.format_exc())
                 print(e)
 
-        return self
+        return new
 
 
     def _change_stdvarname_to_cfname(self):
         # enforce standard_name for coordinate aliases
-        self.vars['lons'].attrs['standard_name'] = \
+        new = deepcopy(self)
+        new.vars['lons'].attrs['standard_name'] = \
             variable_def['lons'].get('standard_name')
-        self.vars['lats'].attrs['standard_name'] = \
+        new.vars['lats'].attrs['standard_name'] = \
             variable_def['lats'].get('standard_name')
-        self.vars['time'].attrs['standard_name'] = \
+        new.vars['time'].attrs['standard_name'] = \
             variable_def['time'].get('standard_name')
         # enforce standard_name for variable alias
-        self.vars[self.varalias].attrs['standard_name'] = \
-            self.stdvarname
-        return self
+        new.vars[self.varalias].attrs['standard_name'] = \
+            new.stdvarname
+        return new
 
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
@@ -503,15 +509,14 @@ class satellite_class(qls, wc, fc):
                 t0 = time.time()
                 print('Reading..')
                 self = self._get_sat_ts(**kwargs)
+                #self = self._get_sat_ts_blunt(**kwargs)
 
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
 
                 # convert longitude
-                ds = self.vars
-                ds_new = self._enforce_longitude_format(ds)
-                self.vars = ds_new
+                self = self._enforce_longitude_format()
 
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
