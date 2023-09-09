@@ -1,4 +1,5 @@
 from wavy.insitu_module import insitu_class as ic
+from wavy.insitu_module import poi_class as pc
 import pytest
 import os
 from datetime import datetime
