@@ -34,6 +34,7 @@ from wavy.wconfig import load_or_default
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.model_module import model_class as mc
 from wavy.quicklookmod import quicklook_class_sat as qls
+from wavy.validationmod import validate, disp_validation
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -114,152 +115,6 @@ def adjust_dict_for_idx(indict, idx, excl_keys_lst):
             outdict[k] = np.array(indict[k])[idx]
     return outdict
 
-def collocate_poi_ts(indict, model=None, distlim=None,\
-    leadtime=None, date_incr=None, varalias=None, twin=None,\
-    max_lt=None):
-    """
-    indict: mandatory - lons, lats, time, values
-            optional - leadtime, distlim, date_incr
-    """
-    print("run: collocate_poi_ts")
-    # get stdvarname
-    # stdvarname = variable_info[varalias]['standard_name']
-    # datetime or str
-    if isinstance(indict['time'][0],str):
-        poi_dtimes = [ parse_date(t) for t in indict['time'] ]
-    elif isinstance(indict['time'][0],datetime):
-        poi_dtimes = indict['time']
-    else:
-        print('no valid time/datetime format for poi')
-        print('use either str or datetime')
-    fc_date = make_fc_dates(poi_dtimes[0], poi_dtimes[-1], date_incr)
-    # get coinciding date between fc_date and dates in obs_obj
-    idx1 = collocate_times( unfiltered_t = poi_dtimes,
-                                target_t = fc_date, twin = twin )
-    # find valid/coinciding fc_dates
-    if len(idx1) > len(fc_date):
-        print('Muliple assignments within given time window')
-        print('--> only closest to time stamp is chosen')
-        idx_closest = get_closest_date(\
-                    list(np.array(poi_dtimes)[idx1]),\
-                    fc_date)
-        idx1 = list(np.array(idx1)[idx_closest])
-    # adjust obs_obj according to valid dates
-    indict = adjust_dict_for_idx(indict, idx1, ['time_unit', 'meta', 'nID'])
-    poi_dtimes = indict['time']
-    # HERE
-    del idx1
-    # find valid dates for given leadtime and model
-    fc_date = find_valid_fc_dates_for_model_and_leadtime(\
-                                    fc_date, model, leadtime)
-    # adjust fc_date according to obs date
-    idx2 = collocate_times( unfiltered_t = fc_date,
-                                target_t = poi_dtimes,
-                                twin = twin )
-    fc_date = list(np.array(fc_date)[idx2])
-    del idx2
-    # double check dates for poi based on cleaned cf_date
-    idx_closest = get_closest_date(\
-                  poi_dtimes,\
-                  fc_date)
-    indict = adjust_dict_for_idx(indict, idx_closest,
-                                ['time_unit', 'meta', 'nID'])
-    poi_dtimes = indict['time']
-    del idx_closest
-    # compute time based on time unit from variable definition
-    time_unit = variable_def['time']['units']
-    time = netCDF4.date2num(poi_dtimes,time_unit)
-    # check if file exists and if it includes desired time and append
-    model_vals = []
-    model_lons = []
-    model_lats = []
-    obs_vals = []
-    obs_lons = []
-    obs_lats = []
-    collocation_idx_x = []
-    collocation_idx_y = []
-    distance = []
-    time_lst = []
-    dtimes = []
-    switch = 0
-    for i, d in enumerate(tqdm(fc_date)):
-#    for d in tqdm(range(len(fc_date))):
-#    for d in range(len(fc_date)):
-#        for t in range(1):
-        with NoStdStreams():
-            check = False
-            check = check_if_file_is_valid(
-                    d, model, leadtime, max_lt=max_lt)
-            if check is True:
-                # retrieve model
-                fname = get_model_filename(model, d, leadtime)
-                # get hold of variable names (done only once)
-                if switch == 0:
-                    meta = ncdumpMeta(fname)
-                    lonsname = get_filevarname('lons', variable_def,
-                                        model_dict[model], meta)
-                    latsname = get_filevarname('lats', variable_def,
-                                        model_dict[model], meta)
-                    timename = get_filevarname('time', variable_def,
-                                        model_dict[model], meta)
-                    filevarname = get_filevarname(varalias, variable_def,
-                                        model_dict[model], meta)
-                    mlons = xr.open_dataset(fname)[lonsname].values
-                    # secure lons from -180 to 180
-                    mlons = ((mlons - 180) % 360) - 180
-                    mlats = xr.open_dataset(fname)[latsname].values
-                    # ensure matching dimension
-                    if len(mlons.shape) == 1:
-                        Mlons, Mlats = np.meshgrid(mlons, mlats)
-                    else: Mlons, Mlats = mlons, mlats
-                    switch = 1
-                plon = [indict['longitude'][i]]
-                plat = [indict['latitude'][i]]
-                index_array_2d, distance_array, _ = \
-                        collocation_fct(plon, plat, Mlons, Mlats)
-                dst = xr.open_dataset(fname)[timename].values
-                tidx = list(dst).index(np.datetime64(d))
-                # impose distlim
-                if distance_array[0]< distlim*1000:
-                    idx_x = index_array_2d[0][0]
-                    idx_y = index_array_2d[1][0]
-                    model_lons.append(Mlons[idx_x, idx_y])
-                    model_lats.append(Mlats[idx_x, idx_y])
-                    vals = xr.open_dataset(fname)[filevarname]\
-                                        [tidx, idx_x, idx_y].values
-                    model_vals.append(vals.item())
-                    obs_vals.append(indict['obs'][i])
-                    obs_lons.append(indict['longitude'][i])
-                    obs_lats.append(indict['latitude'][i])
-                    collocation_idx_x.append(idx_x)
-                    collocation_idx_y.append(idx_y)
-                    distance.append(distance_array[0])
-                    time_lst.append(time[i])
-                    """
-                    append fc_date as use of poi_dtimes like:
-                    dtimes.append(poi_dtimes[d])
-                    might not be correct of a time step cannot 
-                    be collocated.
-                    """
-                    dtimes.append(d)
-    results_dict = {
-            'valid_date': dtimes,
-            'time': time_lst,
-            'time_unit': time_unit,
-            'datetime': dtimes,
-            'dist': distance,
-            'model_values': model_vals,
-            'model_lons': model_lons,
-            'model_lats': model_lats,
-            'obs_values': obs_vals,
-            'obs_lons': obs_lons,
-            'obs_lats': obs_lats,
-            'collocation_idx_x': collocation_idx_x,
-            'collocation_idx_y': collocation_idx_y
-                }
-    return results_dict
-
-
 class collocation_class(qls):
     '''
     draft of envisioned collocation class object
@@ -285,18 +140,6 @@ class collocation_class(qls):
         self.ed = oco.ed
         self.twin = kwargs.get('twin', oco.twin)
         self.distlim = kwargs.get('distlim', 6)
-        #if poi is not None:
-        #    !an oco should be created!
-        #    # poi is of type dict
-        #    self.nID = poi['nID']
-        #    self.obsname = poi['nID']
-        #    self.obstype = 'POI'
-        #    stdvarname = variable_info[varalias]['standard_name']
-        #    self.stdvarname = stdvarname
-        #    self.units = variable_info[varalias].get('units')
-        #    self.sdate = parse_date(poi['time'][0])
-        #    self.edate = parse_date(poi['time'][-1])
-        #    self.label = self.nID
         print(" ")
         print(" ## Collocate ... ")
         for t in range(1):
@@ -703,34 +546,34 @@ class collocation_class(qls):
             #ax.set_title()
             plt.show()
 
-    def write_to_nc(self,pathtofile=None,file_date_incr=None):
+    def write_to_nc(self, pathtofile=None, file_date_incr=None):
         if 'error' in vars(self):
             print('Erroneous collocation_class file detected')
             print('--> dump to netCDF not possible !')
         else:
             print('to be implemented ...')
 
-    def write_to_pickle(self,pathtofile=None):
+    def write_to_pickle(self, pathtofile=None):
         import pickle
         # writing
-        pickle.dump( self, open( pathtofile, "wb" ) )
-        print('collocation_class object written to:',pathtofile)
+        pickle.dump(self, open(pathtofile, "wb" ))
+        print('collocation_class object written to:', pathtofile)
         # for reading
         # cco = pickle.load( open( pathtofile, "rb" ) )
 
     def validate_collocated_values(self,**kwargs):
-        dtime = self.vars['datetime']
+        dtime = self.vars['time']
         mods = self.vars['model_values']
         obs = self.vars['obs_values']
-        sdate = self.vars['datetime'][0]
-        edate = self.vars['datetime'][-1]
+        sdate = self.vars['time'][0]
+        edate = self.vars['time'][-1]
         validation_dict = validate_collocated_values(
                                 dtime,obs,mods,\
                                 sdate=sdate,edate=edate,\
                                 **kwargs)
         return validation_dict
 
-def validate_collocated_values(dtime,obs,mods,**kwargs):
+def validate_collocated_values(dtime, obs, mods, **kwargs):
     target_t, sdate, edate, twin = None, None, None, None
     if ('col_obj' in kwargs.keys() and kwargs['col_obj'] is not None):
         col_obj = kwargs['col_obj']
@@ -753,10 +596,11 @@ def validate_collocated_values(dtime,obs,mods,**kwargs):
                           twin=twin)
     mods = np.array(mods)[idx]
     obs = np.array(obs)[idx]
-    results_dict = {'model_values':mods,'obs_values':obs}
+    results_dict = {'model_values': mods, 'obs_values': obs}
+
     # validate
-    from wavy.validationmod import validate,disp_validation
     validation_dict = validate(results_dict)
     disp_validation(validation_dict)
+
     return validation_dict
 

@@ -1,6 +1,7 @@
 from wavy.insitu_module import insitu_class as ic
 import pytest
 import os
+from datetime import datetime
 
 def test_from_thredds():
     varalias = 'Hs'
@@ -101,5 +102,15 @@ def test_insitu_collectors(tmpdir):
     nclist = [i for i in range(len(filelist))
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
+
+def test_insitu_poi(tmpdir):
+    # define poi dictionary for track
+    dt = [datetime(2023, 7, 1), datetime(2023, 7, 2), datetime(2023, 7, 3)]
+    lats = [56.5, 59.3, 64.3]
+    lons = [3.5, 1.8, 4.2]
+    poi_dict = {'time': dt, 'lons': lons, 'lats': lats}
+    pco = pc(poi_dict)
+    assert len(vars(pco)) == 12
+    assert len(list(pco.vars.keys())) == 3
 
 #def test_to_nc(tmpdir):
