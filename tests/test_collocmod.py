@@ -3,6 +3,7 @@ import pytest
 from wavy.satellite_module import satellite_class as sc
 from wavy.collocation_module import collocation_class as cc
 from wavy.insitu_module import insitu_class as ic
+from wavy.insitu_module import poi_class as pc
 
 # include possibility for collocating different variable
 # varalias = 'Hs', 'U', aso...
@@ -54,6 +55,23 @@ def test_insitu_collocation_and_validation(test_data, tmpdir):
     assert len(cco.vars.keys()) == 9
 
     # validate
+
+
+def test_poi_collocation():
+    # define poi dictionary for track
+    dt = ["2023-7-1", "2023-7-2", "2023-7-3"]
+    lats = [56.5, 59.3, 64.3]
+    lons = [3.5, 1.8, 4.2]
+    poi_dict = {'time': dt, 'lons': lons, 'lats': lats}
+
+    # init poi_class
+    pco = pc(poi_dict)
+
+    # collocate
+    cco = cc(oco=pco, model='ww3_4km', leadtime='best')
+    assert len(vars(cco).keys()) == 15
+    assert len(cco.vars.keys()) == 9
+
 
 #    # write to nc
 #    cco.write_to_nc(pathtofile=tmpdir.join('test.nc'))
