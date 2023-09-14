@@ -142,8 +142,7 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         print(" ")
         print(" ## Collocate ... ")
-        for t in range(1):
-#        try:
+        try:
             t0 = time.time()
             results_dict = self.collocate(**kwargs)
             self.model_time = results_dict['model_time']
@@ -157,10 +156,10 @@ class collocation_class(qls):
             print("Time used for collocation:", round(t1-t0, 2), "seconds")
             print(" ")
             print(" ### Collocation_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print ("! No collocation_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print ("! No collocation_class object initialized !")
         # add class variables
         print('# ----- ')
 
@@ -338,27 +337,29 @@ class collocation_class(qls):
                     mco = mco.populate(**kwargs)
                     results_dict_tmp = self._collocate_field(
                                             mco, tmp_dict, **kwargs)
-                    # append to dict
-                    results_dict['model_time'].append(fc_date[i])
-                    results_dict['obs_time'].append(tmp_dict['time'])
-                    results_dict['dist'].append(
-                            results_dict_tmp['dist'])
-                    results_dict['model_values'].append(
-                            results_dict_tmp['model_values'])
-                    results_dict['model_lons'].append(
-                            results_dict_tmp['model_lons'])
-                    results_dict['model_lats'].append(
-                            results_dict_tmp['model_lats'])
-                    results_dict['obs_values'].append(
-                            results_dict_tmp['obs_values'])
-                    results_dict['obs_lats'].append(
-                            results_dict_tmp['obs_lats'])
-                    results_dict['obs_lons'].append(
-                            results_dict_tmp['obs_lons'])
-                    results_dict['collocation_idx_x'].append(
-                                    results_dict_tmp['collocation_idx_x'])
-                    results_dict['collocation_idx_y'].append(
-                                    results_dict_tmp['collocation_idx_y'])
+                    if (len(results_dict_tmp['model_values']) > 0):
+                        # append to dict
+                        results_dict['model_time'].append(fc_date[i])
+                        results_dict['obs_time'].append(tmp_dict['time'])
+                        results_dict['dist'].append(
+                                results_dict_tmp['dist'])
+                        results_dict['model_values'].append(
+                                results_dict_tmp['model_values'])
+                        results_dict['model_lons'].append(
+                                results_dict_tmp['model_lons'])
+                        results_dict['model_lats'].append(
+                                results_dict_tmp['model_lats'])
+                        results_dict['obs_values'].append(
+                                results_dict_tmp['obs_values'])
+                        results_dict['obs_lats'].append(
+                                results_dict_tmp['obs_lats'])
+                        results_dict['obs_lons'].append(
+                                results_dict_tmp['obs_lons'])
+                        results_dict['collocation_idx_x'].append(
+                                        results_dict_tmp['collocation_idx_x'])
+                        results_dict['collocation_idx_y'].append(
+                                        results_dict_tmp['collocation_idx_y'])
+                    else: pass
                     if 'results_dict_tmp' in locals():
                         del results_dict_tmp
             except (ValueError, FileNotFoundError, OSError) as e:

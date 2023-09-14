@@ -13,6 +13,11 @@ cmems_L3_NRT:
     name:
         s3a: s3a
         s3b: s3b
+        c2: c2
+        j3: j3
+        h2b: h2b
+        al: al
+        cfo: cfo
     # mandatory when downloading
     # where to store downloaded data
     download:

@@ -6,10 +6,12 @@ import numpy as np
 import os
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from abc import abstractmethod
+import matplotlib.pyplot as plt
 
 # own imports
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date
+from wavy.utils import compute_quantiles
 #from wavy.collocation_module import collocation_class as cc
 #from wavy.insitu_module import poi_class as pc
 #from wavy.insitu_module import insitu_class as ic
@@ -40,11 +42,12 @@ class quicklook_class_sat:
         return:
             figures
         """
+
         # settings
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
-        sc = kwargs.get('sc')
-        hst = kwargs.get('hist')
+        sc = kwargs.get('sc', False)
+        hst = kwargs.get('hist', False)
         mode = kwargs.get('mode', 'comb')  # comb, indiv
 
         # set variables
@@ -52,6 +55,7 @@ class quicklook_class_sat:
             plot_var = self.vars[self.varalias]
             plot_lons = self.vars.lons
             plot_lats = self.vars.lats
+            label1 = self.name
         except Exception as e:
             plot_var = self.vars.obs_values
             plot_lons = self.vars.obs_lons
@@ -62,12 +66,13 @@ class quicklook_class_sat:
             plot_var_model = self.vars.model_values
             plot_lons_model = self.vars.model_lons
             plot_lats_model = self.vars.model_lats
+            label1 = self.oco.name
+            label2 = self.model
 
-        if m:
+        if m is True:
             import cartopy.crs as ccrs
             import cartopy.feature as cfeature
             import cmocean
-            import matplotlib.pyplot as plt
             import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
             # land
@@ -159,13 +164,13 @@ class quicklook_class_sat:
                            crs=projection)
             #ax.coastlines(color='k')
 
-            gl = ax.gridlines(draw_labels=True,crs=projection,
+            gl = ax.gridlines(draw_labels=True, crs=projection,
                               linewidth=1, color='grey', alpha=0.4,
                               linestyle='-')
             gl.top_labels = False
             gl.right_labels = False
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            auto_title = (self.nID + ' ' + self.name + '\n'
+            auto_title = (self.nID + '\n'
                           + 'from ' 
                           + (parse_date(str(self.vars['time'][0].values))).\
                               strftime('%Y-%m-%d %H:%M:%S')
@@ -193,59 +198,75 @@ class quicklook_class_sat:
             #fig.suptitle('', fontsize=16) # unused
             plt.show()
 
-        if (ts and mode == 'comb'):
-            import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(9,3.5))
+        if (ts is True and mode == 'comb'):
+            fig = plt.figure(figsize=(9, 3.5))
             ax = fig.add_subplot(111)
-            colors = ['k']
+            colors = ['k', 'r']
             ax.plot(self.vars['time'],
-                    plot_vars,
+                    plot_var,
                     color=colors[0],
                     linestyle=kwargs.get('linestyle',''),
-                    label=self.name,
+                    label=label1,
                     marker='o',alpha=.5,ms=2)
+            try:
+                ax.plot(self.vars['time'],
+                        plot_var_model,
+                        color=colors[1],
+                        linestyle=kwargs.get('linestyle',''),
+                        label=label2,
+                        marker='o',alpha=.5,ms=2)
+            except Exception as e:
+                pass
             plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
             plt.show()
 
-        elif (ts and mode == 'indiv'):
-            import matplotlib.pyplot as plt
-            fig = plt.figure(figsize=(9,3.5))
+        elif (ts is True and mode == 'indiv'):
+            fig = plt.figure(figsize=(9, 3.5))
             ax = fig.add_subplot(111)
             for oco in self.ocos:
+                label = oco.name
                 ax.plot(oco.vars['time'],
                         oco.vars[oco.varalias],
                         linestyle=kwargs.get('linestyle',''),
-                        label=oco.label,
+                        label=label,
+                        marker='o',alpha=.5, ms=2)
+            try:
+                label = self.model
+                ax.plot(self.vars['time'],
+                        plot_var_model,
+                        color=colors[1],
+                        linestyle=kwargs.get('linestyle',''),
+                        label=label,
                         marker='o',alpha=.5,ms=2)
+            except Exception as e:
+                pass
             plt.ylabel(self.varalias + ' [' + self.units + ']')
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
             plt.show()
 
-        if sc:
-            lq = np.arange(0.01,1.01,0.01)
-            lq = kwargs.get('lq',lq)
-            modq = compute_quantiles(plot_var_model,lq)
-            obsq = compute_quantiles(plot_var_obs,lq)
+        if sc is True:
+            lq = np.arange(0.01, 1.01,0.01)
+            lq = kwargs.get('lq', lq)
+            modq = compute_quantiles(plot_var_model, lq)
+            obsq = compute_quantiles(plot_var_obs, lq)
 
-            import matplotlib.pyplot as plt
-
-            fig = plt.figure(figsize=(4,4))
+            fig = plt.figure(figsize=(4, 4))
             ax = fig.add_subplot(111)
             colors = ['k']
 
             ax.plot(plot_var_obs, plot_var_model,
-                    linestyle='None',color=colors[0],
-                    marker='o',alpha=.5,ms=2)
-            plt.xlabel='obs ( ' + self.nID + ' - '\
-                                + self.sensor + ' )'
+                    linestyle='None', color=colors[0],
+                    marker='o', alpha=.5, ms=2)
+            plt.xlabel = 'obs ( ' + self.nID + ' - '\
+                         + self.oco.name + ' )'
 
             # add quantiles
-            ax.plot(obsq,modq,'r')
+            ax.plot(obsq, modq, 'r')
 
             # 45 degree line for orientation
             ax.axline((0, 0), (1, 1), lw=.5, color='grey',ls='--')

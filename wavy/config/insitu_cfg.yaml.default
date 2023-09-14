@@ -69,6 +69,61 @@ draugen: # object nID (nameID)
     # optional, to ease grouping
     tags: ['oilrig','arcmfc']
 
+johansverdrup: # object nID (nameID)
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 20929
+    # optional, to ease grouping
+    tags:
+
+grane: # object nID (nameID)
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76960
+    # optional, to ease grouping
+    tags:
+
+heimdal: # object nID (nameID)
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76932
+    # optional, to ease grouping
+    tags:
+
+
 ### E39 project ###
 D_Breisundet_wave: # object nID (nameID)
     name: # sensor

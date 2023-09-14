@@ -29,6 +29,7 @@
 #    grid_date: # date and time of a model run you know exists
 #    proj4: # proj string to be read if not available in model output
 ########################################################################
+
 ARCMFC3:
     vardef:
         Hs: VHM0
@@ -63,6 +64,8 @@ ARCMFC3:
         init_step: 12
         leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
         grid_date: 2020-02-01 00:00:00
+        date_incr_unit: h
+        date_incr: 1
     tags:
 
 ww3_4km:
