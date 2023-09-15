@@ -55,7 +55,6 @@ class quicklook_class_sat:
             plot_var = self.vars[self.varalias]
             plot_lons = self.vars.lons
             plot_lats = self.vars.lats
-            label1 = self.name
         except Exception as e:
             plot_var = self.vars.obs_values
             plot_lons = self.vars.obs_lons
@@ -66,8 +65,6 @@ class quicklook_class_sat:
             plot_var_model = self.vars.model_values
             plot_lons_model = self.vars.model_lons
             plot_lats_model = self.vars.model_lats
-            label1 = self.oco.name
-            label2 = self.model
 
         if m is True:
             import cartopy.crs as ccrs
@@ -206,14 +203,14 @@ class quicklook_class_sat:
                     plot_var,
                     color=colors[0],
                     linestyle=kwargs.get('linestyle',''),
-                    label=label1,
+                    label=self.nID,
                     marker='o',alpha=.5,ms=2)
             try:
                 ax.plot(self.vars['time'],
                         plot_var_model,
                         color=colors[1],
                         linestyle=kwargs.get('linestyle',''),
-                        label=label2,
+                        label=self.nID,
                         marker='o',alpha=.5,ms=2)
             except Exception as e:
                 pass
@@ -262,8 +259,7 @@ class quicklook_class_sat:
             ax.plot(plot_var_obs, plot_var_model,
                     linestyle='None', color=colors[0],
                     marker='o', alpha=.5, ms=2)
-            plt.xlabel = 'obs ( ' + self.nID + ' - '\
-                         + self.oco.name + ' )'
+            plt.xlabel = 'obs ( ' + self.nID + ')'
 
             # add quantiles
             ax.plot(obsq, modq, 'r')

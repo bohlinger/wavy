@@ -41,8 +41,8 @@ class gridder_class():
             self.stdvarname = cco.stdvarname
             self.varalias = cco.varalias
             self.units = cco.units
-            self.sdate = cco.vars['datetime'][0]
-            self.edate = cco.vars['datetime'][-1]
+            self.sdate = cco.vars['time'][0]
+            self.edate = cco.vars['time'][-1]
         else:
             self.olons = kwargs.get('lons')
             self.olats = kwargs.get('lats')

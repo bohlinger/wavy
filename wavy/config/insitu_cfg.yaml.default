@@ -22,6 +22,60 @@ valhall: # object nID (nameID)
 
 
 ### oil rigs ###
+asgarda: # object nID (nameID)
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76958
+    # optional, to ease grouping
+    tags:
+
+aastahansteen:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 77040
+    # optional, to ease grouping
+    tags:
+
+brage:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76959
+    # optional, to ease grouping
+    tags:
+
 draugen: # object nID (nameID)
     name: # sensor
         MKIIIradar_1: 0 # python indexing
@@ -69,7 +123,7 @@ draugen: # object nID (nameID)
     # optional, to ease grouping
     tags: ['oilrig','arcmfc']
 
-johansverdrup: # object nID (nameID)
+gjoa:
     name: # sensor
         NA: 0
     download:
@@ -83,7 +137,25 @@ johansverdrup: # object nID (nameID)
     coords:
     # optional, info that can be used by class functions
     misc:
-        ID: 20929
+        ID: 76954
+    # optional, to ease grouping
+    tags:
+
+goliat:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76956
     # optional, to ease grouping
     tags:
 
@@ -105,6 +177,60 @@ grane: # object nID (nameID)
     # optional, to ease grouping
     tags:
 
+gudrun:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 77041
+    # optional, to ease grouping
+    tags:
+
+gullfaksc:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76923
+    # optional, to ease grouping
+    tags:
+
+heidrun:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76928
+    # optional, to ease grouping
+    tags:
+
 heimdal: # object nID (nameID)
     name: # sensor
         NA: 0
@@ -123,6 +249,473 @@ heimdal: # object nID (nameID)
     # optional, to ease grouping
     tags:
 
+johansverdrup: # object nID (nameID)
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 20929
+    # optional, to ease grouping
+    tags:
+
+kvitebjorn:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76969
+    # optional, to ease grouping
+    tags:
+
+kristin:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76963
+    # optional, to ease grouping
+    tags:
+
+huldra:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76962
+    # optional, to ease grouping
+    tags:
+
+njorda:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76964
+    # optional, to ease grouping
+    tags:
+
+martinlingea:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76915
+    # optional, to ease grouping
+    tags:
+
+norne:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76930
+    # optional, to ease grouping
+    tags:
+
+ormenlange:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76933
+    # optional, to ease grouping
+    tags:
+
+oseberga:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76927
+    # optional, to ease grouping
+    tags:
+
+osebergc:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76965
+    # optional, to ease grouping
+    tags:
+
+osebergsyd:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76967
+    # optional, to ease grouping
+    tags:
+
+snorrea:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76935
+    # optional, to ease grouping
+    tags:
+
+snorreb:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76936
+    # optional, to ease grouping
+    tags:
+
+sleipnera:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76926
+    # optional, to ease grouping
+    tags:
+
+sleipnerb:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76961
+    # optional, to ease grouping
+    tags:
+
+statfjorda:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76922
+    # optional, to ease grouping
+    tags:
+
+statfjordb:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76934
+    # optional, to ease grouping
+    tags:
+
+trolla:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76931
+    # optional, to ease grouping
+    tags:
+
+trollb:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76957
+    # optional, to ease grouping
+    tags:
+
+trollc:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76937
+    # optional, to ease grouping
+    tags:
+
+ula:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76938
+    # optional, to ease grouping
+    tags:
+
+valhall:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76939
+    # optional, to ease grouping
+    tags:
+
+veslefrikk:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76995
+    # optional, to ease grouping
+    tags:
+
+visund:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76968
+    # optional, to ease grouping
+    tags:
+
+vestfjorden:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 20932
+    # optional, to ease grouping
+    tags:
+
+yme:
+    name: # sensor
+        NA: 0
+    download:
+    wavy_input:
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_frost
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        ID: 76929
+    # optional, to ease grouping
+    tags:
 
 ### E39 project ###
 D_Breisundet_wave: # object nID (nameID)

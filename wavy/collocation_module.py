@@ -122,7 +122,6 @@ class collocation_class(qls):
 
     def __init__(self, oco=None, model=None, poi=None,
     distlim=None, leadtime=None, max_lt=None, **kwargs):
-        #twin=30, distlim=6):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")
@@ -142,7 +141,8 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         print(" ")
         print(" ## Collocate ... ")
-        try:
+        for i in range(1):
+#        try:
             t0 = time.time()
             results_dict = self.collocate(**kwargs)
             self.model_time = results_dict['model_time']
@@ -156,10 +156,10 @@ class collocation_class(qls):
             print("Time used for collocation:", round(t1-t0, 2), "seconds")
             print(" ")
             print(" ### Collocation_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print ("! No collocation_class object initialized !")
+#        except Exception as e:
+#            print(e)
+#            self.error = e
+#            print("! No collocation_class object initialized !")
         # add class variables
         print('# ----- ')
 
@@ -273,6 +273,7 @@ class collocation_class(qls):
                 'obs_lats': list(obs_lats[dist_idx]),
                 'collocation_idx_x': list(idx_x),
                 'collocation_idx_y': list(idx_y),
+                'time': tmp_dict['time'][dist_idx]
                 }
         return results_dict
 
@@ -314,9 +315,11 @@ class collocation_class(qls):
                 'collocation_idx_x': [],
                 'collocation_idx_y': [],
                 }
-        for i in tqdm(range(len(fc_date))):
+        #for i in tqdm(range(len(fc_date))):
+        for i in range(len(fc_date)):
             try:
-                with NoStdStreams():
+                for j in range(1):
+                #with NoStdStreams():
                     # filter needed obs within time period
                     target_date = [parse_date(str(fc_date[i]))]
                     idx = collocate_times(ndt_datetime,
@@ -330,7 +333,7 @@ class collocation_class(qls):
                     tmp_dict['lats'] = self.oco.vars['lats'].values[idx]
                     tmp_dict['lons'] = self.oco.vars['lons'].values[idx]
                     tmp_dict[self.oco.varalias] = \
-                            self.oco.vars[self.oco.varalias].values[idx]
+                        self.oco.vars[self.oco.varalias].values[idx]
                     mco = mc(sd=fc_date[i], ed=fc_date[i], nID=self.model,
                              leadtime=self.leadtime, varalias=self.varalias,
                              **kwargs)
@@ -340,7 +343,8 @@ class collocation_class(qls):
                     if (len(results_dict_tmp['model_values']) > 0):
                         # append to dict
                         results_dict['model_time'].append(fc_date[i])
-                        results_dict['obs_time'].append(tmp_dict['time'])
+                        results_dict['obs_time'].append(
+                                results_dict_tmp['time'])
                         results_dict['dist'].append(
                                 results_dict_tmp['dist'])
                         results_dict['model_values'].append(
@@ -417,20 +421,21 @@ class collocation_class(qls):
     def write_to_pickle(self, pathtofile=None):
         import pickle
         # writing
-        pickle.dump(self, open(pathtofile, "wb" ))
+        pickle.dump(self, open(pathtofile, "wb"))
         print('collocation_class object written to:', pathtofile)
         # for reading
         # cco = pickle.load( open( pathtofile, "rb" ) )
 
-    def validate_collocated_values(self,**kwargs):
-        dtime = self.vars['time']
+    def validate_collocated_values(self, **kwargs):
+        times = self.vars['time']
+        dtime = [parse_date(str(t.data)) for t in times]
         mods = self.vars['model_values']
         obs = self.vars['obs_values']
-        sdate = self.vars['time'][0]
-        edate = self.vars['time'][-1]
+        sdate = dtime[0]
+        edate = dtime[-1]
         validation_dict = validate_collocated_values(
-                                dtime,obs,mods,\
-                                sdate=sdate,edate=edate,\
+                                dtime, obs, mods,
+                                sdate=sdate, edate=edate,
                                 **kwargs)
         return validation_dict
 
@@ -440,7 +445,7 @@ def validate_collocated_values(dtime, obs, mods, **kwargs):
         col_obj = kwargs['col_obj']
         mods = col_obj.vars['model_values']
         obs = col_obj.vars['obs_values']
-        dtime = col_obj.vars['datetime']
+        dtime = col_obj.vars['time']
     # get idx for date and twin
     if 'target_t' in kwargs.keys():
         target_t = kwargs['target_t']

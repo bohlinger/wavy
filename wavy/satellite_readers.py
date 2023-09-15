@@ -88,7 +88,8 @@ def read_local_ncfiles(**kwargs):
                               satellite_dict[nID], ncmeta)
     latsname = get_filevarname('lats', variable_info,
                               satellite_dict[nID], ncmeta)
-
+    timename = get_filevarname('time', variable_info,
+                              satellite_dict[nID], ncmeta)
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
@@ -99,10 +100,19 @@ def read_local_ncfiles(**kwargs):
     #ds = tpe_hidefix(pathlst)
     # ds = read_mf_netcdfs(pathlst)
     #
-    ds_sort = ds.sortby('time')
+    ds_sort = ds.sortby(timename)
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     var_sliced = ds_sliced[[varname, lonsname, latsname]]
-    return var_sliced
+
+    # build xr dataset with time as only dim/coords
+    varnames = {varalias: varname, 'lons': lonsname,
+                'lats': latsname, 'time': timename}
+    var = (var_sliced[varname], var_sliced[lonsname],
+           var_sliced[latsname], var_sliced[timename])
+
+    ds_new = build_xr_ds(var, varnames, varalias)
+
+    return ds_new
 
 
 def read_local_20Hz_files(**kwargs):

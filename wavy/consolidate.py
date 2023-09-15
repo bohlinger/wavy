@@ -54,7 +54,7 @@ class consolidate_class(qls, fc):
     '''
     Class to handle multiple satellite_class objects
     '''
-    def __init__(self, ocos):
+    def __init__(self, ocos, **kwargs):
         print('# ----- ')
         print(" ### Initializing consolidate_class object ###")
         print(" ")
@@ -62,11 +62,13 @@ class consolidate_class(qls, fc):
         self.ocos = ocos
         self.varalias = ocos[i].varalias
         self.stdvarname = ocos[i].stdvarname
-        self.varname = ocos[i].varname
         self.units = ocos[i].units
         self.sd = ocos[i].sd
         self.ed = ocos[i].ed
         self.vars = consolidate_ocos(ocos)
+        self.twin = kwargs.get('twin', 30)
+        self.distlim = kwargs.get('distlim', 6)
+        self.region = kwargs.get('region', 'global')
         self.obsname = 'consolidated-obs'
         self.obstype = 'consolidated-obs'
         self.label = 'consolidated-obs'
