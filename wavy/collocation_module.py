@@ -131,6 +131,7 @@ class collocation_class(qls):
         self.leadtime = leadtime
         self.oco = oco
         self.nID = oco.nID
+        self.model = model
         self.obstype = str(type(oco))[8:-2]
         self.stdvarname = oco.stdvarname
         self.region = oco.region

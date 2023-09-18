@@ -106,6 +106,54 @@ def read_field(**kwargs):
 
     return combined
 
+@lru_cache(maxsize=32)
+def read_single_field_lru_ecwam(
+filestr, varname, lonsname, latsname, timename):
+    # remove escape character because netCDF4 handles white spaces
+    # but cannot handle escape characters (apparently)
+    filestr = filestr.replace('\\', '')
+    f = netCDF4.Dataset(filestr, 'r')
+    # get coordinates and time
+    var = f.variables[varname][:, 0, :, :].squeeze()
+    lons = f.variables[lonsname][:]
+    lats = f.variables[latsname][:]
+    time = f.variables[timename]
+    timedt = list(
+        netCDF4.num2date(time[:], units=time.units))
+    f.close()
+    return var, lons, lats, timedt
+
+def read_ecwam(**kwargs):
+    pathlst = kwargs.get('pathlst')
+    nID = kwargs.get('nID')
+    fc_dates = kwargs.get('fc_dates')
+    varname = kwargs.get('varname')
+    timename = model_dict[nID]['vardef']['time']
+    lonsname = model_dict[nID]['vardef']['lons']
+    latsname = model_dict[nID]['vardef']['lats']
+
+    ds_lst = []
+    for i in range(len(pathlst)):
+        var_tuple = read_single_field_lru_ecwam(
+                                          pathlst[i],
+                                          varname,
+                                          lonsname, latsname,
+                                          timename)
+        varnames = (varname, 'lons', 'lats', 'time')
+        ds_lst.append(build_xr_ds(var_tuple, varnames)\
+                      .sel({timename: fc_dates[i]}))
+
+    print(" Concatenate ...")
+    combined = xr.concat(ds_lst, timename,
+                         coords='minimal',
+                         data_vars='minimal',
+                         compat='override',
+                         combine_attrs='override',
+                         join='override')
+    print(" ... done concatenating")
+
+    return combined
+
 def read_ww3_unstructured_to_grid(**kwargs):
     from wavy.grid_readers import read_ww3_unstructured_to_grid
     ds = read_ww3_unstructured_to_grid(**kwargs)

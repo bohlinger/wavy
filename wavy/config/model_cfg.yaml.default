@@ -51,7 +51,7 @@ ARCMFC3:
         # for each time a date should be replaced
         fl_tmplt: "filedate_MyWaveWam3_bfiledate.nc"
     wavy_output:
-    reader:
+    reader: read_ww3_4km
     collector:
     misc:
         xtra_h: [0,6] # h bias adjustment according to position in filename
@@ -139,3 +139,29 @@ ww3_unstr:
         date_incr_unit: h
         date_incr: 1
     tags:
+
+ecwam:
+    name:
+    download:
+    vardef:
+        Hs: significant_wave_height
+        Mdir: wave_direction
+        Tp: peak_wave_period
+        Tm02: mean_wave_period
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
+        fl_tmplt: "ec_ocean_wave_%Y%m%dT%H00Z.nc"
+    reader: read_ecwam
+    collector:
+    misc:
+        init_times: [0,12]
+        init_step: 12
+        grid_date: 2023-09-17 00:00:00
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 1
+        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"

@@ -66,6 +66,9 @@ class quicklook_class_sat:
             plot_lons_model = self.vars.model_lons
             plot_lats_model = self.vars.model_lats
 
+        cflevels = kwargs.get('cflevels', 10)
+        clevels = kwargs.get('clevels', 10)
+
         if m is True:
             import cartopy.crs as ccrs
             import cartopy.feature as cfeature
@@ -129,7 +132,19 @@ class quicklook_class_sat:
                                  s=.2, c='b', marker='.',
                                  edgecolor='face',
                                  transform=ccrs.PlateCarree())
-            sc = ax.scatter(plot_lons, plot_lats, s=20,
+            if 'model' in list(vars(self).keys()):
+                sc = ax.contourf(plot_lons.squeeze(),
+                                 plot_lats.squeeze(),
+                                 plot_var.squeeze(),
+                                 cmap=cmap, levels=cflevels,
+                                 transform=ccrs.PlateCarree())
+                c = ax.contour(plot_lons.squeeze(),
+                               plot_lats.squeeze(),
+                               plot_var.squeeze(),
+                               cmap=cmap, levels=clevels,
+                               transform=ccrs.PlateCarree())
+            else:
+                sc = ax.scatter(plot_lons, plot_lats, s=20,
                             c=plot_var,
                             marker='o',  # edgecolor='face',
                             edgecolors='k',
@@ -281,6 +296,9 @@ class quicklook_class_sat:
             plt.tight_layout()
             #ax.set_title()
             plt.show()
+
+    def quick_anim():
+        pass
 
 
 """

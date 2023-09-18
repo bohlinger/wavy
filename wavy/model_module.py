@@ -135,6 +135,7 @@ class model_class(qls):
 
         # add other class object variables
         self.nID = kwargs.get('nID')
+        self.model = kwargs.get('model', self.nID)
         self.varalias = kwargs.get('varalias', 'Hs')
         self.units = variable_def[self.varalias].get('units')
         self.stdvarname = variable_def[self.varalias].get('standard_name')
@@ -263,7 +264,7 @@ class model_class(qls):
                   like xarray and netCDF4
         """
         if self.nID in model_dict:
-            if 'xtra_h' in vars(self.cfg):
+            if 'xtra_h' in vars(self.cfg)['misc']:
                 filedate = self._get_model_filedate(fc_date, leadtime)
                 pathdate = filedate + timedelta(hours=leadtime) \
                                     * vars(self.cfg)['misc']['lt_switch_p']

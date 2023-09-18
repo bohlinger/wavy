@@ -86,7 +86,7 @@ class filter_class:
         print(' land_sea_chunks added to self')
         return new
 
-    def filter_distance_to_coast(self, llim=0, ulim=10000, **kwargs):
+    def filter_distance_to_coast(self, llim=0, ulim=100000000, **kwargs):
         """
         discards all values closer to shoreline than threshold
         """
@@ -102,7 +102,7 @@ class filter_class:
         points_sdef = pr.geometry.SwathDefinition(longitudes, latitudes)
         coast_sdef = pr.geometry.SwathDefinition(cA[:, 1], cA[:, 0])
         _, _, _, distance_array = pr.kd_tree.get_neighbour_info(
-            coast_sdef, points_sdef, 1000000, neighbours=1)
+            coast_sdef, points_sdef, 10000000, neighbours=1)
         # get rid of infs
         mask = np.where((distance_array > llim) & (distance_array < ulim))[0]
         #new.dist_to_coast = distance_array[mask]
@@ -779,7 +779,7 @@ def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray):
 
     return sea_mask
 
-def apply_limits(varalias,vardict):
+def apply_limits(varalias, vardict):
     print('Apply limits')
     print('Crude cleaning using valid range defined in variable_def.yaml')
     stdvarname = variable_def[varalias]['standard_name']
@@ -787,8 +787,8 @@ def apply_limits(varalias,vardict):
     y = vardict[stdvarname]
     llim = variable_def[varalias]['valid_range'][0]
     ulim = variable_def[varalias]['valid_range'][1]
-    tmpdict = {'y':y}
-    df = pd.DataFrame(data = tmpdict)
+    tmpdict = {'y': y}
+    df = pd.DataFrame(data=tmpdict)
     dfmask = df['y'].between(llim, ulim, inclusive='both')
     for key in vardict:
         if (key != 'time_unit' and key != 'meta'):

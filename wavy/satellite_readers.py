@@ -85,11 +85,11 @@ def read_local_ncfiles(**kwargs):
     varname = get_filevarname(varalias, variable_info,
                               satellite_dict[nID], ncmeta)
     lonsname = get_filevarname('lons', variable_info,
-                              satellite_dict[nID], ncmeta)
+                               satellite_dict[nID], ncmeta)
     latsname = get_filevarname('lats', variable_info,
-                              satellite_dict[nID], ncmeta)
+                               satellite_dict[nID], ncmeta)
     timename = get_filevarname('time', variable_info,
-                              satellite_dict[nID], ncmeta)
+                               satellite_dict[nID], ncmeta)
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
