@@ -139,6 +139,8 @@ def read_ecwam(**kwargs):
                                           varname,
                                           lonsname, latsname,
                                           timename)
+        print('HERE')
+        print(var_tuple[0].shape)
         varnames = (varname, 'lons', 'lats', 'time')
         ds_lst.append(build_xr_ds(var_tuple, varnames)\
                       .sel({timename: fc_dates[i]}))

@@ -97,6 +97,7 @@ ww3_4km:
         Tm02: t02
         lons: longitude
         lats: latitude
+        U: ff
     coords:
     # optional, info that can be used by class functions
     misc:

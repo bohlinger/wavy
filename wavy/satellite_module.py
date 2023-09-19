@@ -365,7 +365,7 @@ class satellite_class(qls, wc, fc):
         print('Total of', len(pathlst), 'files')
 
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
-            if count < len(pathlst)-1:
+            if count <= len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
                 #for i in range(1):
                 with NoStdStreams():
@@ -382,12 +382,16 @@ class satellite_class(qls, wc, fc):
                                       ._enforce_longitude_format()
                                       .crop_to_poi().vars)
 
-        combined = xr.concat(ds_lst, 'time',
-                             coords='minimal',
-                             data_vars='minimal',
-                             compat='override',
-                             combine_attrs='override',
-                             join='override')
+        if len(ds_lst)>1:
+            combined = xr.concat(ds_lst, 'time',
+                                 coords='minimal',
+                                 data_vars='minimal',
+                                 compat='override',
+                                 combine_attrs='override',
+                                 join='override')
+        else:
+            combined = ds_lst[0]
+
         new.vars = combined
         new.coords = list(new.vars.coords)
 
@@ -512,7 +516,6 @@ class satellite_class(qls, wc, fc):
                 print('Reading..')
                 self = self._get_sat_ts(**kwargs)
                 #self = self._get_sat_ts_blunt(**kwargs)
-
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()

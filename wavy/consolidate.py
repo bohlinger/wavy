@@ -30,7 +30,7 @@ def consolidate_ocos(ocos):
         'sea_surface_wave_significant_height', 'time',
         'latitude', 'longitude', 'datetime'
     """
-    ds_lst = [oco.vars for oco in ocos]
+    ds_lst = [oco.vars for oco in ocos if 'vars' in list(vars(oco).keys())]
     ds = xr.concat(ds_lst, dim='time')
     return ds
 

@@ -173,3 +173,53 @@ CCIv1_L3:
     # optional, to ease grouping
     tags:
 
+
+s3a_sla_5Hz:
+    # mandatory
+    name:
+        s3a: s3a
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt:
+            trgt_tmplt:
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            search_str: '%Y%m%dT'
+            strsub: ['name']
+            server: "nrt.cmems-du.eu"
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: /home/patrikb/tmp_altimeter/SLA
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['name']
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/SLA
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region']
+        file_date_incr: m
+    # optional, if not defined the class default is used
+    reader: read_local_ncfiles
+    collector: get_remote_files_cmems
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        SLA: sla_filtered
+        lons: longitude
+        lats: latitude
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level:
+        provider:
+        obs_type:
+    # optional, to ease grouping
+    tags:
+

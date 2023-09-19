@@ -27,6 +27,12 @@ Hs:
     valid_range: [0., 30.]
     _FillValue: -999.9
 
+SLA:
+    standard_name: sea_level_anomaly
+    units: m
+    valid_range: [-10, 10.]
+    _FillValue: -999.9
+
 Tp:
     standard_name: "sea_surface_wave_period_at_variance_spectral_\
                     density_maximum"
