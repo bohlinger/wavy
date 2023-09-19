@@ -12,7 +12,7 @@ def test_ww3_4km_reader():
     assert mco.__class__.__name__ == 'model_class'
     mco.populate()
     print(mco.vars)
-    assert len(vars(mco).keys()) == 17
+    assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 3
 
 @pytest.mark.need_credentials
@@ -27,5 +27,5 @@ def test_ww3_unstr_reader():
     mco.populate(res=res, bb=bb, interp='nearest')
     print(mco.vars)
 
-    assert len(vars(mco).keys()) == 17
+    assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 3
