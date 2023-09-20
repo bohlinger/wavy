@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "wavyopen"
+name = "wavy"
 version = "0.1.0"
 description = "A package for processing wave measurements and wave model output."
 authors = ["Patrik Bohlinger <patrikb@met.no>"]
