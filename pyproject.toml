@@ -3,6 +3,9 @@ name = "wavy"
 version = "0.1.0"
 description = "A package for processing wave measurements and wave model output."
 authors = ["Patrik Bohlinger <patrikb@met.no>"]
+packages = [
+    {include = "wavy"}
+]
 
 [tool.poetry.scripts]
 wavyQuick = "apps.standalone.wavyQuick:main"
