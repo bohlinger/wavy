@@ -56,7 +56,7 @@ markers = [
 
 
 [tool.pylint.master]
-extension-pkg-whitelist="netCDF4,numpy,scipy"
+extension-pkg-whitelist="netCDF4,numpy,scipy,roaring_landmask"
 
 [tool.pylint.messages_control]
 disable = "all"
