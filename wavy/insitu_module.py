@@ -85,8 +85,12 @@ class insitu_class(qls, wc, fc):
             dc = init_class('insitu', kwargs.get('twinID'))
             dc.nID = nID
         # parse and translate date input
+        self.twin = int(kwargs.get('twin', 0))
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
+        if self.twin is not None:
+            self.sd = self.sd - timedelta(minutes=self.twin)
+            self.ed = self.ed + timedelta(minutes=self.twin)
         print('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
         # add other class object variables
         self.nID = kwargs.get('nID')
@@ -95,7 +99,6 @@ class insitu_class(qls, wc, fc):
         self.varalias = kwargs.get('varalias', 'Hs')
         self.stdvarname = variable_def[self.varalias]['standard_name']
         self.units = variable_def[self.varalias].get('units')
-        self.twin = int(kwargs.get('twin', 30))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')

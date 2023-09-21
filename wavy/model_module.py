@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import hour_rounder, make_fc_dates
-from wavy.utils import finditem, parse_date, NoStdStreams
+from wavy.utils import finditem, parse_date
 from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import date_dispatcher
 from wavy.utils import find_direction_convention
@@ -78,15 +78,28 @@ def generate_bestguess_leadtime(model, fc_date, lidx=None):
         init_times = \
             np.array(model_dict[model]['misc']['init_times']).astype('float')
         diffs = fc_date.hour - np.array(init_times)
+
+        # greater than zero
         gtz = diffs[diffs >= 0]
+
         if len(gtz) == 0:
             leadtime = int(np.abs(np.min(np.abs(diffs))
-                                - model_dict[model]['misc']['init_step']))
+                           - model_dict[model]['misc']['init_step']))
         elif (len(gtz) > 0 and lidx is not None):
             leadtime = int(np.sort(diffs[diffs >= 0])[lidx])
         else:
             leadtime = int(np.min(diffs[diffs >= 0]))
-    return leadtime
+
+        # multiple of date_incr
+        if leadtime == 0:
+            return leadtime
+        elif leadtime % model_dict[model]['misc']['date_incr'] == 0:
+            return leadtime
+        elif (leadtime == 1 and model_dict[model]['misc']['date_incr'] == 1):
+            return leadtime
+        else:
+            print('Lead time ' + str(leadtime) + 'h'
+                  + ' not available for model ' + model)
 
 # function used by satellite_module
 # should probably be placed somewhere else
@@ -245,7 +258,7 @@ class model_class(qls):
         else:
             #print('Leadtime', leadtime , \
             #      'not available for date' ,fc_date, '!')
-            return False
+            return None
 
     def _make_model_filename(self, fc_date, leadtime):
         """
@@ -318,23 +331,29 @@ class model_class(qls):
         """
         if leadtime is None:
             leadtime = 'best'
+
         if (isinstance(fc_date, datetime) and leadtime != 'best'):
             filename = self._make_model_filename(fc_date, leadtime)
         elif (isinstance(fc_date, datetime) and leadtime == 'best'):
             switch = False
             leadtime = generate_bestguess_leadtime(self.nID, fc_date)
-            while switch is False:
-                filename = self._make_model_filename(fc_date, leadtime)
-                # check if file is accessible
-                switch = check_if_ncfile_accessible(filename)
-                if (switch is False):
-                    print("Desired file:", filename, " not accessible")
-                    print("Continue to look for date with extended leadtime")
-                    leadtime = leadtime + vars(self.cfg)['misc']['init_step']
-                if max_lt is not None and leadtime > max_lt:
-                    print("Leadtime:", leadtime,
-                          "is greater as maximum allowed leadtime:", max_lt)
-                    return None
+            if leadtime is not None:
+                while switch is False:
+                    filename = self._make_model_filename(fc_date, leadtime)
+                    # check if file is accessible
+                    switch = check_if_ncfile_accessible(filename)
+                    if (switch is False):
+                        print("Desired file:", filename, " not accessible")
+                        print("Continue to look for date" 
+                              + " with extended leadtime")
+                        leadtime = (leadtime
+                                    + vars(self.cfg)['misc']['init_step'])
+                    if max_lt is not None and leadtime > max_lt:
+                        print("Leadtime:", leadtime,
+                              "is greater as maximum allowed leadtime:",
+                              max_lt)
+            else:
+                filename = None
         elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
             filename = [self._make_model_filename(date, leadtime)
                         for date in fc_date]
@@ -342,6 +361,9 @@ class model_class(qls):
             leadtime = generate_bestguess_leadtime(self.nID, fc_date)
             filename = [self._make_model_filename(fc_date[i], leadtime[i])
                         for i in range(len(fc_date))]
+        elif leadtime is None:
+            filename = None
+
         return filename
 
     def _make_list_of_model_filenames(self, fc_dates, lt):
@@ -353,7 +375,8 @@ class model_class(qls):
         flst = []
         for d in fc_dates:
             fn = self._make_model_filename_wrapper(d, lt)
-            flst.append(fn)
+            if fn is not None:
+                flst.append(fn)
         return flst
 
 
@@ -454,8 +477,8 @@ class model_class(qls):
             fc_dates = make_fc_dates(self.sd, self.ed,
                                      self.cfg.misc['date_incr_unit'],
                                      self.cfg.misc['date_incr'])
-            pathlst = self._make_list_of_model_filenames(fc_dates, self.leadtime)
-
+            pathlst = self._make_list_of_model_filenames(
+                    fc_dates, self.leadtime)
         else:
             # if defined path local
             print(" ## Find and list files ...")
@@ -557,41 +580,42 @@ class model_class(qls):
 
         self.pathlst = self.list_input_files(**kwargs)
 
-        print('')
-        print('Checking variables..')
-        self.meta = ncdumpMeta(self.pathlst[0])
-        ncvar = get_filevarname(self.varalias, variable_def,
-                                vars(self.cfg), self.meta)
-        print('')
-        print('Choosing reader..')
-        # define reader
-        dotenv.load_dotenv()
-        WAVY_DIR = os.getenv('WAVY_DIR', None)
-        if WAVY_DIR is None:
-            print('###########')
-            print('Environmental variable for WAVY_DIR needs to be defined!')
-            print('###########')
-        reader_str = kwargs.get('reader', self.cfg.reader)
-        reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
-        spec = importlib.util.spec_from_file_location(
-                'model_readers.' + reader_str, reader_mod_str)
-
-        # create reader module
-        reader_tmp = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(reader_tmp)
-
-        # pick reader
-        reader = getattr(reader_tmp, reader_str)
-        self.reader = reader
-        print('Chosen reader:', spec.name)
-        print('')
-
-        # possible to select list of variables
-        self.varname = ncvar
-
-        kwargs['fc_dates'] = fc_dates
-
         if len(self.pathlst) > 0:
+            print('')
+            print('Checking variables..')
+            self.meta = ncdumpMeta(self.pathlst[0])
+            ncvar = get_filevarname(self.varalias, variable_def,
+                                    vars(self.cfg), self.meta)
+            print('')
+            print('Choosing reader..')
+            # define reader
+            dotenv.load_dotenv()
+            WAVY_DIR = os.getenv('WAVY_DIR', None)
+            if WAVY_DIR is None:
+                print('###########')
+                print('Environmental variable for WAVY_DIR'
+                      + ' needs to be defined!')
+                print('###########')
+            reader_str = kwargs.get('reader', self.cfg.reader)
+            reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
+            spec = importlib.util.spec_from_file_location(
+                    'model_readers.' + reader_str, reader_mod_str)
+
+            # create reader module
+            reader_tmp = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(reader_tmp)
+
+            # pick reader
+            reader = getattr(reader_tmp, reader_str)
+            self.reader = reader
+            print('Chosen reader:', spec.name)
+            print('')
+
+            # possible to select list of variables
+            self.varname = ncvar
+
+            kwargs['fc_dates'] = fc_dates
+
             try:
                 t0 = time.time()
                 print('Reading..')
@@ -600,7 +624,7 @@ class model_class(qls):
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
-                
+
                 # convert longitude
                 self = self._enforce_longitude_format()
 

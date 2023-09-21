@@ -63,8 +63,8 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
     return index_array_2d, distance_array, valid_output_index
 
 def get_model_filename(nID, d, leadtime):
-    mco = mc(nID, d, leadtime)
-    return mco._make_model_filename_wrapper(d, leadtime)
+    mco = mc(nID=nID, sd=d, ed=d, leadtime=leadtime)
+    return mco._make_model_filename_wrapper(parse_date(str(d)), leadtime)
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     '''
@@ -72,11 +72,11 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     of complete hours
     '''
     fc_dates_new = hour_rounder_pd(fc_dates)
-    if (leadtime is None or leadtime == 'best'):
-        pass
-    else:
-        fc_dates_new = [d for d in fc_dates_new
-                if get_model_filename(model, d, leadtime) != False]
+    #if (leadtime is None or leadtime == 'best'):
+    #    pass
+    #else:
+    fc_dates_new = [d for d in fc_dates_new
+                    if get_model_filename(model, d, leadtime) is not None]
     return fc_dates_new
 
 def check_if_file_is_valid(fc_date, model, leadtime, max_lt=None):
@@ -142,8 +142,8 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         print(" ")
         print(" ## Collocate ... ")
-        for i in range(1):
-#        try:
+#        for i in range(1):
+        try:
             t0 = time.time()
             results_dict = self.collocate(**kwargs)
             self.model_time = results_dict['model_time']
@@ -157,10 +157,10 @@ class collocation_class(qls):
             print("Time used for collocation:", round(t1-t0, 2), "seconds")
             print(" ")
             print(" ### Collocation_class object initialized ###")
-#        except Exception as e:
-#            print(e)
-#            self.error = e
-#            print("! No collocation_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            print("! No collocation_class object initialized !")
         # add class variables
         print('# ----- ')
 
@@ -235,22 +235,26 @@ class collocation_class(qls):
         """
         Some info
         """
-        Mlons = mco.vars.lons
-        Mlats = mco.vars.lats
-        Mvars = mco.vars[mco.varalias]
+        Mlons = mco.vars.lons.data
+        Mlats = mco.vars.lats.data
+        Mvars = mco.vars[mco.varalias].data
         if len(Mlons.shape) > 2:
-            Mlons = Mlons[0, :].data.squeeze()
-            Mlats = Mlats[0, :].data.squeeze()
-            Mvars = Mvars[0, :].data.squeeze()
-        else:
-            Mlons = Mlons.data.squeeze()
-            Mlats = Mlats.data.squeeze()
-            Mvars = Mvars.data.squeeze()
+            Mlons = Mlons[0, :].squeeze()
+            Mlats = Mlats[0, :].squeeze()
+            Mvars = Mvars[0, :].squeeze()
+        elif len(Mlons.shape) == 2:
+            Mlons = Mlons.squeeze()
+            Mlats = Mlats.squeeze()
+            Mvars = Mvars.squeeze()
+        elif len(Mlons.shape) == 1:
+            Mlons, Mlats = np.meshgrid(Mlons, Mlats)
+            Mvars = Mvars.squeeze()
+            assert len(Mlons.shape) == 2
         obs_vars = tmp_dict[self.varalias]
         obs_lons = tmp_dict['lons']
         obs_lats = tmp_dict['lats']
         # Compare wave heights of satellite with model with
-        #   constraint on distance and time frame
+        # constraint on distance and time frame
         print("Perform collocation with distance limit\n",
               "distlim:", self.distlim)
         index_array_2d, distance_array, _ =\
@@ -297,6 +301,7 @@ class collocation_class(qls):
                                     ndt, self.model, self.leadtime)
 
         ndt_valid = np.unique(ndt_valid)
+
         fc_date = ndt_valid
         t2 = time.time()
 
@@ -316,11 +321,11 @@ class collocation_class(qls):
                 'collocation_idx_x': [],
                 'collocation_idx_y': [],
                 }
-        #for i in tqdm(range(len(fc_date))):
-        for i in range(len(fc_date)):
+        for i in tqdm(range(len(fc_date))):
+        #for i in range(len(fc_date)):
             try:
-                for j in range(1):
-                #with NoStdStreams():
+                #for j in range(1):
+                with NoStdStreams():
                     # filter needed obs within time period
                     target_date = [parse_date(str(fc_date[i]))]
                     idx = collocate_times(ndt_datetime,
@@ -408,7 +413,7 @@ class collocation_class(qls):
                             )
         if ((self.model is not None) and (self.oco is not None)):
             results_dict = self._collocate_track(**kwargs)
-        # same needed for insitu, multiins, multisat, consolidate
+
         return results_dict
 
 

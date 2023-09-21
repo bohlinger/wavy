@@ -17,8 +17,10 @@ from functools import lru_cache
 from wavy.wconfig import load_or_default
 from wavy.utils import build_xr_ds
 from wavy.grid_readers import get_gridded_dataset
+from wavy.grid_readers import build_xr_ds_grid
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.utils import parse_date
+from wavy.utils import collocate_times
 
 # ---------------------------------------------------------------------#
 # read yaml config files:
@@ -92,7 +94,7 @@ def read_field(**kwargs):
                                           varname,
                                           lonsname, latsname, timename)
         varnames = (varname, 'lons', 'lats', 'time')
-        ds_lst.append(build_xr_ds(var_tuple, varnames)\
+        ds_lst.append(build_xr_ds(var_tuple, varnames)
                       .sel({timename: fc_dates[i]}))
 
     print(" Concatenate ...")
@@ -128,22 +130,25 @@ def read_ecwam(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    varalias = kwargs.get('varalias')
     timename = model_dict[nID]['vardef']['time']
     lonsname = model_dict[nID]['vardef']['lons']
     latsname = model_dict[nID]['vardef']['lats']
 
     ds_lst = []
     for i in range(len(pathlst)):
-        var_tuple = read_single_field_lru_ecwam(
+        var, lons, lats, timedt = read_single_field_lru_ecwam(
                                           pathlst[i],
                                           varname,
                                           lonsname, latsname,
                                           timename)
-        print('HERE')
-        print(var_tuple[0].shape)
-        varnames = (varname, 'lons', 'lats', 'time')
-        ds_lst.append(build_xr_ds(var_tuple, varnames)\
-                      .sel({timename: fc_dates[i]}))
+        tlst = [parse_date(str(d)) for d in timedt]
+        idx = collocate_times(tlst, target_t=[fc_dates[i]])
+        time = np.array([np.array(tlst)[idx[0]]]).reshape((1,))
+        varin = var[idx[0], :, :].reshape((1, len(lats), len(lons)))
+        ds = build_xr_ds_grid(varin, lons, lats, time,
+                              varstr=varalias)
+        ds_lst.append(ds)
 
     print(" Concatenate ...")
     combined = xr.concat(ds_lst, timename,

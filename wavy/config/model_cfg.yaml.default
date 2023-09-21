@@ -154,15 +154,39 @@ ecwam:
         lats: latitude
     coords:
     wavy_input:
-        src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
+        #src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
+        src_tmplt: "/home/patrikb/tmp_test_validation/tmp_data/ec/"
         fl_tmplt: "ec_ocean_wave_%Y%m%dT%H00Z.nc"
     reader: read_ecwam
     collector:
     misc:
         init_times: [0,12]
         init_step: 12
-        grid_date: 2023-09-17 00:00:00
+        grid_date: 2023-09-18 00:00:00
         convention: meteorological
         date_incr_unit: h
-        date_incr: 1
+        date_incr: 3
         proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
+mwam3:
+    name:
+    download:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        #src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
+        src_tmplt: "/home/patrikb/tmp_test_validation/tmp_data/w3/"
+        fl_tmplt: "MyWave_wam3_WAVE_%Y%m%dT%HZ_hs.nc"
+    reader: read_ww3_4km
+    collector:
+    misc:
+        init_times: [0,12]
+        init_step: 12
+        grid_date: 2023-09-18 00:00:00
+        convention: oceanographic
+        date_incr_unit: h
+        date_incr: 1

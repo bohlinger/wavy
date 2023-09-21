@@ -388,13 +388,13 @@ def collocate_times(
         idx = [unfiltered_t.index(t) for t in target_t if (t in unfiltered_t)]
     else:
         if (sdate is None and edate is None):
-            idx = [ find_included_times(unfiltered_t,target_t=t,
-                                    sdate=sdate,edate=edate,twin=twin) \
-                for t in target_t ]
+            idx = [find_included_times(unfiltered_t, target_t=t,
+                                       sdate=sdate, edate=edate, twin=twin)
+                   for t in target_t]
             idx = flatten(idx)
         else:
-            idx = find_included_times(unfiltered_t,sdate=sdate,
-                                        edate=edate,twin=twin)
+            idx = find_included_times(unfiltered_t, sdate=sdate,
+                                      edate=edate, twin=twin)
     return idx
 
 # flatten all lists before returning them
