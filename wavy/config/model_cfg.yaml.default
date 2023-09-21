@@ -187,6 +187,5 @@ mwam3:
         init_times: [0,12]
         init_step: 12
         grid_date: 2023-09-18 00:00:00
-        convention: oceanographic
         date_incr_unit: h
         date_incr: 1
