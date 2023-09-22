@@ -192,7 +192,7 @@ s3a_sla_5Hz:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/SLA
+        src_tmplt: /home/patrikb/tmp_altimeter/SLA/
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
@@ -201,7 +201,7 @@ s3a_sla_5Hz:
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/SLA
+        trgt_tmplt: /home/patrikb/tmp_altimeter/SLA/
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','name','region']

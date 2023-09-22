@@ -622,13 +622,8 @@ class model_class(qls):
                 self = self._get_model(**kwargs)
 
                 self = self._change_varname_to_aliases()
-                print('HERE')
-                print(self.vars.Hs.mean())
-                print('HERE')
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
-                print(self.vars.Hs.mean())
-                print('HERE')
 
                 # convert longitude
                 self = self._enforce_longitude_format()
