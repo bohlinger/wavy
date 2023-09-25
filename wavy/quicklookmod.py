@@ -43,6 +43,9 @@ class quicklook_class_sat:
             figures
         """
 
+        import matplotlib as mpl
+        import cmocean
+
         # settings
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
@@ -66,15 +69,35 @@ class quicklook_class_sat:
             plot_lons_model = self.vars.model_lons
             plot_lats_model = self.vars.model_lats
 
-        cflevels = kwargs.get('cflevels', 10)
-        clevels = kwargs.get('clevels', 10)
+        fs = kwargs.get('fs', 12)
+
+        vmin = kwargs.get('vmin', np.nanmin(plot_var))
+        vmax = kwargs.get('vmax', np.nanmax(plot_var))
+
+        levels = kwargs.get('levels',
+                            np.arange(vmin, vmax, .5))
+
+        cflevels = kwargs.get('cflevels', levels)
+        clevels = kwargs.get('clevels', levels)
+
+        # parse kwargs
+        vartype = variable_info[self.varalias].get('type', 'default')
+        if kwargs.get('cmap') is None:
+            if vartype == 'cyclic':
+                cmap = mpl.cm.twilight
+            else:
+                cmap = cmocean.cm.amp
+        else:
+            cmap = kwargs.get('cmap')
+
+        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
         if m is True:
             import cartopy.crs as ccrs
             import cartopy.feature as cfeature
-            import cmocean
             import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
             # land
             land = cfeature.GSHHSFeature(
                     scale=kwargs.get('land_mask_resolution', 'i'),
@@ -82,27 +105,23 @@ class quicklook_class_sat:
                     facecolor=cfeature.COLORS['land'])
             if projection is None:
                 projection = ccrs.PlateCarree()
-            # parse kwargs
-            vartype = variable_info[self.varalias].get('type', 'default')
-            if kwargs.get('cmap') is None:
-                if vartype == 'cyclic':
-                    cmap = mplcm.twilight
-                else:
-                    cmap = cmocean.cm.amp
-            else:
-                cmap = kwargs.get('cmap')
+
             lonmax, lonmin = np.max(plot_lons), np.min(plot_lons)
             latmax, latmin = np.max(plot_lats), np.min(plot_lats)
+
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
+
             # add land
             ax.add_geometries(land.intersecting_geometries(
                     [-180, 180, 0, 90]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
                     edgecolor='black', linewidth=1)
+
             # - add land color
             ax.add_feature(land, facecolor='burlywood', alpha=0.5)
+
             # plot track if applicable
             lonmax, lonmin = np.max(plot_lons), np.min(plot_lons)
             latmax, latmin = np.max(plot_lats), np.min(plot_lats)
@@ -137,11 +156,13 @@ class quicklook_class_sat:
                                  plot_lats.squeeze(),
                                  plot_var.squeeze(),
                                  cmap=cmap, levels=cflevels,
+                                 vmin=vmin, vmax=vmax, norm=norm,
                                  transform=ccrs.PlateCarree())
                 c = ax.contour(plot_lons.squeeze(),
                                plot_lats.squeeze(),
                                plot_var.squeeze(),
-                               cmap=cmap, levels=clevels,
+                               levels=clevels,
+                               colors='w', linewidths=0.3,
                                transform=ccrs.PlateCarree())
             else:
                 sc = ax.scatter(plot_lons, plot_lats, s=20,
@@ -149,8 +170,9 @@ class quicklook_class_sat:
                             marker='o',  # edgecolor='face',
                             edgecolors='k',
                             linewidths=0.3,
-                            cmap=cmap,
+                            cmap=cmap, norm=norm,
                             transform=ccrs.PlateCarree())
+            # axes for colorbar
             axins = inset_axes(ax,
                        width="5%",  # width = 5% of parent_bbox width
                        height="100%",  # height : 50%
@@ -159,8 +181,14 @@ class quicklook_class_sat:
                        bbox_transform=ax.transAxes,
                        borderpad=0,
                        )
-            fig.colorbar(sc, cax=axins, label=self.varalias
-                                        + ' [' + self.units + ']')
+
+            # - colorbar
+            cbar = fig.colorbar(sc, cax=axins,
+                    label=self.varalias + ' [' + self.units + ']',
+                    ticks=levels)
+            cbar.ax.set_ylabel(self.units, size=fs)
+            cbar.ax.tick_params(labelsize=fs)
+
             lon_range = (lonmax - lonmin)
             lat_range = (latmax - latmin)
             map_extent_multiplicator = kwargs.get(
@@ -174,6 +202,7 @@ class quicklook_class_sat:
                            latmin-lat_range*map_extent_multiplicator_lat,
                            latmax+lat_range*map_extent_multiplicator_lat],
                            crs=projection)
+
             #ax.coastlines(color='k')
 
             gl = ax.gridlines(draw_labels=True, crs=projection,
@@ -200,13 +229,13 @@ class quicklook_class_sat:
                     plat = quicklook_dict[self.region]['poi'][poi]['lat']
                     plon = quicklook_dict[self.region]['poi'][poi]['lon']
                     scp = ax.scatter(plon, plat, s = 20,
-                                     c = quicklook_dict\
-                                            [self.region]['poi'][poi]\
-                                            .get('color','b'),
-                                     marker = quicklook_dict[self.region]\
+                                     c=quicklook_dict\
+                                           [self.region]['poi'][poi]\
+                                           .get('color','b'),
+                                     marker=quicklook_dict[self.region]\
                                             ['poi'][poi]['marker'],
-                                     transform = ccrs.PlateCarree())
-                ax.text(plon,plat,pname,transform = ccrs.PlateCarree())
+                                     transform=ccrs.PlateCarree())
+                ax.text(plon, plat, pname, transform=ccrs.PlateCarree())
             #fig.suptitle('', fontsize=16) # unused
             plt.show()
 

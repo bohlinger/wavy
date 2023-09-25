@@ -67,7 +67,7 @@ def calc_drmsd(a,b):
     drmsd = np.sqrt(dmsd)
     return dmsd, drmsd
 
-def calc_scatter_index(obs, model):
+def calc_scatter_index(model, obs):
     '''
     Scatter index based on rmse and on std of diff
     '''
