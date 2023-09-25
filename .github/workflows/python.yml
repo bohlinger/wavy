@@ -3,7 +3,7 @@ name: Python build and test wheels
 on:
   push:
     branches:
-      - master
+      #- master
     tags:
       - v*
   pull_request:
@@ -17,7 +17,7 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        os: ["ubuntu", "macos"]
+        os: ["ubuntu", "macos", "windows"]
         python-version: [ '3.9', '3.10', '3.11' ]
     env:
       COVERALLS_REPO_TOKEN: xIILGI4RaHRkMSqLgZN8taBLNMaMNrBzD
