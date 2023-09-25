@@ -3,7 +3,7 @@ name: Python build and test wheels
 on:
   push:
     branches:
-      - *
+      - '**'
     tags:
       - v*
   pull_request:
