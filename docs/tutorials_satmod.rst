@@ -101,6 +101,10 @@ To get help check ...
 
 You can find the downloaded files in your chosen download directory.
 
+.. note::
+
+   CMEMS is using a rolling arcgive for NRT products. Please keep in mind that the dates here may be deprecated and not available anymore.
+
 Similarily one can download L2P and L3 multi-mission altimetry data from the CEDA Climate Change Initiative. This spans a long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation.
 
 .. code-block:: bash
