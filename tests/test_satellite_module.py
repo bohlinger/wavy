@@ -161,9 +161,35 @@ def test_poi_storm_track(test_data):
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
-    # get closest only
 
 
+# make test for get closest only
+
+# make test for reading 20Hz
+def test_manually_specified_reader_CCIv3_20Hz(test_data):
+    sd = "2019-3-24 10"
+    ed = "2019-3-24 11"
+    name = 's3a'
+    varalias = 'Hs'
+    nID = 'L2_20Hz_s3a'
+
+    # init satellite_object
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
+             varalias=varalias)
+    # populate
+    sco = sco.populate(path=str(test_data/"CCIv3_20Hz"))
+    # adjustments
+    sco = sco.crop_to_region('SulafjD')
+    assert sco.__class__.__name__ == 'satellite_class'
+    # compare number of available variables
+    vlst = list(vars(sco).keys())
+    assert len(vlst) == 19
+    # compare number of available functions
+    dlst = dir(sco)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) >= 47
+    assert type(sco.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(sco).keys()
 
 # def test_write_to_nc(test_data):
     # write to nc

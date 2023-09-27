@@ -171,8 +171,8 @@ class insitu_class(qls, wc, fc):
                 path = kwargs.get('path', None)
                 wavy_path = kwargs.get('wavy_path', None)
                 pathlst = self._get_files(vars(self),
-                                             path=path,
-                                             wavy_path=wavy_path)
+                                          path=path,
+                                          wavy_path=wavy_path)
 
                 # remove None values from pathlst
                 pathlst = list(filter(lambda item: item is not None, pathlst))

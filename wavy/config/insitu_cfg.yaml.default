@@ -771,10 +771,22 @@ MO_Draugen_monthly: # object nID (nameID)
         Draugen:
     download:
         ftp:
+            src_tmplt: "/Core/\
+                        INSITU_GLO_PHYBGCWAV_DISCRETE_MYNRT_013_030/\
+                        cmems_obs-ins_glo_phybgcwav_mynrt_na_irr/\
+                        monthly/MO/%Y%m/"
+            #trgt_tmplt: /home/patrikb/tmp_insitu/NRT/name/%Y/%m
+            trgt_tmplt:
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            search_str: 'Draugen_%Y%m'
+            strsub: ['name']
+            server: "nrt.cmems-du.eu"
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        #src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        src_tmplt:
         fl_tmplt: "AR_TS_MO_name_%Y%m.nc"
         strsub: ['name']
         file_date_incr_unit: 'm'
@@ -823,7 +835,8 @@ MO_Draugen_daily: # object nID (nameID)
                         INSITU_GLO_PHYBGCWAV_DISCRETE_MYNRT_013_030/\
                         cmems_obs-ins_glo_phybgcwav_mynrt_na_irr/\
                         latest/%Y%m%d/"
-            trgt_tmplt: /home/patrikb/tmp_insitu/NRT/name/%Y/%m
+            #trgt_tmplt: /home/patrikb/tmp_insitu/NRT/name/%Y/%m
+            trgt_tmplt:
             path_date_incr_unit: 'd'
             path_date_incr: 1
             search_str: 'Draugen_%Y%m%d'
@@ -832,7 +845,8 @@ MO_Draugen_daily: # object nID (nameID)
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        #src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        src_tmplt:
         fl_tmplt: "AR_TS_MO_name_%Y%m%d.nc"
         strsub: ['name']
         file_date_incr_unit: 'd'
