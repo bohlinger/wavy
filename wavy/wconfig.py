@@ -64,4 +64,5 @@ def load_or_default(name):
 
 def load_dir(name):
     from pkg_resources import resource_stream
-    return resource_stream('wavy', name + '.py').name
+    #return resource_stream('wavy', name + '.py')
+    return resource_stream(__name__, name + '.py')

@@ -157,8 +157,7 @@ class satellite_class(qls, wc, fc):
         collector_tmp = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(collector_tmp)
 
-        # pick reader
-        #reader = getattr(satellite_collector, 'get_remote_files_cmems')
+        # pick collector
         collector = getattr(collector_tmp, collector_str)
         self.collector = collector
         print('Chosen collector:', spec.name)
