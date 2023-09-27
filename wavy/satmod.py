@@ -96,7 +96,7 @@ def get_local_files(sdate,edate,twin,product,
                 if os.path.isdir(path_local):
                     tmplst = np.sort(os.listdir(path_local))
                     filelst.append(tmplst)
-                    pathlst.append([os.path.join(path_local,e)
+                    pathlst.append([os.path.join(path_local, e)
                                     for e in tmplst])
                 tmpdate = tmpdate + relativedelta(months=+1)
                 path_local = None
@@ -107,19 +107,19 @@ def get_local_files(sdate,edate,twin,product,
         pathlst = np.sort(flatten(pathlst))
     else:
         filelst = np.sort(os.listdir(path_local))
-        pathlst = [os.path.join(path_local,e) for e in filelst]
-    idx_start,tmp = check_date(filelst, sdate - timedelta(minutes=twin))
-    tmp,idx_end = check_date(filelst, edate + timedelta(minutes=twin))
+        pathlst = [os.path.join(path_local, e) for e in filelst]
+    idx_start, tmp = check_date(filelst, sdate - timedelta(minutes=twin))
+    tmp, idx_end = check_date(filelst, edate + timedelta(minutes=twin))
     if idx_end == 0:
         idx_end = len(pathlst)-1
     del tmp
     pathlst = np.unique(pathlst[idx_start:idx_end+1])
     filelst = np.unique(filelst[idx_start:idx_end+1])
-    print (str(int(len(pathlst))) + " valid files found")
+    print(str(int(len(pathlst))) + " valid files found")
     return pathlst, filelst
 
-def get_sat_ts(sdate,edate,twin,region,product,pathlst,
-varalias,poi,distlim,**kwargs):
+def get_sat_ts(sdate, edate, twin, region, product, pathlst,
+varalias, poi, distlim, **kwargs):
     """
     Main function to obtain data from satellite missions.
     reads files, apply region and temporal filter
@@ -128,12 +128,12 @@ varalias,poi,distlim,**kwargs):
             temporal contarinst
     """
     cvardict = read_local_files(\
-                                pathlst = pathlst,
-                                product = product,
-                                varalias = varalias,
-                                sdate = sdate,
-                                edate = edate,
-                                twin = twin,
+                                pathlst=pathlst,
+                                product=product,
+                                varalias=varalias,
+                                sdate=sdate,
+                                edate=edate,
+                                twin=twin,
                                 **kwargs
                                 )
     print('Total: ', len(cvardict['time']), ' footprints found')
@@ -151,8 +151,8 @@ varalias,poi,distlim,**kwargs):
                                     )[ridx])
         else:
             rvardict[element] = cvardict[element]
-    del cvardict,ridx
-    if len(rvardict['time'])>0:
+    del cvardict, ridx
+    if len(rvardict['time']) > 0:
         rvardict['datetime'] = netCDF4.num2date(
                                     rvardict['time'],
                                     rvardict['time_unit'])
@@ -160,15 +160,15 @@ varalias,poi,distlim,**kwargs):
                 len(rvardict['time']),'footprints found')
         # convert to datetime object
         timedt = rvardict['datetime']
-        rvardict['datetime'] = [datetime(t.year,t.month,t.day,
-                                         t.hour,t.minute,t.second,\
-                                         t.microsecond)\
+        rvardict['datetime'] = [datetime(t.year, t.month, t.day,
+                                         t.hour, t.minute, t.second,
+                                         t.microsecond)
                                 for t in timedt]
     else:
         print('For chosen region and time: 0 footprints found!')
     if poi is not None:
         pvardict = {}
-        pidx = match_poi(rvardict,twin,distlim,poi)
+        pidx = match_poi(rvardict, twin, distlim, poi)
         for element in rvardict:
             if element != 'time_unit':
                 pvardict[element] = list(np.array(
@@ -178,37 +178,28 @@ varalias,poi,distlim,**kwargs):
                 pvardict[element] = rvardict[element]
         rvardict = pvardict
         print('For chosen poi: ',
-                len(rvardict['time']),'footprints found')
+                len(rvardict['time']), 'footprints found')
     # find variable name as defined in file
     if (product == 'cmems_L3_NRT' 
     or product == 'cmems_L3_MY' 
     or product == 'cmems_L3_s6a'
-    or product == 'L2_20Hz_s3a'
     or product == 'cfo_swim_L2P'):
         ncdict = ncdumpMeta(pathlst[0])
     elif (product == 'cci_L2P' or product == 'cci_L3'):
         ncdict = ncdumpMeta(pathlst[0])
-    elif product == 'eumetsat_L2':
-        tmpdir = tempfile.TemporaryDirectory()
-        zipped = zipfile.ZipFile(pathlst[0])
-        enhanced_measurement = zipped.namelist()[-1]
-        extracted = zipped.extract(enhanced_measurement,
-                                   path=tmpdir.name)
-        ncdict = ncdumpMeta(extracted)
-        tmpdir.cleanup()
     rvardict['meta'] = ncdict
     # adjust conventions
     if ('convention' in satellite_dict[product].keys() and
     satellite_dict[product]['convention'] == 'oceanographic'):
         print('Convert from oceanographic to meteorologic convention')
         rvardict[variable_info[varalias]['standard_name']] = \
-                list(convert_meteorologic_oceanographic(\
-                    np.array(\
-                        rvardict[variable_info[varalias]['standard_name']]\
+                list(convert_meteorologic_oceanographic(
+                    np.array(
+                        rvardict[variable_info[varalias]['standard_name']]
                         )))
     return rvardict
 
-def crop_vardict_to_period(vardict,sdate,edate):
+def crop_vardict_to_period(vardict, sdate, edate):
     """
     Function to crop the variable dictionary to a given period
     """
@@ -246,7 +237,7 @@ def check_date(filelst,date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_class(qls,wc):
+class satellite_class(qls, wc):
     '''
     Class to handle netcdf files containing satellite data e.g.
     Hs[time], lat[time], lon[time]
@@ -383,19 +374,10 @@ class satellite_class(qls,wc):
                 if (product == 'cmems_L3_NRT' or
                     product == 'cmems_L3_MY' or
                     product == 'cmems_L3_s6a' or
-                    product == 'L2_20Hz_s3a' or
                     product == 'cfo_swim_L2P'):
                     ncdict = ncdumpMeta(pathlst[0])
                 elif (product == 'cci_L2P' or product == 'cci_L3'):
                     ncdict = ncdumpMeta(pathlst[0])
-                elif product == 'eumetsat_L2':
-                    tmpdir = tempfile.TemporaryDirectory()
-                    zipped = zipfile.ZipFile(pathlst[0])
-                    enhanced_measurement = zipped.namelist()[-1]
-                    extracted = zipped.extract(enhanced_measurement,
-                                               path=tmpdir.name)
-                    ncdict = ncdumpMeta(extracted)
-                    tmpdir.cleanup()
                 with NoStdStreams():
                     filevarname = get_filevarname(varalias,
                                               variable_info,
