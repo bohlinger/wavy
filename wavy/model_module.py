@@ -36,7 +36,7 @@ from wavy.utils import make_pathtofile, make_subdict
 from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
 
-from wavy.wconfig import load_or_default
+from wavy.wconfig import load_or_default, load_dir
 
 from wavy.quicklookmod import quicklook_class_sat as qls
 
@@ -592,12 +592,15 @@ class model_class(qls):
             dotenv.load_dotenv()
             WAVY_DIR = os.getenv('WAVY_DIR', None)
             if WAVY_DIR is None:
-                print('###########')
-                print('Environmental variable for WAVY_DIR'
-                      + ' needs to be defined!')
-                print('###########')
+                print('#')
+                print('Environmental variable for WAVY_DIR not defined')
+                print('Defaults are chosen')
+                print('#')
+                reader_mod_str = load_dir('model_readers').name
+            else:
+                reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
+
             reader_str = kwargs.get('reader', self.cfg.reader)
-            reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
             spec = importlib.util.spec_from_file_location(
                     'model_readers.' + reader_str, reader_mod_str)
 
