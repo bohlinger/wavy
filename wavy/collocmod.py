@@ -79,6 +79,28 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
                     if get_model_filedate(model, d, leadtime) != False]
     return fc_dates_new
 
+def find_valid_fc_dates_for_model_and_leadtime_closest(
+fc_dates, model, twin):
+    '''
+    Finds valid dates that are close to desired dates at a precision
+    of complete hours
+    '''
+    # get closest model time step based on lead time, twin,
+    # and date_incr in model (e.g. 1h, 3h, 6h)
+    date_incr = model_dict[model].get('date_incr', 1)
+    tmp = []
+    for d in fc_dates:
+        if (d.hour % date_incr != 0 and d.hour % date_incr <= twin/60.):
+            if (d.hour-((int(d.hour/date_incr))*date_incr)) > date_incr/2.:
+                tmp.append(d+timedelta(hours=d.hour % date_incr))
+            elif (d.hour-((int(d.hour/date_incr))*date_incr)) <= date_incr/2.:
+                tmp.append(d-timedelta(hours=d.hour % date_incr))
+        elif d.hour % date_incr == 0:
+            tmp.append(d)
+        else:
+            tmp.append(None)
+    return tmp
+
 def check_if_file_is_valid(fc_date, model, leadtime, max_lt=None):
     fname = make_model_filename_wrapper(
                 model, fc_date, leadtime,max_lt=max_lt)
@@ -185,7 +207,7 @@ def collocate_poi_ts(indict, model=None, distlim=None,\
     for i, d in enumerate(tqdm(fc_date)):
 #    for d in tqdm(range(len(fc_date))):
 #    for d in range(len(fc_date)):
-#        for t in range(1):
+        #for t in range(1):
         with NoStdStreams():
             check = False
             check = check_if_file_is_valid(
@@ -318,6 +340,7 @@ def collocate_station_ts(obs_obj=None,model=None,distlim=None,\
     else:
         print('Collocating and appending values ...')
         for i in tqdm(range(d+1,len(fc_date))):
+            #for i in range(1):
             with NoStdStreams():
                 try:
                     check = check_if_file_is_valid(fc_date[i],model,leadtime)
@@ -395,16 +418,13 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
     if twin is None:
         twin = obs_obj.twin
     t1=time.time()
-    od = np.array([d.timestamp() for d in obs_obj.vars['datetime']]) + twin*60
-    res = 2*twin*60
-    nd = od - od%res
-    nduq = np.unique(nd)
+    od = np.array([d.timestamp() for d in obs_obj.vars['datetime']])
+    nduq = np.unique(od)
     ndt = [datetime.fromtimestamp(ts) for ts in nduq]
+    ndt_valid = find_valid_fc_dates_for_model_and_leadtime(
+                                        ndt, model, leadtime)
+    fc_date = np.unique(ndt_valid)
 
-    ndt_valid = find_valid_fc_dates_for_model_and_leadtime(\
-                                        ndt,model,leadtime)
-
-    fc_date = ndt_valid
     t2=time.time()
 
     print(f'... done, used {t2-t1:.2f} seconds')
@@ -427,57 +447,67 @@ def collocate_satellite_ts(obs_obj=None,model=None,distlim=None,\
             }
     for i in tqdm(range(len(fc_date))):
 #    for i in range(len(fc_date)):
-#        for f in range(1):
         with NoStdStreams():
+#        for j in range(1):
 #            for t in range(1):
             try:
                 # filter needed obs within time period
-                idx = collocate_times( obs_obj.vars['datetime'],
-                                       target_t = [fc_date[i]],
-                                       twin = twin )
-                # make tmp obs_obj with filtered data
-                obs_obj_tmp = deepcopy(obs_obj)
-                obs_obj_tmp.vars['time'] = list(\
-                        np.array(obs_obj.vars['time'])[idx] )
-                obs_obj_tmp.vars['latitude'] = list(\
-                        np.array(obs_obj.vars['latitude'])[idx] )
-                obs_obj_tmp.vars['longitude'] = list(\
-                        np.array(obs_obj.vars['longitude'])[idx] )
-                obs_obj_tmp.vars[obs_obj.stdvarname] = \
-                        list(np.array(\
-                        obs_obj.vars[obs_obj.stdvarname])[idx] )
-                vardict,_,_,_,_ = get_model(model=model,
-                                    fc_date=fc_date[i],
-                                    varalias=obs_obj.varalias,
-                                    leadtime=leadtime,
-                                    transform_lons=180)
-                results_dict_tmp = collocate_field(\
-                                datein=fc_date[i],\
-                                model_lats=vardict['latitude'],\
-                                model_lons=vardict['longitude'],\
-                                model_vals=vardict[obs_obj.stdvarname],\
-                                obs_obj=obs_obj_tmp,\
-                                distlim=distlim,twin=twin)
-                # append to dict
-                results_dict['valid_date'].append(fc_date[i])
-                results_dict['time'].append(results_dict_tmp['time'])
-                results_dict['datetime'].append(results_dict_tmp['datetime'])
-                results_dict['distance'].append(results_dict_tmp['distance'])
-                results_dict['model_values'].append(results_dict_tmp['model_values'])
-                results_dict['model_lons'].append(results_dict_tmp['model_lons'])
-                results_dict['model_lats'].append(results_dict_tmp['model_lats'])
-                results_dict['obs_values'].append(results_dict_tmp['obs_values'])
-                results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
-                results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
-                results_dict['collocation_idx_x'].append(\
-                                results_dict_tmp['collocation_idx_x'])
-                results_dict['collocation_idx_y'].append(\
-                                results_dict_tmp['collocation_idx_y'])
-                if 'results_dict_tmp' in locals():
-                    del results_dict_tmp
+                idx = collocate_times(obs_obj.vars['datetime'],
+                                      target_t=[fc_date[i]],
+                                      twin=twin)
+                # find model date closest to fc_date[i]
+                # based on twin
+                r = find_valid_fc_dates_for_model_and_leadtime_closest(
+                        [fc_date[i]], model, twin)
+                closest_date = r[0]
+
+                if closest_date is not None:
+                    # make tmp obs_obj with filtered data
+                    obs_obj_tmp = deepcopy(obs_obj)
+                    obs_obj_tmp.vars['time'] = list(
+                            np.array(obs_obj.vars['time'])[idx])
+                    obs_obj_tmp.vars['latitude'] = list(
+                            np.array(obs_obj.vars['latitude'])[idx])
+                    obs_obj_tmp.vars['longitude'] = list(
+                            np.array(obs_obj.vars['longitude'])[idx])
+                    obs_obj_tmp.vars[obs_obj.stdvarname] = \
+                            list(np.array(
+                                 obs_obj.vars[obs_obj.stdvarname])[idx])
+                    vardict, _, _, _, _ = get_model(model=model,
+                                          #fc_date=fc_date[i],
+                                          fc_date=closest_date,
+                                          varalias=obs_obj.varalias,
+                                          leadtime=leadtime,
+                                          transform_lons=180)
+                    results_dict_tmp = collocate_field(
+                                    #datein=fc_date[i],
+                                    datein=closest_date,
+                                    model_lats=vardict['latitude'],
+                                    model_lons=vardict['longitude'],
+                                    model_vals=vardict[obs_obj.stdvarname],
+                                    obs_obj=obs_obj_tmp,
+                                    distlim=distlim, twin=twin)
+                    # append to dict
+                    #results_dict['valid_date'].append(fc_date[i])
+                    results_dict['valid_date'].append(closest_date)
+                    results_dict['time'].append(results_dict_tmp['time'])
+                    results_dict['datetime'].append(results_dict_tmp['datetime'])
+                    results_dict['distance'].append(results_dict_tmp['distance'])
+                    results_dict['model_values'].append(results_dict_tmp['model_values'])
+                    results_dict['model_lons'].append(results_dict_tmp['model_lons'])
+                    results_dict['model_lats'].append(results_dict_tmp['model_lats'])
+                    results_dict['obs_values'].append(results_dict_tmp['obs_values'])
+                    results_dict['obs_lats'].append(results_dict_tmp['obs_lats'])
+                    results_dict['obs_lons'].append(results_dict_tmp['obs_lons'])
+                    results_dict['collocation_idx_x'].append(\
+                                    results_dict_tmp['collocation_idx_x'])
+                    results_dict['collocation_idx_y'].append(\
+                                    results_dict_tmp['collocation_idx_y'])
+                    if 'results_dict_tmp' in locals():
+                        del results_dict_tmp
             except (ValueError,FileNotFoundError,OSError) as e:
                 # ValueError, pass if no collocation
-                # FileNotFoundError, pass if file not accessible
+               # FileNotFoundError, pass if file not accessible
                 # OSError, pass if file not accessible from thredds
                 print(e)
     # flatten all aggregated entries
