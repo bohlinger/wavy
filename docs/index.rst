@@ -61,7 +61,7 @@ Studies that used **wavy**
 * Thomas, E. E., Müller, M., Bohlinger, P., Batrak, Y., & Szapiro, N., 2021: A Kilometer-Scale Coupled Atmosphere–Wave Forecasting System for the European Arctic. Weather and Forecasting, 36(6), 2087-2099.
 
 Master thesis using **wavy**
-========================
+============================
 Judith Thu Ølberg, 2023: Wave Measurements Using Ship Mounted Sensors as part of the One Ocean Expedition, University of Bergen, https://hdl.handle.net/11250/3071001.
 
 Indices and tables
