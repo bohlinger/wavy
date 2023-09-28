@@ -25,7 +25,7 @@ from tqdm import tqdm
 import zipfile
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
-from hidefix import xarray
+#from hidefix import xarray
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -148,34 +148,21 @@ def build_xr_ds_from_dict(dict_var, var_name_ref):
                 attrs={'title': 'wavy dataset'})
     return ds
 
-def read_netcdfs_hidefix(paths):
-    ds = xr.open_mfdataset(paths, engine='hidefix')
-    return ds
+#def read_netcdfs_hidefix(paths):
+#    ds = xr.open_mfdataset(paths, engine='hidefix')
+#    return ds
 
-def read_netcdf_hidefix(path):
-    return xr.open_mfdataset(path, engine='hidefix')
+#def read_netcdf_hidefix(path):
+#    return xr.open_mfdataset(path, engine='hidefix')
 
-def tpe_hidefix(paths):
-    with ThreadPoolExecutor() as tpe:
-        results = list(tpe.map(read_netcdf_hidefix, paths))
-    return xr.concat(results, dim='time',
-                     coords='minimal',
-                     data_vars='minimal',
-                     compat='override',
-                     combine_attrs='override')
-
-#def tpe_netCDF4_lst(paths, ncvar):
-#    for p in paths:
-#
-#def read_f(p, ncvar):
-#    nc = netCDF4.Dataset(p)
-#    time_var = nc.variables['time']
-#    dtime = netCDF4.num2date(time_var[:], time_var.units)
-#    lons = nc.variables['longitude'][:]
-#    lats = nc.variables['latitude'][:]
-#    var = nc.variables[ncvar][:]
-#    nc.close()
-#    return var
+#def tpe_hidefix(paths):
+#    with ThreadPoolExecutor() as tpe:
+#        results = list(tpe.map(read_netcdf_hidefix, paths))
+#    return xr.concat(results, dim='time',
+#                     coords='minimal',
+#                     data_vars='minimal',
+#                     compat='override',
+#                     combine_attrs='override')
 
 def read_netcdfs_KF(paths, dim='time'):
     # https://github.com/knutfrode/concepts/blob/main/Open_MFDataset_overlap.ipynb

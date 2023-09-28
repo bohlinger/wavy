@@ -7,19 +7,14 @@ The main task of this module is to read data directly into grids.
 # --- import libraries ------------------------------------------------#
 # standard library igports
 import numpy as np
-from datetime import timedelta
 import netCDF4
 import pandas as pd
 import xarray as xr
 
 # own imports
-from wavy.ncmod import ncdumpMeta, get_filevarname
-from wavy.ncmod import read_netcdfs
-from wavy.ncmod import tpe_hidefix
-from wavy.ncmod import read_swim_netcdfs
+from wavy.ncmod import get_filevarname
 from wavy.wconfig import load_or_default
-from wavy.utils import parse_date, calc_deep_water_T
-from wavy.utils import find_included_times, find_included_times_pd
+from wavy.utils import parse_date
 # ---------------------------------------------------------------------#
 
 # read yaml config files:

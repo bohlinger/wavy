@@ -21,7 +21,7 @@ dependencies:
   - scikit-learn
   - pandas
   - pyGAM
-  # - scikit-sparse==0.4.5
+  #- scikit-sparse==0.4.5
   - xarray
   - zarr
   - pyresample
@@ -40,5 +40,5 @@ dependencies:
   - numba
   - trajan
   - pip
-  - pip:
-    - hidefix
+  #- pip:
+  # - hidefix

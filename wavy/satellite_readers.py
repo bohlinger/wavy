@@ -16,9 +16,6 @@ import xarray as xr
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs
-#from wavy.ncmod import read_netcdfs_hidefix
-from wavy.ncmod import tpe_hidefix
-#from wavy.ncmod import read_mf_netcdfs
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
@@ -93,13 +90,10 @@ def read_local_ncfiles(**kwargs):
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
+
     # retrieve sliced data
-    #
-    # ds = read_netcdfs_hidefix(pathlst)
     ds = read_netcdfs(pathlst)
-    #ds = tpe_hidefix(pathlst)
-    # ds = read_mf_netcdfs(pathlst)
-    #
+
     ds_sort = ds.sortby(timename)
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     var_sliced = ds_sliced[[varname, lonsname, latsname]]
