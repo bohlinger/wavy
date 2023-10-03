@@ -65,6 +65,61 @@ cmems_L3_NRT:
     # optional, to ease grouping
     tags:
 
+cmems_L3_MY:
+    # mandatory
+    name:
+        c2: c2
+        al: al
+        j1: j1
+        j2: j2
+        j3: j3
+        cfo: cfo
+        env: en
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/Core/WAVE_GLO_PHY_SWH_L3_MY_014_005\
+                        /cci_obs-wave_glo_phy-swh_my_name-l3_PT1S/%Y/%m/"
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3_MY/name/%Y/%m
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            search_str: '%Y%m%dT'
+            strsub: ['name']
+            server: "my.cmems-du.eu"
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: /home/patrikb/tmp_altimeter/L3_MY/name/%Y/%m
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['name']
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3_MY/name/%Y/%m
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region']
+        file_date_incr: m
+    # optional, if not defined the class default is used
+    reader: read_local_ncfiles
+    collector: get_remote_files_cmems
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: VAVH
+        U: WIND_SPEED
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level:
+        provider:
+        obs_type:
+    # optional, to ease grouping
+    tags:
+
 L2_20Hz_s3a:
     # mandatory
     name:
