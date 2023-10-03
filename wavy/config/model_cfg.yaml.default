@@ -179,8 +179,9 @@ mwam3:
     coords:
     wavy_input:
         #src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
-        src_tmplt: "/home/patrikb/tmp_test_validation/tmp_data/w3/"
-        fl_tmplt: "MyWave_wam3_WAVE_%Y%m%dT%HZ_hs.nc"
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/\
+                    mywavewam3_latest/"
+        fl_tmplt: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
     reader: read_ww3_4km
     collector:
     misc:
