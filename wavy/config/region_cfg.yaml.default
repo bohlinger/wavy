@@ -28,10 +28,10 @@ rect:
         urcrnrlon: 5.3
         urcrnrlat: 61.7
     Valhall:
-        llcrnrlon: 2.5 #3
-        llcrnrlat: 55 #56
-        urcrnrlon: 4.5 #4
-        urcrnrlat: 58 #57
+        llcrnrlon: 2.5
+        llcrnrlat: 55
+        urcrnrlon: 4.5
+        urcrnrlat: 58
 
 # polynomial
 poly:
