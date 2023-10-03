@@ -52,7 +52,7 @@ Where your *.env*-file needs to point to this config folder like in the followin
 
 .. code-block:: bash
 
-        :~/ws22_wavy$ cat .env
+        :~/Moz_ws23_wavy$ cat .env
         WAVY_CONFIG=/home/patrikb/Moz_ws23_wavy/config/
 
 If you want to download data, the same .env file has to be copied to the wavy root directory, ~/wavy. The main changes that will occur in the config files during this workshop are:
@@ -77,7 +77,7 @@ Your .netrc should look something like:
 
    machine nrt.cmems-du.eu    login {USER}  password {PASSWORD}
 
-Adjust the satellite config file called *satellite_specs.yaml*. Remember, this is the file you copied to *~/ws22_wavy/config*. It should include the following section and could look like:
+Adjust the satellite config file called *satellite_specs.yaml*. Remember, this is the file you copied to *~/Moz_ws23_wavy/config*. It should include the following section and could look like:
 
 .. code-block:: yaml
 
@@ -373,3 +373,66 @@ Having collocated a quick validation can be performed using the validationmod. v
    Number of Collocated Values: 95
 
 The entire validation dictionary will then be in val_dict.
+
+7. Collocate and validate 10m model wind using wind from satellite altimeters
+#############################################################################
+Satellite altimeters can also provide 10m wind speed over ocean. If this is given in your model output file you can simply repeat the exercises using the varalias='U' instead of varalias='Hs'. Keep in mind that the model output with the variable needs to be added to the model_specs.yaml file such that wavy know what to look for, like:
+
+.. code-block:: yaml
+
+    ecwamMoz_wind:
+        vardef:
+            U: ws
+            time: time
+            lons: longitude
+            lats: latitude
+        path_template: "/home/patrikb/Downloads/"
+        file_template: "Moz_ERA5_U.nc"
+        init_times: [0,12]
+        init_step: 12
+        date_incr: 6
+        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+        grid_date: 2021-11-26 00:00:00
+
+
+Sometimes, wind is also given in north and east components and you can hand this to wavy as well just like:
+
+.. code-block:: yaml
+
+    ecwamMoz:
+        vardef:
+            Hs: swh
+            ua: u10
+            va: v10
+            time: time
+            lons: longitude
+            lats: latitude
+        path_template: "/home/patrikb/Downloads/"
+        file_template: "Moz_ERA5.nc"
+        init_times: [0,12]
+        init_step: 12
+        date_incr: 6
+        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+        grid_date: 2021-11-26 00:00:00
+
+
+The following code should then work:
+
+.. code-block:: python3
+
+   >>> from wavy.satmod import satellite_class as sc
+   >>> from wavy.collocmod import collocation_class as cc
+
+   >>> model = 'ecwamMoz'
+   >>> mission = 's3a'
+   >>> varalias = 'U'
+   >>> sd = "2022-01-01 00"
+   >>> ed = "2022-03-01 00"
+
+   >>> # retrieve satellite data
+   >>> sco = sc(sdate=sd, edate=ed, region=model, mission=mission, varalias=varalias)
+
+   >>> # collocate
+   >>> cco = cc(model=model, obs_obj_in=sco, distlim=3, date_incr=6, twin=180, varalias=varalias)
+
+   >>> val_dict = cco.validate_collocated_values()
