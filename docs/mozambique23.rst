@@ -237,7 +237,33 @@ Exercise:
 
 Define your own region in *region_specs.yaml* and retrieve satellite data for this region.
 
-4. access/read model data
+4. Define your own region
+#########################
+In wavy you can define your own region over which you want to gather satellite data. The region has to be defined in the region_specs.yaml file. It can either be defined as a rectangular region, a polynom, a geojson format, or a model. If region is a model defined in model_specs.yaml, this will automatically be noticed and a model file will be loaded to cross-check the model domain with the satellite footprints. Let's define Mozambique as a new region:
+
+.. code-block:: yaml
+
+    Moz:
+        llcrnrlon: 28.3
+        llcrnrlat: -27.8
+        urcrnrlon: 46
+        urcrnrlat: -10
+
+Now, we use this region to retrieve only data over this region.
+
+.. code-block:: python3
+
+   >>> from wavy.satmod import satellite_class as sc
+   >>> region = 'Moz'
+   >>> varalias = 'Hs'  # default
+   >>> mission = 's3a'  # default
+   >>> product = 'cmems_L3_NRT'  # default
+   >>> twin = 30  # default
+   >>> sd = "2022-1-1"  # can also be datetime object
+   >>> ed = "2022-1-20"  # not necessary if twin is specified
+   >>> sco = sc(sdate=sd, edate=ed, region=region)
+
+5. access/read model data
 #########################
 Model output can be accessed and read using the modelmod module. The modelmod config file model_specs.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
 
@@ -311,7 +337,7 @@ Or, since there is only a map plot for model_class object, the following is equi
    >>> mco.quicklook(m=True) # for a map
    >>> mco.quicklook(a=True) # for a map
 
-5. Collocating model and observations
+6. Collocating model and observations
 #####################################
 One main focus of **wavy** is to ease the collocation of observations and numerical wave models for the purpose of model validation. For this purpose there is the config-file collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them. If you have available the necessary satellite data and model data you can proceed with collocation:
 
@@ -348,7 +374,7 @@ Using the quicklook function again (*cco.quicklook(a=True)*) will enable three p
 .. image:: ./ecwamMoz_coll_2023_sc.png
    :scale: 80
 
-6. Validate the collocated time series
+7. Validate the collocated time series
 #######################################
 Having collocated a quick validation can be performed using the validationmod. validation_specs.yaml can be adjusted.
 
@@ -374,7 +400,7 @@ Having collocated a quick validation can be performed using the validationmod. v
 
 The entire validation dictionary will then be in val_dict.
 
-7. Collocate and validate 10m model wind using wind from satellite altimeters
+8. Collocate and validate 10m model wind using wind from satellite altimeters
 #############################################################################
 Satellite altimeters can also provide 10m wind speed over ocean. If this is given in your model output file you can simply repeat the exercises using the varalias='U' instead of varalias='Hs'. Keep in mind that the model output with the variable needs to be added to the model_specs.yaml file such that wavy know what to look for, like:
 
