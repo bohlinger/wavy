@@ -366,7 +366,7 @@ class satellite_class(qls, wc, fc):
         print('Reading', int((len(pathlst)+chunk_size)/chunk_size)+1,
               'chunks of files with chunk size', chunk_size)
         print('Total of', len(pathlst), 'files')
-        
+
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count <= len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
@@ -378,7 +378,7 @@ class satellite_class(qls, wc, fc):
                     new.coords = new.vars.coords
                     if self.poi is None:
                         ds_lst.append(new._change_varname_to_aliases()
-                                      ._enforce_longitude_format()#.vars)
+                                      ._enforce_longitude_format()
                                       .crop_to_region(self.region).vars)
                     else:
                         ds_lst.append(new._change_varname_to_aliases()
