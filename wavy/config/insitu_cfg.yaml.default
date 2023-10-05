@@ -1,6 +1,6 @@
 --- # in-situ observations
 
-### minima example ###
+### minimal example ###
 valhall: # object nID (nameID)
     name: # sensor
         SAABWaveRadar_1: 0
@@ -13,10 +13,42 @@ valhall: # object nID (nameID)
     collector:
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
+       time: time
+       Hs: hm0
     coords:
     # optional, info that can be used by class functions
     misc:
         ID: 76939
+    # optional, to ease grouping
+    tags:
+
+
+###
+fedjeosen: # object nID (nameID)
+    name: # sensor
+        SFY: 0
+    download:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/obs/\
+                    fouombuoys/nID_nv/"
+        fl_tmplt: "fedjeosen_nv_stats.ncml"
+        strsub: ['nID']
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: get_nc_thredds
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        obs_type:
+        coords:
+            SFY:
+                lat: 60.752
+                lon: 4.693
     # optional, to ease grouping
     tags:
 

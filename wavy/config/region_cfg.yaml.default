@@ -32,6 +32,11 @@ rect:
         llcrnrlat: 55
         urcrnrlon: 4.5
         urcrnrlat: 58
+    fedjeosen:
+        llcrnrlon: 4.4
+        llcrnrlat: 60.6
+        urcrnrlon: 4.8
+        urcrnrlat: 60.9
 
 # polynomial
 poly:

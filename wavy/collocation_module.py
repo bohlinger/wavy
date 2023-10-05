@@ -42,6 +42,7 @@ model_dict = load_or_default('model_cfg.yaml')
 insitu_dict = load_or_default('insitu_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 
+
 def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
     grid = pyresample.geometry.GridDefinition(
                                 lats=model_lats,
@@ -62,9 +63,11 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
     index_array_2d = np.unravel_index(index_array, grid.shape)
     return index_array_2d, distance_array, valid_output_index
 
+
 def get_model_filename(nID, d, leadtime):
     mco = mc(nID=nID, sd=d, ed=d, leadtime=leadtime)
     return mco._make_model_filename_wrapper(parse_date(str(d)), leadtime)
+
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     '''
@@ -78,6 +81,7 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     fc_dates_new = [d for d in fc_dates_new
                     if get_model_filename(model, d, leadtime) is not None]
     return fc_dates_new
+
 
 def check_if_file_is_valid(fc_date, model, leadtime, max_lt=None):
     fname = get_model_filename(
@@ -98,6 +102,7 @@ def check_if_file_is_valid(fc_date, model, leadtime, max_lt=None):
         print(e)
         return False
 
+
 def get_closest_date(overdetermined_lst, target_lst):
     idx = []
     for i in range(len(target_lst)):
@@ -108,12 +113,14 @@ def get_closest_date(overdetermined_lst, target_lst):
         idx.append(list(diffs).index(mindiff))
     return idx
 
+
 def adjust_dict_for_idx(indict, idx, excl_keys_lst):
     outdict = deepcopy(indict)
     for k in indict.keys():
         if k not in excl_keys_lst:
             outdict[k] = np.array(indict[k])[idx]
     return outdict
+
 
 class collocation_class(qls):
     '''
