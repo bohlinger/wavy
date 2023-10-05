@@ -345,9 +345,13 @@ class insitu_class(qls, wc, fc):
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
-            ncvar = get_filevarname(c, variable_def,
-                                    vars(self.cfg), self.meta)
-            self.vars = self.vars.rename({ncvar: c}).set_index(time='time')
+            try:  # because only if available
+                ncvar = get_filevarname(c, variable_def,
+                                        vars(self.cfg), self.meta)
+                self.vars = self.vars.rename({ncvar: c})\
+                            .set_index(time='time')
+            except Exception as e:
+                logger.exception(e)
         return self
 
     def _change_stdvarname_to_cfname(self):
@@ -378,7 +382,8 @@ class insitu_class(qls, wc, fc):
             self.pathlst = self.list_input_files(**kwargs)
 
             # only possible if netcdf
-            if self._return_extension(self.pathlst[0]) == '.nc':
+            if (self._return_extension(self.pathlst[0]) == '.nc'
+                or self._return_extension(self.pathlst[0]) == '.ncml'):
                 self.meta = ncdumpMeta(self.pathlst[0])
             else:
                 self.meta = None
@@ -424,6 +429,8 @@ class insitu_class(qls, wc, fc):
 
                 if self.meta is not None:
                     self = self._change_varname_to_aliases()
+                print('HERE')
+                print(self.meta)
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
 

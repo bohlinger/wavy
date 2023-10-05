@@ -13,8 +13,6 @@ valhall: # object nID (nameID)
     collector:
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
-       time: time
-       Hs: hm0
     coords:
     # optional, info that can be used by class functions
     misc:
@@ -23,28 +21,28 @@ valhall: # object nID (nameID)
     tags:
 
 
-###
+### SFY thredds
 fedjeosen: # object nID (nameID)
     name: # sensor
         SFY: 0
     download:
     wavy_input:
-        src_tmplt: "https://thredds.met.no/thredds/dodsC/obs/\
-                    fouombuoys/nID_nv/"
-        fl_tmplt: "fedjeosen_nv_stats.ncml"
-        strsub: ['nID']
-        file_date_incr_unit: 'm'
-        file_date_incr: 1
+        src_tmplt:
+        fl_tmplt:
+        strsub:
+        file_date_incr_unit:
+        file_date_incr:
     wavy_output:
     # optional, if not defined the class default is used
-    reader: get_nc_thredds
+    reader: get_nc_thredds_static_coords
     collector:
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
+       time: time
+       Hs: hm0
     coords:
     # optional, info that can be used by class functions
     misc:
-        obs_type:
         coords:
             SFY:
                 lat: 60.752

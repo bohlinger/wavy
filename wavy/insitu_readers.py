@@ -248,6 +248,55 @@ def get_nc_thredds(**kwargs):
     var_sliced = ds_sliced[[ncvar, lonstr, latstr]]
     return var_sliced
 
+def get_nc_thredds_static_coords(**kwargs):
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
+    varalias = kwargs.get('varalias')
+    pathlst = kwargs.get('pathlst')
+    cfg = vars(kwargs['cfg'])
+
+    # determine ncvarname
+    meta = ncdumpMeta(pathlst[0])
+    ncvar = get_filevarname(varalias, variable_def,
+                            cfg, meta)
+    lonstr = get_filevarname('lons', variable_def,
+                             cfg, meta)
+    latstr = get_filevarname('lats', variable_def,
+                             cfg, meta)
+    timestr = get_filevarname('time', variable_def,
+                              cfg, meta)
+
+    # read all paths
+    ds = read_netcdfs(pathlst, dim=timestr)
+    ds_sort = ds.sortby(timestr)
+
+    ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
+
+    # if lonstr is None try static from cfg
+    if (lonstr is None and latstr is None):
+        lons = np.ones(ds_sliced[timestr].shape)\
+                *cfg['misc']['coords'][kwargs.get('name')]['lon']
+        lats = np.ones(ds_sliced[timestr].shape)\
+                *cfg['misc']['coords'][kwargs.get('name')]['lat']
+
+    var_sliced = ds_sliced[[ncvar]]
+
+    # add lons/lats to dataset
+    ds_lons = xr.Dataset({
+            "lons": xr.DataArray(data=lons, dims=[timestr],
+                    coords={timestr: var_sliced.time})})
+    ds_lats = xr.Dataset({
+            "lats": xr.DataArray(data=lats, dims=[timestr],
+                    coords={timestr: var_sliced.time})})
+
+    var_combined = xr.concat([var_sliced, ds_lons, ds_lats],
+                             dim=timestr, coords='minimal',
+                             data_vars='minimal',
+                             compat='override',
+                             combine_attrs='override')
+
+    return var_combined
+
 def get_cmems(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
