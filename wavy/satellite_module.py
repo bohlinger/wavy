@@ -322,7 +322,7 @@ class satellite_class(qls, wc, fc):
                                 new.vars['lons'].values,
                                 region=region,
                                 grid_date=new.sd)
-        new.vars = new.vars.sel(time=new.vars.time[idx])
+        new.vars = new.vars.isel(time=idx)
         print('Region mask applied')
         print('For chosen region: ', len(new.vars['time']),
               'footprints found')
