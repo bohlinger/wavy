@@ -52,7 +52,7 @@ def collocate_sat_and_insitu(sco, ico, twin=5):
             idx_blck.append(idx)
             # list of indices from in-situ data which matched some sat data
             blcks.append(i)
-    
+   
     blck_dict = {
                  # save the obtained matching list of arrays from
                  # sat data into the dictionnary
@@ -67,7 +67,7 @@ def collocate_sat_and_insitu(sco, ico, twin=5):
                  'trgt_longitude': [ico.vars['lons'].values[b] for b in blcks],
                  'trgt_idx': blcks
                 }
-    
+   
     # compute all distances for all blocks and add to block dict
     # (list of dists added to blck_dict)
     blck_dict['dst'] = []
@@ -95,11 +95,13 @@ def collocate_sat_and_insitu(sco, ico, twin=5):
     sco_filter = copy.deepcopy(sco)
     ico_filter = copy.deepcopy(ico)
 
-    sco_filter.vars = sco_filter.vars.isel(time=[blck_dict['src_idx'][i]\
-                                                [blck_dict['min_dst_idx'][i]]\
-                                                 for i in range(len(blck_dict['min_dst_idx']))])
+    sco_filter.vars = sco_filter.vars.isel(
+                      time=[blck_dict['src_idx'][i]\
+                               [blck_dict['min_dst_idx'][i]]\
+                               for i in range(len(blck_dict['min_dst_idx']))])
 
-    ico_filter.vars = ico_filter.vars.isel(time=[idx for idx in blck_dict['trgt_idx']])
+    ico_filter.vars = ico_filter.vars.isel(
+                      time=[idx for idx in blck_dict['trgt_idx']])
 
     return sco_filter, ico_filter
 

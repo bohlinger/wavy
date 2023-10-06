@@ -115,5 +115,3 @@ def test_insitu_poi(tmpdir):
     pco = pc(poi_dict)
     assert len(vars(pco)) == 12
     assert len(list(pco.vars.keys())) == 3
-
-#def test_to_nc(tmpdir):

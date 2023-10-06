@@ -5,6 +5,7 @@ import pytest
 
 from wavy.wconfig import load_or_default
 from wavy.satellite_module import satellite_class as sc
+from wavy.insitu_module import poi_class as pc
 
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3(tmpdir):
@@ -142,10 +143,13 @@ def test_poi_storm_track(test_data):
     # define poi dictionary for track
     poi_dict = {'time': dt, 'lons': lons, 'lats': lats}
 
+    # initialize poi class object
+    pco = pc(poi_dict, nID='Katrina', name='Katrina', varalias='Hs')
+
     # retrievals
     sco = sc(twin=180, distlim=200, name='multi',
          nID='CCIv1_L3', varalias='Hs',  # default
-         poi=poi_dict)
+         poi=pco)
 
     sco = sco.populate(path=str(test_data/"L3/multi"))
 

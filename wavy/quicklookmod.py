@@ -71,7 +71,7 @@ class quicklook_class_sat:
 
         fs = kwargs.get('fs', 12)
 
-        vmin = kwargs.get('vmin', np.nanmin(plot_var))
+        vmin = kwargs.get('vmin', 0)
         vmax = kwargs.get('vmax', np.nanmax(plot_var))
 
         levels = kwargs.get('levels',
@@ -127,9 +127,9 @@ class quicklook_class_sat:
             latmax, latmin = np.max(plot_lats), np.min(plot_lats)
             if kwargs.get('poi') is not None:
                 poi = kwargs.get('poi')
-                plats = poi.lats.data
+                plats = poi.vars.lats.data
                 platsmax, platsmin = np.max(plats), np.min(plats)
-                plons = poi.lons.data
+                plons = poi.vars.lons.data
                 plonsmax, plonsmin = np.max(plons), np.min(plons)
                 tc = ax.plot(plons, plats, color='cornflowerblue',
                              ls='-', lw=1,

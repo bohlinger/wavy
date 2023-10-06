@@ -18,6 +18,7 @@ cmems_L3_NRT:
         h2b: h2b
         al: al
         cfo: cfo
+        s6a: s6a
     # mandatory when downloading
     # where to store downloaded data
     download:

@@ -34,7 +34,7 @@ fedjeosen: # object nID (nameID)
         file_date_incr:
     wavy_output:
     # optional, if not defined the class default is used
-    reader: get_nc_thredds_static_coords
+    reader: get_nc_thredds_static_coords_single_file
     collector:
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:

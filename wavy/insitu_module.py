@@ -429,8 +429,6 @@ class insitu_class(qls, wc, fc):
 
                 if self.meta is not None:
                     self = self._change_varname_to_aliases()
-                print('HERE')
-                print(self.meta)
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
 

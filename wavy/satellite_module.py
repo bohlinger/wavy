@@ -124,10 +124,11 @@ class satellite_class(qls, wc, fc):
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
         self.cfg = dc
+        # poi should be poi_class
         self.poi = kwargs.get('poi', None)
         if self.poi is not None:
-            self.sd = parse_date(str(self.poi['time'][0]))
-            self.ed = parse_date(str(self.poi['time'][-1]))
+            self.sd = parse_date(str(self.poi.vars['time'].data[0]))
+            self.ed = parse_date(str(self.poi.vars['time'].data[-1]))
 
         # super(config_class,self).__init__('satellite', kwargs.get('nID'))
         print(" ")
@@ -305,7 +306,13 @@ class satellite_class(qls, wc, fc):
             print(" ")
         return pathlst
 
-    def crop_to_poi(self):
+    def crop_to_poi(self, **kwargs):
+        if kwargs.get('poi') is not None:
+            self.poi = kwargs.get('poi')
+        if kwargs.get('distlim') is not None:
+            self.distlim = kwargs.get('distlim')
+        if kwargs.get('twin') is not None:
+            self.twin = kwargs.get('twin')
         new = deepcopy(self)
         print('Crop to poi region')
         idx = new._match_poi(self.poi)
@@ -370,22 +377,24 @@ class satellite_class(qls, wc, fc):
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count <= len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
-                #for i in range(1):
                 with NoStdStreams():
-                    # retrieve dataset
-                    ds = new.reader(**(vars(new)))
-                    new.vars = ds
-                    new.coords = new.vars.coords
-                    if self.poi is None:
-                        ds_lst.append(new._change_varname_to_aliases()
-                                      ._enforce_longitude_format()
-                                      .crop_to_region(self.region).vars)
-                    else:
-                        ds_lst.append(new._change_varname_to_aliases()
-                                      ._enforce_longitude_format()
-                                      .crop_to_poi().vars)
+                    try:
+                        # retrieve dataset
+                        ds = new.reader(**(vars(new)))
+                        new.vars = ds
+                        new.coords = new.vars.coords
+                        if self.poi is None:
+                            ds_lst.append(new._change_varname_to_aliases()
+                                          ._enforce_longitude_format()
+                                          .crop_to_region(self.region).vars)
+                        else:
+                            ds_lst.append(new._change_varname_to_aliases()
+                                          ._enforce_longitude_format()
+                                          .crop_to_poi().vars)
+                    except Exception as e:
+                        logger.exception(e)
 
-        if len(ds_lst)>1:
+        if len(ds_lst) > 1:
             combined = xr.concat(ds_lst, 'time',
                                  coords='minimal',
                                  data_vars='minimal',
@@ -523,6 +532,7 @@ class satellite_class(qls, wc, fc):
                 print('Reading..')
                 self = self._get_sat_ts(**kwargs)
                 #self = self._get_sat_ts_blunt(**kwargs)
+
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
                 self = self._enforce_meteorologic_convention()
@@ -564,8 +574,6 @@ class satellite_class(qls, wc, fc):
             print('# ----- ')
         return self
 
-    #def closest_only(self):
-
     def _match_poi(self, poi):
         """
         return: idx that match to region
@@ -574,16 +582,18 @@ class satellite_class(qls, wc, fc):
         print('Match up poi locations')
         # increase with 1 degree in all directions to ensure
         # that distlim is still the determining factor
-        region = {'llcrnrlat': poi['lats'].min()-1,
-                  'urcrnrlat': poi['lats'].max()+1,
-                  'llcrnrlon': poi['lons'].min()-1,
-                  'urcrnrlon': poi['lons'].max()+1}
-        ridx = match_region_rect(self.vars['lats'],
-                                 self.vars['lons'],
+        region = {'llcrnrlat': poi.vars['lats'].min().data-1,
+                  'urcrnrlat': poi.vars['lats'].max().data+1,
+                  'llcrnrlon': poi.vars['lons'].min().data-1,
+                  'urcrnrlon': poi.vars['lons'].max().data+1}
+
+        ridx = match_region_rect(self.vars['lats'].data,
+                                 self.vars['lons'].data,
                                  region=region)
+
         newdict = deepcopy(self.vars)
         idx = [self._poi_sat(newdict, self.twin, self.distlim, poi, ridx, i)
-               for i in tqdm(range(len(poi['time'])))]
+               for i in tqdm(range(len(poi.vars['time'])))]
         idx = list(np.array(ridx)[flatten(idx)])
         return idx
 
@@ -593,7 +603,7 @@ class satellite_class(qls, wc, fc):
         return: indices for values matching the spatial and
                 temporal constraints
         """
-        target_t = parse_date(str(poi['time'][i]))
+        target_t = parse_date(str(poi.vars['time'].data[i]))
         unfiltered_t = [parse_date(str(d)) for d in ds['time'][ridx].values]
         tidx = find_included_times(
                     unfiltered_t,
@@ -601,8 +611,8 @@ class satellite_class(qls, wc, fc):
                     twin=twin)
         slons = list(np.array(ds['lons'])[ridx][tidx])
         slats = list(np.array(ds['lats'])[ridx][tidx])
-        plons = [poi['lons'].data[i]]*len(slons)
-        plats = [poi['lats'].data[i]]*len(slats)
+        plons = [poi.vars['lons'].data[i]]*len(slons)
+        plats = [poi.vars['lats'].data[i]]*len(slats)
         dists_tmp = haversineA(slons, slats, plons, plats)
         sidx = np.argwhere(np.array(dists_tmp) <= distlim).flatten()
         #dists = list(np.array(dists_tmp)[sidx])

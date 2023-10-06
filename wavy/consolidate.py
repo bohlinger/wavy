@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
 '''
-The main task of this module is to consolidate multiple sources of 
+The main task of this module is to consolidate multiple sources of
 observations to perform a collective collocation/analysis
 '''
 # --- import libraries ------------------------------------------------#
@@ -26,7 +26,7 @@ variable_info = load_or_default('variable_def.yaml')
 
 def consolidate_ocos(ocos):
     """
-    consolidate sco.vars: 
+    consolidate sco.vars:
         'sea_surface_wave_significant_height', 'time',
         'latitude', 'longitude', 'datetime'
     """
@@ -52,7 +52,7 @@ def find_valid_oco(ocos):
 
 class consolidate_class(qls, fc):
     '''
-    Class to handle multiple satellite_class objects
+    Class to consolidate multiple wavy objects
     '''
     def __init__(self, ocos, **kwargs):
         print('# ----- ')
