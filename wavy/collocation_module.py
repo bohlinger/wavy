@@ -431,14 +431,6 @@ class collocation_class(qls):
         else:
             print('to be implemented ...')
 
-    def write_to_pickle(self, pathtofile=None):
-        import pickle
-        # writing
-        pickle.dump(self, open(pathtofile, "wb"))
-        print('collocation_class object written to:', pathtofile)
-        # for reading
-        # cco = pickle.load( open( pathtofile, "rb" ) )
-
     def validate_collocated_values(self, **kwargs):
         times = self.vars['time']
         dtime = [parse_date(str(t.data)) for t in times]

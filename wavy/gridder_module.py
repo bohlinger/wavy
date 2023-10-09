@@ -142,14 +142,6 @@ class gridder_class():
                        glats, glats])
         return xb, yb
 
-    def write_to_pickle(self, pathtofile=None):
-        import pickle
-        # writing
-        pickle.dump(self, open(pathtofile, "wb"))
-        print('gridder_class object written to:', pathtofile)
-        # for reading
-        # sco = pickle.load( open( pathtofile, "rb" ) )
-
     def grid_view(self, metric, mask_metric_llim, mask_metric, **kwargs):
         import cartopy.crs as ccrs
         import cartopy.feature as cfeature

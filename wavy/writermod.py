@@ -1,6 +1,6 @@
 import os
 from dateutil.relativedelta import relativedelta
-#from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 
 from wavy.ncmod import find_attr_in_nc, dumptonc_ts_sat
 from wavy.utils import make_pathtofile, make_subdict
@@ -9,17 +9,6 @@ from wavy.wconfig import load_or_default
 satellite_dict = load_or_default('satellite_cfg.yaml')
 
 class writer_class:
-
-    def write_to_pickle(self,pathtofile=None):
-        """
-        Writes class object to pickle
-
-        param:
-            pathtofile - string
-        """
-        import pickle
-        pickle.dump( self, open( pathtofile, "wb" ) )
-        print( type(self), ' written to:', pathtofile )
 
     def write_to_nc(self,pathtofile=None,file_date_incr=None):
         tmpdate = self.sdate
