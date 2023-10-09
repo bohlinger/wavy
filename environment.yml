@@ -40,5 +40,6 @@ dependencies:
   - numba
   - trajan
   - pip
-  #- pip:
+  - pip:
+    - click
   # - hidefix

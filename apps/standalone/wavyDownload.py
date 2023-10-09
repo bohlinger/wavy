@@ -4,40 +4,41 @@ download satellite data from Copernicus
 """
 # --- imports -------------------------------------------------------- #
 # standard library imports
-import os
-import time
+import click
+from wavy.satellite_module import satellite_class as sc
 from datetime import datetime, timedelta
-import yaml
-import argparse
-from argparse import RawTextHelpFormatter
-
-# own import
-from wavy.sat_collectors import get_remote_files
-from wavy.wconfig import load_or_default
+from pathlib import Path
 # -------------------------------------------------------------------- #
 
+# make sure that if name is name="all" then download all names for given nID
 
+@click.command(context_settings={"ignore_unknown_options": True})
+@click.option('--sd', type=str, default=datetime.now()-timedelta(hours=24),
+        help='starting date and time of your query e.g.: 2023-10-1 00')
+@click.option('--ed', type=str, default=datetime.now())
+        help='ending date and time of your query e.g.: 2023-10-10 00')
+@click.option('--nID', type=str,
+        help='nID as specified in satellite_cfg.yaml')
+@click.option('--name', type=str)
+        help='name as specified in satellite_cfg.yaml,
+        if name equals "all", all names from chosen nID are considered')
+@click.option('--nproc', type=int, default=4,
+        help='chosen number of simultaneous processes')
+@click.argument('--path',
+        help='target path for your download',
+        type=click.Path(
+            exists=True,
+            readable=True,
+            path_type=Path,
+        ),)
+@click.option('--search_str', type=str,
+        help='identifyer string to search for in remote directory')
 def main():
-    # read yaml config files:
-    satellite_dict = load_or_default('satellite_specs.yaml')
+    """
+    Wrapper for command line use of the wavy downloading functions.\n
 
-# parser
-    parser = argparse.ArgumentParser(description="""
-    Download satellite nc-files
-
-    Usage:
-    ./wavyDownload.py -sat s3a -sd 2020100100 -ed 2020101000
-        """,
-                                     formatter_class=RawTextHelpFormatter)
-    parser.add_argument("-sd",
-                        metavar='startdate',
-                        help="start date of time period to be downloaded")
-    parser.add_argument("-ed",
-                        metavar='enddate',
-                        help="end date of time period to be downloaded")
-    parser.add_argument("-sat",
-                        metavar='satellite',
-                        help="satellite mission, currently available\n \
+    Here are some examples of supported files...
+    The following most common missions are available from the CMEMS webpage:
             \ncmems_L3_NRT:\
             \n s3a - Sentinel-3A\
             \n s3b - Sentinel-3B\
@@ -46,14 +47,10 @@ def main():
             \n al - SARAL/AltiKa\
             \n cfo - CFOSAT\
             \n h2b - HaiYang-2B\
-            \n\
-            \ncmems_L3_s6a:\
             \n s6a - Sentinel-6A Michael Freilich\
-            \n\
-            \neumetsat_L2:\
-            \n s3a - Sentinel-3A\
-            \n s3b - Sentinel-3B\
-            \n\
+            \n
+    The following most common missions are available from CCIv1:
+            \n
             \ncci_L2P:\
             \n j1 - Jason-1\
             \n j2 - Jason-2\
@@ -69,34 +66,17 @@ def main():
             \ncci_L3:\
             \n multi - multimission product 1991-2018\
             \n\
-            \ncfo_swim_L2P:\
-            \n cfo - CFOSAT\
-            \n\
-            \n")
-    parser.add_argument("-path",
-                        metavar='path',
-                        help="destination for downloaded data")
-    parser.add_argument("-product",
-                        metavar='product',
-                        help="product name as specified in *_specs.yaml")
-    parser.add_argument("-api_url",
-                        metavar='api_url',
-                        help="source of eumetsat L2 data")
-    parser.add_argument("-nproc",
-                        metavar='nproc',
-                        help="number of possible simultaneous downloads",
-                        type=int)
 
-    args = parser.parse_args()
+    Note that these examples are not exclusive,\n
+    almost any other source could be added and exploited.
+    """
 
     # settings
     now = datetime.now()
-    if args.sat is None:
-        satlst = ['s3a']
-    elif args.sat == 'cmems_L3_NRT':
-        satlst = satellite_dict['cmems_L3_NRT']['mission'].keys()
+    if args.sat == 'all':
+        namelst = list(satellite_dict[]['name'].keys())
     else:
-        satlst = [args.sat]
+        namelst = [name]
 
     if args.sd is None:
         sdate = datetime(now.year, now.month, now.day,
@@ -117,39 +97,8 @@ def main():
     if args.product is None:
         args.product = 'cmems_L3_NRT'
 
-    print(args)
+    for n in namelst:
 
-    twin = 30
-
-    for sat in satlst:
-        for i in range(1):
-            #    try:
-            print("Attempting to download data for:", sat)
-            print("Time period:", str(sdate), "to", str(edate))
-            start_time = time.time()
-            dict_for_sub = {'mission':sat}
-            #path_local,sdate,edate,twin,nproc,product,api_url,sat,dict_for_sub
-            #sa_obj = get_remote_files(\
-            #                    args.path, sdate, edate, twin,
-            #                    args.nproc, args.product,
-            #                    args.api_url, sat,
-            #                    dict_for_sub)
-            sa_obj = get_remote_files(\
-                                path_local=args.path,
-                                sdate=sdate,edate=edate,
-                                twin=twin,nproc=args.nproc,
-                                product=args.product,
-                                api_url=args.api_url,
-                                mission=sat,
-                                dict_for_sub=dict_for_sub)
-            time1 = time.time() - start_time
-            print("Time used for collecting data: ", time1, " seconds")
-
-
-#    except Exception as e:
-#        print('Experienced error when downloading data for',sat,
-#            '\nwith the error:',e,
-#            '\nSkip and continue ...')
 
 if __name__ == "__main__":
     main()
