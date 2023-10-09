@@ -7,101 +7,107 @@ import numpy as np
 import pandas as pd
 import copy
 
-def collocate_sat_and_insitu(sco, ico, twin=5):
+def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
     '''
-     twin in minutes (as in find_included_times)
-     create blocks as lists
-     compute distances for all instances
-     choose min dist for all instances
-     return time series with one distance/value/lat/lon/time
-      for each buoy time stamp
-    '''
-    import datetime
-    # create blocks
+     Collocates satellite and in-situ data, keeping only closest
+     satellite data within a given time range around each in-situ
+     measurements.
 
-    dts_src = [datetime.datetime.utcfromtimestamp(t.tolist()/1e9)
-               for t in sco.vars['time'].values]
-    lats_src = sco.vars['lats'].values
-    lons_src = sco.vars['lons'].values
-    dts_trgt = [datetime.datetime.utcfromtimestamp(t.tolist()/1e9)
-                for t in ico.vars['time'].values]  # ico.vars
-    dts_blck = []
-    lons_blck = []
-    lats_blck = []
-    idx_blck = []
-    blcks = []
+    Args: 
+        sco (satellite_class object): satellite data
+        ico (insitu_class object): in-situ data
+        twin (int): time window length in minutes
+        dist_max (int | float): Maximum distance
+                                accepted to collocate
+                                data
+
+    Returns: 
+        tuple (sco_filter (satellite_class object),
+               ico_filter (insitu_class object)):
+            Satellite and in-situ collocated data
+     
+    '''
+    list_time_sat = []
+    list_time_insitu = []
+    datetimes_ico = [
+        datetime.utcfromtimestamp(t.tolist()/1e9) 
+        for t in ico.vars['time'].values
+        ]
     
-    # i is in range of length of in situ data
-    for i in range(len(dts_trgt)):
-        """
-        idx = list of indexes from sat data which falls in the
-              time window given by twin (in minutes) in in-situ
-              datetimes at index i
-        """
-        idx = find_included_times(dts_src, dts_trgt[i], twin=twin) 
-        # if some indexes are returned
-        if len(idx) > 0:
-            # list of arrays of matching sat datetime
-            dts_blck.append(np.array(dts_src)[idx])
-            # list of arrays matching sat latitude
-            lats_blck.append(np.array(lats_src)[idx])
-            # list of arrays matching sat longitude
-            lons_blck.append(np.array(lons_src)[idx])
-            # list of list of indices from sat data which were
-            # matched mby in situ 
-            idx_blck.append(idx)
-            # list of indices from in-situ data which matched some sat data
-            blcks.append(i)
-   
-    blck_dict = {
-                 # save the obtained matching list of arrays from
-                 # sat data into the dictionnary
-                 'src_datetime': dts_blck,
-                 'src_latitude': lats_blck,
-                 'src_longitude': lons_blck,
-                 'src_idx': idx_blck,
-                 # get datetime, latitude and longitude of in-situ data
-                 # which matched and save it
-                 'trgt_datetime': [ico.vars['time'].values[b] for b in blcks],
-                 'trgt_latitude': [ico.vars['lats'].values[b] for b in blcks],
-                 'trgt_longitude': [ico.vars['lons'].values[b] for b in blcks],
-                 'trgt_idx': blcks
+    for i,time_insitu in enumerate(datetimes_ico):
+    
+        # For each in-situ measure, create a dataset
+        # ds_tmp, of satellite data measured at times 
+        # between [time_insitu-twin, time_insitu+twin]
+        time_sup = time_insitu + timedelta(minutes=twin)
+        time_inf = time_insitu - timedelta(minutes=twin)
+        ds_tmp = sco.vars.sel(time=slice(time_inf, time_sup))
+        ds_tmp_size = ds_tmp.sizes['time']
+
+        # if some satellite data are found
+        if ds_tmp_size > 0:
+
+            # Gets in-situ corresponding datetime,
+            # lat and lon and adds it to ds_tmp
+            # as variables
+            ico_vars_tmp = ico.vars.isel(time=i)
+            lats_insitu = ico_vars_tmp['lats'].values
+            lons_insitu = ico_vars_tmp['lons'].values
+            
+            ds_tmp = ds_tmp.assign(
+                {
+                    'insitu_time':(
+                        'time',
+                        np.repeat(time_insitu,ds_tmp_size)
+                    ),
+                    'lats_insitu':(
+                        'time',
+                        np.repeat(lats_insitu, ds_tmp_size)
+                    ),
+                    'lons_insitu':(
+                        'time',
+                        np.repeat(lons_insitu, ds_tmp_size)
+                    )
                 }
-   
-    # compute all distances for all blocks and add to block dict
-    # (list of dists added to blck_dict)
-    blck_dict['dst'] = []
-    blck_dict['min_dst'] = []
-    blck_dict['min_dst_idx'] = []
-    # For each datetime of in-situ data which matched sat data
-    for i in range(len(blck_dict['trgt_datetime'])):
-        # lat and lon lists from sat data which matched in-situ data i
-        lon1 = blck_dict['src_longitude'][i]
-        lat1 = blck_dict['src_latitude'][i]
-        # create lists of lat and lon of the point i of in-situ data which
-        # matched sat data, repeated at same length as sat lat, lon list.
-        lon2 = [blck_dict['trgt_longitude'][i]]*len(lon1)
-        lat2 = [blck_dict['trgt_latitude'][i]]*len(lat1)
-        # compute distance of every point of sat data matched with the#
-        # corresponding in-situ data point i
-        dist = list(haversineA(lon1, lat1, lon2, lat2)[0])
+            )
 
-        # save the distances lists, the minimum distance each time and the
-        # corresponding index inside the sat list matched at point i
-        blck_dict['dst'].append(dist)
-        blck_dict['min_dst'].append(np.min(dist))
-        blck_dict['min_dst_idx'].append(dist.index(np.min(dist)))
+            # Calculates distance between satellite and in-situ
+            # measurements and adds it as a variable to ds_tmp
+            ds_tmp = ds_tmp.assign(
+                {
+                    'dist_is_sat':(
+                        'time',
+                        haversineA(
+                            ds_tmp['lons_insitu'], 
+                            ds_tmp['lats_insitu'],
+                            ds_tmp['lons'],
+                            ds_tmp['lats']
+                        )[0]
+                    )
+                }
+            )
 
+            # Calculates the minimum value for distances
+            min_dist_tmp = min(ds_tmp['dist_is_sat'].values)
+
+            # If the minimum value is lesser than defined max distance
+            if min_dist_tmp <= dist_max:
+
+                # Times for in-situ and satellite measurements, 
+                # corresponding to the minimum distance are fetched
+                dist = list(ds_tmp['dist_is_sat'].values)
+                ds_tmp = ds_tmp.isel(time=dist.index(min_dist_tmp))
+                list_time_sat.append(ds_tmp['time'].data)
+                list_time_insitu.append(ds_tmp['insitu_time'].data)
+                
     sco_filter = copy.deepcopy(sco)
     ico_filter = copy.deepcopy(ico)
 
-    sco_filter.vars = sco_filter.vars.isel(
-                      time=[blck_dict['src_idx'][i]\
-                               [blck_dict['min_dst_idx'][i]]\
-                               for i in range(len(blck_dict['min_dst_idx']))])
-
-    ico_filter.vars = ico_filter.vars.isel(
-                      time=[idx for idx in blck_dict['trgt_idx']])
+    # Original sco and ico object vars are filtered using 
+    # lists of times corresponding to minimum distance
+    # between satellite and in-situ observation
+    sco_filter.vars = sco_filter.vars.sel(time=list_time_sat)
+    ico_filter.vars = ico_filter.vars.sel(time=list_time_insitu)
 
     return sco_filter, ico_filter
 
