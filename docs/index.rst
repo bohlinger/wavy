@@ -31,26 +31,11 @@ Introduction
 
    This project is under active development. I try to keep the documentation pristine. Please do not hesitate to contact me if you experience troubles, have questions, or would like to contribute.
 
-Contents
-========
-
-.. toctree::
-   :maxdepth: 3
-   :glob:
-
-   installing
-   tutorials
-   vietnam21
-   vietnam22
-   vietnam22_2
-   oneocean
-   gallery
-   autoapi/index
-
 
 Credits
 =======
 * Bohlinger, P., Breivik, Ø., Economou, T., Müller, M.: `A novel approach to computing super observations for probabilistic wave model validation <https://www.sciencedirect.com/science/article/pii/S1463500319300435>`_, Ocean Modelling, 139, `<https://doi.org/10.1016/j.ocemod.2019.101404>`_, 2019.
+
 
 Studies that used **wavy**
 ==========================
@@ -59,9 +44,25 @@ Studies that used **wavy**
 * Halsne, T., Bohlinger, P., Christensen, K.H., Carrasco, A., Breivik, Ø., 2022: Resolving regions known for intense wave–current interaction using spectral wave models: A case study in the energetic flow fields of Northern Norway, Ocean Modelling,Volume 176.
 * Thomas, E. E., Müller, M., Bohlinger, P., Batrak, Y., & Szapiro, N., 2021: A Kilometer-Scale Coupled Atmosphere–Wave Forecasting System for the European Arctic. Weather and Forecasting, 36(6), 2087-2099.
 
+
 Master thesis using wavy
 ========================
 Judith Thu Ølberg, 2023: Wave Measurements Using Ship Mounted Sensors as part of the One Ocean Expedition, University of Bergen, https://hdl.handle.net/11250/3071001.
+
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 3
+   :glob:
+
+   installation
+   tutorials
+   workshops
+   gallery
+   autoapi/index
+
 
 Indices and tables
 ==================

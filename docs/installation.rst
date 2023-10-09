@@ -1,5 +1,6 @@
-Installing
-==========
+Installation and setup
+======================
+
 Installing wavy can be done via conda. The steps are as follows:
 
 #. clone the github repo like:
@@ -40,7 +41,7 @@ Now, append wavy root directory to $PYTHONPATH, for instance add the following t
 
    My user *patrikb* was used in this example. This will be the case in more examples and needs to be adjusted for other users.
 
-Either create a xdg project path or an .env file in your project directory and point to the location where you plan to store your custom config files. This could look like:
+Either create a xdg project path or an .env file in your project directory and point to the location where you plan to store your custom config files. Your .env-file could look like:
 
    .. code-block:: bash
 
