@@ -255,7 +255,9 @@ def triple_collocation_validate(results_dict, ref=None):
         #dict_tmp["SNR"] = SNR(A,B,C, dict_tmp["var_est"])
         dict_tmp["fMSE"] = fMSE(A, B, C, dict_tmp["var_est"])
         dict_tmp["SNR_dB"] = SNR_dB(A, B, C, dict_tmp["var_est"])
-
+        dict_tmp["mean"] = np.mean(A)
+        dict_tmp["std"] = np.std(A)
+        
         # Save the metric dictionary into validate_dict
         validate_dict[k] = dict_tmp
 
