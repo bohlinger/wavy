@@ -6,6 +6,7 @@ from wavy.validationmod import validate, disp_validation
 import numpy as np
 import pandas as pd
 import copy
+from datetime import datetime, timedelta
 
 def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
     '''
