@@ -26,16 +26,13 @@ def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
         tuple (sco_filter (satellite_class object),
                ico_filter (insitu_class object)):
             Satellite and in-situ collocated data
-     
+    
     '''
     list_time_sat = []
     list_time_insitu = []
-    datetimes_ico = [
-        datetime.utcfromtimestamp(t.tolist()/1e9) 
-        for t in ico.vars['time'].values
-        ]
+    datetimes_ico = [pd.to_datetime(t) for t in ico.vars['time'].values]
     
-    for i,time_insitu in enumerate(datetimes_ico):
+    for i, time_insitu in enumerate(datetimes_ico):
     
         # For each in-situ measure, create a dataset
         # ds_tmp, of satellite data measured at times 
