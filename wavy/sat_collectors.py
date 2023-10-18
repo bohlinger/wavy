@@ -72,30 +72,30 @@ def get_remote_files_cmems(**kwargs):
     product = kwargs.get('product')
     sdate = kwargs.get('sdate')
     edate = kwargs.get('edate')
-    twin = kwargs.get('twin',30)
-    nproc = kwargs.get('nproc',1)
-    mission = kwargs.get('mission','s3a')
+    twin = kwargs.get('twin', 30)
+    nproc = kwargs.get('nproc', 1)
+    mission = kwargs.get('mission', 's3a')
     path_local = kwargs.get('path_local')
     dict_for_sub = kwargs.get('dict_for_sub')
     # check if search str template
     file_search_template = \
         satellite_dict[product]['src'].get('file_search_template',\
-                                            '%Y%m%dT%H')
+                                           '%Y%m%dT%H')
     # credentials
     server = satellite_dict[product]['src']['server']
-    user, pw = get_credentials(remoteHostName = server)
+    user, pw = get_credentials(remoteHostName=server)
     tmpdate = deepcopy(sdate)
     filesort = False
     path_template_src = satellite_dict[product]['src']\
                                   ['path_template']
     strsublst_src = satellite_dict[product]['src']\
-                              ['strsub']
+                                  ['strsub']
     subdict_src = make_subdict(strsublst_src,
                                class_object_dict=dict_for_sub)
     while (tmpdate <= edate):
         # create remote path
         path_remote = make_pathtofile(path_template_src,\
-                                      strsublst_src,subdict_src,\
+                                      strsublst_src, subdict_src,\
                                       date=tmpdate)
         if path_local is None:
             # create local path
@@ -104,17 +104,17 @@ def get_remote_files_cmems(**kwargs):
             strsublst_dst = satellite_dict[product]['dst']\
                                           ['strsub']
             subdict_dst = make_subdict(strsublst_dst,
-                                           class_object_dict=dict_for_sub)
+                                       class_object_dict=dict_for_sub)
             path_local = make_pathtofile(path_template_dst,\
-                                         strsublst_dst,subdict_dst,\
+                                         strsublst_dst, subdict_dst,\
                                          date=tmpdate)
             filesort = True
 
-        print ('# ----- ')
-        print ('Chosen source: ')
-        print (mission + ' values from ' + product + ': ' + server)
+        print('# ----- ')
+        print('Chosen source: ')
+        print(mission + ' values from ' + product + ': ' + server)
         print(path_remote)
-        print ('# ----- ')
+        print('# ----- ')
         # get list of accessable files
         ftp = FTP(server)
         ftp.login(user, pw)
@@ -127,23 +127,23 @@ def get_remote_files_cmems(**kwargs):
         while (tmpdate_new <= tmpdate_end):
             matchingtmp = [s for s in content
                             if tmpdate_new.strftime(file_search_template)
-                            in s ]
+                            in s]
             tmplst = tmplst + matchingtmp
             tmpdate_new = tmpdate_new + timedelta(minutes=twin)
         matching = np.unique(tmplst)
         print(matching)
         # check if download path exists if not create
         if not os.path.exists(path_local):
-            os.makedirs(path_local,exist_ok=True)
+            os.makedirs(path_local, exist_ok=True)
         # Download matching files
-        print ('Downloading ' + str(len(matching))
-                + ' files: .... \n')
-        print ("Used number of possible simultaneous downloads "
-                + str(nproc) + "!")
+        print('Downloading ' + str(len(matching))
+              + ' files: .... \n')
+        print("Used number of possible simultaneous downloads "
+              + str(nproc) + "!")
         Parallel(n_jobs=nproc)(
                         delayed(tmploop_get_remote_files)(
-                        i,matching,user,pw,server,
-                        path_remote,path_local
+                        i, matching, user, pw, server,
+                        path_remote, path_local
                         ) for i in range(len(matching))
                         )
         # update time
@@ -158,7 +158,7 @@ def get_remote_files_cmems(**kwargs):
         filelst = [f for f in os.listdir(path_local)
                     if os.path.isfile(os.path.join(path_local,f))]
         sort_files(path_local,filelst,product,mission)
-    print ('Files downloaded to: \n', path_local)
+    print('Files downloaded to: \n', path_local)
 
 def get_remote_files_aviso(**kwargs):
     '''

@@ -1,0 +1,90 @@
+--- # quicklook figure specifications
+
+REGION: # some name of region/model domain e.g. mwam4
+    poi: #  specs for point of interest
+        POI: # abbreviation for your poi
+            name: Some POI name
+            lat: 70
+            lon: 0
+            marker: x
+    varspec: # variable specific adjustments
+        Hs: # abbreviation/varalias for your chosen variable
+            cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
+                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5,6,7,
+                        8,9,10,11,12]
+            scl: 9 # solid contour lines index in cm_levels
+            icl: 1 # scl index increment
+
+Hustad:
+    poi:
+        SFY: # abbreviation for your poi
+            name: SFY
+            lat: 62.9461
+            lon: 6.7174
+            marker: x
+            color: 'k'
+
+SFY_1:
+    poi:
+        SFY: # abbreviation for your poi
+            name: SFY
+            lat: 58.8258
+            lon: 5.5036
+            marker: x
+            color: 'k'
+
+OneOcean:
+    poi:
+        SRL: # abbreviation for your poi
+            name: SRL
+            lat: 14.79
+            lon: -58.99
+            marker: x
+            color: 'k'
+    varspec: # variable specific adjustments
+        Hs: # abbreviation/varalias for your chosen variable
+            cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
+                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5]
+            scl: 8 # solid contour lines index in cm_levels
+            icl: 1 # scl index increment
+
+
+exreg1: # region for CFOSAT conference
+    varspec: # variable specific adjustments
+        Hs: # abbreviation/varalias for your chosen variable
+            cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
+                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5]
+            scl: 8 # solid contour lines index in cm_levels
+            icl: 1 # scl index increment
+
+
+WFtest2:
+    poi:
+        POI: # abbreviation for your poi
+            name: SRL
+            lat: 14.79
+            lon: -58.99
+            marker: x
+            color: 'k'
+    varspec: # variable specific adjustments
+        Hs: # abbreviation/varalias for your chosen variable
+            cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
+                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5]
+            scl: 8 # solid contour lines index in cm_levels
+            icl: 1 # scl index increment
+
+Sulafj:
+    poi:
+        Aalesund: # abbreviation for your poi
+            name: Aalesund
+            lat: 62.472310
+            lon: 6.139762
+            marker: x
+            color: 'k'
+    varspec: # variable specific adjustments
+        Hs: # abbreviation/varalias for your chosen variable
+            cm_levels: [0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25
+                        ,2.5,2.75,3,3.25,3.5,3.75,4,4.5,5]
+            scl: 8 # solid contour lines index in cm_levels
+            icl: 1 # scl index increment
+

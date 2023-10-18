@@ -477,16 +477,17 @@ def finditem(search_dict, field):
                         fields_found.append(another_result)
     return fields_found
 
-def make_pathtofile(tmppath,strsublst,subdict,date=None):
+def make_pathtofile(tmppath, strsublst, subdict, date=None):
     '''
     Creates a path given templates and keywords and date.
     '''
     if date is not None:
         pathtofile = date.strftime(tmppath)
-    else: pathtofile = tmppath
+    else:
+        pathtofile = tmppath
     for strsub in strsublst:
         if strsub in subdict:
-            pathtofile = pathtofile.replace(strsub,subdict[strsub])
+            pathtofile = pathtofile.replace(strsub, subdict[strsub])
         else:
             print(strsub,
                   'in substitutables not needed for destination path')

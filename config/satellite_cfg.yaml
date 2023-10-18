@@ -1,0 +1,37 @@
+--- # specifications for satellite missions
+
+########################################################################
+# """
+# general structure:
+#       + product (eumetsat/cmems)
+#           + specs
+# """
+########################################################################
+
+cmems_SWH_NRT:
+    names:
+        wavy: [s3a,s3b]
+        src: [s3a,s3b]
+    retrieval:
+        src_template: "/Core/\
+                       WAVE_GLO_PHY_SWH_L3_NRT_014_001/\
+                       cmems_obs-wave_glo_phy-swh_nrt_mission-l3_PT1S/\
+                       %Y/%m/"
+        target_template: /home/patrikb/tmp_altimeter/L3/mission
+        strsub: ['mission']
+        server: "nrt.cmems-du.eu"
+    output:
+        target_template: /home/patrikb/tmp_altimeter/L3/mission
+        file_template: "varalias_mission_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','mission','region']
+        file_date_incr: m
+    reader:
+    variables:
+        wavy: [Hs,U]
+        src: [VAVH,WIND_SPEED]
+    misc:
+        processing_level:
+        provider:
+        obs_platform_type:
+        tags:

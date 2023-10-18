@@ -1,0 +1,58 @@
+--- # d22 formatting specifications
+
+########################################################################
+# """
+# general structure:
+#   + categories
+#       + variables
+#           + specs
+# """
+
+# 10min is the basic report frequency
+
+# define varaliases and their indices for listed variables
+# attention: idx uses python counting
+########################################################################
+
+datetime: # date and time related
+    date:
+        idx: 3
+    time:
+        idx: 4
+WM: # wave related
+    Hs:
+        idx: 2
+    Tp:
+        idx: 5
+    Tm10:
+        idx: 9
+    Tm02:
+        idx: 11
+    Tm01:
+        idx: 12
+    Pdir:
+        idx: 16
+        convention: meteorologic
+    Mdir:
+        idx: 17
+        convention: meteorologic
+WL: # water level related
+    Hlat:
+WI: # wind related
+    FF_10min_10m:
+        comment: 'artificially reduced to 10m'
+        sampling_frequency_in_min: 10
+    FF_10min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 10
+    DD_10min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 10
+        convention: meteorologic
+    FF_2min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 2
+    DD_2min_sensor:
+        comment: 'at sensor height'
+        sampling_frequency_in_min: 2
+        convention: meteorologic

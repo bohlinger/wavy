@@ -1,0 +1,1068 @@
+--- # wave model specifications
+
+########################################################################
+# """
+# general structure:
+#   + model
+#       + specs
+#           + subspecs
+#                + subsubspecs
+# """
+
+# define model after the following example:
+# modelname:
+#    vardef:
+#        Hs: # varname in your model output file
+#        Mdir:
+#            convention: # e.g. oceanographic
+#        ...
+#    path_template:
+#    file_template:
+#    xtra_h: # h adjustment according to position in filename
+#    lt_switch: # should lead time be used for filedate [False/True]
+#    nr_filedates: # how many dates are introduced in the filename
+#    filedate_formats: # time string format e.g. %Y%m%d
+#    init_times: # UTC hours of model initialization
+#    init_step: # hours between model initialization
+#    leadtimes:
+#    grid_date: # date and time of a model run you know exists
+#    proj4: # proj string to be read if not available in model output
+########################################################################
+
+ARCMFC3:
+    vardef:
+        Hs: VHM0
+        Tp: VTPK
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+        lons: lon
+        lats: lat
+    #path_template: "/lustre/storeA/project/copernicus/sea/\
+    #            mywavewam3/arctic/%Y/%m/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    cmems/mywavewam3km_files/%Y/%m/"
+    # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
+    # - This is actually 2019071500_*_b20190715T00* but due
+    #   to delay the bulletin date/time is adjusted
+    # introduce the sub-string filedate into filename
+    # for each time a date should be replaced
+    file_template: "filedate_MyWaveWam3_bfiledate.nc"
+    xtra_h: [0,6] # h bias adjustment according to position in filename
+    lt_switch_f: [1,0] # should lead time adjust filedate [False/True]
+    lt_switch_p: 1 # should lead time adjust pathdate [False/True]
+    nr_filedates: 2
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
+    grid_date: 2020-02-01 00:00:00
+
+ARCMFC3_c45:
+    vardef:
+        Hs: VHM0
+        Tp: VTPK
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeA/project/copernicus/sea/\
+                    mywavewam3/arctic/%Y/%m/"
+    # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
+    # - This is actually 2019071500_*_b20190715T00* but due
+    #   to delay the bulletin date/time is adjusted
+    # introduce the sub-string filedate into filename
+    # for each time a date should be replaced
+    file_template: "filedate_MyWaveWam3_bfiledate.nc"
+    xtra_h: [0,6] # h bias adjustment according to position in filename
+    lt_switch_f: [1,0] # should lead time adjust filedate [False/True]
+    lt_switch_p: 1 # should lead time adjust pathdate [False/True]
+    nr_filedates: 2
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
+    grid_date: 2021-10-01 00:00:00
+
+ARCMFC3_c47:
+    vardef:
+        Hs: VHM0
+        Tp: VTPK
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeA/project/copernicus/sea/\
+                    mywavewam3_c47/arctic/%Y/%m/"
+    # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
+    # - This is actually 2019071500_*_b20190715T00* but due
+    #   to delay the bulletin date/time is adjusted
+    # introduce the sub-string filedate into filename
+    # for each time a date should be replaced
+    file_template: "filedate_MyWaveWam3_bfiledate.nc"
+    xtra_h: [0,6] # h bias adjustment according to position in filename
+    lt_switch_f: [1,0] # should lead time adjust filedate [False/True]
+    lt_switch_p: 1 # should lead time adjust pathdate [False/True]
+    nr_filedates: 2
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
+    grid_date: 2021-10-01 00:00:00
+
+
+AC_test:
+    vardef:
+        Hs: hs
+        Tp: tp
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/home/patrikb/tmp_validation/"
+    file_template: "Barents_wave_2021030100.nc"
+    grid_date: 2021-02-20 00:00:00
+    init_times: [0]
+    init_step: 24
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-24.6 +o_lat_p=9 +R=6.371e+06 +no_defs"
+
+ARCMFC3_hc:
+    vardef:
+        Hs: VHM0
+        Tp: VTPK
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "https://thredds.met.no/thredds/dodsC/cmems/\
+                    hindcastmywave3km_files/%Y/%m/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    init_step: 24
+
+NORA3_wave_CTRL:
+    vardef:
+        #Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/project/fou/om/WINDSURFER/\
+                    A3kmWAVE/2yearsHindcast/Physics1BM1.28/%Y/%m/"
+    file_template: "%Y%m%d_MyWam3km_hindcast.nc"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    init_step: 24
+
+mwam3_hc:
+    vardef:
+        #Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "https://thredds.met.no/thredds/dodsC/windsurfer/\
+                    mywavewam3km_files/%Y/%m/"
+    file_template: "%Y%m%d_MyWam3km_hindcast.nc"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    init_step: 24
+
+mwam3_test_BM128:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMAX1.28/"
+    file_template: "%Y%m%d%H_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-11-24 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM131:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMAX1.31/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM134:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.34/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM136:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.36/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM140:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.40/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM142:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.42/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM144:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.44/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM146:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.46/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_test_BM147:
+    vardef:
+        Hs: VHM0
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/users/anac/TMP/Validation_WAM3km/BETAMX1.47/"
+    file_template: "%Y%m%d_MyWam3km_hindcast-cmems.nc"
+    grid_date: 2020-12-01 00:00:00
+    init_times: [0,12]
+    init_step: 12
+
+mwam3_hc_wind:
+    vardef:
+        #Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    # only on nebula
+    path_template: "/nobackup/forsk/windsurfer/data/WIND/%Y/%m/"
+    file_template: "%Y%m.nc"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    # init_step needs a different solution
+    init_step: 24
+
+mwam3force:
+    vardef:
+        ux: Uwind
+        vy: Vwind
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
+            DNMI_WAVE/%Y/%m/%d/"
+    file_template: "W3km_force_filedate.nc"
+    xtra_h: [6] # h adjustment according to position in filename
+    nr_filedates: 1
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%dT%HZ']
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40 \
+            +o_lat_p=25 +R=6.371e+06 +no_defs"
+    grid_date: 2020-02-01 00:00:00
+
+mwam3:
+    vardef:
+        Hs: VHM0
+        time: time
+        lats: latitude
+        lons: longitude
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
+            DNMI_WAVE/%Y/%m/%d/"
+    file_template: "MyWave_wam3_WAVE_filedate.nc"
+    xtra_h: [6] # h adjustment according to position in filename
+    nr_filedates: 1
+    lt_switch_f: [0] # should lead time adjust filedate [False/True]
+    lt_switch_p: 0 # should lead time adjust pathdate [False/True]
+    # defining format which substitutes filedate in file_template
+    filedate_formats: ['%Y%m%dT%HZ']
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
+    grid_date: 2020-02-01 00:00:00
+
+mwam4:
+    vardef:
+        Hs: hs
+        time: time
+        Tp: tp
+        Tm10: tmp
+        Tm01: tm1
+        Tm02: tm2
+        Mdir: thq
+        Pdir: Pdir
+        lons: longitude
+        lats: latitude
+    #path_template: "/lustre/storeB/immutable/\
+    #        archive/projects/metproduction/\
+    #        DNMI_WAVE/%Y/%m/%d/"
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    fou-hi/mywavewam4archive/%Y/%m/%d/"
+    file_template: "MyWave_wam4_WAVE_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    grid_date: 2020-01-01 00:00:00
+    convention: oceanographic
+
+mwam4force:
+    vardef:
+        ux: Uwind
+        vy: Vwind
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/lustre/storeB/immutable/\
+            archive/projects/metproduction/\
+            DNMI_WAVE/%Y/%m/%d/"
+    file_template: "W4km_force_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2020-01-01 00:00:00
+
+mwam4c47_be:
+    vardef:
+        Hs: hs
+        time: time
+        Tp: tp
+        Tm10: tmp
+        Tm01: tm1
+        Tm02: tm2
+        Mdir: thq
+        Pdir: Pdir
+        lons: longitude
+        lats: latitude
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    fou-hi/mywavewam4_c47/"
+    file_template: "mywavewam4.an.%Y%m%d%H.nc"
+    init_times: [6,18]
+    init_step: 12
+    leadtimes: [0,12]
+    grid_date: 2021-05-21 06:00:00
+
+mwam4_be:
+    vardef:
+        Hs: hs
+        time: time
+        Tp: tp
+        Tm10: tmp
+        Tm01: tm1
+        Tm02: tm2
+        Mdir: thq
+        Pdir: Pdir
+        lons: longitude
+        lats: latitude
+    path_template: "https://thredds.met.no/thredds/dodsC/\
+                    fou-hi/mywavewam4/"
+    file_template: "mywavewam4.an.%Y%m%d%H.nc"
+    init_times: [6,18]
+    init_step: 12
+    leadtimes: [0,12]
+    grid_date: 2021-05-21 06:00:00
+
+BM126_REFRA_DFALSE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.26REFRA_DFALSEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM126_REFRA_DTRUE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.26REFRA_DTRUEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM128_REFRA_DFALSE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.28REFRA_DFALSEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM128_REFRA_DTRUE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.28REFRA_DTRUEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM129_REFRA_DFALSE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.29REFRA_DFALSEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM129_REFRA_DTRUE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.29REFRA_DTRUEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM130_REFRA_DFALSE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.30REFRA_DFALSEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM130_REFRA_DTRUE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.30REFRA_DTRUEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM131_REFRA_DFALSE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.31REFRA_DFALSEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM131_REFRA_DTRUE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.31REFRA_DTRUEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM135_REFRA_DFALSE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.35REFRA_DFALSEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+BM135_REFRA_DTRUE:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/anac/TMP/testWAM4/BM1.35REFRA_DTRUEwork/postproc/"
+    file_template: "%Y%m%d_MyWAVEWAM4km.nc"
+    init_times: [0]
+    init_step: 24
+    grid_date: 2021-05-21 06:00:00
+
+ecwam:
+    vardef:
+        Hs: significant_wave_height
+        Mdir: wave_direction
+        Tp: peak_wave_period
+        Tm02: mean_wave_period
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
+    file_template: "ec_ocean_wave_%Y%m%dT%H00Z.nc"
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,6,12,18,24,36,48,60]
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
+ww3_4km:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    #path_template: "/lustre/storeB/immutable/\
+        #    archive/projects/metproduction/\
+        #    DNMI_WAVE/%Y/%m/%d/"
+    path_template: "https://thredds.met.no/thredds/dodsC/ww3_4km_archive_files/%Y/%m/%d/"
+    file_template: ww3_4km_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    _FillValue: 9.96921e+36
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2021-11-16 00:00:00
+    convention: meteorological
+
+ww3_4km_ecflow:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/patrikb/\
+                    ecflowdata/products/WW3/WW3_4km/"
+    file_template: ww3_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    _FillValue: 9.96921e+36
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2021-11-16 00:00:00
+    convention: meteorological
+
+ww3_aa: # WW3_4km
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    #path_template: "/lustre/storeB/users/patrikb/ecflowdata/products/WW3/WW3_4km/"
+    #path_template: "/home/patrikb/tmp_ww3_aa/"
+    path_template: "/media/patrikb/Extreme SSD/tmp_ww3_aa/"
+    file_template: ww3_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    _FillValue: 9.96921e+36
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2021-11-26 12:00:00
+
+AromeArctic:
+    vardef:
+        time: time
+        U: wind_speed
+        lons: longitude
+        lats: latitude
+    path_template: "https://thredds.met.no/thredds/dodsC/aromearcticarchive/%Y/%m/%d/"
+        #path_template: "/home/patrikb/tmp_ww3_aa/"
+    file_template: arome_arctic_extracted_2_5km_%Y%m%dT%HZ.nc
+    init_times: [0,3,6,9,12,15,18,21]
+    init_step: 3
+    leadtimes: [0,3,6] # ...
+    grid_date: 2021-11-17 06:00:00
+
+meps_det:
+    vardef:
+        time: time
+        U: wind_speed
+        lons: longitude
+        lats: latitude
+    path_template: "https://thredds.met.no/thredds/dodsC/meps25epsarchive/%Y/%m/%d/"
+    file_template: meps_det_2_5km_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18] # ...
+    grid_date: 2021-12-17 06:00:00
+
+NORA10:
+    vardef:
+        Hs: significant_wave_height
+        time: time
+        Tp: peak_wave_period
+        Tm02: significant_wave_period # not sure if this corresponds to Tm02
+        Mdir: wave_direction
+        Pdir: peak_wave_direction
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/project/fou/om/NORA10/wave/"
+    file_template: "wam10_%Y.nc"
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+                +o_lat_p=22 +a=6367470 +e=0"
+
+NORA3_wind:
+    vardef:
+        time: time
+        lons: longitude
+        lats: latitude
+        ux: x_wind_10m
+        vy: y_wind_10m
+        Hs: x_wind_10m
+    path_template: "/lustre/storeB/project/fou/om/WINDSURFER/\
+                    HM40h12/hm2nve/%Y/%m/"
+    file_template: "fc%Y%m%d.nc"
+    proj4: "+proj=lcc +lat_0=66.3 +lon_0=-42 +lat_1=66.3 \
+            +lat_2=66.3 +no_defs +R=6.371e+06"
+    grid_date: 2018-01-01 00:00:00
+    init_times: [0]
+    init_step: 24
+
+Erin1way:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    #path_template: "/lustre/storeB/project/nwp/nansenlegacyrf4/\
+    #               Wave_AA_Coupling/Dec2019_UnCoup/"
+    path_template: "/home/patrikb/tmp_model/"
+    file_template: "Dec2019_UnCoup_WW3_2020010112.nc"
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12]
+    grid_date: 2020-01-01 12:00:00
+    proj4: "+proj=lcc +lat_0=77.5 +lon_0=-25
+            +lat_1=77.5 +lat_2=77.5
+            +no_defs +R=6.371e+06"
+
+wam_moskenes_large:
+    vardef:
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeB/users/trygveh/data/\
+                    moskenes/wam/"
+    file_template: "TRUEcoordDepthc1exte.nc"
+    init_times: [0,12]
+    init_step: 12
+    leadtimes: [0,12]
+    grid_date: 2020-01-01 12:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+wam_moskenes_wc:
+    vardef:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+    path_template: "/home/patrikb/Documents/Trygve/wam/wc/"
+    file_template: "hs_%Y%m0100_MyWamc1extended_hindcast_latlon.nc"
+    grid_date: 2018-12-01 12:00:00
+    init_times: [0]
+
+wam_moskenes_nc:
+    vardef:
+        Hs: hs
+        lons: longitude
+        lats: latitude
+    path_template: "/home/patrikb/Documents/Trygve/wam/nc/"
+    file_template: "hs_%Y%m0100_MyWamc1extended_hindcast_latlon.nc"
+    grid_date: 2018-12-01 12:00:00
+    init_times: [0]
+
+ecwam_vietnam:
+    vardef:
+        Hs: significant_wave_height
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/home/patrikb/Documents/Vietnam/%Y/"
+    file_template: "vietnam_wave_%Y%m%d_%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 3
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00
+
+ecifs_vietnam:
+    vardef:
+        ux: u10m
+        vy: v10m
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/home/patrikb/Documents/Vietnam/%Y/"
+    file_template: "ECIFS%Y%m%d%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 6
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00
+
+swan_vietnam:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/home/patrikb/Documents/Vietnam/%Y/"
+    file_template: "SWAN%Y%m%d%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 3
+    grid_date: 2021-11-26 00:00:00
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
+# wind forcings
+wf_ec_meps_aa: # WW3_4km
+    vardef:
+        ux: Uwind
+        vy: Vwind
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/media/patrikb/Extreme SSD/WindForcing/"
+    file_template: ec_meps_aa_wind_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    _FillValue: 9.96921e+36
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2021-11-19 00:00:00
+
+# wind forcings
+wf_ec_meps: # WW3_4km
+    vardef:
+        ux: Uwind
+        vy: Vwind
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/media/patrikb/Extreme SSD/WindForcing/"
+    file_template: ec_meps_wind_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    _FillValue: 9.96921e+36
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2021-11-19 00:00:00
+
+# wind forcings
+wf_ec: # WW3_4km
+    vardef:
+        ux: Uwind
+        vy: Vwind
+        time: time
+        lons: lon
+        lats: lat
+    path_template: "/media/patrikb/Extreme SSD/WindForcing/"
+    file_template: ec_wind_%Y%m%dT%HZ.nc
+    init_times: [0,6,12,18]
+    init_step: 6
+    leadtimes: [0,6,12,18,24,36,48,60]
+    _FillValue: 9.96921e+36
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+    grid_date: 2021-11-19 00:00:00
+
+ww3_EXP0_360:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP0_360/"
+    file_template: "ww3.202202.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-09 00:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ww3_EXP0:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP0/"
+    file_template: "ww3_4km_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-21 06:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ww3_EXP1:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP1/"
+    file_template: "ww3_4km_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-21 06:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ww3_EXP2:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP2/"
+    file_template: "ww3_4km_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-21 06:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ww3_EXP3:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP3/"
+    file_template: "ww3_4km_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-21 06:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ww3_EXP4:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP4/"
+    file_template: "ww3_4km_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-21 06:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ww3_EXP_ALL:
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_ww3_validation_files/WW3_4km_EXP_ALL/"
+    file_template: "ww3_4km_%Y%m%dT%HZ.nc"
+    init_times: [0,6,12,18]
+    init_step: 6
+    grid_date: 2022-01-21 06:00:00
+    proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+            +o_lat_p=22 +R=6.371e+06 +no_defs"
+
+ecwam_Hs:
+    vardef:
+        Hs: swh
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_OneOcean_WaveFields/"
+    file_template: "swh_be_global_0125_%Y%m%d_%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 1
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00
+
+ecwam_Hs_lt:
+    vardef:
+        Hs: swh
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_OneOcean_WaveFields/"
+    file_template: "swh_lt_global_0125_%Y%m%d_%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 1
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00
+
+ecwam_Mdir:
+    vardef:
+        Mdir: mwd
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_OneOcean_WaveFields/"
+    file_template: "Mdir_be_global_0125_%Y%m%d_%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 1
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00
+
+ecwam_Tp:
+    vardef:
+        Tp: pp1d
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_OneOcean_WaveFields/"
+    file_template: "tp_be_global_0125_%Y%m%d_%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 1
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00
+
+ecwam_dirs:
+    vardef:
+        Mdir: mwd
+        MdirW: mdww
+        MdirST: mdts
+        time: time
+        lons: longitude
+        lats: latitude
+    path_template: "/lustre/storeA/project/fou/om/tmp_OneOcean_WaveFields/"
+    file_template: "dirs_be_global_0125_%Y%m%d_%H.nc"
+    init_times: [0,12]
+    init_step: 12
+    date_incr: 1
+    proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+    grid_date: 2021-11-26 00:00:00

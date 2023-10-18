@@ -14,26 +14,26 @@ satellite_dict = load_or_default('satellite_specs.yaml')
 def test_collectors_cmems_L3(tmpdir):
     sdate = "2023-2-1 12"
     edate = "2023-2-1 12"
-    sdate_dt = datetime(2023,2,1,12)
-    edate_dt = datetime(2023,2,1,12)
+    sdate_dt = datetime(2023, 2, 1, 12)
+    edate_dt = datetime(2023, 2, 1, 12)
     twin = 30
     nproc = 1
     mission = 's3a'
     product = 'cmems_L3_NRT'
     # evoke fct get_remote_files
     api_url = None
-    dict_for_sub = {'mission':mission}
+    dict_for_sub = {'mission': mission}
     wavy.sat_collectors.get_remote_files(
                             path_local=tmpdir,
-                            sdate=sdate_dt,edate=edate_dt,
-                            twin=twin,nproc=nproc,
-                            product=product,api_url=api_url,
+                            sdate=sdate_dt, edate=edate_dt,
+                            twin=twin, nproc=nproc,
+                            product=product, api_url=api_url,
                             mission=mission,
                             dict_for_sub=dict_for_sub)
     # check if file were download to tmp directory
     filelist = os.listdir(tmpdir)
     nclist = [i for i in range(len(filelist))\
-                if '.nc' in filelist[i]]
+              if '.nc' in filelist[i]]
     assert len(nclist) >= 1
 
 @pytest.mark.need_credentials
