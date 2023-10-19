@@ -8,13 +8,14 @@ import pandas as pd
 import copy
 from datetime import datetime, timedelta
 
+
 def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
     '''
      Collocates satellite and in-situ data, keeping only closest
      satellite data within a given time range around each in-situ
      measurements.
 
-    Args: 
+    Args:
         sco (satellite_class object): satellite data
         ico (insitu_class object): in-situ data
         twin (int): time window length in minutes
@@ -22,20 +23,20 @@ def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
                                 accepted to collocate
                                 data
 
-    Returns: 
+    Returns:
         tuple (sco_filter (satellite_class object),
                ico_filter (insitu_class object)):
             Satellite and in-situ collocated data
-    
+
     '''
     list_time_sat = []
     list_time_insitu = []
     datetimes_ico = [pd.to_datetime(t) for t in ico.vars['time'].values]
-    
+
     for i, time_insitu in enumerate(datetimes_ico):
-    
+
         # For each in-situ measure, create a dataset
-        # ds_tmp, of satellite data measured at times 
+        # ds_tmp, of satellite data measured at times
         # between [time_insitu-twin, time_insitu+twin]
         time_sup = time_insitu + timedelta(minutes=twin)
         time_inf = time_insitu - timedelta(minutes=twin)
@@ -51,18 +52,18 @@ def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
             ico_vars_tmp = ico.vars.isel(time=i)
             lats_insitu = ico_vars_tmp['lats'].values
             lons_insitu = ico_vars_tmp['lons'].values
-            
+
             ds_tmp = ds_tmp.assign(
                 {
-                    'insitu_time':(
+                    'insitu_time': (
                         'time',
-                        np.repeat(time_insitu,ds_tmp_size)
+                        np.repeat(time_insitu, ds_tmp_size)
                     ),
-                    'lats_insitu':(
+                    'lats_insitu': (
                         'time',
                         np.repeat(lats_insitu, ds_tmp_size)
                     ),
-                    'lons_insitu':(
+                    'lons_insitu': (
                         'time',
                         np.repeat(lons_insitu, ds_tmp_size)
                     )
@@ -73,10 +74,10 @@ def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
             # measurements and adds it as a variable to ds_tmp
             ds_tmp = ds_tmp.assign(
                 {
-                    'dist_is_sat':(
+                    'dist_is_sat': (
                         'time',
                         haversineA(
-                            ds_tmp['lons_insitu'], 
+                            ds_tmp['lons_insitu'],
                             ds_tmp['lats_insitu'],
                             ds_tmp['lons'],
                             ds_tmp['lats']
@@ -91,23 +92,24 @@ def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
             # If the minimum value is lesser than defined max distance
             if min_dist_tmp <= dist_max:
 
-                # Times for in-situ and satellite measurements, 
+                # Times for in-situ and satellite measurements,
                 # corresponding to the minimum distance are fetched
                 dist = list(ds_tmp['dist_is_sat'].values)
                 ds_tmp = ds_tmp.isel(time=dist.index(min_dist_tmp))
                 list_time_sat.append(ds_tmp['time'].data)
                 list_time_insitu.append(ds_tmp['insitu_time'].data)
-                
+
     sco_filter = copy.deepcopy(sco)
     ico_filter = copy.deepcopy(ico)
 
-    # Original sco and ico object vars are filtered using 
+    # Original sco and ico object vars are filtered using
     # lists of times corresponding to minimum distance
     # between satellite and in-situ observation
     sco_filter.vars = sco_filter.vars.sel(time=list_time_sat)
     ico_filter.vars = ico_filter.vars.sel(time=list_time_insitu)
 
     return sco_filter, ico_filter
+
 
 def remove_nan(A, B, C):
     '''
@@ -128,6 +130,7 @@ def remove_nan(A, B, C):
 
     return A, B, C
 
+
 def mixed_second_moment(A, B):
     '''
     Returns the mixed second moment
@@ -138,12 +141,14 @@ def mixed_second_moment(A, B):
 
     return np.sum(mixed_serie_tmp)/N
 
+
 def covariance(A, B):
     '''
     Returns the covariance of lists
     A and B
     '''
     return mixed_second_moment(A, B) - np.mean(A)*np.mean(B)
+
 
 def variance_estimates(A, B, C):
     '''
@@ -152,7 +157,9 @@ def variance_estimates(A, B, C):
     collocation method with the covariance notation
     as in Gruber et al., 2016
     '''
-    return covariance(A, A) - (covariance(A, B)*covariance(A, C))/covariance(B, C)
+    return covariance(A, A) -\
+        (covariance(A, B)*covariance(A, C))/covariance(B, C)
+
 
 def RMSE(A, B, C):
     '''
@@ -161,12 +168,14 @@ def RMSE(A, B, C):
     '''
     return np.sqrt(variance_estimates(A, B, C))
 
+
 def SI(A, B, C, ref):
     '''
     Returns the scatter index from A, with
     reference to ref measurements
     '''
     return 100 * RMSE(A, B, C) / np.mean(ref)
+
 
 def sensitivity_estimates(A, B, C):
     '''
@@ -175,12 +184,14 @@ def sensitivity_estimates(A, B, C):
     '''
     return (covariance(A, B)*covariance(A, C)) / covariance(B, C)
 
+
 def SNR(A, B, C, var_err_A):
     '''
     Returns signal-to-noise ratio of measurements A
     according to Gruber et al., 2016 definition
     '''
     return sensitivity_estimates(A, B, C)/var_err_A
+
 
 def fMSE(A, B, C, var_err_A):
     '''
@@ -189,24 +200,26 @@ def fMSE(A, B, C, var_err_A):
     '''
     return 1/(1+SNR(A, B, C, var_err_A))
 
+
 def SNR_dB(A, B, C, var_err_A):
     '''
     Returns signal-to-noise ratio in dB of measurements A
     according to Gruber et al., 2016 definition
     '''
     return 10*np.log10(sensitivity_estimates(A, B, C)/var_err_A)
-    
+
+
 def triple_collocation_validate(results_dict, ref=None):
     '''
     Runs the triple collocation given a dictionary
-    containing three measurements, returns results 
+    containing three measurements, returns results
     in a dictionary.
-    
+
     results_dict: {'name of measurement':list of values}
-    ref: Name of one of the measurements, must correspond 
+    ref: Name of one of the measurements, must correspond
     to one key of results_dict
 
-    returns: dict of dict of the metrics for each measurement 
+    returns: dict of dict of the metrics for each measurement
     {'name of measurement': {'metric name':metric}}
     '''
     validate_dict = {}
@@ -218,12 +231,13 @@ def triple_collocation_validate(results_dict, ref=None):
 
     # Check if ref argument is, given and correct
     # if not, takes the first data source as reference
-    if ref is None: 
+    if ref is None:
         ref = list(data_sources)[0]
         print("Since no reference was given,", ref, "was taken as default.")
 
     if ref not in data_sources:
-        print("Incorrect argument `ref` value given, should be one of the keys of `tc_validate`.")
+        print("Incorrect argument `ref` value given, \
+        should be one of the keys of `tc_validate`.")
         ref = list(data_sources)[0]
         print(ref, "was taken as reference instead.\n")
 
@@ -231,7 +245,7 @@ def triple_collocation_validate(results_dict, ref=None):
     ds_list = list(results_dict.values())
 
     # Iterates on key:value from data_sources dict
-    for i,k in enumerate(data_sources):
+    for i, k in enumerate(data_sources):
 
         # Temporary dictionary to save
         # results of current data source
@@ -250,19 +264,19 @@ def triple_collocation_validate(results_dict, ref=None):
         dict_tmp["RMSE"] = RMSE(A, B, C)
         dict_tmp["SI"] = SI(A, B, C, results_dict[ref])
         dict_tmp["sensitivity"] = sensitivity_estimates(A, B, C)
-        #dict_tmp["SNR"] = SNR(A,B,C, dict_tmp["var_est"])
         dict_tmp["fMSE"] = fMSE(A, B, C, dict_tmp["var_est"])
         dict_tmp["SNR_dB"] = SNR_dB(A, B, C, dict_tmp["var_est"])
         dict_tmp["mean"] = np.mean(A)
         dict_tmp["std"] = np.std(A)
-        
+
         # Save the metric dictionary into validate_dict
         validate_dict[k] = dict_tmp
 
     validate_dict = {"data_sources": validate_dict}
     validate_dict["reference_dataset"] = ref
-    
-    return validate_dict      
+
+    return validate_dict
+
 
 def disp_tc_validation(tc_validate, dec=3):
     '''
@@ -275,14 +289,14 @@ def disp_tc_validation(tc_validate, dec=3):
     data_sources_names = data_sources_res.keys()
 
     metrics_names = data_sources_res[ref].keys()
-    
-    data = np.array([np.round(list(data_sources_res[k].values()), dec) for k in data_sources_names])
+
+    data = np.array([np.round(list(data_sources_res[k].values()), dec)
+                    for k in data_sources_names])
     data = np.transpose(data)
-    
+
     format_row = "{:>12}" * (len(data_sources_names) + 1)
     print(format_row.format("", *data_sources_names))
     for ds, row in zip(metrics_names, data):
         print(format_row.format(ds, *row))
-    
-    print("\n The reference for the SI is:", ref)
 
+    print("\n The reference for the SI is:", ref)
