@@ -2,10 +2,12 @@ import sys
 import os
 from datetime import datetime
 import pytest
+import numpy as np
 
 from wavy.wconfig import load_or_default
 from wavy.satellite_module import satellite_class as sc
 from wavy.insitu_module import poi_class as pc
+
 
 @pytest.mark.need_credentials
 def test_collectors_cmems_L3(tmpdir):
@@ -18,6 +20,7 @@ def test_collectors_cmems_L3(tmpdir):
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
 
+
 @pytest.mark.need_credentials
 def test_collectors_cci_v3_20Hz(tmpdir):
     sco = sc(sd='2020-2-1 12', ed='2020-2-1 12',
@@ -28,6 +31,7 @@ def test_collectors_cci_v3_20Hz(tmpdir):
     nclist = [i for i in range(len(filelist))
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
+
 
 def test_manually_specified_reader(test_data):
     sd = "2022-2-1 12"
@@ -56,6 +60,7 @@ def test_manually_specified_reader(test_data):
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
+
 def test_default_reader(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
@@ -79,6 +84,7 @@ def test_default_reader(test_data):
     assert len(flst) >= 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
+
 
 def test_polygon_region(test_data):
     sd = "2022-2-01 01"
@@ -104,6 +110,7 @@ def test_polygon_region(test_data):
     assert len(flst) >= 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
+
 
 def test_rectangular_region(test_data):
     sd = "2022-2-01 01"
@@ -166,13 +173,12 @@ def test_poi_storm_track(test_data):
     assert not 'error' in vars(sco).keys()
 
 
-
 # make test for get closest only
 
 # make test for reading 20Hz
 def test_manually_specified_reader_CCIv3_20Hz(test_data):
-    sd = "2019-3-24 10"
-    ed = "2019-3-24 11"
+    sd = "2019-3-24 15"
+    ed = "2019-3-24 16"
     name = 's3a'
     varalias = 'Hs'
     nID = 'L2_20Hz_s3a'
@@ -183,7 +189,7 @@ def test_manually_specified_reader_CCIv3_20Hz(test_data):
     # populate
     sco = sco.populate(path=str(test_data/"CCIv3_20Hz"))
     # adjustments
-    sco = sco.crop_to_region('SulafjD')
+    sco = sco.crop_to_region('BarentsSea')
     assert sco.__class__.__name__ == 'satellite_class'
     # compare number of available variables
     vlst = list(vars(sco).keys())
@@ -194,6 +200,14 @@ def test_manually_specified_reader_CCIv3_20Hz(test_data):
     assert len(flst) >= 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
+    # check if some data was imported
+    assert len(sco.vars['time']) > 0
+    # check that not all data is nan
+    assert not all(np.isnan(v) for v in sco.vars['time'])
+    assert not all(np.isnan(v) for v in sco.vars['Hs'])
+    assert not all(np.isnan(v) for v in sco.vars['lons'])
+    assert not all(np.isnan(v) for v in sco.vars['lats'])
+
 
 # def test_write_to_nc(test_data):
     # write to nc
