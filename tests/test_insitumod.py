@@ -3,6 +3,8 @@ from wavy.insitu_module import poi_class as pc
 import pytest
 import os
 from datetime import datetime
+import numpy as np
+
 
 def test_from_thredds():
     varalias = 'Hs'
@@ -19,6 +21,7 @@ def test_from_thredds():
     print(new.vars.keys())
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) == 3
+
 
 def test_from_thredds_twinID():
     varalias = 'Hs'  # default
@@ -55,6 +58,7 @@ def test_from_frost_v1():
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) == 3
 
+
 def test_cmems_insitu_monthly(test_data):
     varalias = 'Hs'  # default
     sd = "2023-7-2 00"
@@ -67,11 +71,19 @@ def test_cmems_insitu_monthly(test_data):
     assert ico.__class__.__name__ == 'insitu_class'
     assert len(vars(ico).keys()) == 12
     ico.list_input_files(show=True)
-    new = ico.populate(path=str(test_data/"insitu"))
+    new = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
     new.list_input_files(show=True)
     print(new.vars.keys())
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) == 3
+    # check if some data was imported
+    assert len(new.vars['time']) > 0
+    # check that not all data is nan
+    assert not all(np.isnan(v) for v in new.vars['time'])
+    assert not all(np.isnan(v) for v in new.vars['Hs'])
+    assert not all(np.isnan(v) for v in new.vars['lons'])
+    assert not all(np.isnan(v) for v in new.vars['lats'])
+
 
 def test_cmems_insitu_daily(test_data):
     varalias = 'Hs'  # default
@@ -85,11 +97,19 @@ def test_cmems_insitu_daily(test_data):
     assert ico.__class__.__name__ == 'insitu_class'
     assert len(vars(ico).keys()) == 12
     ico.list_input_files(show=True)
-    new = ico.populate(path=str(test_data/"insitu"))
+    new = ico.populate(path=str(test_data/"insitu/daily/Draugen"))
     new.list_input_files(show=True)
     print(new.vars.keys())
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) == 3
+    # check if some data was imported
+    assert len(new.vars['time']) > 0
+    # check that not all data is nan
+    assert not all(np.isnan(v) for v in new.vars['time'])
+    assert not all(np.isnan(v) for v in new.vars['Hs'])
+    assert not all(np.isnan(v) for v in new.vars['lons'])
+    assert not all(np.isnan(v) for v in new.vars['lats'])
+
 
 @pytest.mark.need_credentials
 def test_insitu_collectors(tmpdir):
@@ -105,6 +125,7 @@ def test_insitu_collectors(tmpdir):
     nclist = [i for i in range(len(filelist))
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
+
 
 def test_insitu_poi(tmpdir):
     # define poi dictionary for track
