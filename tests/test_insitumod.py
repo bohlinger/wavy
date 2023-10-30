@@ -41,7 +41,7 @@ def test_from_thredds_twinID():
     print(len(new.vars.keys()))
     assert len(new.vars.keys()) == 3
 
-
+@pytest.mark.need_credentials
 def test_from_frost_v1():
     varalias = 'Hs'  # default
     sd = "2021-8-2 01"
