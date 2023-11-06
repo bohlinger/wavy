@@ -198,7 +198,7 @@ CCIv1_L3:
         src_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varlias','name','region','nID']
+        strsub: ['varalias','name','region','nID']
         path_date_incr_unit: 'm'
         path_date_incr: 1
     # optional: where to write to

@@ -122,7 +122,10 @@ class satellite_class(qls, wc, fc):
         self.twin = int(kwargs.get('twin', 30))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
-        self.region = kwargs.get('region', 'global')
+        if isinstance(kwargs.get('region'), dict):
+            self.region = kwargs.get('region')['name']
+        else:
+            self.region = kwargs.get('region', 'global')
         self.cfg = dc
         # poi should be poi_class
         self.poi = kwargs.get('poi', None)
@@ -325,6 +328,7 @@ class satellite_class(qls, wc, fc):
     def crop_to_region(self, region):
         new = deepcopy(self)
         print('Crop to region:', region)
+
         idx = new._match_region(new.vars['lats'].values,
                                 new.vars['lons'].values,
                                 region=region,
@@ -367,6 +371,10 @@ class satellite_class(qls, wc, fc):
 
         pathlst = self.pathlst
         chunk_size = kwargs.get('chunk_size', 1)
+        region = kwargs.get('region', new.region)
+
+        if isinstance(region, dict):
+            new.region = region['name']
 
         ds_lst = []
         count = 0
@@ -383,10 +391,17 @@ class satellite_class(qls, wc, fc):
                         ds = new.reader(**(vars(new)))
                         new.vars = ds
                         new.coords = new.vars.coords
-                        if self.poi is None:
+                        if (new.poi is None and
+                        isinstance(region, str)):
                             ds_lst.append(new._change_varname_to_aliases()
                                           ._enforce_longitude_format()
-                                          .crop_to_region(self.region).vars)
+                                          .crop_to_region(new.region).vars)
+                        elif (new.poi is None and
+                        isinstance(region, dict)):
+                            ds_lst.append(new._change_varname_to_aliases()
+                                          ._enforce_longitude_format()
+                                          .crop_to_region(
+                                              region['region']).vars)
                         else:
                             ds_lst.append(new._change_varname_to_aliases()
                                           ._enforce_longitude_format()
@@ -627,7 +642,12 @@ class satellite_class(qls, wc, fc):
         """
         # region in region_dict[poly]:
         # find values for given region
-        if (region not in region_dict['poly'] and
+        if isinstance(region, dict) is True:
+            print('Region is defined in custom dict')
+            print(region)
+            region = region
+            ridx = match_region_rect(LATS, LONS, region=region)
+        elif (region not in region_dict['poly'] and
         region not in model_dict and
         region not in region_dict['geojson']):
             if region is None:
@@ -637,8 +657,6 @@ class satellite_class(qls, wc, fc):
                 and region not in region_dict['geojson']
                 and isinstance(region, dict) is False):
                     sys.exit("Region is not defined")
-                elif isinstance(region, dict):
-                    print("Region bound by min/max of poi coordinates")
                 else:
                     print("Specified region: " + region + "\n"
                           + " --> Bounds: " +
@@ -648,6 +666,9 @@ class satellite_class(qls, wc, fc):
         elif region in region_dict['geojson']:
             print("Region is defined as geojson")
             ridx = match_region_geojson(LATS, LONS, region=region)
+        elif region in region_dict['poly']:
+            ridx = match_region_poly(LATS, LONS, region=region,
+                                     grid_date=grid_date)
         else:
             ridx = match_region_poly(LATS, LONS, region=region,
                                      grid_date=grid_date)
