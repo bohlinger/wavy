@@ -389,7 +389,7 @@ def get_cmems(**kwargs):
                             for coord in list(ds.coords) if coord 
                             in [lonstr, latstr, timestr]}
 
-                dict_var.update({var: build_ts_from_dim_lvls(ds,
+                dict_var.update({var: rebuild_split_variable(ds,
                                               fixed_dim_str, var) 
                                  for var in list(ds.data_vars)})
 
@@ -413,8 +413,21 @@ def get_cmems(**kwargs):
     return ds_sliced
 
 
-def build_ts_from_dim_lvls(ds, fixed_dim_str, var):
-
+def rebuild_split_variable(ds, fixed_dim_str, var):
+    '''
+    Gather values of a given variable, for which 
+    values are split between several levels of
+    a given dimension of a dataset.
+    
+    Args:
+        ds (xarray dataset): dataset
+        fixed_dim_str (string): name of the dimension
+        var (string): name of the variable
+    
+    Returns:
+        1D numpy array, returns the complete variable
+        serie of values on a single dimension  
+    '''
     lvl_nb = len(ds[fixed_dim_str].data)
 
     if lvl_nb==1:
