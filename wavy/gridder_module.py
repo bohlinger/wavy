@@ -43,11 +43,21 @@ class gridder_class():
             self.units = cco.units
             self.sdate = cco.vars['time'][0]
             self.edate = cco.vars['time'][-1]
+        elif mco is not None:
+            self.olons = np.array(mco.vars.lons.squeeze().values.flatten())
+            self.olats = np.array(mco.vars.lats.squeeze().values.flatten())
+            self.ovals = np.array(
+                    mco.vars[mco.varalias].squeeze().values.flatten())
+            self.stdvarname = mco.stdvarname
+            self.varalias = mco.varalias
+            self.units = mco.units
+            self.sdate = mco.vars['time'][0]
+            self.edate = mco.vars['time'][-1]
         else:
             self.olons = kwargs.get('lons')
             self.olats = kwargs.get('lats')
             self.ovals = kwargs.get('values')
-            self.stdvarname = kwargs.get('stdname', None)
+            self.stdvarname = kwargs.get('stdvarname', None)
             self.varalias = kwargs.get('varalias', None)
             self.units = kwargs.get('units', None)
             self.sdate = kwargs.get('sdate', None)

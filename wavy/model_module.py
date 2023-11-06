@@ -33,8 +33,11 @@ from wavy.utils import find_direction_convention
 from wavy.utils import flatten
 from wavy.utils import make_pathtofile, make_subdict
 
+from wavy.credentials import get_credentials
+
 from wavy.ncmod import check_if_ncfile_accessible
 from wavy.ncmod import ncdumpMeta, get_filevarname
+from wavy.ncmod import build_usr_pw_path
 
 from wavy.wconfig import load_or_default, load_dir
 
@@ -316,7 +319,8 @@ class model_class(qls):
                            .replace(">", "\\>")
         return filename
 
-    def _make_model_filename_wrapper(self, fc_date, leadtime, max_lt=None):
+    def _make_model_filename_wrapper(
+    self, fc_date, leadtime, max_lt=None, **kwargs):
         """
         Wrapper function of make_model_filename. Organizes various cases.
 
@@ -329,6 +333,12 @@ class model_class(qls):
         return:
             filename
         """
+        remoteHostName = kwargs.get('remoteHostName',
+                                    self.cfg.misc.get('remoteHostName'))
+
+        if remoteHostName is not None:
+            usr, pw = get_credentials(remoteHostName)
+
         if leadtime is None:
             leadtime = 'best'
 
@@ -341,6 +351,10 @@ class model_class(qls):
                 while switch is False:
                     filename = self._make_model_filename(fc_date, leadtime)
                     # check if file is accessible
+                    if remoteHostName is not None:
+                        filename = build_usr_pw_path(filename,
+                                                     remoteHostName,
+                                                     usr, pw)
                     switch = check_if_ncfile_accessible(filename)
                     if (switch is False):
                         print("Desired file:", filename, " not accessible")
@@ -477,6 +491,7 @@ class model_class(qls):
             fc_dates = make_fc_dates(self.sd, self.ed,
                                      self.cfg.misc['date_incr_unit'],
                                      self.cfg.misc['date_incr'])
+
             pathlst = self._make_list_of_model_filenames(
                     fc_dates, self.leadtime)
         else:
@@ -617,12 +632,17 @@ class model_class(qls):
             # possible to select list of variables
             self.varname = ncvar
 
+            # if credentials are needed
+            remoteHostName = kwargs.get('remoteHostName',
+                                        self.cfg.misc.get('remoteHostName'))
+
             kwargs['fc_dates'] = fc_dates
 
             try:
                 t0 = time.time()
                 print('Reading..')
-                self = self._get_model(**kwargs)
+                self = self._get_model(remoteHostName=remoteHostName,
+                                       **kwargs)
 
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()

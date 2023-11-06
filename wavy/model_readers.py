@@ -19,8 +19,10 @@ from wavy.utils import build_xr_ds
 from wavy.grid_readers import get_gridded_dataset
 from wavy.grid_readers import build_xr_ds_grid
 from wavy.ncmod import ncdumpMeta, get_filevarname
+from wavy.ncmod import read_netcdfs_with_credentials_aggregated
 from wavy.utils import parse_date
 from wavy.utils import collocate_times
+from wavy.credentials import get_credentials
 
 # ---------------------------------------------------------------------#
 # read yaml config files:
@@ -61,6 +63,47 @@ def read_ww3_4km(**kwargs):
 
     return combined
 
+def read_remote_ncfiles_aggregated_credentials(**kwargs):
+    """
+    Wrapping function to read remote opendap satellite netcdf files
+    that use credentials
+    """
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
+    twin = kwargs.get('twin')
+    varalias = kwargs.get('varalias')
+    nID = kwargs.get('nID')
+    remoteHostName = kwargs.get('remoteHostName')
+    path = kwargs.get('pathlst')[0]
+
+    # varnames
+    varname = model_dict[nID]['vardef'][varalias]
+    lonsname = model_dict[nID]['vardef']['lons']
+    latsname = model_dict[nID]['vardef']['lats']
+    timename = model_dict[nID]['vardef']['time']
+
+    # adjust start and end
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+
+    # get credentials
+    usr, pw = get_credentials(remoteHostName)
+
+    # retrieve sliced data
+    ds = read_netcdfs_with_credentials_aggregated(
+            path, remoteHostName, usr, pw)
+
+    ds_sliced = ds.sel(time=slice(sd, ed))
+    var_sliced = ds_sliced[[varname, lonsname, latsname]]
+
+    # forge into correct format varalias, lons, lats with dim time
+    ds = build_xr_ds_grid(var_sliced[varname],
+                          var_sliced[lonsname],
+                          var_sliced[latsname],
+                          var_sliced[timename],
+                          varstr=varalias)
+
+    return ds
 
 @lru_cache(maxsize=32)
 def read_single_field_lru(

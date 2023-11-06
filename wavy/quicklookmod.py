@@ -98,6 +98,8 @@ class quicklook_class_sat:
             import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
+            zorder_land = kwargs.get('zorder_land', 10)
+
             # land
             land = cfeature.GSHHSFeature(
                     scale=kwargs.get('land_mask_resolution', 'i'),
@@ -117,7 +119,8 @@ class quicklook_class_sat:
                     [-180, 180, 0, 90]),
                     ccrs.PlateCarree(),
                     facecolor=cfeature.COLORS['land'],
-                    edgecolor='black', linewidth=1)
+                    edgecolor='black', linewidth=1,
+                    zorder=zorder_land)
 
             # - add land color
             ax.add_feature(land, facecolor='burlywood', alpha=0.5)

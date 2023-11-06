@@ -291,3 +291,42 @@ ww3_bm_137:
     # optional, to ease grouping
     tags:
 
+cmems_MY_L4:
+    # not mandatory for models
+    name: cmems_MY_L4
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: "https://my.cmems-du.eu/thredds/dodsC/"
+        fl_tmplt: "cmems_obs-wave_glo_phy-swh_my_multi-l4-2deg_P1D"
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: read_remote_ncfiles_aggregated_credentials
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: VAVH_DAILY_MEAN
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        init_times: [0,6,12,18]
+        init_step: 6
+        leadtimes: [0,6,12,18,24,36,48,60]
+        _FillValue: 9.96921e+36
+        proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+                +o_lat_p=22 +R=6.371e+06 +no_defs"
+        grid_date: 2021-11-16 00:00:00
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 1
+        remoteHostName: my.cmems-du.eu
+    # optional, to ease grouping
+    tags:

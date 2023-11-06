@@ -5,7 +5,7 @@ import numpy as np
 import tqdm
 from wavy.validationmod import validate
 
-def grid_mean(gco,**kwargs):
+def grid_mean(gco, **kwargs):
     """
     purpose: computes gridded means
     arguments:
@@ -34,8 +34,8 @@ def grid_mean(gco,**kwargs):
         ovals = gco.ovals_clean
 
     # initialize grid
-    var_grid = np.full((len(glons),len(glats)), 0.0)
-    N = np.full((len(glons),len(glats)), 0)
+    var_grid = np.full((len(glons), len(glats)), 0.0)
+    N = np.full((len(glons), len(glats)), 0)
     lat_grid, lon_grid = np.meshgrid(glats, glons)
 
     assert len(ovals) == len(Midx.T)
@@ -52,7 +52,7 @@ def grid_mean(gco,**kwargs):
 
         pbar.update(1)
 
-    mx = N>0
+    mx = N > 0
     var_grid[mx] = var_grid[mx] / N[mx]
     var_grid[~mx] = np.nan
 
@@ -86,7 +86,7 @@ def grid_mean_group(gco, **kwargs):
         glats = gco.glats
         ovals = gco.ovals_clean
 
-    val_grid = np.full((len(glons),len(glats)), np.nan)
+    val_grid = np.full((len(glons), len(glats)), np.nan)
     lat_grid, lon_grid = np.meshgrid(glats, glons)
 
     Midx = Midx.astype(int)
@@ -147,19 +147,19 @@ def grid_stats_group(gco, **kwargs):
         ovals = gco.ovals_clean
         mvals = gco.mvals_clean
 
-    mop_grid = np.full((len(glons),len(glats)), np.nan)
-    mor_grid = np.full((len(glons),len(glats)), np.nan)
-    msd_grid = np.full((len(glons),len(glats)), np.nan)
-    rmsd_grid = np.full((len(glons),len(glats)), np.nan)
-    nrmsd_grid = np.full((len(glons),len(glats)), np.nan)
-    drmsd_grid = np.full((len(glons),len(glats)), np.nan)
-    corr_grid = np.full((len(glons),len(glats)), np.nan)
-    mad_grid = np.full((len(glons),len(glats)), np.nan)
-    bias_grid = np.full((len(glons),len(glats)), np.nan)
-    nbias_grid = np.full((len(glons),len(glats)), np.nan)
-    SI_grid = np.full((len(glons),len(glats)), np.nan)
-    nov_grid = np.full((len(glons),len(glats)), np.nan)
-    mar_grid = np.full((len(glons),len(glats)), np.nan)
+    mop_grid = np.full((len(glons), len(glats)), np.nan)
+    mor_grid = np.full((len(glons), len(glats)), np.nan)
+    msd_grid = np.full((len(glons), len(glats)), np.nan)
+    rmsd_grid = np.full((len(glons), len(glats)), np.nan)
+    nrmsd_grid = np.full((len(glons), len(glats)), np.nan)
+    drmsd_grid = np.full((len(glons), len(glats)), np.nan)
+    corr_grid = np.full((len(glons), len(glats)), np.nan)
+    mad_grid = np.full((len(glons), len(glats)), np.nan)
+    bias_grid = np.full((len(glons), len(glats)), np.nan)
+    nbias_grid = np.full((len(glons), len(glats)), np.nan)
+    SI_grid = np.full((len(glons), len(glats)), np.nan)
+    nov_grid = np.full((len(glons), len(glats)), np.nan)
+    mar_grid = np.full((len(glons), len(glats)), np.nan)
 
     lat_grid, lon_grid = np.meshgrid(glats, glons)
 
@@ -190,9 +190,9 @@ def grid_stats_group(gco, **kwargs):
     pbar = tqdm.tqdm(total=pbarlen)
 
     for iy, ix, ov, mv in zip(iyy, ixx, g_ovals_sort, g_mvals_sort):
-        rdict = { 
-                 'model_values':mv,
-                 'obs_values':ov
+        rdict = {
+                 'model_values': mv,
+                 'obs_values': ov
                  }
         validation_dict = validate(rdict)
         mop_grid[iy, ix] = validation_dict['mop']
@@ -208,29 +208,29 @@ def grid_stats_group(gco, **kwargs):
         SI_grid[iy, ix] = validation_dict['SI'][1]
         mar_grid[iy, ix] = validation_dict['mar']
         nov_grid[iy, ix] = validation_dict['nov']
-        
+
         pbar.update(1)
 
     val_grid_dict = {
-            'mop':mop_grid,
-            'mor':mor_grid,
-            'mad':mad_grid,
-            'msd':msd_grid,
-            'rmsd':rmsd_grid,
-            'nrmsd':nrmsd_grid,
-            'drmsd':drmsd_grid,
-            'corr':corr_grid,
-            'bias':bias_grid,
-            'nbias':nbias_grid,
-            'SI':SI_grid,
-            'mar':mar_grid,
-            'nov':nov_grid
+            'mop': mop_grid,
+            'mor': mor_grid,
+            'mad': mad_grid,
+            'msd': msd_grid,
+            'rmsd': rmsd_grid,
+            'nrmsd': nrmsd_grid,
+            'drmsd': drmsd_grid,
+            'corr': corr_grid,
+            'bias': bias_grid,
+            'nbias': nbias_grid,
+            'SI': SI_grid,
+            'mar': mar_grid,
+            'nov': nov_grid
             }
 
     return val_grid_dict, lon_grid, lat_grid
 
 
-def grid_rmse(gco,**kwargs):
+def grid_rmse(gco, **kwargs):
     """
     purpose: computes gridded rmse
     arguments:
@@ -262,8 +262,8 @@ def grid_rmse(gco,**kwargs):
         mvals = gco.mvals_clean
 
     # initialize grid
-    var_grid = np.full((len(glons),len(glats)), 0.0)
-    N = np.full((len(glons),len(glats)), 0)
+    var_grid = np.full((len(glons), len(glats)), 0.0)
+    N = np.full((len(glons), len(glats)), 0)
     lat_grid, lon_grid = np.meshgrid(glats, glons)
 
     assert len(ovals) == len(Midx.T)
@@ -281,7 +281,7 @@ def grid_rmse(gco,**kwargs):
 
         pbar.update(1)
 
-    mx = N>0
+    mx = N > 0
     var_grid[mx] = np.sqrt(var_grid[mx] / N[mx])
     var_grid[~mx] = np.nan
 

@@ -16,11 +16,13 @@ import xarray as xr
 # own imports
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs
+from wavy.ncmod import read_netcdfs_with_credentials_aggregated
 from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
 from wavy.utils import find_included_times, find_included_times_pd
 from wavy.ncmod import build_xr_ds
+from wavy.credentials import get_credentials
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -58,17 +60,6 @@ def read_wavy_ncfiles(**kwargs):
 def read_local_ncfiles(**kwargs):
     """
     Wrapping function to read satellite netcdf files.
-
-    param:
-        pathlst - list of paths to be parsed
-        product - product as specified in satellite_cfg.yaml
-        varalias
-        sd - start date (datetime object)
-        ed - start date (datetime object)
-        twin - time window (temporal constraint) in minutes
-
-    return:
-        dictionary of variables for the satellite_class object
     """
     pathlst = kwargs.get('pathlst')
     sd = kwargs.get('sd')
@@ -93,6 +84,55 @@ def read_local_ncfiles(**kwargs):
 
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
+
+    ds_sort = ds.sortby(timename)
+    ds_sliced = ds_sort.sel(time=slice(sd, ed))
+    var_sliced = ds_sliced[[varname, lonsname, latsname]]
+
+    # build xr dataset with time as only dim/coords
+    varnames = {varalias: varname, 'lons': lonsname,
+                'lats': latsname, 'time': timename}
+    var = (var_sliced[varname], var_sliced[lonsname],
+           var_sliced[latsname], var_sliced[timename])
+
+    ds_new = build_xr_ds(var, varnames, varalias)
+
+    return ds_new
+
+
+def read_remote_ncfiles_aggregated(**kwargs):
+    """
+    Wrapping function to read remote opendap satellite netcdf files
+    that use credentials
+    """
+    pathlst = kwargs.get('pathlst')
+    sd = kwargs.get('sd')
+    ed = kwargs.get('ed')
+    twin = kwargs.get('twin')
+    varalias = kwargs.get('varalias')
+    nID = kwargs.get('nID')
+    remoteHostName = kwargs.get('remoteHostName')
+    # get meta data
+    ncmeta = ncdumpMeta(pathlst[0])
+    # varnames
+    varname = get_filevarname(varalias, variable_info,
+                              satellite_dict[nID], ncmeta)
+    lonsname = get_filevarname('lons', variable_info,
+                               satellite_dict[nID], ncmeta)
+    latsname = get_filevarname('lats', variable_info,
+                               satellite_dict[nID], ncmeta)
+    timename = get_filevarname('time', variable_info,
+                               satellite_dict[nID], ncmeta)
+    # adjust start and end
+    sd = sd - timedelta(minutes=twin)
+    ed = ed + timedelta(minutes=twin)
+
+    # get credentials
+    usr, pw = get_credentials(remoteHostName)
+
+    # retrieve sliced data
+    ds = read_netcdfs_with_credentials_aggregated(
+            pathlst, remoteHostName, usr, pw, dim=timename)
 
     ds_sort = ds.sortby(timename)
     ds_sliced = ds_sort.sel(time=slice(sd, ed))

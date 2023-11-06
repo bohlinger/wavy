@@ -77,6 +77,20 @@ def read_netcdfs(paths, dim='time', decode_times=None, use_cftime=None):
     print("... done concatenating")
     return combined
 
+def build_usr_pw_path(path, remoteHostName, usr, pw):
+    searchstr = '/thredds/dodsC'
+    idx = path.find(searchstr)
+    newpath = f'https://{usr}:{pw}@my.cmems-du.eu/' + path[idx::]
+    return newpath
+
+def read_netcdfs_with_credentials_aggregated(
+path, remoteHostName, usr, pw, decode_times=None, use_cftime=None):
+    tmp_path = build_usr_pw_path(path, remoteHostName, usr, pw)
+    ds = xr.open_dataset(tmp_path,
+                         decode_times=decode_times,
+                         use_cftime=use_cftime)
+    return ds
+
 def read_netcdfs_naive(paths, varnames, varalias):
     # read all paths
     print('read all data files')
