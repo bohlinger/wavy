@@ -87,7 +87,8 @@ def get_remote_files_cmems(**kwargs):
 
     # check if search str template
     file_search_template = cfg.download['ftp']\
-        .get('search_str', '%Y%m%dT')
+        .get('search_str', '%Y%m%dT').replace('name',
+                                              name)
 
     # credentials
     server = insitu_dict[product]['download']['ftp']['server']
@@ -137,6 +138,7 @@ def get_remote_files_cmems(**kwargs):
                 matchingtmp = [s for s in content
                                if tmpdate_new.strftime(file_search_template)
                                in s]
+
                 tmplst = tmplst + matchingtmp
                 tmpdate_new = tmpdate_new + timedelta(minutes=twin)
             matching = np.unique(tmplst)
