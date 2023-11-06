@@ -18,7 +18,7 @@ import requests
 import dotenv
 import xarray as xr
 import logging
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=30)
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,11 @@ variable_def = load_or_default('variable_def.yaml')
 variables_frost = load_or_default('variables_frost.yaml')
 # ---------------------------------------------------------------------#
 
+
 def get_typeid(insitu_dict: dict, s: str) -> str:
     typeid = insitu_dict[s].get('typeids', 22)
     return typeid
+
 
 def make_frost_reference_time_period(sdate, edate):
     sdate = parse_date(sdate)
@@ -56,9 +58,10 @@ def make_frost_reference_time_period(sdate, edate):
                             edate.strftime(formatstr))
     return refstr
 
+
 def call_frost_api(
-    sdate: datetime, edate: datetime,
-    nID: str, varstr: str, sensor: str) -> 'requests.models.Response':
+     sdate: datetime, edate: datetime,
+     nID: str, varstr: str, sensor: str) -> 'requests.models.Response':
     """
     make frost api call
     """
@@ -82,6 +85,7 @@ def call_frost_api(
     else:
         return r
 
+
 def call_frost_api_v1(
         nID: str, varstr: str, frost_reference_time: str,
         client_id: str, sensor: str)\
@@ -104,6 +108,7 @@ def call_frost_api_v1(
     print('parameters forst api call: ', parameters)
     return requests.get(endpoint, parameters, auth=(client_id, client_id))
 
+
 def find_preferred(idx, sensors, refs, pref):
     sensorsU = np.unique(sensors)
     preferred_idx = []
@@ -117,6 +122,7 @@ def find_preferred(idx, sensors, refs, pref):
         else:
             preferred_idx.append(list(idx_1)[0])
     return preferred_idx
+
 
 def get_frost_df_v1(r: 'requests.models.Response')\
     -> 'pandas.core.frame.DataFrame':
@@ -223,6 +229,7 @@ def get_frost(**kwargs):
     ds = build_xr_ds(var_tuple, varnames)
     return ds
 
+
 def get_nc_thredds(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
@@ -247,6 +254,7 @@ def get_nc_thredds(**kwargs):
     ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
     var_sliced = ds_sliced[[ncvar, lonstr, latstr]]
     return var_sliced
+
 
 def get_nc_thredds_static_coords(**kwargs):
     sd = kwargs.get('sd')
@@ -294,6 +302,7 @@ def get_nc_thredds_static_coords(**kwargs):
 
     return ds_combined
 
+
 def get_nc_thredds_static_coords_single_file(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
@@ -340,6 +349,7 @@ def get_nc_thredds_static_coords_single_file(**kwargs):
 
     return ds_combined
 
+
 def get_cmems(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
@@ -376,11 +386,12 @@ def get_cmems(**kwargs):
 
                 # builds the dictionary given as an argument to
                 dict_var = {coord: ds.coords[coord].values
-                            for coord in list(ds.coords)}
+                            for coord in list(ds.coords) if coord 
+                            in [lonstr, latstr, timestr]}
 
-                dict_var.update({var: ds[[var]]
-                    .isel({fixed_dim_str: fixed_dim_idx})
-                    .to_array().values[0] for var in list(ds.data_vars)})
+                dict_var.update({var: rebuild_split_variable(ds,
+                                              fixed_dim_str, var) 
+                                 for var in list(ds.data_vars)})
 
                 # build an xr.dataset with timestr as the only coordinate
                 # using build_xr_ds function
@@ -388,7 +399,7 @@ def get_cmems(**kwargs):
 
         except Exception as e:
             logger.exception(e)
-
+    
     ds_combined = xr.concat(ds_list, timestr,
                          coords='minimal',
                          data_vars='minimal',
@@ -401,7 +412,54 @@ def get_cmems(**kwargs):
 
     return ds_sliced
 
+
+def rebuild_split_variable(ds, fixed_dim_str, var):
+    '''
+    Gather values of a given variable, for which 
+    values are split between several levels of
+    a given dimension of a dataset.
+    
+    Args:
+        ds (xarray dataset): dataset
+        fixed_dim_str (string): name of the dimension
+        var (string): name of the variable
+    
+    Returns:
+        1D numpy array, returns the complete variable
+        serie of values on a single dimension  
+    '''
+    lvl_nb = len(ds[fixed_dim_str].data)
+
+    if lvl_nb==1:
+        ts = list(ds.isel({fixed_dim_str: 0})[var].data)
+
+    elif lvl_nb > 1:
+
+        lvl_not_nan = []
+        for i in range(lvl_nb):
+
+            if not np.isnan(ds.isel({fixed_dim_str: i})[var].data).all():
+                lvl_not_nan.append(i) 
+
+        if len(lvl_not_nan)==1:
+            ts= list(ds.isel({fixed_dim_str: lvl_not_nan[0]})[var].data)
+
+        else:
+
+            ts = ds.isel({fixed_dim_str: 0})[var].data
+            dict_not_nan = {}
+            for i in range(1, lvl_nb):
+
+                nan_val_tmp = np.isnan(ds.isel({fixed_dim_str: i})[var].data)
+                not_nan_idx = [j for j in range(len(nan_val_tmp)) 
+                               if not nan_val_tmp[j]]
+                ts[not_nan_idx] = ds.isel({fixed_dim_str: i})[var].data[not_nan_idx]
+
+    return np.array(ts, dtype='f')
+
+
 def build_xr_ds_cmems(dict_var, var_name_ref):
+
     ds = xr.Dataset({
         var_name: xr.DataArray(
             data=dict_var[var_name],
@@ -409,4 +467,5 @@ def build_xr_ds_cmems(dict_var, var_name_ref):
             coords={var_name_ref: dict_var[var_name_ref]}
             ) for var_name in dict_var.keys()},
                 attrs={'title': 'wavy dataset'})
+
     return ds
