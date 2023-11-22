@@ -105,7 +105,7 @@ class filter_class:
             coast_sdef, points_sdef, 10000000, neighbours=1)
         # get rid of infs
         mask = np.where((distance_array > llim) & (distance_array < ulim))[0]
-        #new.dist_to_coast = distance_array[mask]
+        # new.dist_to_coast = distance_array[mask]
         # impose on dataset
         ds = new.vars.isel(time=mask)
         # add to dataset
@@ -119,6 +119,7 @@ class filter_class:
         return new
 
     def filter_blockMean(self, **kwargs):
+        print('Apply blockMean')
         return self
 
     def filter_lanczos(self, **kwargs):
@@ -151,6 +152,43 @@ class filter_class:
                     ts, _ = runmean(y, window,
                                     mode='centered',
                                     weights=weights)
+                    ts_lst.append(ts)
+                    tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
+                else:
+                    print("Chunk size to small -> not filtered and rejected")
+                    pass
+
+        new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
+        new.vars[new.varalias].values = flatten(ts_lst)
+        return new
+
+    def filter_runmean(self, **kwargs):
+        print('Apply running mean filter')
+        from wavy.utils import runmean
+        new = deepcopy(self)
+
+        # apply slider if needed
+        win = kwargs.get('slider', len(new.vars.time))
+        ol = kwargs.get('overlap', 0)
+        indices = new.slider_chunks(slider=win, overlap=ol)
+
+        ts_lst = []
+        tgc_idx_lst = []
+        for i, j in indices:
+            tmp_idx = range(i, j)
+            # create tmp dataset reduced to i:j
+            tmp_ds = new.vars.isel(time=tmp_idx)
+            # apply gap chunks if needed
+            pdtimes = tmp_ds.time.to_pandas()
+            tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
+            for k, l in tgc_indices:
+                tmp_tgc_idx = range(k, l+1)
+                # apply min chunk size
+                if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
+                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    window = kwargs.get('window')
+                    ts, _ = runmean(y, window,
+                                    mode='centered')
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
                 else:
@@ -210,7 +248,7 @@ class filter_class:
         ol = kwargs.get('overlap', 0)
         indices = new.slider_chunks(slider=win, overlap=ol)
 
-        ts_lst = [] 
+        ts_lst = []
         tgc_idx_lst = []
         for i, j in indices:
             tmp_idx = range(i, j+1)
@@ -263,7 +301,7 @@ class filter_class:
 
         tgc_idx_lst = []
         for i, j in indices:
-            tmp_idx = range(i, j+1)
+            tmp_idx = range(i, j)
             print('tmp_idx', tmp_idx)
             # create tmp dataset reduced to i:j
             tmp_ds = new.vars.isel(time=tmp_idx)
