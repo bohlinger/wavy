@@ -539,13 +539,12 @@ class filter_class:
         Filters away the ones that do interact and returns a clean data set.
         """
         print("Apply filter_footprint_land_interaction")
-        domain = kwargs.get('domain', 'lonlat')
         new = deepcopy(self)
         if "fpr" in list(new.vars.keys()):
             pass
         else:
             new = new.compute_pulse_limited_footprint_radius()
-        _, _, _, _, ls_idx_lst = new._generate_xtrack_footprints(domain)
+        _, _, _, _, ls_idx_lst = new._generate_xtrack_footprints(**kwargs)
         # apply indices to dataset
         new.vars = new.vars.isel(time=ls_idx_lst)
         print(" Number of disregarded values:",
@@ -553,8 +552,9 @@ class filter_class:
         print(" Number of remaining values:", len(new.vars['time']))
         return new
 
-    def _generate_xtrack_footprints(self, domain):
-        n = 500 + 1
+    def _generate_xtrack_footprints(self, **kwargs):
+        domain = kwargs.get('domain', 'lonlat')
+        n = kwargs.get('number_of_seeds', 250) + 1
         new = deepcopy(self)
         lons = new.vars.lons.values
         lats = new.vars.lats.values

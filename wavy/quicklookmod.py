@@ -148,8 +148,11 @@ class quicklook_class_sat:
             # plot sat
             if kwargs.get("plot_xtrack_pulse_limited_fpr") is not None:
                 domain = kwargs.get('domain', 'lonlat')
+                number_of_seeds = kwargs.get('number_of_seeds', 100)
                 lons_perp, lats_perp, _, _, ls_idx_lst = \
-                    self._generate_xtrack_footprints(domain)
+                    self._generate_xtrack_footprints(
+                            domain=domain,
+                            number_of_seeds=number_of_seeds)
                 sc2 = ax.scatter(lons_perp, lats_perp,
                                  s=.2, c='b', marker='.',
                                  edgecolor='face',
