@@ -41,10 +41,11 @@ Now, append wavy root directory to $PYTHONPATH, for instance add the following t
 
    My user *patrikb* was used in this example. This will be the case in more examples and needs to be adjusted for other users.
 
-Either create a xdg project path or an .env file in your project directory and point to the location where you plan to store your custom config files. Your .env-file could look like:
+Either create a xdg project path or an .env file in your project directory and point to the location where you plan to store your custom config files, as well as your wavy directory. Your .env-file could look like:
 
    .. code-block:: bash
 
       WAVY_CONFIG=path/to/your/config/files
+      WAVY_DIR=/path/to/your/wavy/
 
 How to start your own project and how to manage the config files is explained in a separate tutorial.

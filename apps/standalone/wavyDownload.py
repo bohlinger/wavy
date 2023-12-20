@@ -15,12 +15,12 @@ from pathlib import Path
 @click.command(context_settings={"ignore_unknown_options": True})
 @click.option('--sd', type=str, default=datetime.now()-timedelta(hours=24),
         help='starting date and time of your query e.g.: 2023-10-1 00')
-@click.option('--ed', type=str, default=datetime.now())
+@click.option('--ed', type=str, default=datetime.now(),
         help='ending date and time of your query e.g.: 2023-10-10 00')
 @click.option('--nID', type=str,
         help='nID as specified in satellite_cfg.yaml')
-@click.option('--name', type=str)
-        help='name as specified in satellite_cfg.yaml,
+@click.option('--name', type=str,
+        help='name as specified in satellite_cfg.yaml,\
         if name equals "all", all names from chosen nID are considered')
 @click.option('--nproc', type=int, default=4,
         help='chosen number of simultaneous processes')

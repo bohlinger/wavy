@@ -37,8 +37,8 @@ Now, open python in the wavy conda environment:
    >>> name = 's3a'
    >>> nID = 'cmems_L3_NRT'
    >>> twin = 30 # default
-   >>> sd = "2020-11-1" # can also be datetime object
-   >>> ed = "2020-11-2" # not necessary if twin is specified
+   >>> sd = "2023-2-1 11" # can also be datetime object
+   >>> ed = "2023-2-1 12" # not necessary if twin is specified
 
    >>> # retrieval
    >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name).populate()
@@ -47,69 +47,121 @@ Or in one line:
 
 .. code-block:: python3
 
-   >>> sco = sc(sd="2020-11-1",ed="2020-11-2",region="global",nID="cmems_L3_NRT",name="s3a").populate()
+   >>> sco = sc(sd="2023-2-1 11",ed="2023-2-1 12",region="global",nID="cmems_L3_NRT",name="s3a").populate(path=tmpdir)
 
-You have now read in 24 hours of significant wave height from the satellite mission s3a. The stdout message looks like::
+You have now read in 1 hour of significant wave height from the satellite mission s3a. The stdout message looks like::
 
-   >>> sco = sc(sdate="2020-11-1",edate="2020-11-2",region="global")
-   # ----- 
-    ### Initializing satellite_class object ###
-         
-   Requested time frame: 2020-11-01 00:00:00 - 2020-11-02 00:00:00
-   Chosen time window is: 30 min
-   No download initialized, checking local files
-         
-    ## Find files ...
-   path_local is None -> checking config file
-   /home/patrikb/tmp_altimeter/L3/s3a/2020/10
-   /home/patrikb/tmp_altimeter/L3/s3a/2020/11
-   16 valid files found
-         
-    ## Read files ...
+  >>> sco = sc(sd='2023-2-1 11', ed='2023-2-1 12',
+  ...          nID='cmems_L3_NRT', name='s3a').populate(path=tmpdir)
+  # ----- 
+   ### Initializing satellite_class object ###
+ 
+   Given kwargs:
+  {'sd': '2023-2-1 11', 'ed': '2023-2-1 12', 'nID': 'cmems_L3_NRT', 'name': 's3a'}
+ 
+   ### satellite_class object initialized ###
+  # ----- 
+   ### Read files and populate satellite_class object
+   ## Find and list files ...
+  8 valid files found
+  source template: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
+
+  Checking variables..
    Get filevarname for 
-   stdvarname: sea_surface_wave_significant_height 
-   varalias: Hs
+  stdvarname: sea_surface_wave_significant_height 
+  varalias: Hs
    !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
-   The following variables have the same standard_name:
-    ['VAVH', 'VAVH_UNFILTERED']
-   Searching *_specs.yaml config file for definition
-   Variable defined in *_specs.yaml is:
-   Hs = VAVH
-   100%|██████████████████████████████████████████| 16/16 [00:00<00:00, 215.52it/s]
-   Concatenate ...
-   ... done concatenating
-   Total:  45677  footprints found
-   Apply region mask
-   Specified region: global
-    --> Bounds: {'llcrnrlon': -180.0, 'llcrnrlat': -90.0, 'urcrnrlon': 180.0, 'urcrnrlat': 90.0}
-   45677  values found for chosen region and time frame.
-   Region mask applied
-   For chosen region and time:  45677 footprints found
-         
-    ## Summary:
-   45677 footprints retrieved.
-   Time used for retrieving satellite data: 0.29 seconds
-         
-    ### Satellite object initialized ###
-   # ----- 
+  The following variables have the same standard_name:
+   ['VAVH', 'VAVH_UNFILTERED']
+   Searching *_cfg.yaml config file for definition
+   Variable defined in *_cfg.yaml is:
+  Hs = VAVH
+
+  Choosing reader..
+  Chosen reader: satellite_readers.read_local_ncfiles
+
+  Reading..
+  Reading 10 chunks of files with chunk size 1
+  Total of 8 files
+  100%|█████████████████████████████████████████████████████████████████| 9/9 [00:00<00:00, 138.84it/s]
+   changing variables to aliases
+   Get filevarname for 
+  stdvarname: sea_surface_wave_significant_height 
+  varalias: Hs
+   !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
+  The following variables have the same standard_name:
+   ['VAVH', 'VAVH_UNFILTERED']
+   Searching *_cfg.yaml config file for definition
+   Variable defined in *_cfg.yaml is:
+  Hs = VAVH
+     VAVH is alreade named correctly and therefore not adjusted
+   Get filevarname for 
+  stdvarname: time 
+  varalias: time
+   Get filevarname for 
+  stdvarname: longitude 
+  varalias: lons
+     lons is alreade named correctly and therefore not adjusted
+   Get filevarname for 
+  stdvarname: latitude 
+  varalias: lats
+     lats is alreade named correctly and therefore not adjusted
+   enforcing lon max min = -180/180
+ 
+   ## Summary:
+  5211 footprints retrieved.
+  Time used for retrieving data:
+  0.07 seconds
+ 
+   ### satellite_class object populated ###
+  # ----- 
+
 
 The satellite_class object has multiple class methods and class variables:
 
 .. code-block:: python3
 
   >>> sco.
-  sco.edate             sco.product           sco.units
-  sco.get_item_child(   sco.provider          sco.varalias
-  sco.get_item_parent(  sco.quicklook(        sco.varname
-  sco.mission           sco.region            sco.vars
-  sco.obstype           sco.sdate             sco.write_to_nc(
-  sco.path_local        sco.stdvarname        sco.write_to_pickle(
-  sco.processing_level  sco.twin
+  sco.apply_limits(                             sco.filter_main(
+  sco.cfg                                       sco.filter_NIGP(
+  sco.cleaner_blockQ(                           sco.filter_runmean(
+  sco.cleaner_blockStd(                         sco.get_item_child(
+  sco.compute_pulse_limited_footprint_radius()  sco.get_item_parent(
+  sco.coords                                    sco.list_input_files(
+  sco.crop_to_period(                           sco.meta
+  sco.crop_to_poi(                              sco.name
+  sco.crop_to_region(                           sco.nID
+  sco.despike_blockQ(                           sco.pathlst
+  sco.despike_blockStd(                         sco.poi
+  sco.despike_GP(                               sco.populate(
+  sco.despike_linearGAM(                        sco.quick_anim(
+  sco.despike_NIGP(                             sco.quicklook(
+  sco.distlim                                   sco.reader(
+  sco.download(                                 sco.region
+  sco.ed                                        sco.sd
+  sco.filter                                    sco.slider_chunks(
+  sco.filter_blockMean(                         sco.stdvarname
+  sco.filter_distance_to_coast(                 sco.time_gap_chunks(
+  sco.filter_footprint_land_interaction(        sco.twin
+  sco.filter_footprint_radius(                  sco.units
+  sco.filter_GP(                                sco.varalias
+  sco.filter_lanczos(                           sco.varname
+  sco.filter_landMask(                          sco.vars
+  sco.filter_linearGAM(                         sco.write_to_nc(
 
 With the retrieved variables in sco.vars::
 
-   >>> sco.vars.keys()
-   dict_keys(['sea_surface_wave_significant_height', 'time', 'time_unit', 'latitude', 'longitude', 'datetime', 'meta'])
+  >>> sco.vars
+  <xarray.Dataset>
+  Dimensions:  (time: 6901)
+  Coordinates:
+    * time     (time) datetime64[ns] 2023-02-01T09:30:00 ... 2023-02-01T12:26:16
+  Data variables:
+      Hs       (time) float32 3.559 3.551 3.553 3.553 ... 1.368 1.379 1.38 1.384
+      lons     (time) float64 175.7 175.7 175.6 175.6 ... 150.0 150.0 150.0 150.0
+      lats     (time) float64 53.74 53.8 53.86 53.91 ... -36.99 -36.93 -36.87
+  Attributes:
+      title:    wavy dataset
 
 You can readily explore what you obtained utilizing the quicklook function.
 
@@ -118,80 +170,4 @@ You can readily explore what you obtained utilizing the quicklook function.
    >>> sco.quicklook(ts=True) # for time series
    >>> sco.quicklook(m=True) # for a map
    >>> sco.quicklook(a=True) # for all
-
-Sentinel-3 A/B L2 altimetry data are of much higher frequency (20Hz) compared to L3 data (1Hz). L2 data can be obtained from eumetsat and colhub using the SentinelAPI. This requires user credentials for eumetsat and colhub, which are free of costs as well. Enter your account credentials into the .netrc-file as you did for the L3 data. Your .netrc should have included the following:
-
-.. code::
-
-   machine https://colhub.met.no/ login {USER} password {PASSWORD}
-   machine https://coda.eumetsat.int/search login {USER} password {PASSWORD}
-
-Ammend the satellite config file for L2 data and add the download directory of your choice like:
-
-.. code-block:: yaml
-
-   eumetsat_L2:
-      L2:
-         dst:
-             path_template: /home/patrikb/tmp_altimeter/L2/mission
-
-As you can see, this is customized to my username patrikb. Adjust this and continue with downloading some satellite altimeter data:
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product eumetsat_L2
-
-**wavy** will now invoke the SentinelAPI and download the correct data. The data can be read just as with the L3 data as e.g.:
-
-.. note::
-
-   There are currently problems with L2 from eumetsat/colhub which
-   will hopefully be fixed again.
-
-.. code-block:: python3
-
-   >>> from wavy.satmod import satellite_class as sc
-   >>> sd = "2020-11-1 12"
-   >>> ed = "2020-11-1 12"
-   >>> region = 'mwam4' # default
-   >>> mission = 's3a' # default
-   >>> twin = 30 # default
-   >>> varalias = 'Hs' # default
-
-   >>> sco = sc(sd,edate=ed,product="eumetsat_L2")
-
-You could also compare L2 to L3:
-
-.. code-block:: python3
-
-   >>> # imports
-   >>> from wavy.satmod import satellite_class as sc
-
-   >>> # settings
-   >>> sd = "2020-11-1 12"
-   >>> ed = "2020-11-1 12"
-   >>> region = 'NorwegianSea'
-   >>> mission = 's3a' # default
-   >>> varalias = 'Hs' # default
-   >>> twin = 30 # default
-
-   >>> # retrievals
-   >>> sco_e = sc(sd,edate=ed,region=region,product='eumetsat_L2')
-   >>> sco_c = sc(sd,edate=ed,region=region,product='cmems_L3_NRT')
-
-   >>> # plotting
-   >>> import matplotlib.pyplot as plt
-   >>> stdname = sco_e.stdvarname
-   >>> fig = plt.figure(figsize=(9,3.5))
-   >>> ax = fig.add_subplot(111)
-   >>> ax.plot(sco_e.vars['datetime'],sco_e.vars[stdname],'r.',label='L2 eumetsat')
-   >>> ax.plot(sco_c.vars['datetime'],sco_c.vars[stdname],'k.',label='L3 cmems')
-   >>> plt.legend(loc='upper left')
-   >>> plt.ylabel('Hs [m]')
-   >>> plt.show()
-
-This yields the following figure:
-
-.. image:: ./docs_fig_L2_vs_L3.png
-   :scale: 80
 

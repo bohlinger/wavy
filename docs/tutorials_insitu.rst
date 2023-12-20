@@ -58,7 +58,7 @@ read .nc-files
    >>> fifo = "nc" # default for this buoy
    >>> ico = ic(nID,sd,ed,sensor=sensor)
 
-Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below is a example:
+Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below is an example:
 
 .. code-block:: python3
 
