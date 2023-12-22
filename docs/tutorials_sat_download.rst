@@ -106,4 +106,20 @@ Similarily one can download L2P and L3 multi-mission altimetry data from the CED
 .. code-block:: bash
 
    $ ./wavyDownload.py -sat multi -sd 2017112000 -ed 2017112100 -product cci_L3
+   
+You can also download altimeter data directly from python with the following lines. 
+
+.. code-block:: bash
+
+   >>> from wavy.satellite_module import satellite_class as sc
+   >>> nID = 'cmems_L3_NRT'
+   >>> name = 's3a'
+   >>> sd = '2023-11-10 00'
+   >>> ed = '2023-11-10 10'
+   >>> # Initialize sc object
+   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name)
+   >>> # Download the data to a chosen directory
+   >>> path = '/home/patrikb/tmp_altimeter/L3/s3a'
+   >>> sco.download(nproc=4, path=path)
+
 

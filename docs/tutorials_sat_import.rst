@@ -26,6 +26,8 @@ Now, open python in the wavy conda environment:
    $ conda activate wavy
    $ python
 
+First you initialize a satellite class object with chosen parameters. 
+
 .. code-block:: python3
 
    >>> # imports
@@ -41,7 +43,12 @@ Now, open python in the wavy conda environment:
    >>> ed = "2023-2-1 12" # not necessary if twin is specified
 
    >>> # retrieval
-   >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name).populate()
+   >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name)
+   
+Then you can import the corresponding data with the .populate() method. 
+
+.. code-block:: python3
+    >>> sco = sco.populate()
 
 Or in one line:
 
@@ -115,7 +122,6 @@ You have now read in 1 hour of significant wave height from the satellite missio
  
    ### satellite_class object populated ###
   # ----- 
-
 
 The satellite_class object has multiple class methods and class variables:
 

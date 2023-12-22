@@ -1,12 +1,21 @@
 Apply filters
 #############
 
-Basic, but very useful, filters can be applied to the altimtery time series by activating the "filterData" key word and some filter specific key words regarding the desired filter. An example of filtering the CMEMS L3 time series is given below:
+Basic, but very useful, filters can be applied to the altimtery time series using filter methods. An example of filtering the CMEMS L3 time series is given below:
 
 .. code-block:: python3
 
-    >>> from wavy.satmod import satellite_class as sc
-    >>> sco_lm = sc(sdate="2022-5-20",edate="2022-5-23",region="NordicSeas", filterData=True, land_mask = True)
+    >>> from wavy.satellite_module import satellite_class as sc
+    >>> path = '/home/fabienc/Projects/patriks_fork_wavy/wavy/tests/data/L3/s3a'
+    >>> nID = 'cmems_L3_NRT'
+    >>> name = 's3a'
+    >>> region = 'NordicSeas'
+    >>> sd = '2022-2-1'
+    >>> ed = '2022-2-3'
+
+    >>> sco_lm = sc(nID=nID, name=name, sd=sd, ed=ed, region=region)\
+    ...        .populate(path=path)\
+    ...        .filter_landMask()
     >>> sco_lm.quicklook()
 
 .. image:: ./lm_example.png
@@ -14,13 +23,12 @@ Basic, but very useful, filters can be applied to the altimtery time series by a
 
 In the above example we filter the retrieved Sentinel-3A L3 time series of seignificant wave height by an highly accurate land/sea mask filter for the region "NordicSeas". In this case there was no misplaced footprint and all values are used.
 
-Another function is to specify distance to shore in order to exclude satellite footprints where the wave form was possibly corrupted by land in its vicinity. A lower and uper bound can be introduced. For this task we first have to activate the "distance-to-coast mask" dtc_mask and then the upper and lower limits by setting "dtc_llim" and "dtc_ulim", respectively.
+Another function is to specify distance to shore in order to exclude satellite footprints where the wave form was possibly corrupted by land in its vicinity. A lower and uper bound can be introduced. For this task we can apply an additional method to the already filtered data obtained above. The method is filter_distance_to_coast, and must be given the upper and lower limits by setting "llim" and "ulim" in meters, respectively.
 
 .. code-block:: python3
 
-    >>> from wavy.satmod import satellite_class as sc
-    >>> sco_lm_dc = sc(sdate="2022-5-20",edate="2022-5-23",region="NordicSeas", filterData=True, land_mask = True, dtc_mask= True,dtc_llim = 200, dtc_ulim= 300)
-    >>> sco_lm_dc.quicklook()
+    >>> sco_lm = sco_lm.filter_distance_to_coast(llim=200000, ulim=300000)
+    >>> sco_lm.quicklook()
 
 .. image:: ./lm_example_coast.png
    :scale: 100
