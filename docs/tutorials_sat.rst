@@ -6,7 +6,6 @@ Use satellite data
 
    tutorials_sat_download
    tutorials_sat_import
-   tutorials_sat_multisat
    tutorials_sat_regions
    tutorials_sat_filters
 
