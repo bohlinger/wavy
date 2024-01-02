@@ -17,7 +17,7 @@ from functools import lru_cache
 from wavy.wconfig import load_or_default
 from wavy.utils import build_xr_ds
 from wavy.grid_readers import get_gridded_dataset
-from wavy.grid_readers import build_xr_ds_grid
+from wavy.grid_readers import build_xr_ds_grid, build_xr_ds_grid_2D
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs_with_credentials_aggregated
 from wavy.utils import parse_date
@@ -60,6 +60,49 @@ def read_ww3_4km(**kwargs):
 
     print(' Build dataset')
     print(' dataset ready!')
+
+    return combined
+
+def read_noresm_making_waves(**kwargs):
+    pathlst = kwargs.get('pathlst')
+    nID = kwargs.get('nID')
+    fc_dates = kwargs.get('fc_dates')
+    varname = kwargs.get('varname')
+    varalias = kwargs.get('varalias')
+    timename = model_dict[nID]['vardef']['time']
+    lonsname = model_dict[nID]['vardef']['lons']
+    latsname = model_dict[nID]['vardef']['lats']
+
+    ds_lst = []
+    for i in range(len(pathlst)):
+        ds = xr.open_dataset(pathlst[i])
+        ds2 = ds.convert_calendar("all_leap")
+        datetimeindex = ds2.indexes[timename].to_datetimeindex()
+        ds[timename] = datetimeindex
+        del ds2
+        var = ds[varname].values
+        lons = ds[lonsname].values
+        lats = ds[latsname].values
+        Mlons, Mlats = np.meshgrid(lons, lats)
+        timedt = ds[timename].values
+        tlst = [parse_date(str(d)) for d in timedt]
+        idx = collocate_times(tlst, target_t=[fc_dates[i]])
+        time = np.array([np.array(tlst)[idx[0]]]).reshape((1,))
+        varin = var[idx[0], :, :].reshape((1, len(lats), len(lons)))
+        ds = build_xr_ds_grid_2D(varin, Mlons, Mlats, time,
+                                 lon_grid_coord=lons,
+                                 lat_grid_coord=lats,
+                                 varstr=varalias)
+        ds_lst.append(ds)
+
+    print(" Concatenate ...")
+    combined = xr.concat(ds_lst, timename,
+                         coords='minimal',
+                         data_vars='minimal',
+                         compat='override',
+                         combine_attrs='override',
+                         join='override')
+    print(" ... done concatenating")
 
     return combined
 

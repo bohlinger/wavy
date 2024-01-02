@@ -157,7 +157,7 @@ class quicklook_class_sat:
                                  s=.2, c='b', marker='.',
                                  edgecolor='face',
                                  transform=ccrs.PlateCarree())
-            if len(self.vars[self.varalias].shape) > 1:
+            if len(plot_var.shape) > 1:
                 sc = ax.contourf(plot_lons.squeeze(),
                                  plot_lats.squeeze(),
                                  plot_var.squeeze(),

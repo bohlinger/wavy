@@ -82,7 +82,7 @@ cmems_L3_MY:
         ftp: # downloading method
             src_tmplt: "/Core/WAVE_GLO_PHY_SWH_L3_MY_014_005\
                         /cci_obs-wave_glo_phy-swh_my_name-l3_PT1S/%Y/%m/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/L3_MY/name/%Y/%m
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/MY/name/%Y/%m
             path_date_incr_unit: 'm'
             path_date_incr: 1
             search_str: '%Y%m%dT'
@@ -91,7 +91,7 @@ cmems_L3_MY:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/L3_MY/name/%Y/%m
+        src_tmplt: /home/patrikb/tmp_altimeter/L3/MY/name/%Y/%m
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
@@ -100,7 +100,7 @@ cmems_L3_MY:
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3_MY/name/%Y/%m
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/MY/name/%Y/%m
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','name','region']

@@ -75,6 +75,7 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     of complete hours
     '''
     fc_dates_new = hour_rounder_pd(fc_dates)
+    fc_dates_new = np.unique(fc_dates_new)
     #if (leadtime is None or leadtime == 'best'):
     #    pass
     #else:
@@ -149,7 +150,7 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         print(" ")
         print(" ## Collocate ... ")
-#        for i in range(1):
+        #for i in range(1):
         try:
             t0 = time.time()
             results_dict = self.collocate(**kwargs)
@@ -329,10 +330,11 @@ class collocation_class(qls):
                 'collocation_idx_y': [],
                 }
         for i in tqdm(range(len(fc_date))):
+            print(fc_date[i])
         #for i in range(len(fc_date)):
             try:
-                #for j in range(1):
-                with NoStdStreams():
+                for j in range(1):
+                #with NoStdStreams():
                     # filter needed obs within time period
                     target_date = [parse_date(str(fc_date[i]))]
                     idx = collocate_times(ndt_datetime,
@@ -376,7 +378,8 @@ class collocation_class(qls):
                                         results_dict_tmp['collocation_idx_x'])
                         results_dict['collocation_idx_y'].append(
                                         results_dict_tmp['collocation_idx_y'])
-                    else: pass
+                    else:
+                        pass
                     if 'results_dict_tmp' in locals():
                         del results_dict_tmp
             except (ValueError, FileNotFoundError, OSError) as e:

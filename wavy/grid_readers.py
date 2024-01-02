@@ -158,6 +158,38 @@ def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, **kwargs):
          )
     return ds
 
+def build_xr_ds_grid_2D(var_means, lon_grid, lat_grid, t, **kwargs):
+    print(" building xarray dataset from grid")
+    varstr = kwargs.get('varstr')
+    lon_grid_coord = kwargs.get('lon_grid_coord')
+    lat_grid_coord = kwargs.get('lat_grid_coord')
+
+    ds = xr.Dataset({
+            varstr: xr.DataArray(
+                     data=var_means,
+                     dims=['time', 'latitude', 'longitude'],
+                     coords={'latitude': lat_grid_coord,
+                             'longitude': lon_grid_coord,
+                             'time': t},
+                     attrs=variable_def[varstr],
+                     ),
+            'lons': xr.DataArray(
+                     data=lon_grid,
+                     dims=['latitude', 'longitude'],
+                     coords={'longitude': lon_grid_coord},
+                     attrs=variable_def['lons'],
+                     ),
+            'lats': xr.DataArray(
+                     data=lat_grid,
+                     dims=['latitude', 'longitude'],
+                     coords={'latitude': lat_grid_coord},
+                     attrs=variable_def['lats'],
+                     ),
+                 },
+             attrs={'title': 'wavy dataset'}
+         )
+    return ds
+
 
 def grid_point_cloud_ds(values, lons, lats, t, **kwargs):
     print(' gridding point cloud')
