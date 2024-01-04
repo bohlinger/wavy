@@ -6,6 +6,8 @@ Currently two data types can be read .d22-files and netcdf-files. Together 4 dat
 read .d22 files
 ***************
 
+TO UPDATE
+
 .. note::
 
    The .d22-files used in these examples and specified here are only available to MET Norway staff. However, The same data will soon be operationally accessible via MET Norway's FROST API as shown in the examples.
@@ -39,31 +41,37 @@ For a FROST call **wavy** uses MET Norways FROST API v1. A FROST call would be s
 
 .. code-block:: python3
 
-   >>> nID = 'draugen'
-   >>> sensor = "MKIIIradar_1"
-   >>> ico = ic(nID, sd, ed, sensor=sensor, fifo="frost")
+   >>> from wavy.insitu_module import insitu_class as ic
 
+   >>> varalias = 'Hs' # default
+   >>> sd = "2021-8-2 01"
+   >>> ed = "2021-8-3 00"
+   >>> nID = 'draugen'
+   >>> sensor = 'MKIIIradar_1'
+   >>> ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=sensor)
+   >>> ico = ico.populate()
 
 read .nc-files
 **************
 
 .. code-block:: python3
 
-   >>> from wavy.insitumod import insitu_class as ic
-   >>> varalias = 'Hs' # default
-   >>> sd = "2020-01-01"
-   >>> ed = "2020-01-05"
+   >>> from wavy.insitu_module import insitu_class as ic
+
+   >>> varalias = 'Hs'
+   >>> sd = "2021-8-2 01"
+   >>> ed = "2021-8-3 00"
    >>> nID = 'D_Breisundet_wave'
    >>> sensor = 'wavescan'
-   >>> fifo = "nc" # default for this buoy
-   >>> ico = ic(nID,sd,ed,sensor=sensor)
+   >>> ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=sensor)
+   >>> ico = ico.populate()
 
-Additionally, outliers can be removed, missing data can be treated, and super-observations can be formed. Below is an example:
+Then you can smooth the obtained time series with a running mean, specifying the number of observations used and the sampling rate of the measurements: 
 
 .. code-block:: python3
 
-   >>> # blockMean filter
-   >>> ico_bm = ic(nID,sd,ed,sensor=sensor,unique=True,priorOp='square',postOp='root',smoother='blockMean',stwin=3,etwin=3,date_incr=1,filterData=True)
+   >>> # running mean filter
+   >>> ico_bm = ico.filter_runmean(window=13, sampling_rate_Hz=1/600)
 
 Now, let's check how this could look like:
 
@@ -72,16 +80,19 @@ Now, let's check how this could look like:
    >>> import matplotlib.pyplot as plt
    >>> fig = plt.figure(figsize=(9,3.5))
    >>> ax = fig.add_subplot(111)
-   >>> ax.plot(ico.vars['datetime'],ico.vars[ico.stdvarname],'ko',label='raw')
-   >>> ax.plot(ico_bm.vars['datetime'],ico_bm.vars[ico.stdvarname],'r-',label='hourly blockMean')
-   >>> plt.legend(loc='upper left')
+   >>> ax.plot(ico.vars['time'],ico.vars[varalias],'ko',label='raw')
+   >>> ax.plot(ico_bm.vars['time'],ico_bm.vars[varalias],'r-',label='2 hours running average')
+   >>> plt.legend(loc='upper right')
    >>> plt.ylabel('Hs [m]')
    >>> plt.show()
 
 .. image:: ./docs_fig_ts_insitu.png
    :scale: 80
 
-Again, for the insitu class there is also a quicklook fct available::
+Again, for the insitu class there is also a quicklook function available::
 
-   >>> ico.quicklook()
+   >>> ico.quicklook(ts=True)
+   
+.. image:: ./quicklook_ts_insitu.png
+   :scale: 80
 

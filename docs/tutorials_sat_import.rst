@@ -48,7 +48,8 @@ First you initialize a satellite class object with chosen parameters.
 Then you can import the corresponding data with the .populate() method. 
 
 .. code-block:: python3
-    >>> sco = sco.populate()
+
+    >>> sco = sco.populate(path=tmpdir)
 
 Or in one line:
 
