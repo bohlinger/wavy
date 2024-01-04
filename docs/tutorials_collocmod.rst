@@ -6,17 +6,27 @@ One of the main focus of **wavy** is to ease the collocation of observations and
 Collocation of satellite and wave model
 ****************************************
 
+TO CHANGE, DID NOT WORK
+
 .. code-block:: python3
 
-   >>> from wavy.satmod import satellite_class as sc
-   >>> from wavy.collocmod import collocation_class as cc
+   >>> from wavy.satellite_module import satellite_class as sc
+   >>> from wavy.collocation_module import collocation_class as cc
 
-   >>> model = 'mwam4' # default
-   >>> mission = 's3a' # default
-   >>> varalias = 'Hs' # default
-   >>> sd = "2020-11-1 12"
-   >>> sco = sc(sdate=sd)
-   >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
+   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a/global_vavh_l3_rt_s3a_20220201T120000_20220201T150000_20220627T133453.nc
+   >>> sd = "2022-2-1 12"
+   >>> ed = "2022-2-1 12"
+   >>> name = 's3a'
+   >>> varalias = 'Hs'
+   >>> twin = 30
+   >>> nID = 'cmems_L3_NRT'
+   >>> model = 'ww3_4km'
+   >>> sco = sc(sd=sd, ed=ed, nID=nID, name=name,
+   ...         varalias=varalias, twin=twin)
+   >>> sco = sco.populate(reader='read_local_ncfiles',
+   ...                   wavy_path=')
+   >>> sco = sco.crop_to_region(model)
+   >>> cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
 
 .. image:: ./docs_fig_ts_sat.png
    :scale: 80
@@ -44,56 +54,26 @@ The following example demonstrates the comparison of collocating a raw in-situ t
 
 .. code-block:: python3
 
-   >>> # imports
-   >>> from wavy.insitumod import insitu_class as ic
-   >>> from wavy.collocmod import collocation_class as cc
+   >>> from wavy.collocation_module import collocation_class as cc
+   >>> from wavy.insitu_module import insitu_class as ic
 
-   >>> # settings
-   >>> model = 'mwam4' # default
-   >>> varalias = 'Hs' # default
-   >>> sd = "2020-1-1 01"
-   >>> ed = "2020-1-4 00"
-   >>> nID = 'ekofiskL'
-   >>> sensor = 'waverider'
-
-   >>> # retrievals
-   >>> ico_gam = ic(nID,sensor,sd,ed,smoother='linearGAM',cleaner='linearGAM',date_incr=1./6.,unique=True,filterData=True)
-   >>> ico_raw = ic(nID,sensor,sd,ed)
-
-   >>> # collocation
-   >>> cco_gam = cc(model=model,obs_obj_in=ico_gam,distlim=6,date_incr=1)
-   >>> cco_raw = cc(model=model,obs_obj_in=ico_raw,distlim=6,date_incr=1)
+   >>> sd = "2022-2-1"
+   >>> ed = "2022-2-4"
+   >>> varalias = 'Hs'
+   >>> twin = 30
+   >>> model = 'ww3_4km'
+   >>> nID = 'D_Breisundet_wave'
+   >>> name = 'wavescan'
+   >>> ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias,
+   ...         name=name, twin=twin)
+   >>> ico = ico.populate()
+   >>> cco = cc(oco=ico, model=model, leadtime='best', distlim=6)
 
 Let's plot the results:
 
 .. code-block:: python3
 
-   >>> import matplotlib.pyplot as plt
-   >>> stdname = ico_raw.stdvarname
-
-   >>> fig = plt.figure(figsize=(9,3.5))
-   >>> ax = fig.add_subplot(111)
-   >>> ax.plot(ico_raw.vars['datetime'],ico_raw.vars[stdname],color='gray',marker='o',label='raw',linestyle='None',alpha=.4)
-   >>> ax.plot(cco_raw.vars['datetime'],cco_raw.vars['obs_values'],'ko',label='collocated obs')
-   >>> ax.plot(ico_gam.vars['datetime'],ico_gam.vars[stdname],'b-',label='gam',lw=2)
-   >>> ax.plot(cco_gam.vars['datetime'],cco_gam.vars['model_values'],'r-',label='mwam4',lw=2)
-   >>> plt.legend(loc='upper left')
-   >>> plt.ylabel('Hs [m]')
-   >>> plt.show()
+   >>> cco.quicklook(ts=True)
 
 .. image:: ./docs_fig_col_insitu.png
    :scale: 80
-
-
-Dump collocation ts to a file for later use
-*******************************************
-
-The collocation results can be dumped to a pickle or netcdf file. The path and filename can be entered as keywords but also predefined config settings can be used from collocation_specs.yaml:
-
-.. code-block:: python3
-
-   >>> cco_raw.write_to_nc()
-   >>> # or
-   >>> cco_raw.write_to_nc(pathtofile = "/some/random/path/to/file.nc")
-   >>> # or
-   >>> cco_raw.write_to_pickle(pathtofile = "/some/random/path/to/file.pkl")
