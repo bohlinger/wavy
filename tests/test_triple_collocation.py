@@ -46,6 +46,41 @@ def test_triple_collocation_simulated_data():
     assert len(tc_result['data_sources'][ref].keys()) == 6
 
 
+def test_ci_95():
+    
+    n = 1500
+    T = [np.sin(0.2 * i) + 2 for i in range(n)]
+    b_x = 1.1
+    b_y = 0.5
+    b_z = 1.8
+
+    np.random.seed(1)
+
+    s_x = 0.1
+    e_x = np.random.normal(0, s_x, n)
+
+    np.random.seed(5)
+    s_y = 0.2
+    e_y = np.random.normal(0, s_y, n)
+
+    np.random.seed(11)
+    s_z = 0.5
+    e_z = np.random.normal(0, s_z, n)
+
+    X = [b_x * T[i] + e_x[i] for i in range(n)]
+    Y = [b_y * T[i] + e_y[i] for i in range(n)]
+    Z = [b_z * T[i] + e_z[i] for i in range(n)]
+
+    dict_data = {'X': X, 'Y': Y, 'Z': Z}
+    ref = 'X'
+
+    ci_95 = tc.bootstrap_ci_95(dict_data)
+
+    assert isinstance(ci_95, dict)
+    assert set(dict_data.keys()) == set(ci_95.keys())
+    assert set(['mean','ci_l','ci_u']) == set(ci_95['X'].keys())
+
+
 # def test_triple_collocation_real_data():
 
 #    # use "real" data

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import copy
 from datetime import datetime, timedelta
+import random
 
 
 def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
@@ -240,6 +241,11 @@ def triple_collocation_validate(result_dict,
     measure_names = list(result_dict.keys())
     measures = list(result_dict.values())
 
+    if ref == None:
+        ref = measures_names[0]
+        print('No reference was specified.', 
+             ref, 'was set as the reference.')
+
     tc_validate = {'data_sources':{key:{} for key in measure_names},
                      'reference_dataset':ref}
 
@@ -344,3 +350,62 @@ def disp_tc_validation(tc_validate, dec=3):
         print(format_row.format(ds, *row))
 
     print("\n The reference for the SI is:", ref)
+    
+
+def bootstrap_ci_95(result_dict, 
+                    sample_size=None, 
+                    metric='var_est', 
+                    n_bootstrap=100, 
+                    ref=None):
+    '''
+    Calculate 95% confidence intervals for a given estimate
+    returned by triple_collocation_validate function, using
+    bootstrap sampling. 
+
+    results_dict: {'name of measurement':list of values}
+    sample_size: size of the bootstrap samples that will
+    be drawn from the data. 
+    metric: metric for which the confidence interval is 
+    required. Must be one of the list that can be given 
+    to triple_collocation_validate metric_list argument.
+    n_bootstrap: number of generated bootstrap samples.
+    ref: Name of one of the measurements, must correspond
+    to one key of results_dict
+
+    returns: dict containing mean, upper and lower
+    value of the 95% confidence interval for each
+    data source.
+    {'name of measurement': {'metric name':metric}}
+    '''
+    measure_names = list(result_dict.keys())
+    measures = list(result_dict.values())
+    
+    if ref == None: 
+        ref = measure_names[0]
+    if sample_size == None:
+        sample_size = len(measures[0])
+    
+    indexes = np.arange(0,len(measures[0]))
+
+    dict_res_tc = {m:[] for m in measure_names}
+    
+    for i in range(n_bootstrap):
+
+        rand_ind_tmp = random.choices(indexes, k=sample_size)
+        result_dict_tmp = {key:[result_dict[key][j] for j in rand_ind_tmp] for\
+                           key in measure_names}
+        tc_validate_tmp = triple_collocation_validate(result_dict_tmp,
+                                                      metric_list=[metric],
+                                                      ref=ref)
+        
+        for m in measure_names:
+            dict_res_tc[m].append(list(tc_validate_tmp['data_sources'][m].values())[0])
+    
+    dict_ci = {m:{} for m in measure_names}
+    for m in measure_names:    
+        dict_ci[m]['mean'] = np.mean(dict_res_tc[m])
+        percentiles = np.percentile(dict_res_tc[m], [2.5, 97.5])
+        dict_ci[m]['ci_l'] = percentiles[0]
+        dict_ci[m]['ci_u'] = percentiles[1]
+    
+    return dict_ci
