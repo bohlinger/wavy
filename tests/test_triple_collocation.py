@@ -43,7 +43,7 @@ def test_triple_collocation_simulated_data():
     assert set(keys_lvl_2) == set(dict_data.keys())
 
     assert ref in keys_lvl_2
-    assert len(tc_result['data_sources'][ref].keys()) == 8
+    assert len(tc_result['data_sources'][ref].keys()) == 6
 
 
 # def test_triple_collocation_real_data():
