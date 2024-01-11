@@ -219,9 +219,9 @@ def SNR_dB(A, B, C, var_err_A):
     return 10*np.log10(sensitivity_estimates(A, B, C)/var_err_A)
 
 
-def triple_collocation_validate(result_dict, 
-                                metric_list=['var_est','rmse','si',
-                                             'rho','mean','std'], 
+def triple_collocation_validate(result_dict,
+                                metric_list=['var_est', 'rmse', 'si',
+                                             'rho', 'mean', 'std'],
                                 ref=None):
     '''
     Runs the triple collocation given a dictionary
@@ -229,7 +229,7 @@ def triple_collocation_validate(result_dict,
     in a dictionary.
 
     results_dict: {'name of measurement':list of values}
-    metric_list: List of the metrics to return, among 'var_est',
+    metric_list: Str "all" or List of the metrics to return, among 'var_est',
     'rmse', 'si', 'rho', 'sens', 'snr', 'snr_db', 'fmse', 'mean',
     'std'
     ref: Name of one of the measurements, must correspond
@@ -241,13 +241,13 @@ def triple_collocation_validate(result_dict,
     measure_names = list(result_dict.keys())
     measures = list(result_dict.values())
 
-    if ref == None:
+    if ref is None:
         ref = measures_names[0]
-        print('No reference was specified.', 
-             ref, 'was set as the reference.')
+        print('No reference was specified.',
+              ref, 'was set as the reference.')
 
-    tc_validate = {'data_sources':{key:{} for key in measure_names},
-                     'reference_dataset':ref}
+    tc_validate = {'data_sources': {key: {} for key in measure_names},
+                   'reference_dataset': ref}
 
     mean_ref = np.mean(result_dict[ref])
 
@@ -255,9 +255,9 @@ def triple_collocation_validate(result_dict,
     B = measures[1]
     C = measures[2]
 
-    cov_ab = np.cov(A,B)
-    cov_bc = np.cov(B,C)
-    cov_ac = np.cov(A,C)
+    cov_ab = np.cov(A, B)
+    cov_bc = np.cov(B, C)
+    cov_ac = np.cov(A, C)
 
     # Sensitivity
     sens = [(cov_ab[0][1]*cov_ac[0][1])/cov_bc[0][1],
@@ -266,8 +266,8 @@ def triple_collocation_validate(result_dict,
 
     # Estimate of the variance of random error
     var_est = [cov_ab[0][0] - sens[0],
-	       cov_ab[1][1] - sens[1],
-	       cov_bc[1][1] - sens[2]]
+               cov_ab[1][1] - sens[1],
+               cov_bc[1][1] - sens[2]]
 
     # Root Mean Square Error
     rmse = [np.sqrt(var_est[0]),
@@ -275,10 +275,10 @@ def triple_collocation_validate(result_dict,
             np.sqrt(var_est[2])]
 
     # Scatter Index
-    if 'si' in metric_list:
+    if 'si' in metric_list or metric_list == 'all':
         si = [rmse[0]/mean_ref*100,
-	      rmse[1]/mean_ref*100,
-	      rmse[2]/mean_ref*100]
+              rmse[1]/mean_ref*100,
+              rmse[2]/mean_ref*100]
 
     # Signal to Noise Ratio
     snr = [sens[0]/var_est[0],
@@ -286,43 +286,43 @@ def triple_collocation_validate(result_dict,
            sens[2]/var_est[2]]
 
     # Fractional Mean Squared Error
-    if 'fmse' in metric_list:
+    if 'fmse' in metric_list or metric_list == 'all':
         fmse = [1/(1+snr[0]),
                 1/(1+snr[1]),
                 1/(1+snr[2])]
-            
+
     # Signal to Noise Ratio (dB)
-    if 'snr_db' in metric_list:
+    if 'snr_db' in metric_list or metric_list == 'all':
         snr_db = [10*np.log10(snr[0]),
                   10*np.log10(snr[1]),
                   10*np.log10(snr[2])]
-              
+
     # Data truth correlation
-    if 'rho' in metric_list:
+    if 'rho' in metric_list or metric_list == 'all':
         rho = [sens[0]/cov_ab[0][0],
                sens[1]/cov_ab[1][1],
                sens[2]/cov_bc[1][1]]
 
-    for i,k in enumerate(measure_names):
-        if 'var_est' in metric_list:
+    for i, k in enumerate(measure_names):
+        if 'var_est' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['var_est'] = var_est[i]
-        if 'rmse' in metric_list:
+        if 'rmse' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['RMSE'] = rmse[i]
-        if 'si' in metric_list:
+        if 'si' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['SI'] = si[i]
-        if 'sens' in metric_list:
+        if 'sens' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['sensitivity'] = sens[i]
-        if 'rho' in metric_list:
+        if 'rho' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['rho'] = rho[i]
-        if 'snr' in metric_list:
+        if 'snr' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['SNR'] = snr[i]
-        if 'fmse' in metric_list:
+        if 'fmse' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['fMSE'] = fmse[i]
-        if 'snr_db' in metric_list:
+        if 'snr_db' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['SNR_dB'] = snr_db[i]
-        if 'mean' in metric_list:
+        if 'mean' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['mean'] = np.mean(measures[i])
-        if 'std' in metric_list:
+        if 'std' in metric_list or metric_list == 'all':
             tc_validate['data_sources'][k]['std'] = np.std(measures[i])
 
     return tc_validate
@@ -350,23 +350,24 @@ def disp_tc_validation(tc_validate, dec=3):
         print(format_row.format(ds, *row))
 
     print("\n The reference for the SI is:", ref)
-    
 
-def bootstrap_ci_95(result_dict, 
-                    sample_size=None, 
-                    metric='var_est', 
-                    n_bootstrap=100, 
-                    ref=None):
+
+def bootstrap_ci(result_dict,
+                 conf=95.,
+                 sample_size=None,
+                 metric='var_est',
+                 n_bootstrap=100,
+                 ref=None):
     '''
     Calculate 95% confidence intervals for a given estimate
     returned by triple_collocation_validate function, using
-    bootstrap sampling. 
+    bootstrap sampling.
 
     results_dict: {'name of measurement':list of values}
     sample_size: size of the bootstrap samples that will
-    be drawn from the data. 
-    metric: metric for which the confidence interval is 
-    required. Must be one of the list that can be given 
+    be drawn from the data.
+    metric: metric for which the confidence interval is
+    required. Must be one of the list that can be given
     to triple_collocation_validate metric_list argument.
     n_bootstrap: number of generated bootstrap samples.
     ref: Name of one of the measurements, must correspond
@@ -379,33 +380,36 @@ def bootstrap_ci_95(result_dict,
     '''
     measure_names = list(result_dict.keys())
     measures = list(result_dict.values())
-    
-    if ref == None: 
-        ref = measure_names[0]
-    if sample_size == None:
-        sample_size = len(measures[0])
-    
-    indexes = np.arange(0,len(measures[0]))
 
-    dict_res_tc = {m:[] for m in measure_names}
-    
+    if ref is None:
+        ref = measure_names[0]
+    if sample_size is None:
+        sample_size = len(measures[0])
+
+    indexes = np.arange(0, len(measures[0]))
+
+    dict_res_tc = {m: [] for m in measure_names}
+
     for i in range(n_bootstrap):
 
         rand_ind_tmp = random.choices(indexes, k=sample_size)
-        result_dict_tmp = {key:[result_dict[key][j] for j in rand_ind_tmp] for\
+        result_dict_tmp = {key: [result_dict[key][j] for j in rand_ind_tmp] for
                            key in measure_names}
         tc_validate_tmp = triple_collocation_validate(result_dict_tmp,
                                                       metric_list=[metric],
                                                       ref=ref)
-        
+
         for m in measure_names:
-            dict_res_tc[m].append(list(tc_validate_tmp['data_sources'][m].values())[0])
-    
-    dict_ci = {m:{} for m in measure_names}
-    for m in measure_names:    
+            dict_res_tc[m].append(
+                list(tc_validate_tmp['data_sources'][m].values())[0]
+                                 )
+
+    dict_ci = {m: {} for m in measure_names}
+    for m in measure_names:
         dict_ci[m]['mean'] = np.mean(dict_res_tc[m])
-        percentiles = np.percentile(dict_res_tc[m], [2.5, 97.5])
+        percentiles = np.percentile(dict_res_tc[m],
+                                    [(100-conf)/2, conf + (100-conf)/2])
         dict_ci[m]['ci_l'] = percentiles[0]
         dict_ci[m]['ci_u'] = percentiles[1]
-    
+
     return dict_ci
