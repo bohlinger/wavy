@@ -46,7 +46,7 @@ def test_triple_collocation_simulated_data():
     assert len(tc_result['data_sources'][ref].keys()) == 6
 
 
-def test_ci_95():
+def test_ci():
     
     n = 1500
     T = [np.sin(0.2 * i) + 2 for i in range(n)]
@@ -74,7 +74,7 @@ def test_ci_95():
     dict_data = {'X': X, 'Y': Y, 'Z': Z}
     ref = 'X'
 
-    ci_95 = tc.bootstrap_ci_95(dict_data)
+    ci_95 = tc.bootstrap_ci(dict_data)
 
     assert isinstance(ci_95, dict)
     assert set(dict_data.keys()) == set(ci_95.keys())
