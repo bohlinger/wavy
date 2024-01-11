@@ -16,13 +16,10 @@ e.g.:
    $ ./wavyDownload.py -h
 
 .. toctree::
-   :titlesonly:
+   :maxdepth: 2
 
    tutorials_config
-   tutorials_satmod
-   tutorials_multisat
-   tutorials_regions
-   tutorials_filters
+   tutorials_sat
    tutorials_modelmod
    tutorials_insitu
    tutorials_multiins

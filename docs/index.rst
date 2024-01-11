@@ -59,7 +59,6 @@ Contents
 
    installation
    tutorials
-   workshops
    gallery
    autoapi/index
 
