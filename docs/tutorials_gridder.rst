@@ -10,25 +10,39 @@ Retrieve satellite observations from multiple satellites:
 
 .. code-block:: python3
 
-   >>> from wavy.satmod import satellite_class as sc
+   >>> from wavy.satellite_module import satellite_class as sc
+   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/multi/'
+   >>> sd = '2005-8-26'
+   >>> ed = '2005-8-28'
    >>> region = 'global'
-   >>> sd = "2020-11-1"
-   >>> ed = "2020-11-2"
-   >>> sco = sc(sdate=sd,edate=ed,region='global')
-
+   >>> name = 'multi'
+   >>> nID = 'CCIv1_L3'
+   >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name).populate(path=tmpdir)
 
 Apply the gridder:
 
 .. code-block:: python3
 
-   >>> from wavy.gridder import gridder_class as gc
+   >>> from wavy.gridder_module import gridder_class as gc
    >>> from wavy.grid_stats import apply_metric
-   >>> bb = (-179,179,-80,80) # lonmin,lonmax,latmin,latmax
-   >>> res = (5,5) # lon/lat
-   >>> gco = gc(oco=sco,bb=bb,res=res)
-   >>> var_gridded_dict,lon_grid,lat_grid = apply_metric(gco=gco)
-   >>> gco.quicklook(val_grid=var_gridded_dict,lon_grid=lon_grid,lat_grid=lat_grid,metric='mor')
-
+   >>> bb = (-179, 178, -80, 80)  # lonmin,lonmax,latmin,latmax
+   >>> res = (5, 5) # lon/lat
+   >>> gco = gc(lons=sco.vars.lons.squeeze().values.ravel(),
+   ...          lats=sco.vars.lats.squeeze().values.ravel(),
+   ...          values=sco.vars.Hs.squeeze().values.ravel(),
+   ...          bb=bb, res=res,
+   ...          varalias=sco.varalias,
+   ...          units=sco.units,
+   ...          sdate=sco.vars.time,
+   ...          edate=sco.vars.time)
+   >>> gridvar, lon_grid, lat_grid = apply_metric(gco=gco)
+   >>> gco.quicklook(val_grid=gridvar,
+   ...               lon_grid=lon_grid,
+   ...               lat_grid=lat_grid,
+   ...               metric='mor', land_mask_resolution='i',
+   ...               mask_metric_llim=1,
+   ...               title='')
+   
 .. image:: ./docs_fig_gridder_obs.png
    :scale: 80
 
