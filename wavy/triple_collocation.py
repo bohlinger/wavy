@@ -352,6 +352,32 @@ def disp_tc_validation(tc_validate, dec=3):
     print("\n The reference for the SI is:", ref)
 
 
+def calibration(R, A, B):
+    '''
+    Calibrate A and B relatively to R using triple collocation calibration
+    constant estimates, following Gruber et al., 2016 method.
+
+    R (list of floats): Reference data to use for calibration.
+    A, B (lists of floats): Data series to calibrate relatively to the
+    reference.
+
+    returns:
+    A_R, B_R (lists of floats): Calibrated data series
+    '''
+    c_AB = np.cov(A,B)[0,1]
+    c_RA = np.cov(R,A)[0,1]
+    c_RB = np.cov(R,B)[0,1]
+
+    a_A = c_AB/c_RB
+    a_B = c_AB/c_RA
+    a_R = 1
+
+    A_R = (a_R/a_A)*(A - np.mean(A)) + np.mean(R)
+    B_R = (a_R/a_B)*(B - np.mean(B)) + np.mean(R)
+
+    return A_R, B_R
+
+
 def bootstrap_ci(result_dict,
                  conf=95.,
                  sample_size=None,

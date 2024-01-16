@@ -28,5 +28,6 @@ e.g.:
    tutorials_collocmod
    tutorials_validate
    tutorials_stats
+   tutorials_triple_collocation
    tutorials_gridder
    tutorials_wavyQuick
