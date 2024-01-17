@@ -54,11 +54,13 @@ Contents
 ========
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :glob:
 
    installation
    tutorials
+   workshops
+   oneocean
    gallery
    autoapi/index
 

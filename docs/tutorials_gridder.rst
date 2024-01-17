@@ -11,12 +11,12 @@ Retrieve satellite observations from multiple satellites:
 .. code-block:: python3
 
    >>> from wavy.satellite_module import satellite_class as sc
-   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/multi/'
-   >>> sd = '2005-8-26'
-   >>> ed = '2005-8-28'
+   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a/'
+   >>> sd = '2022-2-1'
+   >>> ed = '2022-2-2'
    >>> region = 'global'
-   >>> name = 'multi'
-   >>> nID = 'CCIv1_L3'
+   >>> name = 's3a'
+   >>> nID = 'cmems_L3_NRT'
    >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name).populate(path=tmpdir)
 
 Apply the gridder:
@@ -60,9 +60,9 @@ We first need to collocate the data with the collocation_class
 
 .. code-block:: python3
 
-   >>> from wavy.collocmod import collocation_class as cc
+   >>> from wavy.collocation_module import collocation_class as cc 
    >>> # collocate
-   >>> cco = cc(model='mwam4',obs_obj_in=sco,distlim=6,date_incr=1)
+   >>> cco = cc(model='ww3_4km',oco=sco,distlim=6,leadtime='best',date_incr=1)
    >>> # reduce region to part of model domain for better visual
    >>> bb = (-20,20,50,80) # lonmin,lonmax,latmin,latmax
    >>> res = (5,5) # lon/lat
