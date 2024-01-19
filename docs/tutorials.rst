@@ -30,4 +30,3 @@ e.g.:
    tutorials_stats
    tutorials_triple_collocation
    tutorials_gridder
-   tutorials_wavyQuick
