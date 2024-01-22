@@ -1,5 +1,10 @@
 One Ocean Expedition
 ====================
+
+.. note::
+
+   The codes used for this section are from an older version of **wavy**. It can be adapted with the newest version of the package, however you can still find the version used for this workshop on `github <https://github.com/bohlinger/wavy/tree/595bd10afed4641f6add63e120052dfc98e8a26a>`_.
+   
 The following examples are drawn from work where **wavy** was used  related to the `One Ocean Expedition <https://oneoceanexpedition.com/>`_.
 
 1. Collocating satellite tracks with drifter

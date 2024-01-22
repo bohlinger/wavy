@@ -899,3 +899,64 @@ MO_Draugen_daily: # object nID (nameID)
     # optional, to ease grouping
     tags:
 
+history_cmems_NRT: # object nID (nameID)
+    name: # sensor
+        Draugen:
+        Drangsnes:
+        Ekofisk:
+    download:
+        ftp:
+            src_tmplt: "/Core/\
+                INSITU_GLO_PHYBGCWAV_DISCRETE_MYNRT_013_030/\
+                cmems_obs-ins_glo_phybgcwav_mynrt_na_irr/\
+                monthly/MO/%Y%m/"
+            #trgt_tmplt: /home/patrikb/tmp_insitu/NRT/name/%Y/%m
+            trgt_tmplt:
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            search_str: 'name_%Y%m'
+            strsub: ['name']
+            server: "nrt.cmems-du.eu"
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        #src_tmplt: "/home/patrikb/wavy/tests/data/insitu/"
+        src_tmplt:
+        fl_tmplt: "AR_TS_MO_name_%Y%m.nc"
+        strsub: ['name']
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt:
+        fl_tmplt:
+        strsub:
+        file_date_incr_unit: 'm'
+        file_date_incr: 1
+    # optional, if not defined the class default is used
+    reader: get_cmems
+    collector: get_remote_files_cmems
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: VAVH
+        lats: PRECISE_LATITUDE
+        lons: PRECISE_LONGITUDE
+        time: TIME
+    misc:
+        ID:
+        manufacturer:
+            NA:
+        coords:
+            NA:
+                lat:
+                lon:
+        operator:
+        obs_type:
+        date_incr_unit:
+        date_incr:
+        fixed_dim:
+            DEPTH: 2
+    # optional, to ease grouping
+    tags:
+

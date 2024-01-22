@@ -352,6 +352,104 @@ def disp_tc_validation(tc_validate, dec=3):
     print("\n The reference for the SI is:", ref)
 
 
+def tc_analysis_wavy_objects(data, ref=None,
+                             metric_list=['var_est', 'rmse', 'si',
+                                          'rho', 'mean', 'std'],
+                             calibrate=True, calibration_ref=None):
+    '''
+    Runs the triple collocation given a dictionary
+    containing three wavy objects, returns results
+    in a dictionary.
+
+    data: {'name of measurement':wavy object of satellite,
+                                 model or insitu class}
+    metric_list: Str "all" or List of the metrics to return, among 'var_est',
+    'rmse', 'si', 'rho', 'sens', 'snr', 'snr_db', 'fmse', 'mean',
+    'std'
+    ref: Name of one of the measurements, must correspond
+    to one key of results_dict. Data source to use for metrics
+    that depend on one reference data source.
+    calibrate: True or False. Choose if calibration should be applied
+    to the data or not.
+    calibration_ref: Name of the measurement which will be used to calibrate
+    the two other data sources.
+
+    returns: dict of dict of the metrics for each measurement
+    {'name of measurement': {'metric name':metric}}
+    '''
+    list_keys = list(data.keys())
+
+    if ref is None:
+        ref = list_keys[0]
+        print("Since no reference was given,",
+              ref, "is taken as a reference.")
+
+    # Fetch the 1D-arrays for each data source
+    data_bis = {}
+    for k in list_keys:
+        data_bis[k] = data[k].vars.Hs.values
+
+    # Recreate dict of data, removing the nan values
+    list_data = list(data_bis.values())
+    list_data_na_rm = remove_nan(list_data[0],
+                                 list_data[1],
+                                 list_data[2])
+
+    for i, k in enumerate(list_keys):
+        data_bis[k] = list_data_na_rm[i]
+
+    # Recreate dict of data, after calibrating
+    if calibrate:
+        if calibration_ref is None:
+            calibration_ref = list_keys[0]
+            print("Since no reference was given for the calibration,",
+                  calibration_ref, "is taken as a reference.")
+
+        # Get the two keys of data sources that are not the calibration
+        # reference in order to give the right arguments for calibration
+        keys_left = [k for k in list_keys if k != calibration_ref]
+        # Apply calibration
+        calibrated_data = calibration(data_bis[calibration_ref],
+                                      data_bis[keys_left[0]],
+                                      data_bis[keys_left[1]])
+        # Overwrite the calibrated data in the data dictionary
+        data_bis[keys_left[0]] = calibrated_data[0]
+        data_bis[keys_left[1]] = calibrated_data[1]
+
+    # Apply triple collocation analysis
+    tc_results = triple_collocation_validate(data_bis,
+                                             metric_list=metric_list,
+                                             ref=ref)
+
+    return tc_results
+
+
+def calibration(R, A, B):
+    '''
+    Calibrate A and B relatively to R using triple collocation calibration
+    constant estimates, following Gruber et al., 2016 method.
+
+    R (list of floats): Reference data to use for calibration.
+    A, B (lists of floats): Data series to calibrate relatively to the
+    reference.
+
+    returns:
+    A_R, B_R (lists of floats): Calibrated data series
+    '''
+    c_AB = np.cov(A, B)[0, 1]
+    c_RA = np.cov(R, A)[0, 1]
+    c_RB = np.cov(R, B)[0, 1]
+
+    a_A = c_AB/c_RB
+    a_B = c_AB/c_RA
+    a_R = 1
+
+    A_R = (a_R/a_A)*(A - np.mean(A)) + np.mean(R)
+    B_R = (a_R/a_B)*(B - np.mean(B)) + np.mean(R)
+
+    return A_R, B_R
+
+
 def bootstrap_ci(result_dict,
                  conf=95.,
                  sample_size=None,
