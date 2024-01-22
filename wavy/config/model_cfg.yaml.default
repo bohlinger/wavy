@@ -353,3 +353,27 @@ noresmf19:
         date_incr_unit: h
         date_incr: 3
         proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
+# interpolated grid 1 degree by 1 degree
+noresmf19_re:
+    name:
+    download:
+    vardef:
+        Hs: HS
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "/home/patrikb/tmp_wavy_AC/"
+        fl_tmplt: "ATMJRA_wtn14nw_dailymean_wnd10m_HSDec2011.nc"
+    reader: read_noresm_making_waves
+    collector:
+    misc:
+        init_times: [0]
+        init_step: 24
+        grid_date: 2011-12-02 00:00:00
+        date_incr_unit: h
+        date_incr: 3
+        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+

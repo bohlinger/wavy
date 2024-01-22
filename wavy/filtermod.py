@@ -812,6 +812,10 @@ def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray):
     if ROAR is None:
         ROAR = roaring_landmask.RoaringLandmask.new()
 
+    # ensure float64 type on input to ROAR
+    longitudes = longitudes.astype(np.float64)
+    latitudes = latitudes.astype(np.float64)
+
     land_mask = ROAR.contains_many(longitudes, latitudes)
     sea_mask = np.invert(land_mask)
 

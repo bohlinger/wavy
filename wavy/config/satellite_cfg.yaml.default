@@ -229,6 +229,58 @@ CCIv1_L3:
     # optional, to ease grouping
     tags:
 
+CCIv3_L3:
+    # mandatory
+    name:
+        multi: multi
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt:
+            trgt_tmplt:
+            strsub:
+            server:
+            path_date_incr_unit:
+            path_date_incr:
+            search_str:
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: /lustre/storeB/project/fou/om/patrikb/CCIv3_01Hz/%Y/%m/
+        fl_tmplt: ESACCI-SEASTATE-L3-SWH-MULTI_1D-%Y%m%d-fv01.nc
+        strsub: ["nID"]
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region','nID']
+        file_date_incr_unit: 'd'
+        file_date_incr: 1
+    # optional, if not defined the default is used
+    reader: read_local_ncfiles
+    collector: get_remote_files_cci
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef: # varalias: varname
+        Hs: swh_denoised
+        dtc: distance_to_coast
+        time: time
+        lats: lat
+        lons: lon
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level: L3
+        provider: cci
+        obs_type:
+    # optional, to ease grouping
+    tags:
+
+
 
 s3a_sla_5Hz:
     # mandatory
