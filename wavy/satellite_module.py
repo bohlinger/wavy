@@ -64,7 +64,7 @@ from wavy.utils import footprint_pulse_limited_radius
 # read yaml config files:
 region_dict = load_or_default('region_cfg.yaml')
 model_dict = load_or_default('model_cfg.yaml')
-satellite_dict = load_or_default('satellite_cfg.yaml')
+#satellite_dict = load_or_default('satellite_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
@@ -212,10 +212,9 @@ class satellite_class(qls, wc, fc):
                 try:
                     # create local path for each time
                     path_template = \
-                            satellite_dict[self.nID]['wavy_input'].get(
-                                                  'src_tmplt')
+                            self.cfg.wavy_input.get('src_tmplt')
                     strsublst = \
-                        satellite_dict[self.nID]['wavy_input'].get('strsub')
+                        self.cfg.wavy_input.get('strsub')
                     subdict = \
                         make_subdict(strsublst,
                                      class_object_dict=dict_for_sub)
@@ -302,7 +301,8 @@ class satellite_class(qls, wc, fc):
         print(str(int(len(pathlst))) + " valid files found")
 
         print('source template:',
-              satellite_dict[self.nID]['wavy_input']['src_tmplt'])
+              #satellite_dict[self.nID]['wavy_input']['src_tmplt'])
+              self.cfg.wavy_input['src_tmplt'])
         if show is True:
             print(" ")
             print(pathlst)
@@ -438,9 +438,13 @@ class satellite_class(qls, wc, fc):
     def _enforce_meteorologic_convention(self):
         new = deepcopy(self)
         ncvars = list(new.vars.variables)
+        #for ncvar in ncvars:
+        #    if ('convention' in satellite_dict[new.nID].keys() and
+        #    satellite_dict[new.nID]['convention'] == 'oceanographic'):
+
         for ncvar in ncvars:
-            if ('convention' in satellite_dict[new.nID].keys() and
-            satellite_dict[new.nID]['convention'] == 'oceanographic'):
+            if ('convention' in vars(new.cfg)['misc'].keys() and
+            vars(new.cfg)['misc']['convention'] == 'oceanographic'):
                 print('Convert from oceanographic to meteorologic convention')
                 new.vars[ncvar] =\
                     convert_meteorologic_oceanographic(new.vars[ncvar])
@@ -453,6 +457,7 @@ class satellite_class(qls, wc, fc):
 
 
     def _change_varname_to_aliases(self):
+        satellite_dict = load_or_default('satellite_cfg.yaml')
         print(' changing variables to aliases')
         new = deepcopy(self)
         # variables
@@ -500,6 +505,8 @@ class satellite_class(qls, wc, fc):
 
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
+
+        satellite_dict = load_or_default('satellite_cfg.yaml')
 
         lst = self.list_input_files(**kwargs)
         self.pathlst = kwargs.get('pathlst', lst)
