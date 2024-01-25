@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # own imports
 from wavy.utils import collocate_times
 from wavy.utils import make_fc_dates
-from wavy.utils import hour_rounder_pd
+from wavy.utils import hour_rounder_pd, hour_rounder
 from wavy.utils import NoStdStreams
 from wavy.utils import parse_date
 from wavy.utils import flatten
@@ -74,7 +74,11 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     Finds valid dates that are close to desired dates at a precision
     of complete hours
     '''
-    fc_dates_new = hour_rounder_pd(fc_dates)
+    #fc_dates_new = hour_rounder_pd(fc_dates)
+
+    dt_tmp = [parse_date(str(d)) for d in fc_dates]
+    fc_dates_new = [hour_rounder(d) for d in dt_tmp]
+
     fc_dates_new = np.unique(fc_dates_new)
     #if (leadtime is None or leadtime == 'best'):
     #    pass
@@ -150,8 +154,8 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         print(" ")
         print(" ## Collocate ... ")
-        #for i in range(1):
-        try:
+        for i in range(1):
+        #try:
             t0 = time.time()
             results_dict = self.collocate(**kwargs)
             self.model_time = results_dict['model_time']
@@ -165,10 +169,10 @@ class collocation_class(qls):
             print("Time used for collocation:", round(t1-t0, 2), "seconds")
             print(" ")
             print(" ### Collocation_class object initialized ###")
-        except Exception as e:
-            print(e)
-            self.error = e
-            print("! No collocation_class object initialized !")
+        #except Exception as e:
+        #    print(e)
+        #    self.error = e
+        #    print("! No collocation_class object initialized !")
         # add class variables
         print('# ----- ')
 
