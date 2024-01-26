@@ -6,14 +6,12 @@ One of the main focus of **wavy** is to ease the collocation of observations and
 Collocation of satellite and wave model
 ****************************************
 
-TO CHANGE, DID NOT WORK
-
 .. code-block:: python3
 
    >>> from wavy.satellite_module import satellite_class as sc
    >>> from wavy.collocation_module import collocation_class as cc
 
-   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a/global_vavh_l3_rt_s3a_20220201T120000_20220201T150000_20220627T133453.nc
+   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a/'
    >>> sd = "2022-2-1 12"
    >>> ed = "2022-2-1 12"
    >>> name = 's3a'
@@ -24,7 +22,7 @@ TO CHANGE, DID NOT WORK
    >>> sco = sc(sd=sd, ed=ed, nID=nID, name=name,
    ...         varalias=varalias, twin=twin)
    >>> sco = sco.populate(reader='read_local_ncfiles',
-   ...                   wavy_path=')
+   ...                    path=tmpdir)
    >>> sco = sco.crop_to_region(model)
    >>> cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
 
