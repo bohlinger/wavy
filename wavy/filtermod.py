@@ -170,6 +170,7 @@ class filter_class:
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
+        mode = kwargs.get('mode', 'centered')
         indices = new.slider_chunks(slider=win, overlap=ol)
 
         ts_lst = []
@@ -188,7 +189,7 @@ class filter_class:
                     y = tmp_ds[new.varalias].values[tmp_tgc_idx]
                     window = kwargs.get('window')
                     ts, _ = runmean(y, window,
-                                    mode='centered')
+                                    mode=mode)
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
                 else:
