@@ -79,7 +79,9 @@ def get_remote_files_cmems(**kwargs):
     twin = int(np.max([kwargs.get('twin', 30), 30]))
     nproc = kwargs.get('nproc', 1)
     name = kwargs.get('name', 's3a')
-    dict_for_sub = kwargs.get('dict_for_sub')
+    #dict_for_sub = kwargs.get('dict_for_sub')
+    dict_for_sub = kwargs
+
     # define path
     path = kwargs.get('path', None)
     # check if search str template
@@ -88,6 +90,7 @@ def get_remote_files_cmems(**kwargs):
         file_search_template = \
             satellite_dict[product]['download']['ftp']\
             .get('search_str', '%Y%m%dT%H')
+
     # credentials
     server = satellite_dict[product]['download']['ftp']['server']
     user, pw = get_credentials(remoteHostName=server)
@@ -265,14 +268,19 @@ def get_remote_files_cci(**kwargs):
     Download swath files from CCI and store them at defined
     location.
     '''
-    product = kwargs.get('product')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
+    product = kwargs.get('nID')
+    sdate = kwargs.get('sd')
+    edate = kwargs.get('ed')
     twin = kwargs.get('twin', 30)
     nproc = kwargs.get('nproc', 1)
     name = kwargs.get('name', 'multi')
-    path_local = kwargs.get('path_local')
-    dict_for_sub = kwargs.get('dict_for_sub')
+    #path_local = kwargs.get('path_local')
+    #dict_for_sub = kwargs.get('dict_for_sub')
+    dict_for_sub = kwargs
+
+    # define path
+    path_local = kwargs.get('path', None)
+
     # credentials
     server = satellite_dict[product]['src']['server']
     level = satellite_dict[product]['processing_level']
@@ -353,28 +361,3 @@ def get_remote_files_cci(**kwargs):
                    if os.path.isfile(os.path.join(path_local, f))]
         sort_files(path_local, filelst, product, name)
     print('Files downloaded to: \n', path_local)
-
-
-def get_remote_files(**kwargs):
-    '''
-    Download swath files and store them at defined location.
-    It is currently possible to download L3 altimeter data from
-    CMEMS, L3 and L2P from CEDA CCI, and L2 from EUMETSAT,
-    as well as L2P from aviso+ for cfosat swim data.
-    '''
-    dispatch_collector = {
-                'cmems_L3_NRT': get_remote_files_cmems,
-                'cmems_L3_s6a': get_remote_files_cmems,
-                'cmems_L3_MY': get_remote_files_cmems,
-                'cfo_swim_L2P': get_remote_files_aviso,
-                'cci_L2P': get_remote_files_cci,
-                'CCIv1_L3': get_remote_files_cci,
-                }
-    product = kwargs.get('product')
-    # check if product available in dispatcher
-    if product in dispatch_collector.keys():
-        pass
-    else:
-        product = 'cmems_L3_NRT'
-
-    dispatch_collector[product](**kwargs)

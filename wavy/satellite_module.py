@@ -50,8 +50,6 @@ from wavy.wconfig import load_or_default, load_dir
 
 from wavy.filtermod import filter_class as fc
 
-from wavy.satellite_collectors import get_remote_files
-
 from wavy.quicklookmod import quicklook_class_sat as qls
 
 from wavy.writermod import writer_class as wc
@@ -168,17 +166,9 @@ class satellite_class(qls, wc, fc):
         print('')
 
         print("Downloading files ...")
-        get_remote_files(
-                        path=path,
-                        nproc=nproc,
-                        twin=kwargs.get('twin', self.twin),
-                        sd=kwargs.get('sd', self.sd),
-                        ed=kwargs.get('ed', self.ed),
-                        nID=self.nID,
-                        name=self.name,
-                        dict_for_sub=vars(self)
-                        )
-        # self.collector(**(vars(self)))
+        #kwargs_in = vars(self)
+        #kwargs_in['path'] = path
+        self.collector(nproc=nproc, path=path, **vars(self))
 
 
     def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):

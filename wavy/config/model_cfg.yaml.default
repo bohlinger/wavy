@@ -114,6 +114,53 @@ ww3_4km:
     # optional, to ease grouping
     tags:
 
+ww3_4km_bm1p5_sd2024011300:
+    # not mandatory for models
+    name: ww3_4km
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        src_tmplt: "/lustre/storeB/project/fou/om/patrikb/\
+                    op_test/ww3_betamax/BM1p50/"
+        fl_tmplt: ww3_%Y%m%dT%HZ.nc
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+    # optional, if not defined the class default is used
+    reader: read_ww3_4km
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: hs
+        time: time
+        Mdir: dir
+        Pdir: dp
+        Fp: fp
+        Tm01: t01
+        Tm02: t02
+        lons: longitude
+        lats: latitude
+        U: ff
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        init_times: [0,6,12,18]
+        init_step: 6
+        leadtimes: [0,6,12,18,24,36,48,60]
+        _FillValue: 9.96921e+36
+        proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
+                +o_lat_p=22 +R=6.371e+06 +no_defs"
+        grid_date: 2021-11-16 00:00:00
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 1
+    # optional, to ease grouping
+    tags:
+
+
 ww3_unstr:
     name:
     download:

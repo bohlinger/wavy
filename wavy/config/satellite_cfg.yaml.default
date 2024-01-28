@@ -212,7 +212,8 @@ CCIv1_L3:
         file_date_incr: 1
     # optional, if not defined the default is used
     reader: read_local_ncfiles
-    collector: get_remote_files_cci
+    #collector: get_remote_files_cci
+    collector: get_remote_files_cmems
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef: # varalias: varname
         Hs: swh_denoised # time
@@ -263,7 +264,7 @@ CCIv3_L3:
         file_date_incr: 1
     # optional, if not defined the default is used
     reader: read_local_ncfiles
-    collector: get_remote_files_cci
+    collector:
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef: # varalias: varname
         Hs: swh_denoised
@@ -279,8 +280,6 @@ CCIv3_L3:
         obs_type:
     # optional, to ease grouping
     tags:
-
-
 
 s3a_sla_5Hz:
     # mandatory
