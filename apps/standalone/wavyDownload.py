@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 import time
 from pathlib import Path
 from wavy.wconfig import load_or_default
-from wavy.satellite_collectors import get_remote_files
 # -------------------------------------------------------------------- #
 
 # make sure that if name is name="all" then download all names for given nID
