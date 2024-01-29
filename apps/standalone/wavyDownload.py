@@ -7,33 +7,32 @@ download satellite data from Copernicus
 import click
 from wavy.satellite_module import satellite_class as sc
 from datetime import datetime, timedelta
+import time
 from pathlib import Path
+from wavy.wconfig import load_or_default
+from wavy.satellite_collectors import get_remote_files
 # -------------------------------------------------------------------- #
 
 # make sure that if name is name="all" then download all names for given nID
 
 @click.command(context_settings={"ignore_unknown_options": True})
-@click.option('--sd', type=str, default=datetime.now()-timedelta(hours=24),
+@click.option('--sd', type=str, default=None,
         help='starting date and time of your query e.g.: 2023-10-1 00')
-@click.option('--ed', type=str, default=datetime.now(),
+@click.option('--ed', type=str, default=None,
         help='ending date and time of your query e.g.: 2023-10-10 00')
-@click.option('--nID', type=str,
+@click.option('--nid', type=str, default='cmems_L3_NRT',
         help='nID as specified in satellite_cfg.yaml')
-@click.option('--name', type=str,
+@click.option('--name', type=str, default=None,
         help='name as specified in satellite_cfg.yaml,\
         if name equals "all", all names from chosen nID are considered')
-@click.option('--nproc', type=int, default=4,
+@click.option('--nproc', type=int, default=None,
         help='chosen number of simultaneous processes')
-@click.argument('--path',
-        help='target path for your download',
-        type=click.Path(
-            exists=True,
-            readable=True,
-            path_type=Path,
-        ),)
-@click.option('--search_str', type=str,
-        help='identifyer string to search for in remote directory')
-def main():
+@click.option('--path', type=str, default=None)
+
+#@click.option('--search_str', type=str,
+#       help='identifyer string to search for in remote directory')
+ 
+def main(sd, ed, nid, name, path, nproc):
     """
     Wrapper for command line use of the wavy downloading functions.\n
 
@@ -71,34 +70,56 @@ def main():
     almost any other source could be added and exploited.
     """
 
+    # read yaml config files:
+    satellite_dict = load_or_default('satellite_cfg.yaml')
+    print(satellite_dict)
     # settings
     now = datetime.now()
-    if args.sat == 'all':
-        namelst = list(satellite_dict[]['name'].keys())
+    
+    if sd is None:
+        sdate = now-timedelta(hours=24)
+    else:
+        sdate = datetime(int(sd[0:4]), int(sd[4:6]),
+                         int(sd[6:8]), int(sd[8:10]))
+
+    if ed is None:
+        edate = now
+    else:
+        edate = datetime(int(ed[0:4]), int(ed[4:6]),
+                         int(ed[6:8]), int(ed[8:10]))
+
+    if name is None:
+        namelst = [list(satellite_dict[nid]['name'].keys())[0]]
+    elif name == 'all':
+        namelst = list(satellite_dict[nid]['name'].keys())
     else:
         namelst = [name]
 
-    if args.sd is None:
-        sdate = datetime(now.year, now.month, now.day,
-                         now.hour) - timedelta(hours=24)
-    else:
-        sdate = datetime(int(args.sd[0:4]), int(args.sd[4:6]),
-                         int(args.sd[6:8]), int(args.sd[8:10]))
+    if nproc is None:
+        nproc = 1
 
-    if args.ed is None:
-        edate = datetime(now.year, now.month, now.day, now.hour, now.minute)
-    else:
-        edate = datetime(int(args.ed[0:4]), int(args.ed[4:6]),
-                         int(args.ed[6:8]), int(args.ed[8:10]))
-
-    if args.nproc is None:
-        args.nproc = 1
-
-    if args.product is None:
-        args.product = 'cmems_L3_NRT'
+    print(sdate)
+    print(edate)
+    print(nid)
 
     for n in namelst:
+        print(n)
+            
+    twin = 30
 
+    for name in namelst:
+        
+        print("Attempting to download data for:", name)
+        print("Time period:", str(sdate), "to", str(edate))
+        
+        start_time = time.time()
+
+        sco = sc(sd=sdate, ed=edate,
+                nID=nid, name=name)
+        sco.download(path=path, nproc=nproc)
+
+        time1 = time.time() - start_time
+        print("Time used for collecting data: ", time1, " seconds")
 
 if __name__ == "__main__":
     main()
