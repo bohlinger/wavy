@@ -118,9 +118,9 @@ class filter_class:
         print(" Number of remaining values:", len(new.vars['time']))
         return new
 
-    def filter_blockMean(self, **kwargs):
-        print('Apply blockMean')
-        return self
+    #def filter_blockMean(self, **kwargs):
+    #    print('Apply blockMean')
+    #    return self
 
     def filter_lanczos(self, **kwargs):
         print('Apply lanczos filter')
@@ -237,8 +237,8 @@ class filter_class:
 
         return new
 
-    def filter_NIGP(self, **kwargs):
-        return self
+    #def filter_NIGP(self, **kwargs):
+    #    return self
 
     def filter_linearGAM(self, **kwargs):
         print('Apply LinearGAM filter')
