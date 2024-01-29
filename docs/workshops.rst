@@ -10,6 +10,7 @@ Workshops and show cases
 .. toctree::
    :maxdepth: 3
 
+   workshop_latest
    vietnam21
    vietnam22
    vietnam22_2
