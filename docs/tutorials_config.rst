@@ -1,6 +1,6 @@
 Setting up a project and **wavy** config files
 ##############################################
-**wavy** can be run for various projects with different settings. This is organized by your personalized config-files. For basically any data wavy is using or writing you need the apropriate config file customized to your needs. This is straight forward, easy to achieve and will be demonstrated in this section.
+**wavy** can be run with your personalized config-files. For basically any data wavy is using or writing you need the apropriate config file customized to your needs. This is straight forward, easy to achieve and will be demonstrated in this section.
 
 Default **wavy** config files are delivered with the code. These can be copied to your project folder and adjusted to your needs. The following default config files exist in wavy/wavy/config:
 
@@ -25,7 +25,7 @@ The naming of the files is descriptive but here some brief description:
         * validation_metrics* -> for validation paths
         * variable_def* -> specifying standard names, variable abbreviations, variable attributes
         * quicklook_cfg* -> for customizing quicklook figures
-        * variable_frost* -> 
+        * variable_frost* -> for variables as defined in FROST API
 
 In order to create your own customized project, copy the needed config default files to your directory of choice (aka project directory), remove the ".default" extension, and ammend them. E.g. when only using satellite products within your regions of interest you only need (if you do not want to change default variable settings):
 
@@ -35,11 +35,10 @@ In order to create your own customized project, copy the needed config default f
 **wavy** browses the directory structure as follows:
 
     * check if env 'WAVY_CONFIG' is set or specified in .env
-    * check if a config folder exists using xdg
     * fall back on default files within the package
 
 
-This means you can create an .env file in your project directory. This .env file needs an environmental variable pointing to where your config files and wavy directory are located:
+This means, to use your own version of the config files you can create an .env file in your **wavy** directory whith an environmental variable pointing to where your config files and wavy directory are located:
 
 .. code-block:: bash
 
