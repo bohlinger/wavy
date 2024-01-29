@@ -37,32 +37,32 @@ def main(sd, ed, nid, name, path, nproc):
 
     Here are some examples of supported files...
     The following most common missions are available from the CMEMS webpage:
-            \ncmems_L3_NRT:\
-            \n s3a - Sentinel-3A\
-            \n s3b - Sentinel-3B\
-            \n j3 - Jason-3 (reference mission)\
-            \n c2 - Cryosat-2\
-            \n al - SARAL/AltiKa\
-            \n cfo - CFOSAT\
-            \n h2b - HaiYang-2B\
-            \n s6a - Sentinel-6A Michael Freilich\
+            \ncmems_L3_NRT:\n
+            \n s3a - Sentinel-3A\n
+            \n s3b - Sentinel-3B\n
+            \n j3 - Jason-3 (reference mission)\n
+            \n c2 - Cryosat-2\n
+            \n al - SARAL/AltiKa\n
+            \n cfo - CFOSAT\n
+            \n h2b - HaiYang-2B\n
+            \n s6a - Sentinel-6A Michael Freilich\n
             \n
     The following most common missions are available from CCIv1:
             \n
-            \ncci_L2P:\
-            \n j1 - Jason-1\
-            \n j2 - Jason-2\
-            \n j3 - Jason-3\
-            \n c2 - Cryosat-2\
-            \n envisat - Envisat\
-            \n ers1 - European Remote-Sensing Satellite-1\
-            \n ers2 - European Remote-Sensing Satellite-2\
-            \n topex - TOPEX/Poseidon\
-            \n al - SARAL/AltiKa\
-            \n gfo - GEOSAT Follow-On\
-            \n\
-            \ncci_L3:\
-            \n multi - multimission product 1991-2018\
+            \ncci_L2P:\n
+            \n j1 - Jason-1\n
+            \n j2 - Jason-2\n
+            \n j3 - Jason-3\n
+            \n c2 - Cryosat-2\n
+            \n envisat - Envisat\n
+            \n ers1 - European Remote-Sensing Satellite-1\n
+            \n ers2 - European Remote-Sensing Satellite-2\n
+            \n topex - TOPEX/Poseidon\n
+            \n al - SARAL/AltiKa\n
+            \n gfo - GEOSAT Follow-On\n
+            \n
+            \ncci_L3:\n
+            \n multi - multimission product 1991-2018\n
             \n\
 
     Note that these examples are not exclusive,\n
