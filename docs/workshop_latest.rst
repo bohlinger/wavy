@@ -12,6 +12,53 @@ The following examples are tailored to the **wavy** Workshop. This workshop will
 1. **wavy** config files
 ########################
 
+For this workshop you will need the following config files:
+
+.. code::
+
+   quicklook_cfg.yaml.default  validation_metrics.yaml.default  variable_def.yaml.default
+   insitu_cfg.yaml.default     region_cfg.yaml.default          satellite_cfg.yaml.default     
+   model_cfg.yaml.default        
+   
+   
+Create a new project directory. Establish an .env file such that **wavy** knows where to find the config files it should use. This could look like:
+
+.. code-block:: bash
+
+        :~$ mkdir ws24_wavy
+        :~$ cd ws24_wavy
+        :~/ws24_wavy$ touch .env
+        :~/ws24_wavy$ mkdir config
+
+Now copy the needed config default files from wavy/wavy/config to this directory and remove the suffix *.default*. The result would look like:
+
+.. code-block:: bash
+
+        :~/ws24_wavy/config$ ls
+        quicklook_cfg.yaml  validation_metrics  variable_def.yaml
+        insitu_cfg.yaml     region_cfg.yaml     satellite_cfg.yaml     
+        model_cfg.yaml   
+
+This is the structure of your project directory:
+
+.. code-block:: bash
+
+        :~/ws24_wavy$ ls -la
+        total 16
+        drwxrwxr-x  3 patrikb patrikb 4096 Nov 14 09:04 .
+        drwx------ 79 patrikb patrikb 4096 Nov 14 09:06 ..
+        drwxrwxr-x  2 patrikb patrikb 4096 Nov 14 09:10 config
+        -rwxr-xr-x  1 patrikb patrikb   44 Nov 14 09:04 .env
+
+Where your *.env*-file needs to point to this config folder like in the following example for my username *patrikb*:
+
+.. code-block:: bash
+
+        :~/ws24_wavy$ cat .env
+        WAVY_CONFIG=/home/patrikb/ws24_wavy/config/
+        WAVY_DIR=/home/patrikb/wavy/
+
+If you want to download data, the same .env file has to be copied to the wavy root directory, ~/wavy. 
 
 
 2. Download L3 satellite altimetry data
@@ -268,7 +315,7 @@ Define your own region in *region_cfg.yaml* and retrieve satellite data for this
 
 In-situ observations can also be imported using the insitu_module module. You can add new sources of in-situ data using the *insitu_cfg.yaml* file, just like in the *satellite_cfg.yaml*.
 
-.. code-block:: yaml
+.. code-block:: python3
 
    >>> from wavy.insitu_module import insitu_class as ic
    >>> varalias = 'Hs'
