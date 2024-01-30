@@ -166,7 +166,7 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py --nid cmems_L3_NRT --name s3a -sd 2023020100 -ed 2023020200 -product cmems_L3_NRT -nproc 4
+   $ ./wavyDownload.py --nid cmems_L3_NRT --name s3a --sd 2023020100 --ed 2023020200 --nproc 4
 
 *-nproc 4* means 4 simultaneous downloads. This can be adjusted according to resources and needs. You can find the downloaded files in your chosen download directory. Now download some other dates for later use.
 
