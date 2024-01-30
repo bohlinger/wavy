@@ -98,11 +98,11 @@ With: :math:`\epsilon_{x} \sim \mathcal{N}(0,0.1)`, :math:`\epsilon_{y} \sim \ma
    >>> import numpy as np
    >>> n = len(df)
    >>> np.random.seed(1)
-   >>> e_x = np.random.normal(0, 0.1, n)
+   >>> e_x = np.random.normal(0, 0.01, n)
    >>> np.random.seed(5)
-   >>> e_y = np.random.normal(0, 0.2, n)
+   >>> e_y = np.random.normal(0, 0.04, n)
    >>> np.random.seed(11)
-   >>> e_z = np.random.normal(0, 0.2, n)
+   >>> e_z = np.random.normal(0, 0.04, n)
 
    >>> # Generating the simulated measurements
    >>> df['x'] = df['t'] + e_x
