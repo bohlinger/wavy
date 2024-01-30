@@ -1,5 +1,5 @@
-**wavy** workshop 2024-02-06 
-============================
+**wavy** workshop 2024
+======================
 
 The following examples are tailored to the **wavy** Workshop. This workshop will focus on some simple examples that can be used as python code snippets in your workflow.
 
@@ -78,7 +78,7 @@ Your .netrc should look something like:
 
    machine nrt.cmems-du.eu    login {USER}  password {PASSWORD}
 
-Adjust the satellite config file called *satellite_cfg.yaml*. Remember, this is the file you copied to *~/ws_wavy/config*. It should include the following section and could look like:
+Adjust the satellite config file called *satellite_cfg.yaml*. Remember, this is the file you copied to *~/ws24_wavy/config*. It should include the following section and could look like:
 
 .. code-block:: yaml
 
@@ -264,7 +264,7 @@ And we then populated it with data using the populate method:
 
    >>> sco = sco.populate()
 
-If you have not downladed satellite data with wavyDownload.py, you can also initialize 
+If you have not downloaded satellite data with wavyDownload.py, you can also initialize 
 a satellite object with the same parameters you would use for the import, and use the download method. 
 Note that you still need to configure the *satellite_cfg.yaml* accordingly: 
 
@@ -410,7 +410,6 @@ The entire validation dictionary will then be in val_dict.
 
 8. Regridding data
 ##################
-
 Once satellite observations are retrieved or even collocated model data are available wavy can display this data in custom grids for your region of interest.
 
 Gridding of satellite data
@@ -483,7 +482,6 @@ It is now possible to collocate model data with the same grid:
 
 9. Applying filters
 ###################
-
 Finally, it is possible to apply some filters to the data. Let us try it on some 
 L2 satellite data already included in the package. 
 
