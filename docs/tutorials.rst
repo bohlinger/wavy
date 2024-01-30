@@ -22,7 +22,6 @@ e.g.:
    tutorials_sat
    tutorials_modelmod
    tutorials_insitu
-   tutorials_multiins
    tutorials_stormtrack
    tutorials_consolidate
    tutorials_collocmod
