@@ -445,6 +445,7 @@ Now the gridder can be applied as follows:
 
    >>> bb = (-20, 20, 60, 80)  # lonmin,lonmax,latmin,latmax
    >>> res = (5, 5)  # lon/lat
+
    >>> gco = gc(lons=sco.vars.lons.squeeze().values.ravel(),
    >>>          lats=sco.vars.lats.squeeze().values.ravel(),
    >>>          values=sco.vars.Hs.squeeze().values.ravel(),
@@ -453,7 +454,9 @@ Now the gridder can be applied as follows:
    >>>          units=sco.units,
    >>>          sdate=sco.vars.time,
    >>>          edate=sco.vars.time)
+
    >>> gridvar, lon_grid, lat_grid = apply_metric(gco=gco)
+
    >>> gco.quicklook(val_grid=gridvar,
    >>>               lon_grid=lon_grid,
    >>>               lat_grid=lat_grid,
