@@ -161,6 +161,7 @@ class collocation_class(qls):
             self.model_time = results_dict['model_time']
             # build xarray dataset from results
             ds = self._build_xr_dataset(results_dict)
+            ds = ds.assign_coords(time=ds.time.values)
             self.vars = ds
             t1 = time.time()
             print(" ")
