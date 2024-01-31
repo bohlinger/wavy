@@ -19,7 +19,7 @@ from wavy.wconfig import load_or_default
         help='starting date and time of your query e.g.: 2023-10-1 00')
 @click.option('--ed', type=str, default=None,
         help='ending date and time of your query e.g.: 2023-10-10 00')
-@click.option('--nid', type=str, default='cmems_L3_NRT',
+@click.option('--nID', type=str, default='cmems_L3_NRT',
         help='nID as specified in satellite_cfg.yaml')
 @click.option('--name', type=str, default=None,
         help='name as specified in satellite_cfg.yaml,\
@@ -74,7 +74,7 @@ def main(sd, ed, nid, name, path, nproc):
     print(satellite_dict)
     # settings
     now = datetime.now()
-    
+
     if sd is None:
         sdate = now-timedelta(hours=24)
     else:
@@ -103,18 +103,16 @@ def main(sd, ed, nid, name, path, nproc):
 
     for n in namelst:
         print(n)
-            
-    twin = 30
 
     for name in namelst:
-        
+
         print("Attempting to download data for:", name)
         print("Time period:", str(sdate), "to", str(edate))
-        
+
         start_time = time.time()
 
         sco = sc(sd=sdate, ed=edate,
-                nID=nid, name=name)
+                 nID=nid, name=name)
         sco.download(path=path, nproc=nproc)
 
         time1 = time.time() - start_time

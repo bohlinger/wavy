@@ -16,8 +16,7 @@ For this workshop you will need the following config files:
 
 .. code::
 
-   quicklook_cfg.yaml.default  validation_metrics.yaml.default  variable_def.yaml.default
-   insitu_cfg.yaml.default     region_cfg.yaml.default          satellite_cfg.yaml.default     
+   satellite_cfg.yaml.default   insitu_cfg.yaml.default
    model_cfg.yaml.default        
    
    
@@ -35,9 +34,7 @@ Now copy the needed config default files from wavy/wavy/config to this directory
 .. code-block:: bash
 
         :~/ws24_wavy/config$ ls
-        quicklook_cfg.yaml  validation_metrics  variable_def.yaml
-        insitu_cfg.yaml     region_cfg.yaml     satellite_cfg.yaml     
-        model_cfg.yaml   
+        insitu_cfg.yaml     satellite_cfg.yaml    model_cfg.yaml   
 
 This is the structure of your project directory:
 
@@ -166,7 +163,7 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py --nid cmems_L3_NRT --name s3a --sd 2023020100 --ed 2023020200 --nproc 4
+   $ ./wavyDownload.py --nID cmems_L3_NRT --name s3a --sd 2023020100 --ed 2023020200 --nproc 4
 
 *-nproc 4* means 4 simultaneous downloads. This can be adjusted according to resources and needs. You can find the downloaded files in your chosen download directory. Now download some other dates for later use.
 
@@ -428,7 +425,7 @@ be defined in *satellite_cfg.yml*.
    >>> region = 'NordicSeas'
    >>> name = 's3a'
    >>> nID = 'cmems_L3_NRT'
-   >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name)
+   >>> sco = sc(sd=sd, ed=ed, region=region, nID=nID, name=name)
    >>> sco = sco.populate(path=path_to_files)
 
 Now the gridder can be applied as follows: 
@@ -459,7 +456,7 @@ Information of the grid and the values from observations and model can also be o
 
 .. code-block:: python3
 
-   >>> ovals,mvals,Midx = gco.get_obs_grid_idx()
+   >>> ovals, mvals, Midx = gco.get_obs_grid_idx()
    
 Gridding of collocated data
 ***************************
@@ -472,12 +469,12 @@ It is now possible to collocate model data with the same grid:
    >>> # collocate
    >>> cco = cc(model='ww3_4km',oco=sco,distlim=6,leadtime='best',date_incr=1)
    >>> # reduce region to part of model domain for better visual
-   >>> bb = (-20,20,50,80) # lonmin,lonmax,latmin,latmax
-   >>> res = (5,5) # lon/lat
-   >>> gco = gc(cco=cco,bb=bb,res=res)
-   >>> var_gridded_dict,lon_grid,lat_grid = apply_metric(gco=gco)
+   >>> bb = (-20, 20, 50, 80) # lonmin,lonmax,latmin,latmax
+   >>> res = (5, 5) # lon/lat
+   >>> gco = gc(cco=cco, bb=bb, res=res)
+   >>> var_gridded_dict, lon_grid, lat_grid = apply_metric(gco=gco)
    >>> # plot all validation metrics on grid
-   >>> gco.quicklook(val_grid=var_gridded_dict,lon_grid=lon_grid,lat_grid=lat_grid,metric='all')
+   >>> gco.quicklook(val_grid=var_gridded_dict, lon_grid=lon_grid, lat_grid=lat_grid, metric='all')
    
 
 9. Applying filters

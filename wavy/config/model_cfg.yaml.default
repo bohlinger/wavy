@@ -16,18 +16,25 @@
 #        Mdir:
 #            convention: # e.g. oceanographic
 #        ...
-#    path_template:
-#    file_template:
-#    xtra_h: # h adjustment according to position in filename
-#    lt_switch_f: # should lead time be used for filedate [False/True]
-#    lt_switch_p: # should lead time be used for pathdate [False/True]
-#    nr_filedates: # how many dates are introduced in the filename
-#    filedate_formats: # time string format e.g. %Y%m%d
-#    init_times: # UTC hours of model initialization
-#    init_step: # hours between model initialization
-#    leadtimes:
-#    grid_date: # date and time of a model run you know exists
+#    coords:
+#    wavy_input:
+#    wavy_output:
+#    reader:
+#    collector:
+#    misc:
+#    	xtra_h: # h adjustment according to position in filename
+#    	lt_switch_f: # should lead time be used for filedate [False/True]
+#   	lt_switch_p: # should lead time be used for pathdate [False/True]
+#    	nr_filedates: # how many dates are introduced in the filename
+#    	filedate_formats: # time string format e.g. %Y%m%d
+#    	init_times: # UTC hours of model initialization
+#    	init_step: # hours between model initialization
+#    	leadtimes: # if desired
+#    	grid_date: # date and time of a model run you know exists
+#    	date_incr_unit:
+#    	date_incr:
 #    proj4: # proj string to be read if not available in model output
+#    tags:
 ########################################################################
 
 ARCMFC3:
@@ -114,53 +121,6 @@ ww3_4km:
     # optional, to ease grouping
     tags:
 
-ww3_4km_bm1p5_sd2024011300:
-    # not mandatory for models
-    name: ww3_4km
-    # mandatory when downloading
-    # where to store downloaded data
-    download:
-    # optional: where to read from
-    #           can be defined directly when calling wavy
-    wavy_input:
-        src_tmplt: "/lustre/storeB/project/fou/om/patrikb/\
-                    op_test/ww3_betamax/BM1p50/"
-        fl_tmplt: ww3_%Y%m%dT%HZ.nc
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-    # optional, if not defined the class default is used
-    reader: read_ww3_4km
-    collector:
-    # optional, needs to be defined if not cf and in variable_info.yaml
-    vardef:
-        Hs: hs
-        time: time
-        Mdir: dir
-        Pdir: dp
-        Fp: fp
-        Tm01: t01
-        Tm02: t02
-        lons: longitude
-        lats: latitude
-        U: ff
-    coords:
-    # optional, info that can be used by class functions
-    misc:
-        init_times: [0,6,12,18]
-        init_step: 6
-        leadtimes: [0,6,12,18,24,36,48,60]
-        _FillValue: 9.96921e+36
-        proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
-                +o_lat_p=22 +R=6.371e+06 +no_defs"
-        grid_date: 2021-11-16 00:00:00
-        convention: meteorological
-        date_incr_unit: h
-        date_incr: 1
-    # optional, to ease grouping
-    tags:
-
-
 ww3_unstr:
     name:
     download:
@@ -201,8 +161,7 @@ ecwam:
         lats: latitude
     coords:
     wavy_input:
-        #src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
-        src_tmplt: "/home/patrikb/tmp_test_validation/tmp_data/ec/"
+        src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
         fl_tmplt: "ec_ocean_wave_%Y%m%dT%H00Z.nc"
     reader: read_ecwam
     collector:
@@ -225,7 +184,6 @@ mwam3:
         lats: latitude
     coords:
     wavy_input:
-        #src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
         src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/\
                     mywavewam3_latest/"
         fl_tmplt: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
@@ -259,84 +217,6 @@ NORA3_hc_waves:
         grid_date: 2019-01-01 00:00:00
         date_incr_unit: h
         date_incr: 1
-
-ww3_bm_140:
-    # not mandatory for models
-    name: ww3_4km
-    # mandatory when downloading
-    # where to store downloaded data
-    download:
-    # optional: where to read from
-    #           can be defined directly when calling wavy
-    wavy_input:
-        src_tmplt: "/home/patrikb/tmp_test_validation/tmp_data/ww3/bm_140/"
-        fl_tmplt: ww3_%Y%m%dT%HZ_hs.nc
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-    # optional, if not defined the class default is used
-    reader: read_ww3_4km
-    collector:
-    # optional, needs to be defined if not cf and in variable_info.yaml
-    vardef:
-        Hs: hs
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    # optional, info that can be used by class functions
-    misc:
-        init_times: [0,6,12,18]
-        init_step: 6
-        leadtimes: [0,6,12,18,24,36,48,60]
-        _FillValue: 9.96921e+36
-        proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
-                +o_lat_p=22 +R=6.371e+06 +no_defs"
-        grid_date: 2023-09-18 00:00:00
-        convention: meteorological
-        date_incr_unit: h
-        date_incr: 1
-    # optional, to ease grouping
-    tags:
-
-ww3_bm_137:
-    # not mandatory for models
-    name: ww3_4km
-    # mandatory when downloading
-    # where to store downloaded data
-    download:
-    # optional: where to read from
-    #           can be defined directly when calling wavy
-    wavy_input:
-        src_tmplt: "/home/patrikb/tmp_test_validation/tmp_data/ww3/bm_137/"
-        fl_tmplt: ww3_%Y%m%dT%HZ_hs.nc
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-    # optional, if not defined the class default is used
-    reader: read_ww3_4km
-    collector:
-    # optional, needs to be defined if not cf and in variable_info.yaml
-    vardef:
-        Hs: hs
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    # optional, info that can be used by class functions
-    misc:
-        init_times: [0,6,12,18]
-        init_step: 6
-        leadtimes: [0,6,12,18,24,36,48,60]
-        _FillValue: 9.96921e+36
-        proj4: "+proj=ob_tran +o_proj=longlat +lon_0=-40
-                +o_lat_p=22 +R=6.371e+06 +no_defs"
-        grid_date: 2021-11-16 00:00:00
-        convention: meteorological
-        date_incr_unit: h
-        date_incr: 1
-    # optional, to ease grouping
-    tags:
 
 cmems_MY_L4:
     # not mandatory for models
@@ -377,50 +257,3 @@ cmems_MY_L4:
         remoteHostName: my.cmems-du.eu
     # optional, to ease grouping
     tags:
-
-# interpolated grid 1 degree by 1 degree
-noresmf19:
-    name:
-    download:
-    vardef:
-        Hs: HS
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    wavy_input:
-        src_tmplt: "/lustre/storeB/users/anac/TMP/wavy/NorESMdata/2011/12/"
-        fl_tmplt: "f19_tn14_wtn14n_DecemberBETAmax1.43_1X1deg_every3hours_2011.nc"
-    reader: read_noresm_making_waves
-    collector:
-    misc:
-        init_times: [0]
-        init_step: 24
-        grid_date: 2011-12-02 00:00:00
-        date_incr_unit: h
-        date_incr: 3
-        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
-
-# interpolated grid 1 degree by 1 degree
-noresmf19_re:
-    name:
-    download:
-    vardef:
-        Hs: HS
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    wavy_input:
-        src_tmplt: "/home/patrikb/tmp_wavy_AC/"
-        fl_tmplt: "ATMJRA_wtn14nw_dailymean_wnd10m_HSDec2011.nc"
-    reader: read_noresm_making_waves
-    collector:
-    misc:
-        init_times: [0]
-        init_step: 24
-        grid_date: 2011-12-02 00:00:00
-        date_incr_unit: h
-        date_incr: 3
-        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
-

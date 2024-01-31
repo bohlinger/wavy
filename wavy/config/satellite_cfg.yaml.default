@@ -131,7 +131,8 @@ L2_20Hz_s3a:
         ftp: # downloading method
             src_tmplt: "/products/v3/data/satellite/altimeter/\
                         l2_20Hz/l2/sentinel-3_a/%Y/%j/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+            #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+            trgt_tmplt:
             strsub: ['name']
             server: "eftp.ifremer.fr"
             path_date_incr_unit: 'd'
@@ -140,7 +141,8 @@ L2_20Hz_s3a:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        #src_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        src_tmplt:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
@@ -149,7 +151,8 @@ L2_20Hz_s3a:
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        trgt_tmplt:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','name','region']
@@ -186,7 +189,8 @@ CCIv1_L3:
         ftp: # downloading method
             src_tmplt: "/neodc/esacci/sea_state/data/v1.1_release/\
                         l3/v1.1/%Y/%m/%d/"
-            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+            #trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+            trgt_tmplt:
             strsub: ['name', 'nID']
             server: "ftp.ceda.ac.uk"
             path_date_incr_unit: 'd'
@@ -195,7 +199,8 @@ CCIv1_L3:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        #src_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        src_tmplt:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','name','region','nID']
@@ -204,7 +209,8 @@ CCIv1_L3:
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        #trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        trgt_tmplt:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','name','region','nID']
@@ -248,7 +254,8 @@ CCIv3_L3:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /lustre/storeB/project/fou/om/patrikb/CCIv3_01Hz/%Y/%m/
+        #src_tmplt: /lustre/storeB/project/fou/om/patrikb/CCIv3_01Hz/%Y/%m/
+        src_tmplt:
         fl_tmplt: ESACCI-SEASTATE-L3-SWH-MULTI_1D-%Y%m%d-fv01.nc
         strsub: ["nID"]
         path_date_incr_unit: 'm'
@@ -299,7 +306,8 @@ s3a_sla_5Hz:
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
-        src_tmplt: /home/patrikb/tmp_altimeter/SLA/
+        #src_tmplt: /home/patrikb/tmp_altimeter/SLA/
+        src_tmplt:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['name']
@@ -308,7 +316,8 @@ s3a_sla_5Hz:
     # optional: where to write to
     #           can be defined directly when calling wavy
     wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/SLA/
+        #trgt_tmplt: /home/patrikb/tmp_altimeter/SLA/
+        trgt_tmplt:
         fl_tmplt: "varalias_name_region_\
                         %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
         strsub: ['varalias','name','region']

@@ -12,6 +12,8 @@
 
 # define varaliases and their indices for listed variables
 # attention: idx uses python counting
+#
+# This is mostly retained for legacy purposes and not actively in use
 ########################################################################
 
 datetime: # date and time related
