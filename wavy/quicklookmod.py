@@ -171,11 +171,11 @@ class quicklook_class_sat:
                                colors='w', linewidths=0.3,
                                transform=ccrs.PlateCarree())
             else:
-                sc = ax.scatter(plot_lons, plot_lats, s=20,
+                sc = ax.scatter(plot_lons, plot_lats, s=15,
                             c=plot_var,
                             marker='o',  # edgecolor='face',
                             edgecolors='k',
-                            linewidths=0.3,
+                            linewidths=0.1,
                             cmap=cmap, norm=norm,
                             transform=ccrs.PlateCarree())
             # axes for colorbar

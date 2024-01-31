@@ -179,12 +179,12 @@ In python L3-data can be read by importing the satellite_class, choosing a regio
    >>> from wavy.satellite_module import satellite_class as sc
    >>> # settings
    >>> region = 'global'
-   >>> varalias = 'Hs' # default
+   >>> varalias = 'Hs'  # default
    >>> name = 's3a'
    >>> nID = 'cmems_L3_NRT'
-   >>> twin = 30 # default
-   >>> sd = "2023-2-1 11" # can also be datetime object
-   >>> ed = "2023-2-1 12" # not necessary if twin is specified
+   >>> twin = 30  # default
+   >>> sd = "2023-2-1 11"  # can also be datetime object
+   >>> ed = "2023-2-1 12"  # not necessary if twin is specified
    >>> # retrieval
    >>> sco = sc(sd=sd, ed=ed, region=region, nID=nID, name=name)
    >>> sco = sco.populate()
@@ -270,6 +270,12 @@ Note that you still need to configure the *satellite_cfg.yaml* accordingly:
    >>> sco = sc(sd=sd, ed=ed, region=region, nID=nID, name=name)
    >>> sco.download()
 
+Another option is to give the path directly to the download function:
+
+.. code-block:: python3
+
+   >>> sco.download(path='.....')
+
 Investigating the satellite_object you will find something like::
 
         >>> sco.
@@ -335,12 +341,12 @@ You can then import model data as follows:
 .. code-block:: python3
 
    >>> from wavy.model_module import model_class as mc
-   >>> nID = 'ww3_4km' # default
-   >>> varalias = 'Hs' # default
+   >>> nID = 'ww3_4km'  # default
+   >>> varalias = 'Hs'  # default
    >>> sd = "2023-6-1"
    >>> ed = "2023-6-1 01"
-   >>> mco = mc(nID=nID,sd=sd).populate() # one time slice
-   >>> mco_p = mc(nID=nID,sd=sd,ed=ed).populate() # time period
+   >>> mco = mc(nID=nID, sd=sd).populate()  # one time slice
+   >>> mco_p = mc(nID=nID, sd=sd, ed=ed).populate()  # time period
 
 
 6. Collocating model and observations
@@ -352,12 +358,13 @@ Collocation of satellite and wave model
 
 .. code-block:: python3
 
+   >>> from wavy.satellite_module import satellite_class as sc
    >>> from wavy.collocation_module import collocation_class as cc
-   >>> sd = "2022-2-1 12"
-   >>> ed = "2022-2-1 12"
+   >>> sd = "2023-2-1 11"
+   >>> ed = "2023-2-1 11"
    >>> name = 's3a'
    >>> varalias = 'Hs'
-   >>> twin = 30
+   >>> twin = 29  # in minutes
    >>> nID = 'cmems_L3_NRT'
    >>> model = 'ww3_4km'
    
@@ -390,24 +397,24 @@ Having collocated a quick validation can be performed using the validationmod. *
    # ---
    Validation stats
    # ---
-   Correlation Coefficient: 0.72
-   Mean Absolute Difference: 0.34
-   Root Mean Squared Difference: 0.43
-   Normalized Root Mean Squared Difference: 0.16
-   Debiased Root Mean Squared Difference: 0.42
-   Bias: -0.08
-   Normalized Bias: -0.03
-   Scatter Index: 16.01
-   Model Activity Ratio: 1.05
-   Mean of Model: 2.53
-   Mean of Observations: 2.61
-   Number of Collocated Values: 193
+   Correlation Coefficient: 0.89
+   Mean Absolute Difference: 0.35
+   Root Mean Squared Difference: 0.41
+   Normalized Root Mean Squared Difference: 0.10
+   Debiased Root Mean Squared Difference: 0.41
+   Bias: -0.05
+   Normalized Bias: -0.01
+   Scatter Index: 10.03
+   Model Activity Ratio: 0.98
+   Mean of Model: 4.02
+   Mean of Observations: 4.08
+   Number of Collocated Values: 317
 
 The entire validation dictionary will then be in val_dict.
 
 8. Regridding data
 ##################
-Once satellite observations are retrieved or even collocated model data are available wavy can display this data in custom grids for your region of interest.
+Once satellite observations are retrieved or even collocated model data are available wavy can process and display this data in custom grids for your region of interest.
 
 Gridding of satellite data
 **************************
@@ -419,6 +426,7 @@ be defined in *satellite_cfg.yml*.
 .. code-block:: python3
 
    >>> from wavy.satellite_module import satellite_class as sc
+
    >>> path_to_files = '/home/patrikb/wavy/tests/data/L3/s3a/'
    >>> sd = '2022-2-1'
    >>> ed = '2022-2-2'
@@ -434,8 +442,9 @@ Now the gridder can be applied as follows:
 
    >>> from wavy.gridder_module import gridder_class as gc
    >>> from wavy.grid_stats import apply_metric
+
    >>> bb = (-20, 20, 60, 80)  # lonmin,lonmax,latmin,latmax
-   >>> res = (5, 5) # lon/lat
+   >>> res = (5, 5)  # lon/lat
    >>> gco = gc(lons=sco.vars.lons.squeeze().values.ravel(),
    >>>          lats=sco.vars.lats.squeeze().values.ravel(),
    >>>          values=sco.vars.Hs.squeeze().values.ravel(),
@@ -461,18 +470,21 @@ Information of the grid and the values from observations and model can also be o
 Gridding of collocated data
 ***************************
 
-It is now possible to collocate model data with the same grid: 
+It is also possible to grid the collocated data.
 
 .. code-block:: python3
 
    >>> from wavy.collocation_module import collocation_class as cc
+
    >>> # collocate
-   >>> cco = cc(model='ww3_4km',oco=sco,distlim=6,leadtime='best',date_incr=1)
+   >>> cco = cc(model='ww3_4km', oco=sco, distlim=6, leadtime='best', date_incr=1)
+
    >>> # reduce region to part of model domain for better visual
-   >>> bb = (-20, 20, 50, 80) # lonmin,lonmax,latmin,latmax
-   >>> res = (5, 5) # lon/lat
+   >>> bb = (-20, 20, 50, 80)  # lonmin,lonmax,latmin,latmax
+   >>> res = (5, 5)  # lon/lat
    >>> gco = gc(cco=cco, bb=bb, res=res)
    >>> var_gridded_dict, lon_grid, lat_grid = apply_metric(gco=gco)
+
    >>> # plot all validation metrics on grid
    >>> gco.quicklook(val_grid=var_gridded_dict, lon_grid=lon_grid, lat_grid=lat_grid, metric='all')
    
@@ -498,7 +510,7 @@ You can have a first look at the data:
 
 .. code-block:: python3
 
-   >>> sco = sco.quicklook(a=True)
+   >>> sco.quicklook(a=True)
    
 There could be some land interactions with the satellite track. It is possible to 
 filter it using *sco.filter_landMask()* function. Additionnally points closer than 
@@ -510,9 +522,9 @@ The corresponding code is the following:
 
 .. code-block:: python3
 
-   >>> sco = sco.filter_landMask()\
-   ...          .filter_distance_to_coast(llim=650)\
-   ...          .apply_limits(llim=0.1)
+   >>> sco_filter = sco.filter_landMask()\
+   ...                 .filter_distance_to_coast(llim=650)\
+   ...                 .apply_limits(llim=0.5)
    
 Some additional despiking method can be applied with *sco.despike_blockStd()*.
 
