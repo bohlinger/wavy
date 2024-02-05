@@ -531,6 +531,12 @@ Some additional despiking method can be applied with *sco.despike_blockStd()*.
 .. code-block:: python3
 
    >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
+
+In order to show the computed x-track pulse-limited footprint size one can add:
+
+.. code-block:: python3
+
+   >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
    
 Another operation you can perform is smoothing the time serie, using a running mean with the *sco.filter_runmean* method: 
    
