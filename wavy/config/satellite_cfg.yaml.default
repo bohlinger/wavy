@@ -88,6 +88,14 @@ cmems_L3_MY:
             search_str: '%Y%m%dT'
             strsub: ['name']
             server: "my.cmems-du.eu"
+        copernicus: 
+            dataset_id: cci_obs-wave_glo_phy-swh_my_name-l3_PT1S
+            trgt_tmplt: /home/patrikb/tmp_altimeter/L3/MY/name/%Y/%m
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            strsub: ['name']
+            server: "my.cmems-du.eu"
+            time_incr: 'h' # 'h', 'd', 'm'
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
