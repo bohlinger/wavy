@@ -257,11 +257,15 @@ class quicklook_class_sat:
                     label=self.nID,
                     marker='o',alpha=.5,ms=2)
             try:
+                if 'model' in vars(self):
+                    label_scdplot = self.model
+                else:
+                    label_scdplot = self.nID
                 ax.plot(self.vars['time'],
                         plot_var_model,
                         color=colors[1],
                         linestyle=kwargs.get('linestyle',''),
-                        label=self.nID,
+                        label=label_scdplot,
                         marker='o',alpha=.5,ms=2)
             except Exception as e:
                 pass

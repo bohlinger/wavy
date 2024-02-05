@@ -307,6 +307,16 @@ Using the quicklook function you can quickly visualize the data you have retriev
    >>> sco.quicklook(m=True) # for a map
    >>> sco.quicklook(a=True) # for all
 
+.. |ex1| image:: ./oslo_ws24_sat_ts.png
+   :scale: 50
+.. |ex2| image:: ./oslo_ws24_sat_map.png
+   :scale: 50
+
++-------------------+------------------+
+| |ex1|             | |ex2|            |
+|                   |                  |
++-------------------+------------------+
+
 
 Exercise:
 *********
@@ -329,12 +339,20 @@ In-situ observations can also be imported using the insitu_module module. You ca
    >>> ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=sensor)
    >>> ico = ico.populate()
 
+You can have a look at the obtained time series:
+
+.. code-block:: python3
+
+   >>> sco.quicklook(ts=True)
+
+
+.. image:: ./oslo_ws24_insitu.png
+   :scale: 80
+
 
 5. access/read model data
 #########################
-Model output can be accessed and read using the model_module module. The model_module config file model_cfg.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
-
-TO COMPLETE
+Model output can be accessed and read using the model_module module. The model_module config file model_cfg.yaml needs adjustments if you want to include a model that is not present as default. 
 
 You can then import model data as follows: 
 
@@ -348,6 +366,14 @@ You can then import model data as follows:
    >>> mco = mc(nID=nID, sd=sd).populate()  # one time slice
    >>> mco_p = mc(nID=nID, sd=sd, ed=ed).populate()  # time period
 
+And again it is possible to visualize the data: 
+
+.. code-block:: python3
+
+   >>> sco.quicklook(m=True)
+   
+.. image:: ./oslo_ws24_model_map.png
+   :scale: 80   
 
 6. Collocating model and observations
 #####################################
@@ -384,6 +410,13 @@ Collocation of satellite and wave model
 *distlim* is the distance limit for collocation in *km* and date_incr is the time step increase in hours. One can also add a keyword for the collocation time window. The default is +-30min which is equivalent to adding *twin=30*. In this case ERA only had 6h time steps which makes it a bit more unlikely that satellite crossings and model time steps coincide. Increasing *twin* helps, however, it means we assume quasi-stationarity for this time period.
 
 Using the quicklook function again (*cco.quicklook(a=True)*) will enable three plots this time, a time series plot (*ts=True*), a map plot (*m=True*), and a scatter plot (*sc=True*).
+
+.. code-block:: python3
+
+   >>> cco.quicklook(ts=True)
+
+.. image:: ./oslo_ws24_collocated_ts.png
+   :scale: 80
 
 
 7. Validate the collocated time series
@@ -464,6 +497,9 @@ Now the gridder can be applied as follows:
    >>>               mask_metric_llim=1,
    >>>               title='')
 
+.. image:: ./oslo_ws24_gridding_map.png
+   :scale: 80
+
 Information of the grid and the values from observations and model can also be obtained directly from the gridder_class object:
 
 .. code-block:: python3
@@ -491,7 +527,17 @@ It is also possible to grid the collocated data.
    >>> # plot all validation metrics on grid
    >>> gco.quicklook(val_grid=var_gridded_dict, lon_grid=lon_grid, lat_grid=lat_grid, metric='all')
    
+.. |ex3| image:: ./oslo_ws24_gridding_nb_collocated.png
+   :scale: 50
+.. |ex4| image:: ./oslo_ws24_gridding_rmsd.png
+   :scale: 50
 
++-------------------+------------------+
+| |ex3|             | |ex4|            |
+|                   |                  |
++-------------------+------------------+
+   
+   
 9. Applying filters
 ###################
 Finally, it is possible to apply some filters to the data. Let us try it on some 
@@ -515,6 +561,9 @@ You can have a first look at the data:
 
    >>> sco.quicklook(a=True, land_mask_resolution='f')
    
+.. image:: ./oslo_ws24_filters_1.png
+   :scale: 80
+
 There could be some land interactions with the satellite track. It is possible to filter it using *sco.filter_landMask()* function. Additionnally points closer than a certain distance to the coast can be defined using *sco.filter_distance_to_coast()* with *llim* argument. If specifics (range gate resolution and height over ground) about the satellite intsrument are known one can compute a possible foot print land interaction based on the size of the pulse limited footprint size byt adding *.filter_footprint_land_interaction()*. Finally, values under threshold (resp. over) can also be discarder using the *sco.apply_limits()* method with *llim* argument (resp. *ulim*).
 
 The corresponding code is the following: 
@@ -526,11 +575,18 @@ The corresponding code is the following:
    ...                 .filter_footprint_land_interaction()\  
    ...                 .apply_limits(llim=0.1)
    
+   
+.. image:: ./oslo_ws24_filters_2.png
+   :scale: 80
+   
 Some additional despiking method can be applied with *sco.despike_blockStd()*.
 
 .. code-block:: python3
 
    >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
+
+.. image:: ./oslo_ws24_filters_3.png
+   :scale: 80
 
 In order to show the computed x-track pulse-limited footprint size one can add:
 
@@ -543,7 +599,8 @@ Another operation you can perform is smoothing the time serie, using a running m
 .. code-block:: python3
 
    >>> sco = sco.filter_runmean(window=5, chunk_min=5, sampling_rate_Hz=20)
-   
+
+
 10. Saving data to netcdf
 #########################
 It is possible to save the data from the different wavy objects to .nc files. If
