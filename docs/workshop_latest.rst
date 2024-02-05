@@ -575,7 +575,19 @@ The corresponding code is the following:
    ...                 .filter_footprint_land_interaction()\  
    ...                 .apply_limits(llim=0.1)
    
-   
+
+This can be plotted by:
+
+.. code-block:: python3
+
+   >>> sco.quicklook(a=True, land_mask_resolution='f')
+
+In order to show the computed x-track pulse-limited footprint size one can add:
+
+.. code-block:: python3
+
+   >>> sco_filter.quicklook(a=True, land_mask_resolution='f', plot_xtrack_pulse_limited_fpr=True)
+
 .. image:: ./oslo_ws24_filters_2.png
    :scale: 80
    
@@ -588,12 +600,7 @@ Some additional despiking method can be applied with *sco.despike_blockStd()*.
 .. image:: ./oslo_ws24_filters_3.png
    :scale: 80
 
-In order to show the computed x-track pulse-limited footprint size one can add:
 
-.. code-block:: python3
-
-   >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
-   
 Another operation you can perform is smoothing the time serie, using a running mean with the *sco.filter_runmean* method: 
    
 .. code-block:: python3
