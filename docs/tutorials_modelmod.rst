@@ -1,24 +1,34 @@
 Read model data
 ###############
 
-Model output can be accessed and read using the modelmod module. The modelmod config file model_cfg.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
+Model output can be accessed and read using the model_module. The model_module config file model_cfg.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
 
 .. code-block:: yaml
 
-   modelname:
-       wavy_input:
-           src_tmplt:
-           fl_tmplt:
+    My_nID:
+        name: My_Model_Name
+        download:
+        wavy_input:
+            src_tmplt: /Path/To/
+            fl_tmplt: myfile
+        wavy_output:
+        reader: read_ww3_4km
+        collector:
+        vardef:
+            Hs: hs
+            time: time
+            lons: longitude
+            lats: latitude
+        coords:
+        misc:
+            init_times: [0,6,12,18]
+            init_step: 6
+            grid_date: 2021-11-16 00:00:00
+            date_incr_unit: h
+            date_incr: 1
+        tags:
 
-Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding the specified variable name like:
-
-.. code-block:: yaml
-
-    vardef:
-        Hs: VHM0
-        time: time
-        lons: lon
-        lats: lat
+Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding the specified variable names under *vardef*. Examples are given in the default model_cfg.yaml file.
 
 The variable aliases (left hand side) need to be specified in the variable_def.yaml. Basic variables are already defined. All specs listed here are also used when **wavy** writes the retrieved values to netcdf.
 
