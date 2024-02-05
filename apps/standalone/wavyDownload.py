@@ -71,7 +71,7 @@ def main(sd, ed, nid, name, path, nproc):
 
     # read yaml config files:
     satellite_dict = load_or_default('satellite_cfg.yaml')
-    print(satellite_dict)
+
     # settings
     now = datetime.now()
 
