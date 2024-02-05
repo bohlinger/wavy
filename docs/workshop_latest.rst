@@ -1,10 +1,10 @@
-**wavy** workshop 2024
-======================
+Olso **wavy** workshop 2024
+===========================
 
 The following examples are tailored to the **wavy** Workshop. This workshop will focus on some simple examples that can be used as python code snippets in your workflow.
 
 0. checklist **wavy** installation
-##############################
+##################################
 
     * did you add your **wavy** root directory to $PYTHONPATH?
     * is **wavy** activated? (conda activate wavy)
@@ -55,7 +55,7 @@ Where your *.env*-file needs to point to this config folder like in the followin
         WAVY_CONFIG=/home/patrikb/ws24_wavy/config/
         WAVY_DIR=/home/patrikb/wavy/
 
-If you want to download data, the same .env file has to be copied to the wavy root directory, ~/wavy. 
+Finally, the same .env file has to be copied to the wavy root directory, ~/wavy. 
 
 
 2. Download L3 satellite altimetry data
@@ -541,3 +541,50 @@ with the *sco.filter_runmean* method:
 .. code-block:: python3
 
    >>> sco = sco.filter_runmean(window=11, chunk_min=5, sampling_rate_Hz=20)
+   
+10. Saving data to netcdf
+#########################
+It is possible to save the data from the different wavy objects to .nc files. If
+we take again the first example we used for the satellite data:  
+
+.. code-block:: python3
+
+   >>> from wavy.satellite_module import satellite_class as sc
+   >>> # settings
+   >>> region = 'global'
+   >>> varalias = 'Hs'  # default
+   >>> name = 's3a'
+   >>> nID = 'cmems_L3_NRT'
+   >>> twin = 30  # default
+   >>> sd = "2023-2-1 11"  # can also be datetime object
+   >>> ed = "2023-2-1 12"  # not necessary if twin is specified
+   >>> # retrieval
+   >>> sco = sc(sd=sd, ed=ed, region=region, nID=nID, name=name)
+   >>> sco = sco.populate()
+
+Then we can save the data contained in *sco.vars* as follows: 
+ 
+.. code-block:: python3
+
+   >>> sco.vars.to_netcdf('/home/patrikb/ws24_wavy/test_dump.nc')
+   
+This way, you can directly reimport the data by initializing a new satellite_class
+object and populate it giving the path to the netcdf file created earlier in 
+the *sco.populate()* method using *wavy_path* argument as follows: 
+
+.. code-block:: python3
+
+   >>> from wavy.satellite_module import satellite_class as sc
+   >>> # settings
+   >>> region = 'global'
+   >>> varalias = 'Hs'  # default
+   >>> name = 's3a'
+   >>> nID = 'cmems_L3_NRT'
+   >>> twin = 30  # default
+   >>> sd = "2023-2-1 11"  # can also be datetime object
+   >>> ed = "2023-2-1 12"  # not necessary if twin is specified
+   >>> # retrieval
+   >>> sco = sc(sd=sd, ed=ed, region=region, nID=nID, name=name)
+   >>> sco = sco.populate(wavy_path='/home/patrikb/ws24_wavy/test_dump.nc')
+   
+Note that this works with insitu_class and model_class object as well. 
