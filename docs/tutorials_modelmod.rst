@@ -1,12 +1,12 @@
 Read model data
 ###############
 
-Model output can be accessed and read using the model_module. The model_module config file model_cfg.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually:
+Model output can be accessed and read using the model_module. The model_module config file model_cfg.yaml needs adjustments if you want to include a model that is not present as default. Given that the model output file you would like to read follows the cf-conventions and standard_names are unique, the minimum information you have to provide are usually the following as illustrated with the WAVEWATCH III example:
 
 .. code-block:: yaml
 
-    My_nID:
-        name: My_Model_Name
+    ww3_4km:
+        name: ww3_4km
         download:
         wavy_input:
             src_tmplt: /Path/To/
