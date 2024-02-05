@@ -501,9 +501,9 @@ L2 satellite data already included in the package.
 
    >>> from wavy.satellite_module import satellite_class as sc
    >>> path_to_files= '/home/patrikb/wavy/tests/data/CCIv3_20Hz/'
-   >>> sd = '2019-3-24 18'
-   >>> ed = '2019-3-24 20'
-   >>> region = 'NordicSeas'
+   >>> sd = '2019-3-24 10'
+   >>> ed = '2019-3-24 11'
+   >>> region = 'Sulafj'
    >>> sco = sc(sd=sd, ed=ed,
    >>>          nID='L2_20Hz_s3a', name='s3a',
    >>>          region=region)
@@ -513,13 +513,9 @@ You can have a first look at the data:
 
 .. code-block:: python3
 
-   >>> sco.quicklook(a=True)
+   >>> sco.quicklook(a=True, land_mask_resolution='f')
    
-There could be some land interactions with the satellite track. It is possible to 
-filter it using *sco.filter_landMask()* function. Additionnally points closer than 
-a certain distance to the coast can be defined using *sco.filter_distance_to_coast()*
-with *llim* argument. Finally, values under threshold (resp. over) can also be discarder using the 
-*sco.apply_limits()* method with *llim* argument (resp. *ulim*).
+There could be some land interactions with the satellite track. It is possible to filter it using *sco.filter_landMask()* function. Additionnally points closer than a certain distance to the coast can be defined using *sco.filter_distance_to_coast()* with *llim* argument. If specifics (range gate resolution and height over ground) about the satellite intsrument are known one can compute a possible foot print land interaction based on the size of the pulse limited footprint size byt adding *.filter_footprint_land_interaction()*. Finally, values under threshold (resp. over) can also be discarder using the *sco.apply_limits()* method with *llim* argument (resp. *ulim*).
 
 The corresponding code is the following: 
 
@@ -527,20 +523,20 @@ The corresponding code is the following:
 
    >>> sco_filter = sco.filter_landMask()\
    ...                 .filter_distance_to_coast(llim=650)\
-   ...                 .apply_limits(llim=0.5)
+   ...                 .filter_footprint_land_interaction()\  
+   ...                 .apply_limits(llim=0.1)
    
 Some additional despiking method can be applied with *sco.despike_blockStd()*.
 
 .. code-block:: python3
 
-   >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5)
+   >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
    
-Another operation you can perform is smoothing the time serie, using a running mean 
-with the *sco.filter_runmean* method: 
+Another operation you can perform is smoothing the time serie, using a running mean with the *sco.filter_runmean* method: 
    
 .. code-block:: python3
 
-   >>> sco = sco.filter_runmean(window=11, chunk_min=5, sampling_rate_Hz=20)
+   >>> sco = sco.filter_runmean(window=5, chunk_min=5, sampling_rate_Hz=20)
    
 10. Saving data to netcdf
 #########################
