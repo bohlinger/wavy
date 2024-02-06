@@ -561,7 +561,10 @@ You can have a first look at the data:
 
    >>> sco.quicklook(a=True, land_mask_resolution='f')
    
-.. image:: ./oslo_ws24_filters_1.png
+.. image:: ./oslo_ws24_filters_sat_map_raw.png
+   :scale: 80
+
+.. image:: ./oslo_ws24_filters_sat_ts_raw.png
    :scale: 80
 
 There could be some land interactions with the satellite track. It is possible to filter it using *sco.filter_landMask()* function. Additionnally points closer than a certain distance to the coast can be defined using *sco.filter_distance_to_coast()* with *llim* argument. If specifics (range gate resolution and height over ground) about the satellite intsrument are known one can compute a possible foot print land interaction based on the size of the pulse limited footprint size byt adding *.filter_footprint_land_interaction()*. Finally, values under threshold (resp. over) can also be discarder using the *sco.apply_limits()* method with *llim* argument (resp. *ulim*).
@@ -576,31 +579,37 @@ The corresponding code is the following:
    ...                 .apply_limits(llim=0.1)
    
    
-.. image:: ./oslo_ws24_filters_2.png
+.. image:: ./oslo_ws24_filters_sat_map_limits.png
+   :scale: 80
+
+.. image:: ./oslo_ws24_filters_sat_ts_limits.png
    :scale: 80
    
 Some additional despiking method can be applied with *sco.despike_blockStd()*.
 
 .. code-block:: python3
 
-   >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
+   >>> sco_despike = sco_filter.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
 
-.. image:: ./oslo_ws24_filters_3.png
+.. image:: ./oslo_ws24_filters_sat_ts_despike.png
    :scale: 80
 
 In order to show the computed x-track pulse-limited footprint size one can add:
 
 .. code-block:: python3
 
-   >>> sco = sco.despike_blockStd(slider=20, sigma=2, chunk_min=5, sampling_rate_Hz=20)
+   >>>
    
 Another operation you can perform is smoothing the time serie, using a running mean with the *sco.filter_runmean* method: 
    
 .. code-block:: python3
 
-   >>> sco = sco.filter_runmean(window=5, chunk_min=5, sampling_rate_Hz=20)
+   >>> sco_smooth = sco_despike.filter_runmean(window=5, chunk_min=5, sampling_rate_Hz=20)
 
-
+.. image:: ./oslo_ws24_filters_sat_ts_smooth.png
+   :scale: 80
+   
+   
 10. Saving data to netcdf
 #########################
 It is possible to save the data from the different wavy objects to .nc files. If
