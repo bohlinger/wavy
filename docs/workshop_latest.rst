@@ -596,8 +596,8 @@ In order to show the computed x-track pulse-limited footprint size one can add:
 
    >>> sco_filter.quicklook(a=True, land_mask_resolution='f', plot_xtrack_pulse_limited_fpr=True)
    
- .. image:: ./oslo_ws24_filters_sat_xtrack.png
-    :scale: 80  
+.. image:: ./oslo_ws24_filters_sat_xtrack.png
+   :scale: 80  
 
 Some additional despiking method can be applied with *sco.despike_blockStd()*.
 
