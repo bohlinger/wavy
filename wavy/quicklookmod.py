@@ -302,7 +302,7 @@ class quicklook_class_sat:
             plt.show()
 
         if sc is True:
-            lq = np.arange(0.01, 1.01,0.01)
+            lq = np.arange(0.01, 1.01, 0.01)
             lq = kwargs.get('lq', lq)
             modq = compute_quantiles(plot_var_model, lq)
             obsq = compute_quantiles(plot_var_obs, lq)
@@ -314,24 +314,27 @@ class quicklook_class_sat:
             ax.plot(plot_var_obs, plot_var_model,
                     linestyle='None', color=colors[0],
                     marker='o', alpha=.5, ms=2)
-            plt.xlabel = 'obs ( ' + self.nID + ')'
 
             # add quantiles
             ax.plot(obsq, modq, 'r')
 
             # 45 degree line for orientation
             ax.axline((0, 0), (1, 1), lw=.5, color='grey',ls='--')
-            plt.ylabel('models ( ' + self.model + ' )')
+
+            # add axis labels
+            plt.xlabel('obs (' + self.nID + ')')
+            plt.ylabel('models (' + self.model + ')')
+
             vartype = variable_info[self.varalias].get('type','default')
             if vartype == 'cyclic':
-                plt.xlim([0,360])
-                plt.ylim([0,360])
+                plt.xlim([0, 360])
+                plt.ylim([0, 360])
             else:
                 maxv = np.nanmax([self.vars['model_values'],
                                   self.vars['obs_values']])
                 minv = 0
-                plt.xlim([minv,maxv+0.15*maxv])
-                plt.ylim([minv,maxv+0.15*maxv])
+                plt.xlim([minv, maxv+0.15*maxv])
+                plt.ylim([minv, maxv+0.15*maxv])
             ax.set_title(self.varalias + '[' + self.units + ']')
             plt.tight_layout()
             #ax.set_title()
