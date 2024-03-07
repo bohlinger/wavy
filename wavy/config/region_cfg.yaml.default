@@ -37,7 +37,12 @@ rect:
         llcrnrlat: 60.6
         urcrnrlon: 4.8
         urcrnrlat: 60.9
-
+    OO:
+        llcrnrlon: 10
+        llcrnrlat: -45 # 45S
+        urcrnrlon: 45
+        urcrnrlat: -25 # 25S
+       
 # polynomial
 poly:
     NorwegianSea:

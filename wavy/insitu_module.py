@@ -548,3 +548,17 @@ class poi_class(qls, wc, fc):
     def _build_xr_ds(self, poi):
         ds = build_xr_ds_from_dict(poi, 'time')
         return ds
+
+    def crop_to_period(self, **kwargs):
+        """
+        Function to crop the variable dictionary to a given period
+        """
+        new = deepcopy(self)
+        sd = parse_date(kwargs.get('sd', str(new.sd)))
+        ed = parse_date(kwargs.get('ed', str(new.ed)))
+        print('Crop to time period:', sd, 'to', ed)
+        new.vars = new.vars.sel(time=slice(sd, ed))
+        new.sd = sd
+        new.ed = ed
+        return new
+
