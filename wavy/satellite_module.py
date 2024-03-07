@@ -395,6 +395,7 @@ class satellite_class(qls, wc, fc):
                         else:
                             ds_lst.append(new._change_varname_to_aliases()
                                           ._enforce_longitude_format()
+                                          .crop_to_region(region)
                                           .crop_to_poi().vars)
                     except Exception as e:
                         logger.exception(e)
@@ -574,6 +575,7 @@ class satellite_class(qls, wc, fc):
                 print(" ")
                 print(" ### satellite_class object populated ###")
                 print('# ----- ')
+
             except Exception as e:
                 logger.exception(e)
                 #logger.debug(traceback.format_exc())
