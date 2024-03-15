@@ -188,8 +188,23 @@ class gridder_class():
         vmax = kwargs.get('vmax')
         vmin = kwargs.get('vmin')
 
-        lonmax, lonmin = np.nanmax(lon_grid), np.nanmin(lon_grid)
-        latmax, latmin = np.nanmax(lat_grid), np.nanmin(lat_grid)
+        # plot track if applicable
+        if kwargs.get('lonmax') is not None:
+            lonmax = kwargs.get('lonmax')
+        else:
+            lonmax = np.max(plot_lons)
+        if kwargs.get('latmax') is not None:
+            latmax = kwargs.get('latmax')
+        else:
+            latmax = np.max(plot_lats)
+        if kwargs.get('lonmin') is not None:
+            lonmin = kwargs.get('lonmin')
+        else:
+            lonmin = np.min(plot_lons)
+        if kwargs.get('latmin') is not None:
+            latmin = kwargs.get('latmin')
+        else:
+            latmin = np.min(plot_lats)
 
         # land
         land = cfeature.GSHHSFeature(

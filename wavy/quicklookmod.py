@@ -127,8 +127,23 @@ class quicklook_class_sat:
             ax.add_feature(land, facecolor='burlywood', alpha=0.5)
 
             # plot track if applicable
-            lonmax, lonmin = np.max(plot_lons), np.min(plot_lons)
-            latmax, latmin = np.max(plot_lats), np.min(plot_lats)
+            if kwargs.get('lonmax') is not None:
+                lonmax = kwargs.get('lonmax')
+            else:
+                lonmax = np.max(plot_lons)
+            if kwargs.get('latmax') is not None:
+                latmax = kwargs.get('latmax')
+            else:
+                latmax = np.max(plot_lats)
+            if kwargs.get('lonmin') is not None:
+                lonmin = kwargs.get('lonmin')
+            else:
+                lonmin = np.min(plot_lons)
+            if kwargs.get('latmin') is not None:
+                latmin = kwargs.get('latmin')
+            else:
+                latmin = np.min(plot_lats)
+
             if kwargs.get('poi') is not None:
                 poi = kwargs.get('poi')
                 plats = poi.vars.lats.data
