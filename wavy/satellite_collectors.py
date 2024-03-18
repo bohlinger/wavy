@@ -272,7 +272,8 @@ def get_remote_files_copernicusmarine(**kwargs):
                         filter = regexp_tmp,
                         no_directories = True,
                         output_directory = path_local,
-                        force_download=True)
+                        force_download=True,
+                        overwrite_output_data=True)
             except:
                 pass
             
