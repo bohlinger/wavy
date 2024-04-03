@@ -8,6 +8,7 @@ import click
 from wavy.satellite_module import satellite_class as sc
 from datetime import datetime, timedelta
 import time
+from wavy.utils import parse_date
 from pathlib import Path
 from wavy.wconfig import load_or_default
 # -------------------------------------------------------------------- #
@@ -16,9 +17,9 @@ from wavy.wconfig import load_or_default
 
 @click.command(context_settings={"ignore_unknown_options": True})
 @click.option('--sd', type=str, default=None,
-        help='starting date and time of your query e.g.: 2023-10-1 00')
+        help='starting date and time of your query e.g.: 2023-10-1T00')
 @click.option('--ed', type=str, default=None,
-        help='ending date and time of your query e.g.: 2023-10-10 00')
+        help='ending date and time of your query e.g.: 2023-10-10T00')
 @click.option('--nID', type=str, default='cmems_L3_NRT',
         help='nID as specified in satellite_cfg.yaml')
 @click.option('--name', type=str, default=None,
@@ -78,14 +79,12 @@ def main(sd, ed, nid, name, path, nproc):
     if sd is None:
         sdate = now-timedelta(hours=24)
     else:
-        sdate = datetime(int(sd[0:4]), int(sd[4:6]),
-                         int(sd[6:8]), int(sd[8:10]))
+        sdate = parse_date(sd)
 
     if ed is None:
         edate = now
     else:
-        edate = datetime(int(ed[0:4]), int(ed[4:6]),
-                         int(ed[6:8]), int(ed[8:10]))
+        edate = parse_date(ed)
 
     if name is None:
         namelst = [list(satellite_dict[nid]['name'].keys())[0]]
