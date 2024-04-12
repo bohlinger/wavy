@@ -32,6 +32,7 @@ def collocate_sat_and_insitu(sco, ico, twin=5, dist_max=200):
     '''
     list_time_sat = []
     list_time_insitu = []
+    list_dist_min = []
     datetimes_ico = [pd.to_datetime(t) for t in ico.vars['time'].values]
 
     for i, time_insitu in enumerate(datetimes_ico):
