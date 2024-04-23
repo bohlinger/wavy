@@ -190,8 +190,67 @@ L2_20Hz_s3a:
         obs_type:
         sat_specs:
             s3a:
-                tau: 3.125 # ns, pulse duration or range gate resolution
+                tau: 3.125 # ns, compressed pulse length or range gate resolution
                 h: 814.5 # km, height over ground
+    # optional, to ease grouping
+    tags:
+
+L2_20Hz_c2:
+    # mandatory
+    name:
+        c2: c2
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/products/v3/data/satellite/altimeter/\
+                        l2_20Hz/l2/cryosat-2/%Y/%j/"
+            #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+            trgt_tmplt:
+            strsub: ['name']
+            server: "eftp.ifremer.fr"
+            path_date_incr_unit: 'd'
+            path_date_incr: 1
+            search_str: '%Y%m%d'
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        #src_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        src_tmplt:
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['name']
+        path_date_incr_unit: 'd'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
+        trgt_tmplt:
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region']
+        file_date_incr: 'm'
+    # optional, if not defined the default is used
+    reader: read_local_20Hz_files
+    collector: get_remote_files_cmems
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        Hs: swh_lrrmc_corr_hfa_20_ku # time
+        time: time_echo_sar_ku
+        lats: lat_echo_sar_ku
+        lons: lon_echo_sar_ku
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level:
+        provider:
+        obs_type:
+        sat_specs:
+            s3a:
+                tau: 3.125 # ns, compressed pulse length or range gate resolution
+                tau2: 44.8 # micro-seconds, pulse duration from cryosat product  handbook
+                h: 730. # km, height over ground, also seen 717km - not sure
     # optional, to ease grouping
     tags:
 
