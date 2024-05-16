@@ -18,6 +18,7 @@ from ftplib import FTP
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 import logging
+import copernicusmarine as cmc
 #logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=30)
 logger = logging.getLogger(__name__)
@@ -173,3 +174,111 @@ def get_remote_files_cmems(**kwargs):
         print('####################################')
 
     print('Files downloaded to: \n', path_local)
+    
+    
+def get_remote_files_copernicusmarine(**kwargs):
+    '''
+    Download swath files from CMEMS using copernicusmarine parckage
+    and store them at defined location. Time stamps in file name stand for:
+
+    from, to, creation
+    '''
+    product = kwargs.get('nID')
+    sdate = kwargs.get('sd')
+    edate = kwargs.get('ed')
+    nproc = kwargs.get('nproc', 1)
+    name = kwargs.get('name', 'Draugen')
+    dict_for_sub = kwargs
+    # define path
+    path = kwargs.get('path', None)
+    # Get time increment
+    time_incr = insitu_dict[product]['download']['copernicus']\
+                .get('time_incr','h')
+    
+    # Chose search template for time given time_incr
+    if time_incr=='m':
+        file_search_template = '%Y%m'
+        dataset_part = 'monthly'
+    print('Date search format:', file_search_template)
+
+    # Get dataset_id
+    dataset_id = insitu_dict\
+                            [product]['download']['copernicus']\
+                            ['dataset_id']
+    strsublst_src = insitu_dict[product]['download']\
+                            ['copernicus']['strsub']
+    subdict_src = make_subdict(strsublst_src,
+                               class_object_dict=dict_for_sub)
+
+    # replace name of the mission in dataset_id
+    dataset_id = make_pathtofile(dataset_id,
+                                  strsublst_src, 
+                                  subdict_src)
+    
+    # Initialize start date to match original files time increment
+    tmpdate = deepcopy(sdate)
+    tmpdate_end = deepcopy(edate)
+
+
+    # tmpdate = tmpdate - timedelta(hours=1)
+
+    # tmpdate_end = tmpdate_end + timedelta(hours=1)
+ 
+    try:
+        
+        print('# ----- ')
+        print('Chosen source: ')
+        print(name + ' values from ' + product + ': ' + 'copernicusmarine')
+        print('# ----- ')
+        
+        while (tmpdate <= tmpdate_end):
+
+            if path is None:
+	        # create local path
+                path_template_dst = insitu_dict[product]['download']\
+	                                ['copernicus']['trgt_tmplt']
+                strsublst_dst = insitu_dict[product]['download']\
+	                                ['copernicus']['strsub']
+                subdict_dst = make_subdict(strsublst_dst,
+	                                   class_object_dict=dict_for_sub)
+                path_local = make_pathtofile(path_template_dst,
+	                                     strsublst_dst, subdict_dst,
+	                                     date=tmpdate)
+            else:
+                path_local = path
+	
+            print('* --------------')
+            print('Downloading for date:', tmpdate)
+            print('* --------------')
+
+            # check if download path_local exists if not create
+            if not os.path.exists(path_local):
+                os.makedirs(path_local, exist_ok=True)
+    
+            # Create regexp filter
+            tmpdate_str = tmpdate.strftime(file_search_template)
+            regexp_tmp = "*MO_{}_{}*.nc".format(name, tmpdate_str)
+            # Fetch data corresponding to tmp date 
+            print(regexp_tmp)
+            try:
+                cmc.get(
+                        dataset_id = dataset_id,
+                        dataset_part = 'monthly',
+                        filter = regexp_tmp,
+                        no_directories = True,
+                        output_directory = path_local,
+                        force_download=True,
+                        overwrite_output_data=True)
+            except Exception as e:
+                print(e)
+                pass
+            
+            if time_incr=='m':
+                tmpdate = tmpdate + relativedelta(months=+1)    
+     
+    except Exception as e:
+        logger.exception(e)
+   
+    print('# -----------------------------------')
+    print('Files downloaded to: \n', path_local)        
+
