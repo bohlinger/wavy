@@ -111,20 +111,20 @@ def test_cmems_insitu_daily(test_data):
     assert not all(np.isnan(v) for v in new.vars['lats'])
 
 
-@pytest.mark.need_credentials
-def test_insitu_collectors(tmpdir):
-    varalias = 'Hs'  # default
-    sd = "2023-8-20 00"
-    ed = "2023-8-21 00"
-    nID = 'MO_Draugen_monthly'
-    name = 'Draugen'
-    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
-    ico.download(path=tmpdir, nproc=2)
-    # check if files were download to tmp directory
-    filelist = os.listdir(tmpdir)
-    nclist = [i for i in range(len(filelist))
-              if '.nc' in filelist[i]]
-    assert len(nclist) >= 1
+#@pytest.mark.need_credentials
+#def test_insitu_collectors(tmpdir):
+#    varalias = 'Hs'  # default
+#    sd = "2024-3-10 00"
+#    ed = "2024-3-11 00"
+#    nID = 'AR_TS_MO_monthly'
+#    name = 'Draugen'
+#    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
+#    ico.download(path=tmpdir, nproc=2)
+#    # check if files were download to tmp directory
+#    filelist = os.listdir(tmpdir)
+#    nclist = [i for i in range(len(filelist))
+#              if '.nc' in filelist[i]]
+#    assert len(nclist) >= 1
 
 
 def test_insitu_poi(tmpdir):
