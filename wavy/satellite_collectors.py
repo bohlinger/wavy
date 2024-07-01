@@ -227,9 +227,6 @@ def get_remote_files_copernicusmarine(**kwargs):
 
     while tmpdate.hour%3 != 0:
         tmpdate = tmpdate - timedelta(hours=1)
-
-    while tmpdate_end.hour%3 != 0:
-        tmpdate_end = tmpdate_end + timedelta(hours=1)
  
     try:
         
