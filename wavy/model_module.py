@@ -280,9 +280,14 @@ class model_class(qls):
                   like xarray and netCDF4
         """
         if self.nID in model_dict:
-            if 'xtra_h' in vars(self.cfg)['misc']:
-                filedate = self._get_model_filedate(fc_date, leadtime)
-                pathdate = filedate + timedelta(hours=leadtime) \
+            filedate = self._get_model_filedate(fc_date, leadtime)
+            pathdate = deepcopy(filedate)
+            if 'xtra_h_p' in vars(self.cfg)['misc']:
+                pathdate = filedate\
+                           + timedelta(
+                                   hours=vars(self.cfg)['misc']['xtra_h_p'])
+            if 'xtra_h_f' in vars(self.cfg)['misc']:
+                pathdate = pathdate - timedelta(hours=leadtime) \
                                     * vars(self.cfg)['misc']['lt_switch_p']
                 tmpstr = vars(self.cfg)['wavy_input']['fl_tmplt']
                 for i in range(vars(self.cfg)['misc']['nr_filedates']):
@@ -293,7 +298,7 @@ class model_class(qls):
                                         vars(self.cfg)['misc']['init_step']))
                                     * vars(self.cfg)['misc']['lt_switch_f'][i]
                                 + timedelta(hours=\
-                                      vars(self.cfg)['misc']['xtra_h'][i])).\
+                                      vars(self.cfg)['misc']['xtra_h_f'][i])).\
                                       strftime(filedatestr)
                     tmpstr = tmpstr.replace('filedate', replacestr, 1)
                 filename = (
@@ -301,8 +306,7 @@ class model_class(qls):
                                 vars(self.cfg)['wavy_input']['src_tmplt'])
                             + tmpstr)
             else:
-                filedate = self._get_model_filedate(fc_date, leadtime)
-                filename = (filedate.strftime(vars(self.cfg)
+                filename = (pathdate.strftime(vars(self.cfg)
                                 ['wavy_input']['src_tmplt'])
                           + filedate.strftime(vars(self.cfg)
                                 ['wavy_input']['fl_tmplt']))
@@ -320,7 +324,7 @@ class model_class(qls):
         return filename
 
     def _make_model_filename_wrapper(
-    self, fc_date, leadtime, max_lt=None, **kwargs):
+    self, fc_date, leadtime, **kwargs):
         """
         Wrapper function of make_model_filename. Organizes various cases.
 
@@ -328,7 +332,6 @@ class model_class(qls):
             model - modelname type(str)
             fc_date - datetime object
             leadtime - integer in hours
-            max_lt - maximum lead time allowed
 
         return:
             filename
@@ -362,10 +365,12 @@ class model_class(qls):
                               + " with extended leadtime")
                         leadtime = (leadtime
                                     + vars(self.cfg)['misc']['init_step'])
-                    if max_lt is not None and leadtime > max_lt:
+                    if (kwargs.get('max_lt') is not None
+                        and leadtime > kwargs.get('max_lt')):
                         print("Leadtime:", leadtime,
                               "is greater as maximum allowed leadtime:",
-                              max_lt)
+                              str(kwargs.get('max_lt')))
+                        break
             else:
                 filename = None
         elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
@@ -380,15 +385,14 @@ class model_class(qls):
 
         return filename
 
-    def _make_list_of_model_filenames(self, fc_dates, lt):
+    def _make_list_of_model_filenames(self, fc_dates, lt, **kwargs):
         """
         return: flst - list of model files to be opened
                 dlst - list of dates to be chosen within each file
         """
-        #fn = make_model_filename_wrapper(datetime(2021,1,1,1),1)
         flst = []
         for d in fc_dates:
-            fn = self._make_model_filename_wrapper(d, lt)
+            fn = self._make_model_filename_wrapper(d, lt, **kwargs)
             if fn is not None:
                 flst.append(fn)
         return flst
@@ -431,7 +435,12 @@ class model_class(qls):
                                      class_object_dict=dict_for_sub)
                     path = make_pathtofile(path_template,
                                            strsublst, subdict)
-                    path = tmpdate.strftime(path)
+                    if 'xtra_h_p' in list(vars(self.cfg)['misc']):
+                        xtra_h_p = vars(self.cfg)['misc']['xtra_h_p']
+                        path = (tmpdate +
+                                timedelta(hours=xtra_h_p)).strftime(path)
+                    else:
+                        path = tmpdate.strftime(path)
                     if os.path.isdir(path):
                         tmplst = np.sort(os.listdir(path))
                         filelst.append(tmplst)
@@ -493,7 +502,7 @@ class model_class(qls):
                                      self.cfg.misc['date_incr'])
 
             pathlst = self._make_list_of_model_filenames(
-                    fc_dates, self.leadtime)
+                    fc_dates, self.leadtime, **kwargs)
         else:
             # if defined path local
             print(" ## Find and list files ...")

@@ -22,9 +22,11 @@
 #    reader:
 #    collector:
 #    misc:
-#    	xtra_h: # h adjustment according to position in filename
-#    	lt_switch_f: # should lead time be used for filedate [False/True]
-#   	lt_switch_p: # should lead time be used for pathdate [False/True]
+#    	xtra_h_f: # h adjustment according to position in filename
+#       xtra_h_p: 6 # h bias adjustment in pathname
+#    	lt_switch_f: # lead time used for filedate [False/True]
+#   	lt_switch_p: # lead time used for pathdate [False/True]
+#   	lt_switch_p_incr: # lead time adjustment depending on init_times [False/True]
 #    	nr_filedates: # how many dates are introduced in the filename
 #    	filedate_formats: # time string format e.g. %Y%m%d
 #    	init_times: # UTC hours of model initialization
@@ -61,9 +63,48 @@ ARCMFC3:
     reader: read_ww3_4km
     collector:
     misc:
-        xtra_h: [0,6] # h bias adjustment according to position in filename
+        xtra_h_f: [0,6] # h bias adjustment according to position in filename
         lt_switch_f: [1,0] # should lead time adjust filedate [False/True]
         lt_switch_p: 1 # should lead time adjust pathdate [False/True]
+        nr_filedates: 2
+        # defining format which substitutes filedate in file_template
+        filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
+        init_times: [0,12]
+        init_step: 12
+        leadtimes: [0,12,36,60,84,108,132,156,180,204,228]
+        grid_date: 2020-02-01 00:00:00
+        date_incr_unit: h
+        date_incr: 1
+    tags:
+
+ARCMFC3_assim:
+    vardef:
+        Hs: VHM0
+        Tp: VTPK
+        Tm02: VTM02
+        Mdir: VMDR
+        Pdir: VPED
+        time: time
+        lons: lon
+        lats: lat
+    coords:
+    wavy_input:
+        src_tmplt: "/lustre/storeB/project/copernicus/sea/\
+                    mywavewam3_reproc/%Y/%m/%H/"
+        # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
+        # - This is actually 2019071500_*_b20190715T00* but due
+        #   to delay the bulletin date/time is adjusted
+        # introduce the sub-string filedate into filename
+        # for each time a date should be replaced
+        fl_tmplt: "filedate_MyWaveWam3_bfiledate.nc"
+    wavy_output:
+    reader: read_ww3_4km
+    collector:
+    misc:
+        xtra_h_f: [0,6] # h bias adjustment according to position in filename
+        xtra_h_p: 6 # h bias adjustment in pathname
+        lt_switch_f: [1,0] # should lead time adjust filedate [False/True]
+        lt_switch_p: 0 # should lead time adjust pathdate [False/True]
         nr_filedates: 2
         # defining format which substitutes filedate in file_template
         filedate_formats: ['%Y%m%d%H','%Y%m%dT%H']
