@@ -191,9 +191,28 @@ def get_remote_files_copernicusmarine(**kwargs):
     edate = kwargs.get('ed')
     nproc = kwargs.get('nproc', 1)
     name = kwargs.get('name', 's3a')
+
+    # if CMEMS credentials are defined in environment other options 
+    # are overwritten
+    if 'COPERNICUS_MARINE_SERVICE_USERNAME' in os.environ:
+        username = os.getenv('COPERNICUS_MARINE_SERVICE_USERNAME')
+    else:
+        username = None
+    if 'COPERNICUS_MARINE_SERVICE_PASSWORD' in os.environ:
+        password = os.getenv('COPERNICUS_MARINE_SERVICE_PASSWORD')
+    else:
+        password = None
+
+    if (username is not None and password is not None):
+        no_metadata_cache = True
+    else:
+        no_metadata_cache = False
+
     dict_for_sub = kwargs
+
     # define path
     path = kwargs.get('path', None)
+
     # Get time increment
     time_incr = satellite_dict[product]['download']['copernicus']\
                 .get('time_incr','h')
@@ -265,12 +284,15 @@ def get_remote_files_copernicusmarine(**kwargs):
             # Fetch data corresponding to tmp date 
             try:
                 cmc.get(
-                        dataset_id = dataset_id,
-                        filter = regexp_tmp,
-                        no_directories = True,
-                        output_directory = path_local,
-                        force_download=True,
-                        overwrite_output_data=True)
+                    dataset_id=dataset_id,
+                    filter=regexp_tmp,
+                    no_directories=True,
+                    output_directory=path_local,
+                    force_download=True,
+                    overwrite_output_data=True,
+                    username=username,
+                    password=password,
+                    no_metadata_cache=no_metadata_cache)
             except:
                 pass
             
