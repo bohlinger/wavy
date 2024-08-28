@@ -154,8 +154,8 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         print(" ")
         print(" ## Collocate ... ")
-        for i in range(1):
-        #try:
+        #for i in range(1):
+        try:
             t0 = time.time()
             results_dict = self.collocate(**kwargs)
             self.model_time = results_dict['model_time']
@@ -170,10 +170,11 @@ class collocation_class(qls):
             print("Time used for collocation:", round(t1-t0, 2), "seconds")
             print(" ")
             print(" ### Collocation_class object initialized ###")
-        #except Exception as e:
-        #    print(e)
-        #    self.error = e
-        #    print("! No collocation_class object initialized !")
+        except Exception as e:
+            print(e)
+            self.error = e
+            self.vars = None
+            print("! collocation_class object may be empty !")
         # add class variables
         print('# ----- ')
 

@@ -192,19 +192,19 @@ class gridder_class():
         if kwargs.get('lonmax') is not None:
             lonmax = kwargs.get('lonmax')
         else:
-            lonmax = np.max(plot_lons)
+            lonmax = np.max(lon_grid)
         if kwargs.get('latmax') is not None:
             latmax = kwargs.get('latmax')
         else:
-            latmax = np.max(plot_lats)
+            latmax = np.max(lat_grid)
         if kwargs.get('lonmin') is not None:
             lonmin = kwargs.get('lonmin')
         else:
-            lonmin = np.min(plot_lons)
+            lonmin = np.min(lon_grid)
         if kwargs.get('latmin') is not None:
             latmin = kwargs.get('latmin')
         else:
-            latmin = np.min(plot_lats)
+            latmin = np.min(lat_grid)
 
         # land
         land = cfeature.GSHHSFeature(
@@ -265,8 +265,9 @@ class gridder_class():
         plt.show()
 
     def quicklook(self, metric='mor',
-        mask_metric_llim=10,
-        mask_metric='nov', **kwargs):
+                  mask_metric_llim=10,
+                  mask_metric='nov',
+                  **kwargs):
 
         if metric == 'all':
             for key in kwargs['val_grid'].keys():

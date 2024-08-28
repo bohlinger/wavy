@@ -295,19 +295,19 @@ def get_remote_files_copernicusmarine(**kwargs):
                     no_metadata_cache=no_metadata_cache)
             except:
                 pass
-            
-            if time_incr=='h':
+
+            if time_incr == 'h':
                 tmpdate = tmpdate + timedelta(hours=3)
-            elif time_incr=='d':
+            elif time_incr == 'd':
                 tmpdate = tmpdate + timedelta(days=1)
-            elif time_incr=='m':
-                tmpdate = tmpdate + relativedelta(months=+1)    
-     
+            elif time_incr == 'm':
+                tmpdate = tmpdate + relativedelta(months=+1)
+
     except Exception as e:
         logger.exception(e)
-   
+
     print('# -----------------------------------')
-    print('Files downloaded to: \n', path_local)        
+    print('Files downloaded to: \n', path_local)
 
 
 def get_remote_files_aviso(**kwargs):
@@ -356,9 +356,9 @@ def get_remote_files_aviso(**kwargs):
         ftp = FTP(server)
         ftp.login(user, pw)
         ftp.cwd(path_remote)
-        content=FTP.nlst(ftp)
-        #choose files according to sdate/edate
-        tmplst=[]
+        content = FTP.nlst(ftp)
+        # choose files according to sdate/edate
+        tmplst = []
         tmpdate_new = tmpdate-timedelta(minutes=twin)
         tmpdate_end = edate+timedelta(minutes=twin)
         while (tmpdate_new <= tmpdate_end):
@@ -406,8 +406,8 @@ def get_remote_files_cci(**kwargs):
     twin = kwargs.get('twin', 30)
     nproc = kwargs.get('nproc', 1)
     name = kwargs.get('name', 'multi')
-    #path_local = kwargs.get('path_local')
-    #dict_for_sub = kwargs.get('dict_for_sub')
+    # path_local = kwargs.get('path_local')
+    # dict_for_sub = kwargs.get('dict_for_sub')
     dict_for_sub = kwargs
 
     # define path
@@ -452,7 +452,7 @@ def get_remote_files_cci(**kwargs):
         ftp.login(user, pw)
         ftp.cwd(path_remote)
         content = FTP.nlst(ftp)
-        #choose files according to sdate/edate
+        # choose files according to sdate/edate
         tmplst = []
         tmpdate_new = tmpdate-timedelta(minutes=twin)
         tmpdate_end = edate+timedelta(minutes=twin)
