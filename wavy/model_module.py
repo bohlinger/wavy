@@ -319,8 +319,7 @@ class model_class(qls):
                            .replace(">", "\\>")
         return filename
 
-    def _make_model_filename_wrapper(
-    self, fc_date, leadtime, max_lt=None, **kwargs):
+    def _make_model_filename_wrapper(self, fc_date, leadtime, **kwargs):
         """
         Wrapper function of make_model_filename. Organizes various cases.
 
@@ -328,7 +327,6 @@ class model_class(qls):
             model - modelname type(str)
             fc_date - datetime object
             leadtime - integer in hours
-            max_lt - maximum lead time allowed
 
         return:
             filename
@@ -362,10 +360,12 @@ class model_class(qls):
                               + " with extended leadtime")
                         leadtime = (leadtime
                                     + vars(self.cfg)['misc']['init_step'])
-                    if max_lt is not None and leadtime > max_lt:
+                    if (kwargs.get('max_lt') is not None
+                        and leadtime > kwargs.get('max_lt')):
                         print("Leadtime:", leadtime,
                               "is greater as maximum allowed leadtime:",
-                              max_lt)
+                              str(kwargs.get('max_lt')))
+                        break
             else:
                 filename = None
         elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
@@ -380,15 +380,14 @@ class model_class(qls):
 
         return filename
 
-    def _make_list_of_model_filenames(self, fc_dates, lt):
+    def _make_list_of_model_filenames(self, fc_dates, lt, **kwargs):
         """
         return: flst - list of model files to be opened
                 dlst - list of dates to be chosen within each file
         """
-        #fn = make_model_filename_wrapper(datetime(2021,1,1,1),1)
         flst = []
         for d in fc_dates:
-            fn = self._make_model_filename_wrapper(d, lt)
+            fn = self._make_model_filename_wrapper(d, lt, **kwargs)
             if fn is not None:
                 flst.append(fn)
         return flst
@@ -493,7 +492,7 @@ class model_class(qls):
                                      self.cfg.misc['date_incr'])
 
             pathlst = self._make_list_of_model_filenames(
-                    fc_dates, self.leadtime)
+                    fc_dates, self.leadtime, **kwargs)
         else:
             # if defined path local
             print(" ## Find and list files ...")

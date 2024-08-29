@@ -64,12 +64,14 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
     return index_array_2d, distance_array, valid_output_index
 
 
-def get_model_filename(nID, d, leadtime):
+def get_model_filename(nID, d, leadtime, **kwargs):
     mco = mc(nID=nID, sd=d, ed=d, leadtime=leadtime)
-    return mco._make_model_filename_wrapper(parse_date(str(d)), leadtime)
+    return mco._make_model_filename_wrapper(parse_date(str(d)),
+                                            leadtime, **kwargs)
 
 
-def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
+def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model,
+                                               leadtime, **kwargs):
     '''
     Finds valid dates that are close to desired dates at a precision
     of complete hours
@@ -84,13 +86,13 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model, leadtime):
     #    pass
     #else:
     fc_dates_new = [d for d in fc_dates_new
-                    if get_model_filename(model, d, leadtime) is not None]
+                    if get_model_filename(model, d, leadtime, **kwargs)
+                    is not None]
     return fc_dates_new
 
 
-def check_if_file_is_valid(fc_date, model, leadtime, max_lt=None):
-    fname = get_model_filename(
-                model, fc_date, leadtime, max_lt=max_lt)
+def check_if_file_is_valid(fc_date, model, leadtime, **kwargs):
+    fname = get_model_filename(model, fc_date, leadtime, **kwargs)
     print('Check if requested file:\n', fname, '\nis available and valid')
     try:
         nc = netCDF4.Dataset(fname, mode='r')
@@ -133,7 +135,7 @@ class collocation_class(qls):
     '''
 
     def __init__(self, oco=None, model=None, poi=None,
-    distlim=None, leadtime=None, max_lt=None, **kwargs):
+    distlim=None, leadtime=None, **kwargs):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")
@@ -312,7 +314,8 @@ class collocation_class(qls):
         ndt_datetime = [parse_date(str(d)) for d in ndt]
 
         ndt_valid = find_valid_fc_dates_for_model_and_leadtime(
-                                    ndt, self.model, self.leadtime)
+                                    ndt, self.model, self.leadtime,
+                                    **kwargs)
 
         ndt_valid = np.unique(ndt_valid)
 
