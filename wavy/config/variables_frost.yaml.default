@@ -7,6 +7,11 @@ Hs:
         prime_parameterid: 136
         prime_level: 0
         default_level: 0
+Tm01:
+        frost_name: sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment
+        prime_parameterid: 166
+        prime_level: 0
+        default_level: 0
 Tm02:
         frost_name: sea_surface_wave_mean_period
         prime_parameterid: 154
