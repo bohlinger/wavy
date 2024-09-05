@@ -21,9 +21,15 @@ Judith Thu Ølberg, 2023: Wave Measurements Using Ship Mounted Sensors as part o
 
 Copernicus CMEMS Product Quality Documents QuID
 ***********************************************
-Arctic Ocean Wave Hindcast system, ARCTIC_MULTIYEAR_WAV_002_013, https://doi.org/10.48670/moi-00008
-Arctic Ocean Wave Analysis and Forecast, ARCTIC_ANALYSIS_FORECAST_WAV_002_014, https://doi.org/10.48670/moi-00002
+* Arctic Ocean Wave Hindcast system, ARCTIC_MULTIYEAR_WAV_002_013, https://doi.org/10.48670/moi-00008
+* Arctic Ocean Wave Analysis and Forecast, ARCTIC_ANALYSIS_FORECAST_WAV_002_014, https://doi.org/10.48670/moi-00002
 
 Public operational validation tasks using **wavy**
 **************************************************
-https://cmems.met.no/ARC-MFC/Wave3kmValidation/index.html
+Operational model validation for the Copernicus CMEMS product ARCTIC_ANALYSIS_FORECAST_WAV_002_014 (https://cmems.met.no/ARC-MFC/Wave3kmValidation/index.html)
+
+Projects **wavy** is involved in
+********************************
+FORESEE - Young Research Talents Grant from NFR (Norwegian Research Council)
+COSY - Project on coastal altimetry from the NOSA (Norwegian Space Agency)
+B-WAVES - Project from the NFR
