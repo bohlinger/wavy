@@ -30,6 +30,6 @@ Operational model validation for the Copernicus CMEMS product ARCTIC_ANALYSIS_FO
 
 Projects **wavy** is involved in
 ********************************
-FORESEE - Young Research Talents Grant from NFR (Norwegian Research Council)
-COSY - Project on coastal altimetry from the NOSA (Norwegian Space Agency)
-B-WAVES - Project from the NFR
+* FORESEE - Young Research Talents Grant from NFR (Norwegian Research Council)
+* COSY - Project on coastal altimetry from the NOSA (Norwegian Space Agency)
+* B-WAVES - Project from the NFR
