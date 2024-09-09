@@ -34,6 +34,13 @@ Introduction
 .. note::
    **wavy** just got updated with major changes also in the interfaces. If you need to use the former version (v.1.5.0) please use the branch wavy_v0.1.5.
 
+Credits
+=======
+If you are using **wavy** please mention the repo under https://github.com/bohlinger/wavy and for info from the documentation refer to this page `https://wavyopen.readthedocs.io/ <https://wavyopen.readthedocs.io/en/latest/index.html>`_. Additionally, the collocation methodology should be referred to with the following article:
+
+* Bohlinger, P., Breivik, Ø., Economou, T., Müller, M.: `A novel approach to computing super observations for probabilistic wave model validation <https://www.sciencedirect.com/science/article/pii/S1463500319300435>`_, Ocean Modelling, 139, `<https://doi.org/10.1016/j.ocemod.2019.101404>`_, 2019.
+
+A selection of published studies and other work that use **wavy** can be found under :ref:`credits-label`.
 
 Contents
 ========

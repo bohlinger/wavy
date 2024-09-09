@@ -1,5 +1,7 @@
-Published use of **wavy** and credits
-=====================================
+.. _credits-label:
+
+**wavy** put to use
+===================
 
 If you are using **wavy** please mention the repo under https://github.com/bohlinger/wavy and for info from the documentation refer to this page `https://wavyopen.readthedocs.io/ <https://wavyopen.readthedocs.io/en/latest/index.html>`_. Additionally, the collocation methodology should be referred to with the following article: 
 

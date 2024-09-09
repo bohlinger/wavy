@@ -9,3 +9,5 @@ autoapi_dirs = ['../wavy']
 
 master_doc = 'index'
 html_theme = 'sphinx_rtd_theme'
+
+project = 'wavy'
