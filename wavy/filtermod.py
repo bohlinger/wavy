@@ -13,7 +13,7 @@ from pyproj import Proj, Geod
 from math import *
 
 import pyresample as pr
-from roaring_landmask import Gshhg
+from roaring_landmask import Shapes, LandmaskProvider
 import shapely.wkb as wkb
 from shapely.geometry import Polygon, mapping
 
@@ -94,7 +94,7 @@ class filter_class:
         new = deepcopy(self)
         longitudes = np.array(new.vars['lons'])
         latitudes = np.array(new.vars['lats'])
-        w = Gshhg.wkb()
+        w = Shapes.wkb(LandmaskProvider.Gshhg)
         polys = wkb.loads(w)
         mapped = mapping(polys)
         c = mapped['coordinates']
@@ -482,7 +482,7 @@ class filter_class:
         indices = zip(start_idx_lst, stop_idx_lst)
         print(' Number of created chunks:', len(start_idx_lst))
         return indices
-    
+
     @staticmethod
     def time_gap_chunks(pdtime, **kwargs):
         """
@@ -1410,6 +1410,6 @@ def cleaner_GP(x, y, **kwargs):
     sigma_multiplyer = kwargs.get('sigma', 2)
     uplim = y_pred + (sigma_multiplyer*sigma)
     lowlim = y_pred - (sigma_multiplyer*sigma)
-    idx = [i for i in range(len(Y)) 
+    idx = [i for i in range(len(Y))
            if (Y[i] < uplim[i] and Y[i] > lowlim[i])]
     return idx
