@@ -75,8 +75,8 @@ class quicklook_class_sat:
         vmax = kwargs.get('vmax', np.nanmax(plot_var))
 
         levels = kwargs.get('levels',
-                            np.arange(0, vmax+.5, .5))
-                            #np.arange(vmin, vmax, .5))
+                            np.arange(vmin, vmax, .5))
+                            #np.arange(0, vmax+.5, .5))
 
         cflevels = kwargs.get('cflevels', levels)
         clevels = kwargs.get('clevels', levels)
