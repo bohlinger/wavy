@@ -61,7 +61,7 @@ Now start you python script:
    >>> from wavy.utils import parse_date
    >>> import pandas as pd
 
-   >>> f = pd.read_csv('/home/patrikb/wavy/tests/data/track/Katrina_track.csv')
+   >>> f = pd.read_csv('/path/to/your/wavy/tests/data/track/Katrina_track.csv')
    >>> # convert dates to datetime
    >>> dt = [parse_date(d) for d in f.date]
    >>> lons = f.lon.values
@@ -78,7 +78,7 @@ Now start you python script:
    ...          nID='CCIv1_L3', region='global',
    ...          varalias = 'Hs', # default
    ...          poi=pco)
-   >>> sco = sco.populate(path='/home/patrikb/wavy/tests/data/L3/multi/')
+   >>> sco = sco.populate(path='/path/to/your/wavy/tests/data/L3/multi/')
 
    >>> # quicklook including track by passing poi
    >>> sco.quicklook(m=True,poi=pco)

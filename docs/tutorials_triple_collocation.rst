@@ -71,7 +71,7 @@ First, let us import a serie of values we will consider as the true common signa
 .. code-block:: python3
 
    >>> import pandas as pd
-   >>> df = pd.read_csv('/home/patrikb/wavy/tests/data/triple_collocation/simulated_t.csv', 
+   >>> df = pd.read_csv('/path/to/your/wavy/tests/data/triple_collocation/simulated_t.csv', 
    ...                  header=None, 
    ...                  names=['t'])
    
