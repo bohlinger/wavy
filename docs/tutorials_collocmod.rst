@@ -11,7 +11,7 @@ Collocation of satellite and wave model
    >>> from wavy.satellite_module import satellite_class as sc
    >>> from wavy.collocation_module import collocation_class as cc
 
-   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a/'
+   >>> tmpdir = '/path/to/your/wavy/tests/data/L3/s3a/'
    >>> sd = "2022-2-1 12"
    >>> ed = "2022-2-1 12"
    >>> name = 's3a'
