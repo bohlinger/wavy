@@ -11,7 +11,7 @@ Collocation of satellite and wave model
    >>> from wavy.satellite_module import satellite_class as sc
    >>> from wavy.collocation_module import collocation_class as cc
 
-   >>> tmpdir = '/path/to/your/wavy/tests/data/L3/s3a/'
+   >>> path = '/path/to/your/wavy/tests/data/L3/s3a/'
    >>> sd = "2022-2-1 12"
    >>> ed = "2022-2-1 12"
    >>> name = 's3a'
@@ -22,7 +22,7 @@ Collocation of satellite and wave model
    >>> sco = sc(sd=sd, ed=ed, nID=nID, name=name,
    ...         varalias=varalias, twin=twin)
    >>> sco = sco.populate(reader='read_local_ncfiles',
-   ...                    path=tmpdir)
+   ...                    path=path)
    >>> sco = sco.crop_to_region(model)
    >>> cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
 

@@ -23,15 +23,16 @@ Continue with python, ...here is an example using a polygon for the Norwegian Se
    >>> nID = 'cmems_L3_NRT' 
    >>> name = 's3a'
    >>> varalias = 'Hs' # default
+   >>> path = '/path/to/your/wavy/tests/data/L3/s3a'
    
    >>> # retrieval
-   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name,region=region).populate(path=tmpdir)
+   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name,region=region).populate(path=path)
 
 - Or you can crop it afterwards
 
 .. code-block:: python3
 
-   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name).populate(path=tmpdir)
+   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name).populate(path=path)
    >>> sco = sco.crop_to_region('NorwegianSea')
 
 It is also possible to define a rectangular custom region, directly in the python code, without having to specify it in the region_cfg.yaml file : 
@@ -53,4 +54,4 @@ It is also possible to define a rectangular custom region, directly in the pytho
    >>> # init satellite_object
    >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name,varalias=varalias)
    >>> # read data
-   >>> sco = sco.populate(path=tmpdir, region=region_dict)
+   >>> sco = sco.populate(path=path, region=region_dict)
