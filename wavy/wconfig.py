@@ -6,7 +6,6 @@ logger = logging.getLogger(__name__)
 import dotenv
 import xdg
 
-dotenv.load_dotenv()
 
 
 def __get_confdir__():
@@ -17,6 +16,7 @@ def __get_confdir__():
     WAVY_CONFIG environment variable
     XDG configuration directory (wavy)
     """
+    dotenv.load_dotenv(dotenv_path=dotenv.find_dotenv(usecwd=True))
     c = os.getenv('WAVY_CONFIG', None)
     if c is None:
         c = os.path.join(xdg.xdg_config_home(), 'wavy')
