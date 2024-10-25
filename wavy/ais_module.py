@@ -1,12 +1,13 @@
-from wavy.credentials import credentials_from_netrc
 import requests
 import xarray as xr
 import pandas as pd
 import os
 import json
+from wavy.credentials import credentials_from_netrc
+from wavy.utils import parse_date
 
 
-def get_AIS_data(bbox, sd, ed, minspeed=0.5):
+def get_AIS_data(bbox, sd=None, ed=None, minspeed=0.5):
     '''
     Args:
         bbox: list of strings [lon min, lat min,
@@ -14,6 +15,11 @@ def get_AIS_data(bbox, sd, ed, minspeed=0.5):
         sd, ed: start and end dates, as strings
                 under "yyyymmddHHMM" format
     '''
+    sd = parse_date(sd)
+    ed = parse_date(ed)
+    sd_str = sd.strftime('%Y%m%d%H%M')
+    ed_str = ed.strftime('%Y%m%d%H%M')
+
     # get token
     auth = credentials_from_netrc('kystdatahuset.no')
     url = "https://kystdatahuset.no/ws/api/auth/login"
@@ -32,8 +38,8 @@ def get_AIS_data(bbox, sd, ed, minspeed=0.5):
 
     dict_data = {
                  "bbox": ",".join(bbox),
-                 "start": sd,
-                 "end": ed,
+                 "start": sd_str,
+                 "end": ed_str,
                  "minSpeed": minspeed
                 }
 
