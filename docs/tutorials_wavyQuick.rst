@@ -58,7 +58,7 @@ Now, dump the satellite data to a netcdf-file for later use:
 
 .. code-block:: bash
 
-   $ ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /home/patrikb/tmp_altimeter/quickdump/test.nc
+   $ ./wavyQuick.py -sat s3a -reg mwam4 -sd 2020110100 -ed 2020110300 -dump /any/path/of/your/choice/test.nc
 
 Browse for satellite data, collocate with wave model output and show footprints and model output for one time step and a given lead time (-lt 0) and time constraint (-twin 30):
 

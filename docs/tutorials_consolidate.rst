@@ -10,9 +10,9 @@ The consolidate_class enables the consolidation of multiple satellite_class or i
 
    >>> # satellite consolidate 
    >>> sco1 = sc(sd="2022-2-1",ed ="2022-2-3",region="NordicSeas", nID="cmems_L3_NRT",
-   ...           name='s3a').populate(path='/home/patrikb/wavy/tests/data/L3/s3a')
+   ...           name='s3a').populate(path='/path/to/your/wavy/tests/data/L3/s3a')
    >>> sco2 = sc(sd="2022-2-1",ed ="2022-2-3",region="NordicSeas", nID="cmems_L3_NRT",
-   ...           name='s3b').populate(path='/home/patrikb/wavy/tests/data/L3/s3b')
+   ...           name='s3b').populate(path='/path/to/your/wavy/tests/data/L3/s3b')
 
    >>> cso = cs([sco1,sco2])
 

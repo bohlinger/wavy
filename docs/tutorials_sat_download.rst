@@ -64,13 +64,13 @@ This means that for product cmems_L3_NRT you can choose among 7 satellite missio
    machine ftp.ceda.ac.uk    login {USER}  password {PASSWORD}
    machine ftp-access.aviso.altimetry.fr    login {USER}  password {PASSWORD}
 
-Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS with my user:
+Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS, indicating the path of your choice where you want your data to be stored:
 
 .. code-block:: yaml
 
    cmems_L3_NRT:
       dst:
-         path_template: /home/patrikb/tmp_altimeter/L3/mission
+         path_template: /chosen/path/to/satellite/data/L3/mission
 
 
 There exists also something called strsub which defines strings that are o substituted. In this case some are predefined as:
@@ -79,7 +79,7 @@ There exists also something called strsub which defines strings that are o subst
 
    strsub: ['varalias','mission','region']
 
-The str "mission" in your path_template will be replaced by the satellite mission that you download. So for Sentinel-3a the final path for your downloaded files will be automatically /home/patrikb/tmp_altimeter/L3/s3a with subfolders on year and month.
+The str "mission" in your path_template will be replaced by the satellite mission that you download. So for Sentinel-3a the final path for your downloaded files will be automatically /chosen/path/to/satellite/data/L3/s3a with subfolders on year and month.
 
 You can proceed now and download CMEMS NRT L3 data using the wavyDownload.py script:
 
@@ -119,7 +119,7 @@ You can also download altimeter data directly from python with the following lin
    >>> # Initialize sc object
    >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name)
    >>> # Download the data to a chosen directory
-   >>> path = '/home/patrikb/tmp_altimeter/L3/s3a'
+   >>> path = '/chosen/path/to/satellite/data/L3/s3a'
    >>> sco.download(nproc=4, path=path)
 
 

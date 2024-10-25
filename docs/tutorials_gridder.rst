@@ -11,13 +11,13 @@ Retrieve satellite observations from multiple satellites:
 .. code-block:: python3
 
    >>> from wavy.satellite_module import satellite_class as sc
-   >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a/'
+   >>> path = '/home/patrikb/wavy/tests/data/L3/s3a/'
    >>> sd = '2022-2-1'
    >>> ed = '2022-2-2'
    >>> region = 'global'
    >>> name = 's3a'
    >>> nID = 'cmems_L3_NRT'
-   >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name).populate(path=tmpdir)
+   >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name).populate(path=path)
 
 Apply the gridder:
 

@@ -6,7 +6,7 @@ Basic, but very useful, filters can be applied to the altimtery time series usin
 .. code-block:: python3
 
     >>> from wavy.satellite_module import satellite_class as sc
-    >>> path = '/home/fabienc/Projects/patriks_fork_wavy/wavy/tests/data/L3/s3a'
+    >>> path = '/path/to/your/wavy/tests/data/L3/s3a'
     >>> nID = 'cmems_L3_NRT'
     >>> name = 's3a'
     >>> region = 'NordicSeas'
