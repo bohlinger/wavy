@@ -12,12 +12,6 @@ import matplotlib.pyplot as plt
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date
 from wavy.utils import compute_quantiles
-#from wavy.collocation_module import collocation_class as cc
-#from wavy.insitu_module import poi_class as pc
-#from wavy.insitu_module import insitu_class as ic
-#from wavy.satellite_module import satellite_class as sc
-#from wavy.model_module import insitu_class as mc
-#from wavy.gridder_module import gridder_class as gc
 
 # read yaml config files:
 region_dict = load_or_default('region_cfg.yaml')
@@ -35,6 +29,7 @@ class quicklook_class_sat:
 
         param:
             m - map figure (True/False)
+            ms - map figure + scatter (True/False)
             ts - time series (True/False)
             a - all figures (True/False)
             projection - specified projection for cartopy
@@ -50,7 +45,7 @@ class quicklook_class_sat:
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
         sc = kwargs.get('sc', False)
-        hst = kwargs.get('hist', False)
+        hst = kwargs.get('hist', False)  # histogram when ready
         mode = kwargs.get('mode', 'comb')  # comb, indiv
 
         # set variables
@@ -63,11 +58,7 @@ class quicklook_class_sat:
             plot_lons = self.vars.obs_lons
             plot_lats = self.vars.obs_lats
             plot_var_obs = self.vars.obs_values
-            plot_lons_obs = self.vars.obs_lons
-            plot_lats_obs = self.vars.obs_lats
             plot_var_model = self.vars.model_values
-            plot_lons_model = self.vars.model_lons
-            plot_lats_model = self.vars.model_lats
 
         fs = kwargs.get('fs', 12)
 
@@ -211,19 +202,28 @@ class quicklook_class_sat:
             cbar.ax.set_ylabel(self.units, size=fs)
             cbar.ax.tick_params(labelsize=fs)
 
-            lon_range = (lonmax - lonmin)
-            lat_range = (latmax - latmin)
-            map_extent_multiplicator = kwargs.get(
-                "map_extent_multiplicator", 0.1)
-            map_extent_multiplicator_lon = kwargs.get(
-                "map_extent_multiplicator_lon", map_extent_multiplicator)
-            map_extent_multiplicator_lat = kwargs.get(
-                "map_extent_multiplicator_lat", map_extent_multiplicator)
-            ax.set_extent([lonmin-lon_range*map_extent_multiplicator_lon,
-                           lonmax+lon_range*map_extent_multiplicator_lon,
-                           latmin-lat_range*map_extent_multiplicator_lat,
-                           latmax+lat_range*map_extent_multiplicator_lat],
-                           crs=projection)
+            # - add extend
+            if kwargs.get("map_extent_llon") is None:
+                lon_range = (lonmax - lonmin)
+                lat_range = (latmax - latmin)
+                map_extent_multiplicator = kwargs.get(
+                    "map_extent_multiplicator", 0.1)
+                map_extent_multiplicator_lon = kwargs.get(
+                    "map_extent_multiplicator_lon", map_extent_multiplicator)
+                map_extent_multiplicator_lat = kwargs.get(
+                    "map_extent_multiplicator_lat", map_extent_multiplicator)
+                ax.set_extent([lonmin-lon_range*map_extent_multiplicator_lon,
+                               lonmax+lon_range*map_extent_multiplicator_lon,
+                               latmin-lat_range*map_extent_multiplicator_lat,
+                               latmax+lat_range*map_extent_multiplicator_lat],
+                              crs=projection)
+
+            else:
+                ax.set_extent([kwargs.get("map_extent_llon"),
+                               kwargs.get("map_extent_ulon"),
+                               kwargs.get("map_extent_llat"),
+                               kwargs.get("map_extent_ulat")],
+                              crs=projection)
 
             #ax.coastlines(color='k')
 
@@ -240,7 +240,7 @@ class quicklook_class_sat:
                           + ' to '
                           + (parse_date(str(self.vars['time'][-1].values))).\
                               strftime('%Y-%m-%d %H:%M:%S'))
-            title = kwargs.get('title',auto_title)
+            title = kwargs.get('title', auto_title)
             ax.set_title(title)
             # plot from quickloop config file
             if ('region' in vars(self).keys()

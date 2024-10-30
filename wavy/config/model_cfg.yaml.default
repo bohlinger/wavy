@@ -196,6 +196,48 @@ mwam3:
         date_incr_unit: h
         date_incr: 1
 
+mwam800_finnmark:
+    name:
+    download:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam800f_currhf/"
+        fl_tmplt: "mywavewam800_finnmark.an.%Y%m%d%H.nc"
+    reader: read_ww3_4km
+    collector:
+    misc:
+        init_times: [18]
+        init_step: 24
+        grid_date: 2024-10-25 18:00:00
+        date_incr_unit: h
+        date_incr: 1
+
+mwam800_nordnorge:
+    name:
+    download:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam800n_currhf/"
+        fl_tmplt: "mywavewam800_nordnorge.an.%Y%m%d%H.nc"
+    reader: read_ww3_4km
+    collector:
+    misc:
+        init_times: [18]
+        init_step: 24
+        grid_date: 2024-10-25 18:00:00
+        date_incr_unit: h
+        date_incr: 1
+
 NORA3_hc_waves:
     name:
     download:

@@ -19,6 +19,7 @@ cmems_L3_NRT:
         al: al
         cfo: cfo
         s6a: s6a
+        swon: swon
     # mandatory when downloading
     # where to store downloaded data
     download:
