@@ -477,11 +477,15 @@ def make_subdict(strsublst, class_object=None, class_object_dict=None):
     if class_object_dict is None:
         class_object_dict = vars(class_object)
     subdict = {}
-    for strsub in strsublst:
-        if strsub in class_object_dict:
-            subdict[strsub] = class_object_dict[strsub]
-        else:
-            print(strsub, 'is not available and not substituted')
+    if strsublst is None:
+        pass
+    else:
+        for strsub in strsublst:
+            if strsub in class_object_dict:
+                subdict[strsub] = class_object_dict[strsub]
+            else:
+                print(strsub, 'is not available and not substituted')
+
     return subdict
 
 def get_pathtofile(pathlst, strsublst, subdict, date):
@@ -552,12 +556,15 @@ def make_pathtofile(tmppath, strsublst, subdict, date=None):
     if date is not None:
         pathtofile = date.strftime(tmppath)
     else: pathtofile = tmppath
-    for strsub in strsublst:
-        if strsub in subdict:
-            pathtofile = pathtofile.replace(strsub, subdict[strsub])
-        else:
-            print(strsub,
-                  'in substitutables not needed for destination path')
+    if strsublst is None:
+        pass
+    else:
+        for strsub in strsublst:
+            if strsub in subdict:
+                pathtofile = pathtofile.replace(strsub, subdict[strsub])
+            else:
+                print(strsub,
+                      'in substitutables not needed for destination path')
     return pathtofile
 
 def find_direction_convention(filevarname, ncdict):
