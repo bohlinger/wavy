@@ -532,7 +532,10 @@ class model_class(qls):
         attrs['valid_max'] = 180
         attrs['valid_min'] = -180
         attrs['comments'] = 'forced to range: -180 to 180'
-        new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
+        try:
+            new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
+        except Exception as e:
+            new.vars.assign_coords({"lons": ((new.vars.lons.values + 180) % 360) - 180})
         return new
 
     def _enforce_meteorologic_convention(self):
