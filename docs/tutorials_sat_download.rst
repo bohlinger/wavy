@@ -97,7 +97,7 @@ To get help check ...
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -sat s3a -sd 2020110100 -ed 2020111000 -product cmems_L3_NRT
+   $ ./wavyDownload.py --name s3a --sd 2020110100 --ed 2020111000 --nID cmems_L3_NRT
 
 You can find the downloaded files in your chosen download directory.
 
