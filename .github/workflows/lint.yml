@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   tests:
-    name: pytests (${{ matrix.os }} - ${{ matrix.python-version }}, Mambaforge)
+    name: pytests (${{ matrix.os }} - ${{ matrix.python-version }}, Miniforge3)
     runs-on: ${{ matrix.os }}-latest
     defaults:
       run:
