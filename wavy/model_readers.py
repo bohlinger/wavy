@@ -264,7 +264,8 @@ def read_era(**kwargs):
         d = parse_date(fc_dates[i])
         p = pathlst[i]
         ds = xr.open_dataset(p)
-        ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
+        ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d}, 
+                            method='nearest')
         ds_sliced = ds_sliced[[varname,
                                model_dict[nID]['vardef']['lons'],
                                model_dict[nID]['vardef']['lats']]]
