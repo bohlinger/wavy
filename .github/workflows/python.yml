@@ -22,8 +22,8 @@ jobs:
     env:
       COVERALLS_REPO_TOKEN: xIILGI4RaHRkMSqLgZN8taBLNMaMNrBzD
     steps:
-      - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: environment.yml
           python-version: ${{ matrix.python-version }}
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: wheels
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: '3.10'
           miniforge-version: latest
