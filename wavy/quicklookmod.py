@@ -60,6 +60,9 @@ class quicklook_class_sat:
             plot_var_obs = self.vars.obs_values
             plot_var_model = self.vars.model_values
 
+        if len(plot_lons.shape)<2:
+            plot_lons, plot_lats = np.meshgrid(plot_lons, plot_lats)
+
         fs = kwargs.get('fs', 12)
 
         vmin = kwargs.get('vmin', 0)
@@ -165,18 +168,25 @@ class quicklook_class_sat:
                                  edgecolor='face',
                                  transform=ccrs.PlateCarree())
             if len(plot_var.shape) > 1:
+                #print('HERE')
+                #print(plot_lons.shape)
+                #print('HERE')
                 sc = ax.contourf(plot_lons.squeeze(),
                                  plot_lats.squeeze(),
                                  plot_var.squeeze(),
                                  cmap=cmap, levels=cflevels,
                                  vmin=vmin, vmax=vmax, norm=norm,
-                                 transform=ccrs.PlateCarree())
+                                 transform=ccrs.PlateCarree(),
+                                 transform_first=\
+                                 kwargs.get('transform_first', False))
                 c = ax.contour(plot_lons.squeeze(),
                                plot_lats.squeeze(),
                                plot_var.squeeze(),
                                levels=clevels,
                                colors='w', linewidths=0.3,
-                               transform=ccrs.PlateCarree())
+                               transform=ccrs.PlateCarree(),
+                               transform_first=\
+                               kwargs.get('transform_first', False))
             else:
                 sc = ax.scatter(plot_lons, plot_lats, s=15,
                             c=plot_var,
