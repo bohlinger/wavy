@@ -89,7 +89,7 @@ And the .env file should contain the following line:
 
 Replace USER with you username that you get when typing
 
-.. cide-block:: bash
+.. code-block:: bash
 
      echo ${USER}
 
