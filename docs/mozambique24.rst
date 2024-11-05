@@ -85,7 +85,13 @@ And the .env file should contain the following line:
 
 .. code-block:: bash
 
-     WAVY_CONFIG=Moz_ws24_wavy/config/
+     WAVY_CONFIG=/home/USER/Moz_ws24_wavy/config
+
+Replace USER with you username that you get when typing
+
+.. cide-block:: bash
+
+   echo ${USER}
 
 In order to download satellite data, you also need to copy the wavyDownload.py file from /wavy/apps/standalone/ into your project directory. 
         
@@ -109,8 +115,8 @@ L3 satellite data is obtained from Copernicus with the product identifier WAVE_G
 
 .. code::
 
-    export COPERNICUS_MARINE_SERVICE_USERNAME= YOUR_COPERNICUS_USERNAME
-    export COPERNICUS_MARINE_SERVICE_PASSWORD= YOUR_COPERNICUS_PASSWORD
+    export COPERNICUS_MARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
+    export COPERNICUS_MARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
 
 
 Adjust the satellite config file called *satellite_cfg.yaml*. Remember, this is the file you copied to *~/Moz_ws24_wavy/config*. In this file you should adapt the default paths with the ones from your project. It should include the following section and could look like:
@@ -445,7 +451,7 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
 
 For the model_class objects a quicklook function exists to depict a certain time step of what you loaded::
 
-   >>> mco.quicklook() # for a map
+   >>> mco.quicklook(m=True) # for a map
 
 Or, since there is only a map plot for model_class object, the following is equivalent::
 
