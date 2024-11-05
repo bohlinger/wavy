@@ -91,7 +91,7 @@ Replace USER with you username that you get when typing
 
 .. cide-block:: bash
 
-   echo ${USER}
+     echo ${USER}
 
 In order to download satellite data, you also need to copy the wavyDownload.py file from /wavy/apps/standalone/ into your project directory. 
         
