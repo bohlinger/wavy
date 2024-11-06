@@ -60,8 +60,9 @@ class quicklook_class_sat:
             plot_var_obs = self.vars.obs_values
             plot_var_model = self.vars.model_values
 
-        if len(plot_lons.shape)<2:
-            plot_lons, plot_lats = np.meshgrid(plot_lons, plot_lats)
+        if str(type(self)) != "<class 'wavy.satellite_module.satellite_class'>":
+            if len(plot_lons.shape) < 2:
+                plot_lons, plot_lats = np.meshgrid(plot_lons, plot_lats)
 
         fs = kwargs.get('fs', 12)
 
