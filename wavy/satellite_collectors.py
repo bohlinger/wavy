@@ -194,12 +194,12 @@ def get_remote_files_copernicusmarine(**kwargs):
 
     # if CMEMS credentials are defined in environment other options 
     # are overwritten
-    if 'COPERNICUS_MARINE_SERVICE_USERNAME' in os.environ:
-        username = os.getenv('COPERNICUS_MARINE_SERVICE_USERNAME')
+    if 'COPERNICUSMARINE_SERVICE_USERNAME' in os.environ:
+        username = os.getenv('COPERNICUSMARINE_SERVICE_USERNAME')
     else:
         username = None
-    if 'COPERNICUS_MARINE_SERVICE_PASSWORD' in os.environ:
-        password = os.getenv('COPERNICUS_MARINE_SERVICE_PASSWORD')
+    if 'COPERNICUSMARINE_SERVICE_PASSWORD' in os.environ:
+        password = os.getenv('COPERNICUSMARINE_SERVICE_PASSWORD')
     else:
         password = None
 
