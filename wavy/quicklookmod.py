@@ -60,7 +60,7 @@ class quicklook_class_sat:
             plot_var_obs = self.vars.obs_values
             plot_var_model = self.vars.model_values
 
-        if str(type(self)) != "<class 'wavy.satellite_module.satellite_class'>":
+        if str(type(self)) == "<class 'wavy.model_module.model_class'>":
             if len(plot_lons.shape) < 2:
                 plot_lons, plot_lats = np.meshgrid(plot_lons, plot_lats)
 
@@ -71,7 +71,6 @@ class quicklook_class_sat:
 
         levels = kwargs.get('levels',
                             np.arange(vmin, vmax, .5))
-                            #np.arange(0, vmax+.5, .5))
 
         cflevels = kwargs.get('cflevels', levels)
         clevels = kwargs.get('clevels', levels)
@@ -169,9 +168,6 @@ class quicklook_class_sat:
                                  edgecolor='face',
                                  transform=ccrs.PlateCarree())
             if len(plot_var.shape) > 1:
-                #print('HERE')
-                #print(plot_lons.shape)
-                #print('HERE')
                 sc = ax.contourf(plot_lons.squeeze(),
                                  plot_lats.squeeze(),
                                  plot_var.squeeze(),
