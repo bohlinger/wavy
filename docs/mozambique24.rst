@@ -205,6 +205,18 @@ And then download some satellite altimeter data:
 
    $ ./wavyDownload.py --name s3a --sd 20241017T07 --ed 20241017T08 --nID cmems_L3_NRT
 
+If you need to download satellite data from Copernicus for more than a day or month, you can change the time increment in time_incr. 'h' will download 3-hours files at a time, 'd' will download all available files for a day at a time and 'm' all available files for a month at a time. Make sure to change this parameter if you need to download long periods of data as this will considerably shorten the time it takes to do so.  
+
+.. code-block:: yaml
+           copernicus:
+                dataset_id: cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S
+                trgt_tmplt: /path/to/Moz_ws24_wavy/altimeter_data/L3/name/%Y/%m
+                path_date_incr_unit: 'm'
+                path_date_incr: 1
+                strsub: ['name']
+                server: "nrt.cmems-du.eu"
+                time_incr: 'm' # 'h', 'd', 'm'
+
 You can also download the data directly with python as follows:
 
 .. code-block:: python3
@@ -452,10 +464,6 @@ Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieve
 For the model_class objects a quicklook function exists to depict a certain time step of what you loaded::
 
    >>> mco.quicklook(m=True) # for a map
-
-Or, since there is only a map plot for model_class object, the following is equivalent::
-
-   >>> mco.quicklook(m=True) # for a map
    >>> mco.quicklook(a=True) # for a map
 
 6. Collocating model and observations
@@ -482,8 +490,11 @@ Collocation of satellite and wave model
 
 *distlim* is the distance limit for collocation in *km* and date_incr is the time step increase in hours. One can also add a keyword for the collocation time window. The default is +-30min which is equivalent to adding *twin=30*. In this case ERA only had 6h time steps which makes it a bit more unlikely that satellite crossings and model time steps coincide. Increasing *twin* helps, however, it means we assume quasi-stationarity for this time period.
 
-Using the quicklook function again (*cco.quicklook(a=True)*) will enable three plots this time, a time series plot (*ts=True*), a map plot (*m=True*), and a scatter plot (*sc=True*).
+Using the quicklook function again (*cco.quicklook(a=True)*) will enable three plots this time, a time series plot (*ts=True*), a map plot (*m=True*), and a scatter plot (*sc=True*)
 
+.. code-block:: python3
+    
+    cco.quicklook(a=True)
 
 7. Validate the collocated time series
 #######################################
