@@ -293,7 +293,8 @@ def get_remote_files_copernicusmarine(**kwargs):
                     username=username,
                     password=password,
                     no_metadata_cache=no_metadata_cache)
-            except:
+            except Exception as error:
+                print(error)
                 pass
 
             if time_incr == 'h':
