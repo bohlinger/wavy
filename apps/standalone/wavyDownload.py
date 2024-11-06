@@ -47,6 +47,7 @@ def main(sd, ed, nid, name, path, nproc):
             \n cfo - CFOSAT\n
             \n h2b - HaiYang-2B\n
             \n s6a - Sentinel-6A Michael Freilich\n
+            \n swon - SWOT nadir altimeter\n
             \n
     The following most common missions are available from CCIv1:
             \n

@@ -27,6 +27,8 @@ The help-message displayed would give you, among other information, the followin
      al - SARAL/AltiKa            
      cfo - CFOSAT            
      h2b - HaiYang-2B            
+     s6a - Sentinel-6A Michael Freilich
+     swon - SWOT nadir altimeter
                 
     cmems_L3_s6a:            
      s6a - Sentinel-6A Michael Freilich            
@@ -53,9 +55,9 @@ The help-message displayed would give you, among other information, the followin
     cfo_swim_L2P:
      cfo - CFOSAT
 
-This means that for product cmems_L3_NRT you can choose among 7 satellite missions. Unfortunatley, most of the satellite data is not accessible via thredds or similar options but needs to be downloaded from e.g. a VPN server. To do that you would need the credentials for Copernicus CMEMS, CEDA, or for the AVISO cataloque as these are the main sources that **wavy** currently exploits.
+This means that for product cmems_L3_NRT you can choose among 9 satellite missions. Unfortunatley, most of the satellite data is not accessible via thredds or similar options but needs to be downloaded from e.g. a FTP server. To do that you would need the credentials for Copernicus CMEMS, CEDA, or for the AVISO cataloque as these are the main sources that **wavy** currently exploits.
 
-**wavy** relies on you to store the respective usernames and passwords in your local .netrc file. This could look like:
+**wavy** relies on the coprenicusmarine toolbox for CMEMS and FTP. In case of remote access via FTP **wavy** needs you to store the respective usernames and passwords in your local .netrc file. This could look like:
 
 .. code::
 
@@ -64,6 +66,20 @@ This means that for product cmems_L3_NRT you can choose among 7 satellite missio
    machine ftp.ceda.ac.uk    login {USER}  password {PASSWORD}
    machine ftp-access.aviso.altimetry.fr    login {USER}  password {PASSWORD}
 
+In case of using the copernicusmarine toolbox the user needs to make sure that the CMEMS credentials are available by either logging in once e.g. via python (e.g. in wavy conda environment), like:
+
+.. code-block:: python3
+
+   >>> import copernicusmarine
+   >>> copernicusmarine.login()
+
+or by providing the environment variables directly, like:
+
+.. code::
+
+   export COPERNICUSMARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
+   export COPERNICUSMARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
+
 Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS, indicating the path of your choice where you want your data to be stored:
 
 .. code-block:: yaml
@@ -71,7 +87,6 @@ Now, prepare your **wavy** environment with providing the directories for satell
    cmems_L3_NRT:
       dst:
          path_template: /chosen/path/to/satellite/data/L3/mission
-
 
 There exists also something called strsub which defines strings that are o substituted. In this case some are predefined as:
 
@@ -109,7 +124,7 @@ Similarily one can download L2P and L3 multi-mission altimetry data from the CED
    
 You can also download altimeter data directly from python with the following lines. 
 
-.. code-block:: bash
+.. code-block:: python3
 
    >>> from wavy.satellite_module import satellite_class as sc
    >>> nID = 'cmems_L3_NRT'
@@ -120,6 +135,13 @@ You can also download altimeter data directly from python with the following lin
    >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name)
    >>> # Download the data to a chosen directory
    >>> path = '/chosen/path/to/satellite/data/L3/s3a'
+   >>> sco.download(path=path)
+
+In case of ftp downloads parallel python can be used with a keyword specifying the number of processes, e.g.:
+
+.. code-block:: python3
+
    >>> sco.download(nproc=4, path=path)
+
 
 

@@ -6,7 +6,6 @@ As a next step, you can access these data everywhere with wavy when having set y
 .. code-block:: bash
 
    WAVY_CONFIG=/home/patrikb/project_tmp/
-   WAVY_DIR=/home/patrikb/wavy/
 
 The content of your directory looks then like:
 

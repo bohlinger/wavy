@@ -41,11 +41,10 @@ Now, append wavy root directory to $PYTHONPATH, for instance add the following t
 
    /path/to/your/wavy/ should be replace with the full path of your wavy folder. It will be the case throughout all this documentation.
 
-Create an .env file in your wavy directory and point to the location where you plan to store your custom config files, as well as your wavy directory. Your .env-file could look like:
+Create an .env file in your wavy directory and point to the location where you plan to store your custom config files. Your .env-file could look like:
 
    .. code-block:: bash
 
       WAVY_CONFIG=/path/to/your/config/
-      WAVY_DIR=/path/to/your/wavy/
 
 How to start your own project and how to manage the config files is explained in a separate tutorial.

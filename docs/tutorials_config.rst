@@ -38,9 +38,8 @@ In order to create your own customized project, copy the needed config default f
     * fall back on default files within the package
 
 
-This means, to use your own version of the config files you can create an .env file in your **wavy** directory whith an environmental variable pointing to where your config files and wavy directory are located:
+This means, to use your own version of the config files you can create an .env file in your **wavy** directory whith an environmental variable pointing to where your config files are located:
 
 .. code-block:: bash
 
         WAVY_CONFIG=path/to/your/config/files
-        WAVY_DIR=/path/to/your/wavy/

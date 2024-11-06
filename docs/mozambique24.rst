@@ -115,8 +115,8 @@ L3 satellite data is obtained from Copernicus with the product identifier WAVE_G
 
 .. code::
 
-    export COPERNICUS_MARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
-    export COPERNICUS_MARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
+    export COPERNICUSMARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
+    export COPERNICUSMARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
 
 
 Adjust the satellite config file called *satellite_cfg.yaml*. Remember, this is the file you copied to *~/Moz_ws24_wavy/config*. In this file you should adapt the default paths with the ones from your project. It should include the following section and could look like:
