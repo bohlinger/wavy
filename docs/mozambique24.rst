@@ -340,6 +340,7 @@ Now, we use this region to retrieve only data over this region.
 
 .. code-block:: python3
 
+    >>> from wavy.satellite_module import satellite_class as sc
     >>> nID = "cmems_L3_NRT"
     >>> name = "s3a"
     >>> sd = "2024-10-17 07"
@@ -351,6 +352,7 @@ Another option is to define the region directly in the script:
 
 .. code-block:: python3
 
+    >>> from wavy.satellite_module import satellite_class as sc
     >>> region_dict = {'name': 'Moz',
     >>>                'region': {
     >>>                    'llcrnrlon': 28.3,
