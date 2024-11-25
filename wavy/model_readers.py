@@ -264,7 +264,7 @@ def read_era(**kwargs):
         d = parse_date(fc_dates[i])
         p = pathlst[i]
         ds = xr.open_dataset(p)
-        ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d}, 
+        ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d},
                             method='nearest')
         ds_sliced = ds_sliced[[varname,
                                model_dict[nID]['vardef']['lons'],
@@ -286,3 +286,19 @@ def read_era(**kwargs):
 
     return combined
 
+
+#import pyproj
+#import xarray as xr
+#
+#n = xr.open_dataset('https://thredds.met.no/thredds/dodsC/sea/norkyst800m/1h/aggregate_be')
+#
+#cf_proj = n.projection_stere.attrs
+#
+#crs_from = pyproj.CRS.from_cf(cf_proj)
+#crs_to = pyproj.Proj("EPSG:4326").crs
+#
+#T = pyproj.Transformer.from_crs(crs_from=crs_from, crs_to=crs_to)
+#x=1000
+#y=1000
+#lon, lat = T.transform(x, y)
+#print(lon, lat)

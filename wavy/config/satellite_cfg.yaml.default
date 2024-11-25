@@ -415,3 +415,54 @@ s3a_sla_5Hz:
     # optional, to ease grouping
     tags:
 
+cfo_swim:
+    # mandatory
+    name:
+        swim: swim
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/cfosat/swim_l2p_box_nrt/%Y/%m/"
+            trgt_tmplt: "/home/patrikb/tmp_altimeter/nID/name/%Y/%m/"
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            search_str: '%Y%m%dT'
+            strsub: ['name']
+            server: "ftp-access.aviso.altimetry.fr"
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        #src_tmplt: /lustre/storeB/project/fou/om/patrikb/CCIv3_01Hz/%Y/%m/
+        src_tmplt: /home/patrikb/tmp_altimeter/nID/name/%Y/%m/
+        fl_tmplt: 
+        strsub: ["nID","name"]
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/nID/name/%Y/%m/
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region','nID']
+        file_date_incr_unit: 'd'
+        file_date_incr: 1
+    # optional, if not defined the default is used
+    reader: read_local_ncfiles
+    collector: get_remote_files_cmems
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef: # varalias: varname
+        Hs: swh_denoised
+        dtc: distance_to_coast
+        time: time
+        lats: lat
+        lons: lon
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level: L3
+        provider: aviso
+        obs_type:
+    # optional, to ease grouping
+    tags:

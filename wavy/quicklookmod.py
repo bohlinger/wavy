@@ -203,11 +203,12 @@ class quicklook_class_sat:
                        )
 
             # - colorbar
-            cbar = fig.colorbar(sc, cax=axins,
-                    label=self.varalias + ' [' + self.units + ']',
-                    ticks=levels)
-            cbar.ax.set_ylabel(self.units, size=fs)
-            cbar.ax.tick_params(labelsize=fs)
+            if kwargs.get("cbar", True) is True:
+                cbar = fig.colorbar(sc, cax=axins,
+                        label=self.varalias + ' [' + self.units + ']',
+                        ticks=levels)
+                cbar.ax.set_ylabel(self.units, size=fs)
+                cbar.ax.tick_params(labelsize=fs)
 
             # - add extend
             if kwargs.get("map_extent_llon") is None:
@@ -257,16 +258,20 @@ class quicklook_class_sat:
                     pname = quicklook_dict[self.region]['poi'][poi]['name']
                     plat = quicklook_dict[self.region]['poi'][poi]['lat']
                     plon = quicklook_dict[self.region]['poi'][poi]['lon']
-                    scp = ax.scatter(plon, plat, s = 20,
+                    scp = ax.scatter(plon, plat, s=20,
                                      c=quicklook_dict\
                                            [self.region]['poi'][poi]\
                                            .get('color','b'),
                                      marker=quicklook_dict[self.region]\
                                             ['poi'][poi]['marker'],
                                      transform=ccrs.PlateCarree())
-                ax.text(plon, plat, pname, transform=ccrs.PlateCarree())
+                ax.text(plon, plat, pname, transform=ccrs.PlateCarree(),
+                        zorder=100)
             #fig.suptitle('', fontsize=16) # unused
-            plt.show()
+            if kwargs.get("show", True) is True:
+                plt.show()
+            else:
+                return fig, ax
 
         if (ts is True and mode == 'comb'):
             fig = plt.figure(figsize=(9, 3.5))
@@ -295,7 +300,11 @@ class quicklook_class_sat:
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
-            plt.show()
+            if kwargs.get("show", True) is True:
+                plt.show()
+            else:
+                return fig, ax
+
 
         elif (ts is True and mode == 'indiv'):
             fig = plt.figure(figsize=(9, 3.5))
@@ -321,7 +330,10 @@ class quicklook_class_sat:
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
-            plt.show()
+            if kwargs.get("show", True) is True:
+                plt.show()
+            else:
+                return fig, ax
 
         if sc is True:
             lq = np.arange(0.01, 1.01, 0.01)
@@ -341,7 +353,7 @@ class quicklook_class_sat:
             ax.plot(obsq, modq, 'r')
 
             # 45 degree line for orientation
-            ax.axline((0, 0), (1, 1), lw=.5, color='grey',ls='--')
+            ax.axline((0, 0), (1, 1), lw=.5, color='grey', ls='--')
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
@@ -361,6 +373,10 @@ class quicklook_class_sat:
             plt.tight_layout()
             #ax.set_title()
             plt.show()
+            if kwargs.get("show", True) is True:
+                plt.show()
+            else:
+                return fig, ax
 
     def quick_anim():
         pass
