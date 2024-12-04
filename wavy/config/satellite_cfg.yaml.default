@@ -320,7 +320,7 @@ CCIv3_L3:
     # where to store downloaded data
     download:
         ftp: # downloading method
-            src_tmplt:
+            src_tmplt: /products/v3/data/satellite/altimeter/l3/%Y/%j/
             trgt_tmplt:
             strsub:
             server:
@@ -333,6 +333,59 @@ CCIv3_L3:
         #src_tmplt: /lustre/storeB/project/fou/om/patrikb/CCIv3_01Hz/%Y/%m/
         src_tmplt:
         fl_tmplt: ESACCI-SEASTATE-L3-SWH-MULTI_1D-%Y%m%d-fv01.nc
+        strsub: ["nID"]
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    # optional: where to write to
+    #           can be defined directly when calling wavy
+    wavy_output:
+        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
+        fl_tmplt: "varalias_name_region_\
+                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
+        strsub: ['varalias','name','region','nID']
+        file_date_incr_unit: 'd'
+        file_date_incr: 1
+    # optional, if not defined the default is used
+    reader: read_local_ncfiles
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef: # varalias: varname
+        Hs: swh_denoised
+        dtc: distance_to_coast
+        time: time
+        lats: lat
+        lons: lon
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        processing_level: L3
+        provider: cci
+        obs_type:
+    # optional, to ease grouping
+    tags:
+
+CCIv3_L3_20Hz:
+    # mandatory
+    name:
+        S3A: S3A
+    # mandatory when downloading
+    # where to store downloaded data
+    download:
+        ftp: # downloading method
+            src_tmplt: "/products/v3/data/satellite/altimeter\
+                        /l2_20Hz/l2/sentinel-3_a/%Y/%j/"
+            trgt_tmplt:
+            strsub:
+            server:
+            path_date_incr_unit:
+            path_date_incr:
+            search_str:
+    # optional: where to read from
+    #           can be defined directly when calling wavy
+    wavy_input:
+        #src_tmplt: /lustre/storeB/project/fou/om/patrikb/CCIv3_01Hz/%Y/%m/
+        src_tmplt:
+        fl_tmplt:
         strsub: ["nID"]
         path_date_incr_unit: 'm'
         path_date_incr: 1
@@ -423,12 +476,12 @@ cfo_swim:
     # where to store downloaded data
     download:
         ftp: # downloading method
-            src_tmplt: "/cfosat/swim_l2p_box_nrt/%Y/%m/"
-            trgt_tmplt: "/home/patrikb/tmp_altimeter/nID/name/%Y/%m/"
+            src_tmplt: "/cfosat_products/swim_l2p_box_nrt/%Y/"
+            trgt_tmplt: "/home/patrikb/tmp_altimeter/nID/name/%Y/"
             path_date_incr_unit: 'm'
             path_date_incr: 1
             search_str: '%Y%m%dT'
-            strsub: ['name']
+            strsub: ['nID','name']
             server: "ftp-access.aviso.altimetry.fr"
     # optional: where to read from
     #           can be defined directly when calling wavy
