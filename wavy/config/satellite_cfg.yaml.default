@@ -256,6 +256,9 @@ L2_20Hz_c2:
     tags:
 
 CCIv1_L3:
+    # FTP is down, should now use opendap or wget/curl, see:
+    # https://help.ceda.ac.uk/article/99-download-data-from-ceda-archives
+    # https://help.ceda.ac.uk/article/4431-ceda-archive-web-download-and-service
     # mandatory
     name:
         multi: multi

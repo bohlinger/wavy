@@ -108,6 +108,7 @@ class quicklook_class_sat:
 
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1, projection=projection)
+            #ax = fig.add_subplot(1, 1, 1, projection=ccrs.epsg(3857))
 
             # add land
             ax.add_geometries(land.intersecting_geometries(
@@ -116,6 +117,9 @@ class quicklook_class_sat:
                     facecolor=cfeature.COLORS['land'],
                     edgecolor='black', linewidth=1,
                     zorder=zorder_land)
+
+            # add sea map
+            # ax.add_wmts("https://cache.kartverket.no/v1/wmts", 'sjokartraster')
 
             # - add land color
             ax.add_feature(land, facecolor='burlywood', alpha=0.5)
@@ -192,6 +196,7 @@ class quicklook_class_sat:
                             linewidths=0.1,
                             cmap=cmap, norm=norm,
                             transform=ccrs.PlateCarree())
+
             # axes for colorbar
             axins = inset_axes(ax,
                        width="5%",  # width = 5% of parent_bbox width
