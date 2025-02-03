@@ -91,7 +91,7 @@ def test_poi_collocation():
 #    cco.validate_collocated_values()
 
 
-def test_collocate_observations():
+def test_collocate_observations(test_data):
     from wavy.collocation_module import collocate_observations
     sd = '2023-07-04'
     ed = '2023-07-05'
