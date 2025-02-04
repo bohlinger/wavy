@@ -10,12 +10,14 @@
 # standard library imports
 import numpy as np
 import netCDF4
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import pyresample
 from tqdm import tqdm
 from copy import deepcopy
 import xarray as xr
+import pandas as pd
+import copy
 #import traceback
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -30,6 +32,7 @@ from wavy.utils import NoStdStreams
 from wavy.utils import parse_date
 from wavy.utils import flatten
 from wavy.utils import compute_quantiles
+from wavy.utils import haversineA
 from wavy.wconfig import load_or_default
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.model_module import model_class as mc
@@ -41,6 +44,123 @@ from wavy.validationmod import validate, disp_validation
 model_dict = load_or_default('model_cfg.yaml')
 insitu_dict = load_or_default('insitu_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
+
+
+def collocate_observations(co1, co2, twin=5, dist_max=200):
+    '''
+     Collocates observations from two wavy objects, keeping only closest
+     data from the second dataset within a given time range around each 
+     observation from the first given dataset.
+
+    Args:
+        co1 (insitu_class or satellite_class object): first observation dataset
+                                                    the data from the second
+                                                    dataset will be collocated
+                                                    around this one.
+        co2 (insitu_class or satellite_class object): second observation 
+                                                      dataset
+        twin (int): time window length in minutes
+        dist_max (int | float): Maximum distance
+                                accepted to collocate
+                                data, in km
+
+    Returns:
+        tuple (co1_filter (insitu_class or satellite_class object),
+               co2_filter (insitu_class or satellite_class object)): first and
+                                               second objects given as inputs, 
+                                               with data filtered to keep only 
+                                               collocated observations
+    '''
+    list_time_co2 = []
+    list_time_co1 = []
+    list_dist_min = []
+    datetimes_co1 = [pd.to_datetime(t) for t in co1.vars['time'].values]
+
+    for i, time_co1 in enumerate(datetimes_co1):
+
+        # For each co1 measure, create a dataset
+        # ds_tmp, of co2 data measured at times
+        # between [time_co1 - twin, time_co1 + twin]
+        time_sup = time_co1 + timedelta(minutes=twin)
+        time_inf = time_co1 - timedelta(minutes=twin)
+        ds_tmp = co2.vars.sel(time=slice(time_inf, time_sup))
+        ds_tmp_size = ds_tmp.sizes['time']
+
+        # if some co2 data are found
+        if ds_tmp_size > 0:
+
+            # Gets co1 corresponding datetime,
+            # lat and lon and adds it to ds_tmp
+            # as variables
+            co1_vars_tmp = co1.vars.isel(time=i)
+            lats_co1 = co1_vars_tmp['lats'].values
+            lons_co1 = co1_vars_tmp['lons'].values
+
+            ds_tmp = ds_tmp.assign(
+                {
+                    'time_co1': (
+                        'time',
+                        np.repeat(time_co1, ds_tmp_size)
+                    ),
+                    'lats_co1': (
+                        'time',
+                        np.repeat(lats_co1, ds_tmp_size)
+                    ),
+                    'lons_co1': (
+                        'time',
+                        np.repeat(lons_co1, ds_tmp_size)
+                    )
+                }
+            )
+
+            # Calculates distance between first and second
+            # measurements and adds it as a variable to ds_tmp
+            ds_tmp = ds_tmp.assign(
+                {
+                    'dist_co1_co2': (
+                        'time',
+                        haversineA(
+                            ds_tmp['lons_co1'],
+                            ds_tmp['lats_co1'],
+                            ds_tmp['lons'],
+                            ds_tmp['lats']
+                        )[0]
+                    )
+                }
+            )
+
+            # Calculates the minimum value for distances
+            min_dist_tmp = min(ds_tmp['dist_co1_co2'].values)
+
+            # If the minimum value is lesser than defined max distance
+            if min_dist_tmp <= dist_max:
+
+                # Times for co1 and co2 measurements,
+                # corresponding to the minimum distance are fetched
+                dist = list(ds_tmp['dist_co1_co2'].values)
+                ds_tmp = ds_tmp.isel(time=dist.index(min_dist_tmp))
+                list_time_co2.append(ds_tmp['time'].data)
+                list_dist_min.append(min_dist_tmp)
+                list_time_co1.append(ds_tmp['time_co1'].data)
+
+    co1_filter = copy.deepcopy(co1)
+    co2_filter = copy.deepcopy(co2)
+
+    # Original co1 and co2 object vars are filtered using
+    # lists of times corresponding to minimum distance
+    # between co1 and co2 observation
+    co2_filter.vars = co2_filter.vars.sel(time=list_time_co2)
+    co2_filter.vars = co2_filter.vars.assign(
+        {
+            'colloc_dist': (
+                'time',
+                list_dist_min
+            )
+        }
+    )
+    co1_filter.vars = co1_filter.vars.sel(time=list_time_co1)
+
+    return co1_filter, co2_filter 
 
 
 def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):

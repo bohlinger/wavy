@@ -89,3 +89,23 @@ def test_poi_collocation():
 #             leadtime='best',date_incr=1)
 #    # test validation
 #    cco.validate_collocated_values()
+
+
+def test_collocate_observations(test_data):
+    from wavy.collocation_module import collocate_observations
+    sd = '2023-07-04'
+    ed = '2023-07-05'
+    ico = ic(sd=sd, ed=ed, nID='MO_Draugen_monthly', name = 'Draugen').\
+             populate(path=str(test_data/"insitu/monthly/Draugen/"))
+    sco = sc(sd=sd, ed=ed, nID='cmems_L3_NRT', name='s3a').\
+             populate(path=str(test_data/"L3/s3a"))
+
+    ico_colloc, sco_colloc = collocate_observations(ico, sco)
+    print(ico_colloc)
+    print(len(ico_colloc.vars.keys()))
+    assert len(ico_colloc.vars.keys()) == 3
+    assert len(ico_colloc.vars.time.values) > 0
+    print(sco_colloc)
+    print(len(sco_colloc.vars.keys()))
+    assert len(sco_colloc.vars.keys()) == 4
+    assert len(sco_colloc.vars.time.values) > 0
