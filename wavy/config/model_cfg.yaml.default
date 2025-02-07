@@ -108,6 +108,7 @@ ww3_4km:
         lons: longitude
         lats: latitude
         U: ff
+        hmaxt: hmaxe
     coords:
     # optional, info that can be used by class functions
     misc:
@@ -162,6 +163,9 @@ ecwam:
         time: time
         lons: longitude
         lats: latitude
+        hmaxt: time_domain_max_ind_wave_height
+        hmaxst: space_time_max_ind_wave_height
+        hmax: sea_surface_wave_maximum_height
     coords:
     wavy_input:
         src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"

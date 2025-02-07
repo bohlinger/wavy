@@ -208,3 +208,20 @@ dist_to_coast:
     units: m
     _FillValue: -999.9
 
+hmax:
+    standard_name: sea_surface_wave_maximum_height
+    long_name: 'expected maximum wave height'
+    units: m
+    _FillValue: -999.9
+
+hmaxt:
+    standard_name: sea_surface_wave_maximum_height
+    long_name: 'time domain maximum individual wave height'
+    units: m
+    _FillValue: -999.9
+
+hmaxst:
+    standard_name: sea_surface_wave_maximum_height
+    long_name: 'space time domain maximum individual wave height'
+    units: m
+    _FillValue: -999.9
