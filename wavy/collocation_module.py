@@ -36,6 +36,8 @@ from wavy.utils import haversineA
 from wavy.wconfig import load_or_default
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.model_module import model_class as mc
+from wavy.gridder_module import gridder_class as gc
+from wavy.grid_stats import apply_metric
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.validationmod import validate, disp_validation
 # ---------------------------------------------------------------------#
@@ -274,31 +276,40 @@ class collocation_class(qls):
         self.ed = oco.ed
         self.twin = kwargs.get('twin', oco.twin)
         self.distlim = kwargs.get('distlim', 6)
+        self.method = kwargs.get('method', 'closest')
+        print(" ")
+        print(" ### Collocation_class object initialized ###")
+        
+    def populate(self, **kwargs):
+    
+        new = deepcopy(self)
         print(" ")
         print(" ## Collocate ... ")
         #for i in range(1):
         try:
             t0 = time.time()
-            results_dict = self.collocate(**kwargs)
-            self.model_time = results_dict['model_time']
+            results_dict = new.collocate(**kwargs)
+            new.model_time = results_dict['model_time']
             # build xarray dataset from results
-            ds = self._build_xr_dataset(results_dict)
+            ds = new._build_xr_dataset(results_dict)
             ds = ds.assign_coords(time=ds.time.values)
-            self.vars = ds
+            new.vars = ds
             t1 = time.time()
             print(" ")
             print(" ## Summary:")
-            print(len(self.vars['time']), " values collocated.")
+            print(len(new.vars['time']), " values collocated.")
             print("Time used for collocation:", round(t1-t0, 2), "seconds")
             print(" ")
-            print(" ### Collocation_class object initialized ###")
+
         except Exception as e:
             print(e)
-            self.error = e
-            self.vars = None
+            new.error = e
+            new.vars = None
             print("! collocation_class object may be empty !")
         # add class variables
         print('# ----- ')
+        
+        return new
 
     def _build_xr_dataset(self, results_dict):
         ds = xr.Dataset({
@@ -534,6 +545,127 @@ class collocation_class(qls):
         return results_dict
 
 
+    def _collocate_centered_model_value(self, time, lon, lat, **kwargs):
+
+        #(time, lon, lat, nID_model, name_model, res):
+   
+        nID_model = self.model
+        name_model = self.model 
+        res = kwargs.get('res', (0.5,0.5))
+        
+        print('Using resolution {}'.format(res))
+        # ADD CHECK LIMITS FOR LAT AND LON
+        res_dict = {}
+            
+        date = pd.to_datetime((time + np.timedelta64(30, 'm'))\
+                                     .astype('datetime64[h]'))\
+                                     .strftime('%Y-%m-%d %H')
+            
+        mco = mc(sd=date, ed=date,
+                 nID=nID_model, name=name_model,
+                 max_lt=12).populate(twin=5) # ADD AS PARAMETERS
+   
+        bb = (lon - res[0]/2, 
+              lon + res[0]/2, 
+              lat - res[1]/2, 
+              lat + res[1]/2)
+
+        gco = gc(lons=mco.vars.lons.squeeze().values.ravel(),
+                 lats=mco.vars.lats.squeeze().values.ravel(),
+                 values=mco.vars.Hs.squeeze().values.ravel(),
+                 bb=bb, res=res,
+                 varalias=mco.varalias,
+                 units=mco.units,
+                 sdate=mco.vars.time,
+                 edate=mco.vars.time)
+    
+        gridvar, lon_grid, lat_grid = apply_metric(gco=gco)
+    
+        ts = gridvar['mor'].flatten()
+        lon_flat = lon_grid.flatten()
+        lat_flat = lat_grid.flatten()
+    
+        res_dict['hs'] = ts[0]
+        res_dict['lon'] = lon_flat[0]
+        res_dict['lat'] = lat_flat[0]
+        res_dict['time'] = (time + np.timedelta64(30, 'm'))\
+                                  .astype('datetime64[h]')\
+                                  .astype('datetime64[ms]')
+
+        return res_dict
+
+
+    def _collocate_regridded_model(self, **kwargs):
+    
+        from joblib import Parallel, delayed
+    
+        hs_mod_list=[] 
+        lon_mod_list=[]
+        lat_mod_list=[]
+        time_mod_list=[]
+        
+        nproc = kwargs.get('nproc', 16)
+        
+        oco_vars = self.oco.vars
+
+        length = len(oco_vars.time.values)
+        
+        print('ok1')
+        
+        #Parallel should be optional, with nproc as parameter
+        colloc_mod_list = Parallel(n_jobs=nproc)(
+                               delayed(self._collocate_centered_model_value) (
+                                           oco_vars.time.values[i],
+                                           oco_vars.lons.values[i],
+                                           oco_vars.lats.values[i],
+                                           **kwargs) for i in range(length)
+                                           )
+
+        length_colloc_mod_list = len(colloc_mod_list)
+        hs_mod_list = [colloc_mod_list[i]['hs'] for i in \
+                       range(length_colloc_mod_list)]
+        lon_mod_list = [colloc_mod_list[i]['lon'] for i in \
+                       range(length_colloc_mod_list)]
+        lat_mod_list = [colloc_mod_list[i]['lat'] for i in \
+                       range(length_colloc_mod_list)]
+        time_mod_list = [colloc_mod_list[i]['time'] for i in \
+                       range(length_colloc_mod_list)]
+
+        mod_colloc_vars = xr.Dataset(
+            {
+             "lats": (
+                 ("time"),
+                 lat_mod_list,
+             ),
+             "lons": (
+                 ("time"), 
+                 lon_mod_list
+             ),
+             "Hs": (
+                 ("time"),
+                 hs_mod_list
+             )
+          },
+         coords={"time": time_mod_list},
+        )
+
+        results_dict = {
+            'model_time': time_mod_list,
+            'obs_time': oco_vars.time.values,
+            'dist': [0]*length,
+            'model_values': hs_mod_list,
+            'model_lons': lon_mod_list,
+            'model_lats': lat_mod_list,
+            'obs_values': oco_vars.Hs.values,
+            'obs_lons': oco_vars.lons.values,
+            'obs_lats': oco_vars.lats.values,
+            'collocation_idx_x': [0]*length,
+            'collocation_idx_y': [0]*length,
+            }
+        
+        return results_dict
+
+
     def collocate(self, **kwargs):
         """
         get obs value for model value for given
@@ -551,7 +683,10 @@ class collocation_class(qls):
                             +'\n###'
                             )
         if ((self.model is not None) and (self.oco is not None)):
-            results_dict = self._collocate_track(**kwargs)
+            if self.method == 'closest':
+                results_dict = self._collocate_track(**kwargs)
+            elif self.method == 'regridded':
+                results_dict = self._collocate_regridded_model(**kwargs)
 
         return results_dict
 
