@@ -288,11 +288,12 @@ def get_remote_files_copernicusmarine(**kwargs):
                     filter=regexp_tmp,
                     no_directories=True,
                     output_directory=path_local,
-                    force_download=True,
-                    overwrite_output_data=True,
                     username=username,
-                    password=password,
-                    no_metadata_cache=no_metadata_cache)
+                    password=password
+                    )
+                    #force_download=True,
+                    #overwrite_output_data=True,
+                    #no_metadata_cache=no_metadata_cache
             except Exception as error:
                 print(error)
                 pass
