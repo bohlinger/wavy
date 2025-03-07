@@ -26,8 +26,8 @@ def test_sat_collocation_and_validation(test_data, tmpdir):
     sco = sco.crop_to_region(model)
 
     # collocate
-    cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
-    assert len(vars(cco).keys()) == 15
+    cco = cc(oco=sco, model=model, leadtime='best', distlim=6).populate()
+    assert len(vars(cco).keys()) == 16
     assert len(cco.vars.keys()) == 9
 
     # validate
@@ -50,8 +50,8 @@ def test_insitu_collocation_and_validation(test_data, tmpdir):
     ico = ico.populate()
 
     # collocate
-    cco = cc(oco=ico, model=model, leadtime='best', distlim=6)
-    assert len(vars(cco).keys()) == 15
+    cco = cc(oco=ico, model=model, leadtime='best', distlim=6).populate()
+    assert len(vars(cco).keys()) == 16
     assert len(cco.vars.keys()) == 9
 
     # validate
@@ -68,8 +68,8 @@ def test_poi_collocation():
     pco = pc(poi_dict)
 
     # collocate
-    cco = cc(oco=pco, model='ww3_4km', leadtime='best')
-    assert len(vars(cco).keys()) == 15
+    cco = cc(oco=pco, model='ww3_4km', leadtime='best').populate()
+    assert len(vars(cco).keys()) == 16
     assert len(cco.vars.keys()) == 9
 
 
