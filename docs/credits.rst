@@ -10,6 +10,7 @@ If you are using **wavy** please mention the repo under https://github.com/bohli
 
 Studies that used **wavy**
 **************************
+* Hope, G., Seldal, T., Rabault, J., Bryhni, H., Bohlinger, P., Björkqvist, J.-V., and Coauthors, 2025: SFY—A Lightweight, High-Frequency, and Phase-Resolving Wave Buoy for Coastal Waters. J. Atmos. Oceanic Technol., 42, 133–154, https://doi.org/10.1175/JTECH-D-23-0170.1.
 * Altiparmaki, O., Breivik, Ø., Aouf, L., Bohlinger, P., Johannessen, J. A., Collard, F., and Coauthors (2024). Influence of ocean currents on wave modeling and satellite observations: Insights from the one ocean expedition. Journal of Geophysical Research: Oceans, 129, e2024JC021581. https://doi.org/10.1029/2024JC021581
 * Ølberg, J.T., Bohlinger, P., Breivik, Ø., and Coauthors (2024). Wave measurements using open source ship mounted ultrasonic altimeter and motion correction system during the one ocean circumnavigation. Ocean Engineering, 292, https://doi.org/10.1016/j.oceaneng.2023.116586.
 * Rabault, J., and Coauthors (2022). Openmetbuoy-v2021: An easy-to-build, affordable, customizable, open-source instrument for oceanographic measurements of drift and waves in sea ice and the open ocean. Geosciences, 12 (3).
@@ -27,12 +28,26 @@ Copernicus CMEMS Product Quality Documents QuID
 * Arctic Ocean Wave Hindcast system, ARCTIC_MULTIYEAR_WAV_002_013, https://doi.org/10.48670/moi-00008
 * Arctic Ocean Wave Analysis and Forecast, ARCTIC_ANALYSIS_FORECAST_WAV_002_014, https://doi.org/10.48670/moi-00002
 
+Internal usage at MET Norway
+****************************
+* operational validation of wave models
+* project based validation of wave models
+* operational and project based tuning of wave models
+
 Public operational validation tasks using **wavy**
 **************************************************
 Operational model validation for the Copernicus CMEMS product ARCTIC_ANALYSIS_FORECAST_WAV_002_014 (https://cmems.met.no/ARC-MFC/Wave3kmValidation/index.html)
+
+**wavy**-based operational validation and education via capacity building project SAREPTA
+*****************************************************************************************
+* Vietnam Meteorological and Hydrological Administration (VNMHA)
+* VNU University of Science (a part of Vietnam National University). The Department of Meteorology, Hydrology and Oceanography uses the **wavy** to validate and calibrate wave models.
+* The Marine Dynamics and Environment Center (MDEC)
+* Mozambique (workshops)
 
 Projects **wavy** is involved in
 ********************************
 * FORESEE - Young Research Talents Grant from NFR (Norwegian Research Council)
 * COSY - Project on coastal altimetry from the NOSA (Norwegian Space Agency)
 * B-WAVES - Project from the NFR
+* SAREPTA - Large capacity building project (https://bistand.met.no/)

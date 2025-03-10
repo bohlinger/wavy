@@ -287,6 +287,41 @@ def read_era(**kwargs):
     return combined
 
 
+def read_NORA3_wind(**kwargs):
+    pathlst = kwargs.get('pathlst')
+    nID = kwargs.get('nID')
+    fc_dates = kwargs.get('fc_dates')
+    varname = kwargs.get('varname')
+    hlevel = kwargs.get('heightlevel', 10)
+    ds_lst = []
+    # retrieve sliced data
+    for i in range(len(fc_dates)):
+        d = fc_dates[i]
+        p = pathlst[i]
+        ds = xr.open_dataset(p)
+        ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
+        ds_sliced = ds_sliced.sel({'height': hlevel})
+        ds_sliced = ds_sliced[[varname,
+                               model_dict[nID]['vardef']['lons'],
+                               model_dict[nID]['vardef']['lats']]]
+
+        ds_lst.append(ds_sliced)
+
+    print(" Concatenate ...")
+    combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
+                         coords='minimal',
+                         data_vars='minimal',
+                         compat='override',
+                         combine_attrs='override',
+                         join='override')
+    print(" ... done concatenating")
+
+    print(' Build dataset')
+    print(' dataset ready!')
+
+    return combined
+
+
 #import pyproj
 #import xarray as xr
 #

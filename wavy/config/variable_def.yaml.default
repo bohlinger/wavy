@@ -215,13 +215,13 @@ hmax:
     _FillValue: -999.9
 
 hmaxt:
-    standard_name: sea_surface_wave_maximum_height
+    standard_name: sea_surface_wave_maximum_height_time
     long_name: 'time domain maximum individual wave height'
     units: m
     _FillValue: -999.9
 
 hmaxst:
-    standard_name: sea_surface_wave_maximum_height
+    standard_name: sea_surface_wave_maximum_height_space_time
     long_name: 'space time domain maximum individual wave height'
     units: m
     _FillValue: -999.9

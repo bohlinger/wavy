@@ -2,7 +2,7 @@ name: wavy
 channels:
   - conda-forge
 dependencies:
-  - python<=3.12
+  - python<=3.13
   #- matplotlib>=3
   - matplotlib
   #- numpy>=1
@@ -39,8 +39,9 @@ dependencies:
   - roaring-landmask
   - numba
   - trajan
+  - copernicusmarine>=2.0.0
   - pip
   - pip:
     - click
-    - copernicusmarine<=2.0
+  #  - copernicusmarine<=2.0
   # - hidefix
