@@ -588,10 +588,11 @@ class satellite_class(qls, wc, fc):
             print('# ----- ')
         return self
 
-    def drop_duplicates(self, dim='time'):
+    def drop_duplicates(self, dim='time', keep='first'):
         print('Removing duplicates according to', dim)
+        print('Keeping', keep, 'value for the duplicates')
         new = deepcopy(self)
-        new.vars = self.vars.drop_duplicates(dim=dim)
+        new.vars = self.vars.drop_duplicates(dim=dim, keep=keep)
         print(str(int(abs(len(self.vars[dim])-len(new.vars[dim])))),
               'values removed')
         print('New number of footprints is:', str(int(len(new.vars[dim]))))
