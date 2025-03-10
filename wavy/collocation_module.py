@@ -294,6 +294,7 @@ class collocation_class(qls):
             ds = new._build_xr_dataset(results_dict)
             ds = ds.assign_coords(time=ds.time.values)
             new.vars = ds
+            new = new._drop_duplicates(**kwargs)
             t1 = time.time()
             print(" ")
             print(" ## Summary:")
@@ -378,6 +379,19 @@ class collocation_class(qls):
                 )
         return ds
 
+    def _drop_duplicates(self, **kwargs):
+        
+        dim = kwargs.get('dim_duplicates', 'time')
+        keep = kwargs.get('keep_duplicates', 'first')
+        print('Removing duplicates according to', dim)
+        print('Keeping', keep, 'value for the duplicates')
+        new = deepcopy(self)
+        new.vars = self.vars.drop_duplicates(dim=dim, keep=keep)
+        print(str(int(abs(len(self.vars[dim])-len(new.vars[dim])))),
+              'values removed')
+        print('New number of footprints is:', str(int(len(new.vars[dim]))))
+        return new
+
     def _collocate_field(self, mco, tmp_dict, **kwargs):
         """
         Some info
@@ -428,7 +442,6 @@ class collocation_class(qls):
                 'time': tmp_dict['time'][dist_idx]
                 }
         return results_dict
-
 
     def _collocate_track(self, **kwargs):
         """
@@ -544,7 +557,6 @@ class collocation_class(qls):
                                 results_dict['collocation_idx_y'])
         return results_dict
 
-
     def _collocate_centered_model_value(self, time, lon, lat, **kwargs):
 
         #(time, lon, lat, nID_model, name_model, res):
@@ -594,7 +606,6 @@ class collocation_class(qls):
 
         return res_dict
 
-
     def _collocate_regridded_model(self, **kwargs):
     
         from joblib import Parallel, delayed
@@ -609,8 +620,6 @@ class collocation_class(qls):
         oco_vars = self.oco.vars
 
         length = len(oco_vars.time.values)
-        
-        print('ok1')
         
         #Parallel should be optional, with nproc as parameter
         colloc_mod_list = Parallel(n_jobs=nproc)(
@@ -665,7 +674,6 @@ class collocation_class(qls):
         
         return results_dict
 
-
     def collocate(self, **kwargs):
         """
         get obs value for model value for given
@@ -710,6 +718,7 @@ class collocation_class(qls):
                                 sdate=sdate, edate=edate,
                                 **kwargs)
         return validation_dict
+
 
 def validate_collocated_values(dtime, obs, mods, **kwargs):
     target_t, sdate, edate, twin = None, None, None, None
