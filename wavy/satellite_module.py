@@ -588,6 +588,15 @@ class satellite_class(qls, wc, fc):
             print('# ----- ')
         return self
 
+    def drop_duplicates(self, dim='time'):
+        print('Removing duplicates according to', dim)
+        new = deepcopy(self)
+        new.vars = self.vars.drop_duplicates(dim=dim)
+        print(str(int(abs(len(self.vars[dim])-len(new.vars[dim])))),
+              'values removed')
+        print('New number of footprints is:', str(int(len(new.vars[dim]))))
+        return new
+
     def _match_poi(self, poi):
         """
         return: idx that match to region
