@@ -289,7 +289,8 @@ def get_remote_files_copernicusmarine(**kwargs):
                     no_directories=True,
                     output_directory=path_local,
                     username=username,
-                    password=password
+                    password=password,
+                    overwrite=True
                     )
                     #force_download=True,
                     #overwrite_output_data=True,
