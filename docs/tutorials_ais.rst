@@ -6,13 +6,12 @@ Retrieve AIS
 .. code-block:: python3
 
     >>> import wavy.ais_module as ais
-    >>> import pytest
 
     >>> bbox = ['5.89', '62.3', '6.5', '62.7']
     >>> sd = '2017-01-03 08'
     >>> ed = '2017-01-03 09'
 
-    >>>ais_ds = ais.get_AIS_data(bbox, sd, ed)
+    >>> ais_ds = ais.get_AIS_data(bbox, sd, ed)
 
 The output is an xarray dataset and looks like the following:
    
