@@ -16,7 +16,7 @@ Basic, but very useful, filters can be applied to the altimtery time series usin
     >>> sco_lm = sc(nID=nID, name=name, sd=sd, ed=ed, region=region)\
     ...        .populate(path=path)\
     ...        .filter_landMask()
-    >>> sco_lm.quicklook()
+    >>> sco_lm.quicklook(m=True)
 
 .. image:: ./lm_example.png
    :scale: 100
@@ -28,7 +28,7 @@ Another function is to specify distance to shore in order to exclude satellite f
 .. code-block:: python3
 
     >>> sco_lm = sco_lm.filter_distance_to_coast(llim=200000, ulim=300000)
-    >>> sco_lm.quicklook()
+    >>> sco_lm.quicklook(m=True)
 
 .. image:: ./lm_example_coast.png
    :scale: 100

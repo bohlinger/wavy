@@ -39,8 +39,8 @@ The variable aliases (left hand side) need to be specified in the variable_def.y
    >>> varalias = 'Hs' # default
    >>> sd = "2023-6-1"
    >>> ed = "2023-6-1 01"
-   >>> mco = mc(nID=nID,sd=sd).populate() # one time slice
-   >>> mco_p = mc(nID=nID,sd=sd,ed=ed).populate() # time period
+   >>> mco = mc(nID=nID, sd=sd).populate() # one time slice
+   >>> mco_p = mc(nID=nID, sd=sd, ed=ed).populate() # time period
 
 Whenever the keyword "leadtime" is None, a best estimate is assumed and retrieved. The output will be something like::
 

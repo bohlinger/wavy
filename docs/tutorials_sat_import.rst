@@ -38,13 +38,17 @@ First you initialize a satellite class object with chosen parameters.
    >>> name = 's3a'
    >>> nID = 'cmems_L3_NRT'
    >>> twin = 30 # default
-   >>> sd = "2023-2-1 11" # can also be datetime object
-   >>> ed = "2023-2-1 12" # not necessary if twin is specified
+   >>> sd = "2022-2-1 11" # can also be datetime object
+   >>> ed = "2022-2-1 12" # not necessary if twin is specified
 
    >>> # retrieval
    >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name)
    
-Then you can import the corresponding data with the .populate() method. 
+Then you can import the corresponding data with the .populate() method. If you have not downloaded data you can use the repo-data for this exercise which is located in the wavy/test directory, e.g. 
+
+.. code-block:: python3
+
+    >>> tmpdir = '/home/patrikb/wavy/tests/data/L3/s3a'
 
 .. code-block:: python3
 
@@ -54,17 +58,17 @@ Or in one line:
 
 .. code-block:: python3
 
-   >>> sco = sc(sd="2023-2-1 11",ed="2023-2-1 12",region="global",nID="cmems_L3_NRT",name="s3a").populate(path=tmpdir)
+   >>> sco = sc(sd="2022-2-1 11",ed="2022-2-1 12", region="global",nID="cmems_L3_NRT",name="s3a").populate(path=tmpdir)
 
 You have now read in 1 hour of significant wave height from the satellite mission s3a. The stdout message looks like::
 
-  >>> sco = sc(sd='2023-2-1 11', ed='2023-2-1 12',
+  >>> sco = sc(sd='2022-2-1 11', ed='2022-2-1 12',
   ...          nID='cmems_L3_NRT', name='s3a').populate(path=tmpdir)
   # ----- 
    ### Initializing satellite_class object ###
  
    Given kwargs:
-  {'sd': '2023-2-1 11', 'ed': '2023-2-1 12', 'nID': 'cmems_L3_NRT', 'name': 's3a'}
+  {'sd': '2022-2-1 11', 'ed': '2022-2-1 12', 'nID': 'cmems_L3_NRT', 'name': 's3a'}
  
    ### satellite_class object initialized ###
   # ----- 
@@ -161,7 +165,7 @@ With the retrieved variables in sco.vars::
   <xarray.Dataset>
   Dimensions:  (time: 6901)
   Coordinates:
-    * time     (time) datetime64[ns] 2023-02-01T09:30:00 ... 2023-02-01T12:26:16
+    * time     (time) datetime64[ns] 2022-02-01T09:30:00 ... 2022-02-01T12:26:16
   Data variables:
       Hs       (time) float32 3.559 3.551 3.553 3.553 ... 1.368 1.379 1.38 1.384
       lons     (time) float64 175.7 175.7 175.6 175.6 ... 150.0 150.0 150.0 150.0

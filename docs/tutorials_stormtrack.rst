@@ -55,33 +55,33 @@ Now start you python script:
 
 .. code-block:: python3
 
-   # imports
-   >>> from wavy.satellite_module import satellite_class as sc
-   >>> from wavy.insitu_module import poi_class as pc
-   >>> from wavy.utils import parse_date
-   >>> import pandas as pd
+    # imports
+    >>> from wavy.satellite_module import satellite_class as sc
+    >>> from wavy.insitu_module import poi_class as pc
+    >>> from wavy.utils import parse_date
+    >>> import pandas as pd
 
-   >>> f = pd.read_csv('/path/to/your/wavy/tests/data/track/Katrina_track.csv')
-   >>> # convert dates to datetime
-   >>> dt = [parse_date(d) for d in f.date]
-   >>> lons = f.lon.values
-   >>> lats = f.lat.values
+    >>> f = pd.read_csv('/path/to/your/wavy/tests/data/track/Katrina_track.csv')
+    >>> # convert dates to datetime
+    >>> dt = [parse_date(d) for d in f.date]
+    >>> lons = f.lon.values
+    >>> lats = f.lat.values
 
-   >>> # define poi dictionary for track
-   >>> poi_dict = {'time':dt,'lons':lons,'lats':lats}
+    >>> # define poi dictionary for track
+    >>> poi_dict = {'time':dt,'lons':lons,'lats':lats}
 
-   >>> # initialize poi class object
-   >>> pco = pc(poi_dict, nID='Katrina', name='Katrina', varalias='Hs')
+    >>> # initialize poi class object
+    >>> pco = pc(poi_dict, nID='Katrina', name='Katrina', varalias='Hs')
 
-   >>> # retrievals
-   >>> sco = sc(twin=180, distlim=200, name='multi',
-   ...          nID='CCIv1_L3', region='global',
-   ...          varalias = 'Hs', # default
-   ...          poi=pco)
-   >>> sco = sco.populate(path='/path/to/your/wavy/tests/data/L3/multi/')
+    >>> # retrievals
+    >>> sco = sc(twin=180, distlim=200, name='multi',
+    ...          nID='CCIv1_L3', region='global',
+    ...          varalias = 'Hs', # default
+    ...          poi=pco)
+    >>> sco = sco.populate(path='/path/to/your/wavy/tests/data/L3/multi/')
 
-   >>> # quicklook including track by passing poi
-   >>> sco.quicklook(m=True,poi=pco)
+    >>> # quicklook including track by passing poi
+    >>> sco.quicklook(m=True,poi=pco)
 
 
 This script gathers all footprints within a 200km radius and a +-180min time window given time and location of tracked storm. Executing yields the following figure:

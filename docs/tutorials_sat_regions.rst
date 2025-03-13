@@ -17,8 +17,8 @@ Continue with python, ...here is an example using a polygon for the Norwegian Se
    >>> from wavy.satellite_module import satellite_class as sc
 
    >>> # settings
-   >>> sd = "2023-2-1 11"
-   >>> ed = "2023-2-1 12"
+   >>> sd = "2022-02-01"
+   >>> ed = "2022-02-03"
    >>> region = 'NorwegianSea'
    >>> nID = 'cmems_L3_NRT' 
    >>> name = 's3a'
@@ -26,13 +26,13 @@ Continue with python, ...here is an example using a polygon for the Norwegian Se
    >>> path = '/path/to/your/wavy/tests/data/L3/s3a'
    
    >>> # retrieval
-   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name,region=region).populate(path=path)
+   >>> sco = sc(sd=sd, ed=ed, nID=nID, name=name, region=region).populate(path=path)
 
 - Or you can crop it afterwards
 
 .. code-block:: python3
 
-   >>> sco = sc(sd=sd,ed=ed,nID=nID,name=name).populate(path=path)
+   >>> sco = sc(sd=sd, ed=ed, nID=nID, name=name).populate(path=path)
    >>> sco = sco.crop_to_region('NorwegianSea')
 
 It is also possible to define a rectangular custom region, directly in the python code, without having to specify it in the region_cfg.yaml file : 
