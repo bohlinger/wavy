@@ -52,3 +52,4 @@ Projects **wavy** is involved in
 * COSY - Project on coastal altimetry from the [NOSA - Norwegian Space Agency]
 * B-WAVES - National Project [NFR]
 * SAREPTA - Large capacity building project (https://bistand.met.no/) [NORAD - The Norwegian Agency for Development Cooperation]
+* One Ocean Expedition - UN Decade of Ocean Science for Sustainable Development
