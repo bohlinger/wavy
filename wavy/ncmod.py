@@ -284,10 +284,10 @@ def read_swim_netcdfs(pathlst,varalias):
     lats = flatten(latslst)
 
     vardict = {
-            varalias:var,
-            'time':time,
-            'longitude':lons,
-            'latitude':lats
+            varalias: var,
+            'time': time,
+            'longitude': lons,
+            'latitude': lats
             }
     return vardict
 
@@ -299,14 +299,14 @@ def get_arcmfc_ts(pathtofile):
         sys.exit('File does not exist')
     else:
         nc = netCDF4.Dataset(
-            pathtofile,mode='r',
+            pathtofile, mode='r',
             )
         time_var = nc.variables['time']
-        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        dtime = netCDF4.num2date(time_var[:], time_var.units)
         sHs = nc.variables['obs_values'][:]
         mHs = nc.variables['model_values'][:]
         nc.close()
-    return dtime,sHs,mHs
+    return dtime, sHs, mHs
 
 def get_arcmfc_stats(pathtofile):
     import os.path
@@ -317,10 +317,10 @@ def get_arcmfc_stats(pathtofile):
         return
     else:
         nc = netCDF4.Dataset(
-            pathtofile,mode='r',
+            pathtofile, mode='r',
             )
         time_var = nc.variables['time']
-        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        dtime = netCDF4.num2date(time_var[:], time_var.units)
         mop = nc.variables['mop'][:]
         mor = nc.variables['mor'][:]
         rmsd = nc.variables['rmsd'][:]
@@ -332,16 +332,16 @@ def get_arcmfc_stats(pathtofile):
         nov = nc.variables['nov'][:]
         nc.close()
         valid_dict = {
-            'mop':mop,
-            'mor':mor,
-            'msd':msd,
-            'nov':nov,
-            'rmsd':rmsd,
-            'msd':msd,
-            'corr':corr,
-            'mad':mad,
-            'bias':bias,
-            'SI':SI}
+            'mop': mop,
+            'mor': mor,
+            'msd': msd,
+            'nov': nov,
+            'rmsd': rmsd,
+            'msd': msd,
+            'corr': corr,
+            'mad': mad,
+            'bias': bias,
+            'SI': SI}
         return valid_dict, dtime
 
 def get_filevarname(varalias, variable_info, srcdict, ncdict):
@@ -372,15 +372,16 @@ def get_filevarname(varalias, variable_info, srcdict, ncdict):
     elif (filevarname is None
           and varalias not in vardefdict.keys()
           and 'aliases_of_vector_components' in variable_info[varalias]):
-        print( 'Checking variable_info if variable can be ' +
-              'computed from vector components')
+        print(
+          'Checking variable_info if variable can be ' +
+          'computed from vector components')
         filevarname = variable_info[varalias]['aliases_of_vector_components']
         return filevarname
     else:
         print(' !!! variable not defined nor ' +
               'available in nc-file !!!')
 
-def get_nc_ts(pathtofile,varlst):
+def get_nc_ts(pathtofile, varlst):
     import os.path
     indicator = os.path.isfile(pathtofile)
     if indicator is False:
@@ -390,30 +391,30 @@ def get_nc_ts(pathtofile,varlst):
         vardict = {}
         for name in varlst:
             nc = netCDF4.Dataset(
-                pathtofile,mode='r',
+                pathtofile, mode='r',
                 )
             var = nc.variables[name][:]
             vardict[name] = var
         time_var = nc.variables['time']
-        dtime = netCDF4.num2date(time_var[:],time_var.units)
+        dtime = netCDF4.num2date(time_var[:], time_var.units)
         vardict['dtime'] = dtime
         vardict['time'] = time_var[:]
         vardict['time_unit'] = time_var.units
         nc.close()
     return vardict
 
-def get_varlst_from_nc_1D(pathtofile,varlst,sdate,edate):
+def get_varlst_from_nc_1D(pathtofile, varlst, sdate, edate):
     # retrieve
     vardict = {}
     nc = netCDF4.Dataset(pathtofile)
     time_var = nc.variables['time']
     vardict['time'] = time_var[:]
     vardict['time_unit'] = time_var.units
-    dtvar = netCDF4.num2date(time_var[:],time_var.units)
-    dtime = [datetime(dt.year,dt.month,dt.day,
-             dt.hour,dt.minute,dt.second)
+    dtvar = netCDF4.num2date(time_var[:], time_var.units)
+    dtime = [datetime(dt.year, dt.month, dt.day,
+             dt.hour, dt.minute, dt.second)
              for dt in dtvar]
-    idx = find_included_times(dtime,sdate=sdate,edate=edate)
+    idx = find_included_times(dtime, sdate=sdate, edate=edate)
     for name in varlst:
         var = nc.variables[name][idx]
         vardict[name] = var
@@ -421,313 +422,14 @@ def get_varlst_from_nc_1D(pathtofile,varlst,sdate,edate):
     nc.close()
     return vardict
 
-def get_var_from_nc_1D(pathtofile,var,sdate,edate):
-    indicator = os.path.isfile(pathtofile)
-    nc = netCDF4.Dataset(pathtofile)
-    time_var = nc.variables['time']
-    dtime = netCDF4.num2date(time_var[:],time_var.units)
-    idx = find_included_times(dtime,sdate,edate)
-    for name in varlst:
-        var = nc.variables[name][idx]
-    nc.close()
-    return var
-
-def dumptonc_ts_insitu(ico,pathtofile,title):
-    """
-    1. check if nc file already exists
-    2. - if so use append mode
-       - if not create file and folder structure
-    """
-    print('Dump data to netCDF4 file')
-    stdvarname = ico.stdvarname
-    time = ico.vars['time']
-    lon = ico.vars['longitude']
-    lat = ico.vars['latitude']
-    var = np.array(ico.vars[stdvarname])
-    var[var<variable_info[ico.varalias]['valid_range'][0]] = -999.
-    var[var>variable_info[ico.varalias]['valid_range'][1]] = -999.
-    var = list(var)
-    print ('Dump data to file: ',pathtofile)
-    if os.path.isfile(pathtofile):
-        nc = netCDF4.Dataset(
-                        pathtofile,mode='a',
-                        clobber=False
-                        )
-        # compare existing times in input time and existing time
-        startin = time[0]
-        timeex = list(nc.variables['time'][:])
-        if startin in timeex:
-            print('Time already detected in ncfile')
-            print('Find correct index to start from there')
-            print('Overwrite double time stamps')
-            startidx = timeex.index(startin)
-        else:
-            startidx = len(nc['time'])
-        endidx = startidx+len(time)
-        nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables['longitude'][startidx:endidx] = lon[:]
-        nc.variables['latitude'][startidx:endidx] = lat[:]
-        nc.variables[ico.varalias][startidx:endidx] = var[:]
-        nc.close()
-    else:
-        outpath = os.path.dirname(pathtofile)
-        os.makedirs(outpath, exist_ok=True)
-        nc = netCDF4.Dataset(pathtofile,mode='w')
-        # dimensions
-        dimsize = None
-        dimtime = nc.createDimension(
-                                'time',
-                                size=dimsize
-                                )
-        # variables
-        nclon = nc.createVariable(
-                               'longitude',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nclat = nc.createVariable(
-                               'latitude',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nctime = nc.createVariable(
-                               'time',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncvar = nc.createVariable(
-                               ico.varalias,
-                               np.float64,
-                               dimensions=('time'),
-                               fill_value=-999.
-                               )
-        # generate time for netcdf file
-        # time
-        nctime[:] = time
-        nctime.units = str(ico.vars['time_unit'])
-        nctime.setncatts(variable_info['time'])
-        # longitude
-        nclon[:] = lon
-        nclon.setncatts(variable_info['lons'])
-        # latitude
-        nclat[:] = lat
-        nclat.setncatts(variable_info['lats'])
-        # var
-        ncvar[:] = var
-        ncvar.setncatts(variable_info[ico.varalias])
-        # coordinate system info
-        nc_crs = nc.createVariable('latlon',int)
-        nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
-        nc_crs.grid_mapping_name = 'latitude_longitude'
-        # close file
-        nc.close()
-        #add global attributes
-        nc = netCDF4.Dataset(pathtofile,mode='r+')
-        nowstr = datetime.utcnow().isoformat()
-        globalAttribs = {}
-        globalAttribs['title'] = title
-        globalAttribs['Conventions'] = "CF-1.6"
-        globalAttribs['institution'] = \
-                                "Norwegian Meteorological Institute"
-        globalAttribs['history'] = nowstr + ". Created."
-        globalAttribs['netcdf_version'] = "NETCDF4"
-        globalAttribs['operator'] = \
-                            insitu_dict\
-                            [ico.nID]\
-                            ['operator']
-        # if filter/clean append some info
-        nc.setncatts(globalAttribs)
-        nc.sync()
-        nc.close()
-
-def dumptonc_ts_collocation(cco,pathtofile,title):
-    """
-    1. check if nc file already exists
-    2. - if so use append mode
-       - if not create file and folder structure
-    """
-    print('Dump data to netCDF4 file')
-    stdvarname = cco.stdvarname
-    time = cco.vars['time']
-    modlon = cco.vars['model_lons']
-    modlat = cco.vars['model_lats']
-    obslon = cco.vars['obs_lons']
-    obslat = cco.vars['obs_lats']
-    colidx_x = cco.vars['collocation_idx_x']
-    colidx_y = cco.vars['collocation_idx_y']
-    leadtime = cco.leadtime
-    varobs = np.array(cco.vars['obs_values'])
-    varobs[varobs<variable_info[cco.varalias]['valid_range'][0]] = -999.
-    varobs[varobs>variable_info[cco.varalias]['valid_range'][1]] = -999.
-    varobs = list(varobs)
-    varmod = np.array(cco.vars['model_values'])
-    varmod[varmod<variable_info[cco.varalias]['valid_range'][0]] = -999.
-    varmod[varmod>variable_info[cco.varalias]['valid_range'][1]] = -999.
-    varmod = list(varmod)
-    dists = np.array(cco.vars['distance'])
-    print ('Dump data to file: ',pathtofile)
-    if os.path.isfile(pathtofile):
-        nc = netCDF4.Dataset(
-                        pathtofile,mode='a',
-                        clobber=False
-                        )
-        # compare existing times in input time and existing time
-        startin = time[0]
-        timeex = list(nc.variables['time'][:])
-        if startin in timeex:
-            print('Time already detected in ncfile')
-            print('Find correct index to start from there')
-            print('Overwrite double time stamps')
-            startidx = timeex.index(startin)
-        else:
-            startidx = len(nc['time'])
-        endidx = startidx+len(time)
-        nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables['model_lons'][startidx:endidx] = modlon[:]
-        nc.variables['model_lats'][startidx:endidx] = modlat[:]
-        nc.variables['model_values'][startidx:endidx] = varmod[:]
-        nc.variables['obs_lons'][startidx:endidx] = obslon[:]
-        nc.variables['obs_lats'][startidx:endidx] = obslat[:]
-        nc.variables['obs_values'][startidx:endidx] = varobs[:]
-        nc.variables['dist'][startidx:endidx] = dists[:]
-        nc.variables['colidx_x'][startidx:endidx] = colidx_x[:]
-        nc.variables['colidx_y'][startidx:endidx] = colidx_y[:]
-        nc.close()
-    else:
-        outpath = os.path.dirname(pathtofile)
-        os.makedirs(outpath, exist_ok=True)
-        nc = netCDF4.Dataset(
-                        pathtofile,mode='w',
-                        )
-        # dimensions
-        dimsize = None
-        dimtime = nc.createDimension(
-                                'time',
-                                size=dimsize
-                                )
-        # variables
-        ncmodlon = nc.createVariable(
-                               'model_lons',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncmodlat = nc.createVariable(
-                               'model_lats',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncobslon = nc.createVariable(
-                               'obs_lons',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncobslat = nc.createVariable(
-                               'obs_lats',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nccolidx_x = nc.createVariable(
-                               'colidx_x',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nccolidx_y = nc.createVariable(
-                               'colidx_y',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nctime = nc.createVariable(
-                               'time',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncvarobs = nc.createVariable(
-                               'obs_values',
-                               np.float64,
-                               dimensions=('time'),
-                               fill_value=-999.
-                               )
-        ncvarmod = nc.createVariable(
-                               'model_values',
-                               np.float64,
-                               dimensions=('time'),
-                               fill_value=-999.
-                               )
-        ncdist = nc.createVariable(
-                               'dist',
-                               np.float64,
-                               dimensions=('time'),
-                               fill_value=-999.
-                               )
-        # generate time for netcdf file
-        # time
-        nctime[:] = time
-        nctime.units = str(cco.vars['time_unit'])
-        nctime.setncatts(variable_info['time'])
-        # observation longitude
-        ncobslon[:] = obslon
-        ncobslon.setncatts(variable_info['lons'])
-        # observation latitude
-        ncobslat[:] = obslat
-        ncobslat.setncatts(variable_info['lats'])
-        # model longitude
-        ncmodlon[:] = modlon
-        ncmodlon.setncatts(variable_info['lons'])
-        # model latitude
-        ncmodlat[:] = modlat
-        ncmodlat.setncatts(variable_info['lats'])
-        # varobs
-        ncvarobs[:] = varobs
-        dict_for_nc = deepcopy(variable_info[cco.varalias])
-        if 'aliases_of_vector_components' in dict_for_nc:
-            del dict_for_nc['aliases_of_vector_components']
-        ncvarobs.setncatts(dict_for_nc)
-        ncvarobs.observation_name = cco.obsname
-        # varmod
-        ncvarmod[:] = varmod
-        dict_for_nc = deepcopy(variable_info[cco.varalias])
-        if 'aliases_of_vector_components' in dict_for_nc:
-            del dict_for_nc['aliases_of_vector_components']
-        ncvarobs.setncatts(dict_for_nc)
-        ncvarmod.model_name = cco.model
-        # dists
-        ncdist[:] = dists
-        ncdist.setncatts(variable_info['dist'])
-        # colidx
-        nccolidx_x[:] = colidx_x
-        nccolidx_x.setncatts(variable_info['colidx_x'])
-        nccolidx_y[:] = colidx_y
-        nccolidx_y.setncatts(variable_info['colidx_y'])
-        # coordinate system info
-        nc_crs = nc.createVariable('latlon',int)
-        nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
-        nc_crs.grid_mapping_name = 'latitude_longitude'
-        # close file
-        nc.close()
-        #add global attributes
-        nc = netCDF4.Dataset(pathtofile,mode='r+')
-        nowstr = datetime.utcnow().isoformat()
-        globalAttribs = {}
-        globalAttribs['title'] = title
-        globalAttribs['Conventions'] = "CF-1.6"
-        globalAttribs['institution'] = \
-                                "Norwegian Meteorological Institute"
-        globalAttribs['history'] = nowstr + ". Created."
-        globalAttribs['netcdf_version'] = "NETCDF4"
-        # if filter/clean append some info
-        globalAttribs['leadtime'] = str(leadtime) + 'h'
-        nc.setncatts(globalAttribs)
-        nc.sync()
-        nc.close()
-
-def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
+def dumptonc_stats(pathtofile, title, time_dt, time_unit, valid_dict):
     """
     1. check if nc file already exists
     2. - if so use append mode
        - if not create file
     """
     # create time vector in seconds since first date
-    time = netCDF4.date2num(time_dt,time_unit)
+    time = netCDF4.date2num(time_dt, time_unit)
     mop = np.array(valid_dict['mop'])
     mor = np.array(valid_dict['mor'])
     rmsd = np.array(valid_dict['rmsd'])
@@ -737,10 +439,10 @@ def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
     bias = np.array(valid_dict['bias'])
     SI = np.array(valid_dict['SI'][1])
     nov = np.array(valid_dict['nov'])
-    print ('Dump data to file: ' + pathtofile)
+    print('Dump data to file: ' + pathtofile)
     if os.path.isfile(pathtofile):
         nc = netCDF4.Dataset(
-                        pathtofile,mode='a',
+                        pathtofile, mode='a',
                         clobber=False
                         )
         # variables
@@ -760,8 +462,8 @@ def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
         outpath = pathtofile[0:-len(pathtofile.split('/')[-1])]
         os.makedirs(outpath, exist_ok=True)
         nc = netCDF4.Dataset(
-                        pathtofile,mode='w',
-#                        format='NETCDF4'
+                        pathtofile, mode='w',
+                        # format='NETCDF4'
                         )
         nc.title = title
         dimsize = None
@@ -824,7 +526,8 @@ def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
         # generate time for netcdf file
         # time
         nctime.standard_name = 'time matches'
-        nctime.long_name = 'associated time steps between model and observation'
+        nctime.long_name = \
+            'associated time steps between model and observation'
         nctime.units = time_unit
         nctime[:] = time
         # mop
@@ -874,208 +577,6 @@ def dumptonc_stats(pathtofile,title,time_dt,time_unit,valid_dict):
         ncnov[:] = nov
     nc.close()
 
-def dumptonc_ts_sat(sco,pathtofile=None,title=None):
-    """
-    1. check if nc file already exists
-    2. - if so use append mode
-       - if not create file and folder structure
-    """
-    print('Dump data to netCDF4 file')
-    if title is None:
-        title = 'quick dump of ' + sco.mission + ' data'
-    stdvarname = sco.stdvarname
-    time = sco.vars['time']
-    lon = sco.vars['longitude']
-    lat = sco.vars['latitude']
-    var = np.array(sco.vars[stdvarname])
-    var[var<variable_info[sco.varalias]['valid_range'][0]] = -999.
-    var[var>variable_info[sco.varalias]['valid_range'][1]] = -999.
-    var = list(var)
-    print ('Dump data to file: ',pathtofile)
-    if os.path.isfile(pathtofile):
-        nc = netCDF4.Dataset(pathtofile,mode='a',clobber=False)
-        # compare existing times in input time and existing time
-        startin = time[0]
-        timeex = list(nc.variables['time'][:])
-        if startin in timeex:
-            print('Time already detected in ncfile')
-            print('Find correct index to start from there')
-            print('Overwrite double time stamps')
-            startidx = timeex.index(startin)
-        else:
-            startidx = len(nc['time'])
-        endidx = startidx+len(time)
-        nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables['longitude'][startidx:endidx] = lon[:]
-        nc.variables['latitude'][startidx:endidx] = lat[:]
-        nc.variables[sco.varalias][startidx:endidx] = var[:]
-        nc.close()
-    else:
-        outpath = os.path.dirname(pathtofile)
-        os.makedirs(outpath, exist_ok=True)
-        nc = netCDF4.Dataset(pathtofile,mode='w')
-        # dimensions
-        dimsize = None
-        dimtime = nc.createDimension(
-                                'time',
-                                size=dimsize
-                                )
-        # variables
-        nclon = nc.createVariable(
-                               'longitude',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nclat = nc.createVariable(
-                               'latitude',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        nctime = nc.createVariable(
-                               'time',
-                               np.float64,
-                               dimensions=('time')
-                               )
-        ncvar = nc.createVariable(
-                               sco.varalias,
-                               np.float64,
-                               dimensions=('time'),
-                               fill_value=-999.
-                               )
-        # time
-        nctime[:] = time
-        nctime.units = str(sco.vars['time_unit'])
-        nctime.setncatts(variable_info['time'])
-        # longitude
-        nclon[:] = lon
-        nclon.setncatts(variable_info['lons'])
-        # latitude
-        nclat[:] = lat
-        nclat.setncatts(variable_info['lats'])
-        # var
-        ncvar[:] = var
-        attsdict = variable_info[sco.varalias]
-        if 'aliases_of_vector_components' in attsdict.keys():
-            del attsdict['aliases_of_vector_components']
-        ncvar.setncatts(attsdict)
-        # coordinate system info
-        nc_crs = nc.createVariable('latlon',int)
-        nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
-        nc_crs.grid_mapping_name = 'latitude_longitude'
-        # close file
-        nc.close()
-        #add global attributes
-        nc = netCDF4.Dataset(pathtofile,mode='r+')
-        nowstr = datetime.utcnow().isoformat()
-        globalAttribs = {}
-        globalAttribs['title'] = title
-        globalAttribs['Conventions'] = "CF-1.6"
-        globalAttribs['institution'] = \
-                                "Norwegian Meteorological Institute"
-        globalAttribs['history'] = nowstr + ". Created."
-        globalAttribs['netcdf_version'] = "NETCDF4"
-        globalAttribs['provider'] = sco.provider
-        # if filter/clean append some info
-        nc.setncatts(globalAttribs)
-        nc.sync()
-        nc.close()
-
-def dumptonc_ts_pos(outpath,filename,title,coll_dict):
-    """
-    1. check if nc file already exists
-    2. - if so use append mode
-       - if not create file
-    """
-    # extract dict
-    model = coll_dict['model']
-    varname = coll_dict['varname']
-    basetime = coll_dict['basetime']
-    time = coll_dict['time']
-    var_model = coll_dict[varname]
-    lons_model = coll_dict['lons_model']
-    lats_model = coll_dict['lats_model']
-    lons_pos = coll_dict['lons_pos']
-    lats_pos = coll_dict['lats_pos']
-    dist = coll_dict['hdist']
-    idx = coll_dict['idx']
-    idy = coll_dict['idy']
-    # writing/appending
-    fullpath = outpath + filename
-    print ('Dump data to file: ' + fullpath)
-    if os.path.isfile(fullpath):
-        nc = netCDF4.Dataset(fullpath,mode='a',clobber=False)
-        # variables
-        startidx = len(nc['time'])
-        endidx = len(nc['time'])+len(time)
-        nc.variables['time'][startidx:endidx] = time[:]
-        nc.variables[varname][startidx:endidx] = var_model[:]
-    else:
-        os.makedirs(outpath, exist_ok=True)
-        # create nc-file
-        nc = netCDF4.Dataset(fullpath,mode='w')
-        # create dimension time
-        dimtime = nc.createDimension('time',size=None)
-        # add time
-        nctime = nc.createVariable('time',np.float64,dimensions=('time'))
-        nctime.standard_name = 'time'
-        nctime.units = 'seconds since ' + str(basetime)
-        nctime[:] = time
-        # coordinate system info
-        nc_crs = nc.createVariable('latlon',int)
-        nc_crs.proj4_string = "+proj=latlong +R=6370997.0 +ellps=WGS84"
-        nc_crs.grid_mapping_name = 'latitude_longitude'
-        # close file
-        nc.close()
-        #add global attributes
-        nc = netCDF4.Dataset(fullpath,mode='r+')
-        nowstr = datetime.utcnow().isoformat()
-        globalAttribs = {}
-        globalAttribs['title'] = title
-        globalAttribs['Conventions'] = "CF-1.6"
-        globalAttribs['institution'] = \
-                                "Norwegian Meteorological Institute"
-        globalAttribs['history'] = nowstr + ". Created."
-        globalAttribs['netcdf_version'] = "NETCDF4"
-        globalAttribs['processing_level'] = \
-                                "No post-processing performed"
-        globalAttribs['static_position_station'] =  ("Latitude: "
-                                + "{:.4f}".format(lats_pos[0])
-                                + ", Longitude: "
-                                + "{:.4f}".format(lons_pos[0]))
-        globalAttribs['static_position_model'] =  ("Latitude: "
-                                + "{:.4f}".format(lats_model[0])
-                                + ", Longitude: "
-                                + "{:.4f}".format(lons_model[0]))
-        globalAttribs['static_collocation_idx'] =  ("idx: "
-                                + str(idx[0])
-                                + ", idy: "
-                                + str(idy[0]))
-        globalAttribs['static_collocation_distance'] =  \
-                                ("{:.4f}".format(dist[0]) + " km")
-        nc.setncatts(globalAttribs)
-        nc.sync()
-        nc.close()
-        # append all other variables
-        for varstr in coll_dict:
-            if varstr in [varname]:
-                nc = netCDF4.Dataset(fullpath,mode='r+')
-                ncvar = nc.createVariable(varstr,
-                            np.float64,dimensions=('time'))
-                # add variable attributes
-                varAttribs = {}
-                varAttribs['standard_name'] = variable_info[varname]\
-                                                ['standard_name']
-                varAttribs['units'] = variable_info[varname]['units']
-                varAttribs['valid_range'] = variable_info[varname]\
-                                                ['valid_range'][0], \
-                                            variable_info[varname]\
-                                                ['valid_range'][1]
-                varAttribs['convention'] = variable_info[varname]\
-                                                    ['convention']
-                ncvar.setncatts(varAttribs)
-                ncvar[:] = coll_dict[varstr][:]
-                nc.close()
-
 @lru_cache(maxsize=32)
 def ncdump(nc_fid, verb=True):
     '''
@@ -1112,35 +613,35 @@ def ncdump(nc_fid, verb=True):
             a valid netCDF4.Dataset.variables key
         """
         try:
-            print ("\t\ttype:", repr(nc_fid.variables[key].dtype))
+            print("\t\ttype:", repr(nc_fid.variables[key].dtype))
             for ncattr in nc_fid.variables[key].ncattrs():
-                print ('\t\t%s:' % ncattr,\
+                print('\t\t%s:' % ncattr,
                       repr(nc_fid.variables[key].getncattr(ncattr)))
         except KeyError:
-            print ("WARNING: %s does not contain variable attributes" % key)
+            print("WARNING: %s does not contain variable attributes" % key)
     # NetCDF global attributes
     nc_attrs = nc_fid.ncattrs()
     if verb:
-        print ("NetCDF Global Attributes:")
+        print("NetCDF Global Attributes:")
         for nc_attr in nc_attrs:
-            print ('\t%s:' % nc_attr, repr(nc_fid.getncattr(nc_attr)))
+            print('\t%s:' % nc_attr, repr(nc_fid.getncattr(nc_attr)))
     nc_dims = [dim for dim in nc_fid.dimensions]  # list of nc dimensions
     # Dimension shape information.
     if verb:
-        print ("NetCDF dimension information:")
+        print("NetCDF dimension information:")
         for dim in nc_dims:
-            print ("\tName:", dim)
-            print ("\t\tsize:", len(nc_fid.dimensions[dim]))
+            print("\tName:", dim)
+            print("\t\tsize:", len(nc_fid.dimensions[dim]))
             print_ncattr(dim)
     # Variable information.
     nc_vars = [var for var in nc_fid.variables]  # list of nc variables
     if verb:
-        print ("NetCDF variable information:")
+        print("NetCDF variable information:")
         for var in nc_vars:
             if var not in nc_dims:
-                print ('\tName:', var)
-                print ("\t\tdimensions:", nc_fid.variables[var].dimensions)
-                print ("\t\tsize:", nc_fid.variables[var].size)
+                print('\tName:', var)
+                print("\t\tdimensions:", nc_fid.variables[var].dimensions)
+                print("\t\tsize:", nc_fid.variables[var].size)
                 print_ncattr(var)
     return nc_attrs, nc_dims, nc_vars
 
@@ -1153,9 +654,9 @@ def ncdumpMeta(pathtofile):
     '''
     # remove escape character because netCDF4 handles white spaces
     # but cannot handle escape characters (apparently)
-    pathtofile=pathtofile.replace('\\','')
+    pathtofile = pathtofile.replace('\\', '')
     # init netCDF4 instance
-    nc = netCDF4.Dataset(pathtofile,mode='r')
+    nc = netCDF4.Dataset(pathtofile, mode='r')
     # init empty dict
     ncdict = {}
     # retrieve variable attributes
@@ -1171,7 +672,8 @@ def ncdumpMeta(pathtofile):
         ncdict['global'][nc_attr] = nc.getncattr(nc_attr)
     return ncdict
 
-def find_attr_in_nc(attrstr,pathtofile=None,ncdict=None,subattrstr=None):
+
+def find_attr_in_nc(attrstr, pathtofile=None, ncdict=None, subattrstr=None):
     """
     fct to find a specific attribute with its value in a netcdf-file
     when only a fraction of attribute name is given, can also search
@@ -1192,11 +694,12 @@ def find_attr_in_nc(attrstr,pathtofile=None,ncdict=None,subattrstr=None):
         res2 = [i for i in ncdict[res1[0]] if subattrstr in i]
         return ncdict[res1[0]][res2[0]]
 
-def get_varname_for_cf_stdname_in_ncfile(ncdict,stdname):
-    lst = [i for i in ncdict.keys() \
-            if ('standard_name' in ncdict[i].keys() \
-            and stdname in ncdict[i]['standard_name']) \
-            ]
+
+def get_varname_for_cf_stdname_in_ncfile(ncdict, stdname):
+    lst = [i for i in ncdict.keys()
+           if ('standard_name' in ncdict[i].keys()
+           and stdname in ncdict[i]['standard_name'])
+           ]
     if len(lst) >= 1:
         return lst
     else: return None

@@ -29,6 +29,8 @@ dependencies:
   - tqdm
   - pytest
   - pytest-benchmark
+  - pytest-cov
+  - coverage
   - pylint
   - yapf
   - sphinx

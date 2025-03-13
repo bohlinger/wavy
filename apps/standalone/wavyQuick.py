@@ -14,7 +14,6 @@ from wavy.modelmod import model_class as mc
 from wavy.validationmod import validate, disp_validation
 from wavy.quicklookmod import comp_fig, plot_sat
 from wavy.collocmod import collocation_class as coll
-from wavy.ncmod import dumptonc_ts_sat
 from wavy.wconfig import load_or_default
 
 

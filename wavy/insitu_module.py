@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.ncmod import ncdumpMeta
-from wavy.ncmod import dumptonc_ts_insitu
 from wavy.ncmod import get_filevarname
 from wavy.ncmod import build_xr_ds_from_dict
 from wavy.utils import make_pathtofile, get_pathtofile
