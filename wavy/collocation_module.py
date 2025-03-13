@@ -699,13 +699,6 @@ class collocation_class(qls):
         return results_dict
 
 
-    def write_to_nc(self, pathtofile=None, file_date_incr=None):
-        if 'error' in vars(self):
-            print('Erroneous collocation_class file detected')
-            print('--> dump to netCDF not possible !')
-        else:
-            print('to be implemented ...')
-
     def validate_collocated_values(self, **kwargs):
         times = self.vars['time']
         dtime = [parse_date(str(t.data)) for t in times]
