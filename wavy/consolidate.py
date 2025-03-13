@@ -72,7 +72,7 @@ class consolidate_class(qls, fc):
         self.obsname = 'consolidated-obs'
         self.obstype = 'consolidated-obs'
         self.label = 'consolidated-obs'
-        self.mission = 'consolidated-missions'
+        self.name = 'consolidated-names'
         self.nID = 'consolidated-nIDs'
         self.sensor = 'consolidated-sensors'
         print(" ")
