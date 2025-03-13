@@ -36,7 +36,6 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import date_dispatcher
 from wavy.utils import flatten
 from wavy.wconfig import load_or_default, load_dir
-from wavy.writermod import writer_class as wc
 from wavy.filtermod import filter_class as fc
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.init_class_insitu import init_class
@@ -65,7 +64,7 @@ def check_date(filelst, date):
 
 # ---------------------------------------------------------------------#
 
-class insitu_class(qls, wc, fc):
+class insitu_class(qls, fc):
     '''
     Class to handle insitu based time series.
     '''
@@ -487,7 +486,7 @@ class insitu_class(qls, wc, fc):
         parent = finditem(ncdict, item)
         return parent
 
-class poi_class(qls, wc, fc):
+class poi_class(qls, fc):
     '''
     Class to handle poi based time series.
     '''

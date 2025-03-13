@@ -52,8 +52,6 @@ from wavy.filtermod import filter_class as fc
 
 from wavy.quicklookmod import quicklook_class_sat as qls
 
-from wavy.writermod import writer_class as wc
-
 from wavy.init_class_sat import init_class
 
 from wavy.utils import footprint_pulse_limited_radius
@@ -94,7 +92,7 @@ def check_date(filelst, date):
 # ---------------------------------------------------------------------#
 
 
-class satellite_class(qls, wc, fc):
+class satellite_class(qls, fc):
     '''
     Class to handle netcdf files containing satellite altimeter data
     e.g.: Hs[time], lat[time], lon[time], time[time]

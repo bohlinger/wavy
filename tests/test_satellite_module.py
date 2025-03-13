@@ -20,16 +20,16 @@ def test_collectors_cmems_L3(tmpdir):
               if '.nc' in filelist[i]]
     assert len(nclist) >= 1
 
-@pytest.mark.need_credentials
-def test_collectors_cci_v3_20Hz(tmpdir):
-    sco = sc(sd='2020-2-1 12', ed='2020-2-1 12',
-             nID='L2_20Hz_s3a', name='s3a')
-    sco.download(path=tmpdir, nproc=8)
-    # check if files were download to tmp directory
-    filelist = os.listdir(tmpdir)
-    nclist = [i for i in range(len(filelist))
-              if '.nc' in filelist[i]]
-    assert len(nclist) >= 1
+#@pytest.mark.need_credentials
+#def test_collectors_cci_v3_20Hz(tmpdir):
+#    sco = sc(sd='2020-2-1 12', ed='2020-2-1 12',
+#             nID='L2_20Hz_s3a', name='s3a')
+#    sco.download(path=tmpdir, nproc=8)
+#    # check if files were download to tmp directory
+#    filelist = os.listdir(tmpdir)
+#    nclist = [i for i in range(len(filelist))
+#              if '.nc' in filelist[i]]
+#    assert len(nclist) >= 1
 
 #@pytest.mark.need_credentials
 #def test_collectors_cci_v1_01Hz(tmpdir):

@@ -1,15 +1,15 @@
 .. _credits-label:
 
-**wavy** put to use
-===================
+**wavy** usage examples
+=======================
 
 If you are using **wavy** please mention the repo under https://github.com/bohlinger/wavy and for info from the documentation refer to this page `https://wavyopen.readthedocs.io/ <https://wavyopen.readthedocs.io/en/latest/index.html>`_. Additionally, the collocation methodology should be referred to with the following article: 
 
 * Bohlinger, P., Breivik, Ø., Economou, T., Müller, M. (2019). `A novel approach to computing super observations for probabilistic wave model validation <https://www.sciencedirect.com/science/article/pii/S1463500319300435>`_, Ocean Modelling, 139, `<https://doi.org/10.1016/j.ocemod.2019.101404>`_.
 
 
-Studies that used **wavy**
-**************************
+Scientific papers that used **wavy**
+************************************
 * Hope, G., Seldal, T., Rabault, J., Bryhni, H., Bohlinger, P., Björkqvist, J.-V., and Coauthors, 2025: SFY—A Lightweight, High-Frequency, and Phase-Resolving Wave Buoy for Coastal Waters. J. Atmos. Oceanic Technol., 42, 133–154, https://doi.org/10.1175/JTECH-D-23-0170.1.
 * Altiparmaki, O., Breivik, Ø., Aouf, L., Bohlinger, P., Johannessen, J. A., Collard, F., and Coauthors (2024). Influence of ocean currents on wave modeling and satellite observations: Insights from the one ocean expedition. Journal of Geophysical Research: Oceans, 129, e2024JC021581. https://doi.org/10.1029/2024JC021581
 * Ølberg, J.T., Bohlinger, P., Breivik, Ø., and Coauthors (2024). Wave measurements using open source ship mounted ultrasonic altimeter and motion correction system during the one ocean circumnavigation. Ocean Engineering, 292, https://doi.org/10.1016/j.oceaneng.2023.116586.
