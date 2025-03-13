@@ -45,8 +45,8 @@ Operational model validation for the Copernicus CMEMS product ARCTIC_ANALYSIS_FO
 * The Marine Dynamics and Environment Center (MDEC)
 * Mozambique (workshops)
 
-Projects **wavy** is involved in
-********************************
+Projects **wavy** is/was contributing to
+****************************************
 * Copernicus - CMEMS/ARC MFC (Arctic Monitoring Forecasting Centre) [EU]
 * FORESEE - Young Research Talents Grant [NFR - Norwegian Research Council]
 * COSY - Project on coastal altimetry from the [NOSA - Norwegian Space Agency]
