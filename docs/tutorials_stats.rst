@@ -56,6 +56,6 @@ The scatter index (SI) measures the magnitude of deviation between the forecast 
 
 :math:`SI_{rmsd} = \frac{rmsd}{mean(x_{_v})}\cdot100`
 
-Model activity ratio (MAR) is the dimensionless ratio of the standard deviation of the observation to the standard deviation of the forecast.
+Model activity ratio (MAR) is the dimensionless ratio of the standard deviation of the observation to the standard deviation of the forecast. The MAR expresses the ratio of variability in each product. A value >1 implies that the numerator has a higher variability, whereas a value <1 implies the opposite.
 
 MAR = :math:`\frac{std(x_{_v})}{std(x_{_f})}`
