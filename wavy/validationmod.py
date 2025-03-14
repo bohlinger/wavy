@@ -229,3 +229,32 @@ def validate(results_dict,boot=None):
                 print(e)
         validation_dict = {'rmsd': RMSD, 'mad': MSD, 'bias': BIAS, 'corr': CORR}
     return validation_dict
+
+def linreg_evm(x, y, stdx=1, stdy=1):
+    #  Linear regression by the maximum likelihood effective variance method.
+    #
+    #  K.K.Kahma 1991. Iterative solution replaced by explicit solution 1998.
+    #  J.-V. Björkqvist 2020. From MATLAB to Python
+    #
+    #  Reference: Orear,J 1982: Least squares when both variables have uncertanties J.Am Phys 50(10)
+
+    x0 = np.mean(x)
+    y0 = np.mean(y)
+
+    sx2 = stdx**2
+    sy2 = stdy**2
+    Sx2 = sum((x-x0)**2)
+    Sy2 = sum((y-y0)**2)
+    Sxy = sum((x-x0)*(y-y0))
+
+    if sx2 == 0 or Sxy == 0:
+        P = np.array([Sxy/Sx2])
+    else:
+        P = np.array([(sx2*Sy2-sy2*Sx2
+                       + np.sqrt((sy2*Sx2)**2
+                                 - 2*Sx2*sy2*sx2*Sy2
+                                 + (sx2*Sy2)**2+4*Sxy**2*sx2*sy2)
+                       )/(2*Sxy*sx2)])
+
+    P = np.append(P, y0-P[0]*x0)
+    return P
