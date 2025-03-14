@@ -1,7 +1,7 @@
 Importing multiple satellite products
 #####################################
 
-The multisat module is a shortcut to import multiple satellite products at once. It uses the consolidate module under the hood. In short it is used like:
+The multisat module is a shortcut to import multiple satellite products at once. It uses the consolidate module [:ref:`consolidate-label`] under the hood. In short it is used like:
 
 .. code-block:: python3
 

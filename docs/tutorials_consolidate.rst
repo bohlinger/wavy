@@ -1,3 +1,5 @@
+.. _consolidate-label:
+
 Consolidate multiple retrievals
 ###############################
 

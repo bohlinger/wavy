@@ -24,7 +24,7 @@ Collocation of satellite and wave model
    >>> sco = sco.populate(reader='read_local_ncfiles',
    ...                    path=path)
    >>> sco = sco.crop_to_region(model)
-   >>> cco = cc(oco=sco, model=model, leadtime='best', distlim=6)
+   >>> cco = cc(oco=sco, model=model, leadtime='best', distlim=6).populate()
 
 .. image:: ./docs_fig_ts_sat.png
    :scale: 80
@@ -36,7 +36,7 @@ This can also be done for a time period:
    >>> sd = "2020-11-1"
    >>> ed = "2020-11-5"
    >>> sco = sc(sdate=sd,edate=ed,region=model,mission=mission,varalias=varalias)
-   >>> cco = cc(model=model,obs_obj_in=sco,distlim=6,date_incr=1)
+   >>> cco = cc(model=model,obs_obj_in=sco,distlim=6).populate()
 
 For the collocation class object there is also a quicklook fct implemented which allows to view time series, a scatterplot, and a map as for the satellite class object::
 
@@ -65,7 +65,7 @@ The following example demonstrates the comparison of collocating a raw in-situ t
    >>> ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias,
    ...         name=name, twin=twin)
    >>> ico = ico.populate()
-   >>> cco = cc(oco=ico, model=model, leadtime='best', distlim=6)
+   >>> cco = cc(oco=ico, model=model, leadtime='best', distlim=6).populate()
 
 Let's plot the results:
 

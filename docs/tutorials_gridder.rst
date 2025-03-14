@@ -62,7 +62,7 @@ We first need to collocate the data with the collocation_class
 
    >>> from wavy.collocation_module import collocation_class as cc 
    >>> # collocate
-   >>> cco = cc(model='ww3_4km',oco=sco,distlim=6,leadtime='best',date_incr=1)
+   >>> cco = cc(model='ww3_4km',oco=sco,distlim=6,leadtime='best').populate()
    >>> # reduce region to part of model domain for better visual
    >>> bb = (-20,20,50,80) # lonmin,lonmax,latmin,latmax
    >>> res = (5,5) # lon/lat
