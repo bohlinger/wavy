@@ -58,74 +58,78 @@ Or in one line:
 
 .. code-block:: python3
 
-   >>> sco = sc(sd="2022-2-1 11",ed="2022-2-1 12", region="global",nID="cmems_L3_NRT",name="s3a").populate(path=tmpdir)
+   >>> sco = sc(sd="2022-2-1 11",ed="2022-2-1 12", region="global",
+                nID="cmems_L3_NRT",name="s3a").populate(path=tmpdir)
 
 You have now read in 1 hour of significant wave height from the satellite mission s3a. The stdout message looks like::
 
-  >>> sco = sc(sd='2022-2-1 11', ed='2022-2-1 12',
-  ...          nID='cmems_L3_NRT', name='s3a').populate(path=tmpdir)
-  # ----- 
-   ### Initializing satellite_class object ###
+   >>> sco = sc(sd="2022-2-1 11",ed="2022-2-1 12", region="global",nID="cmems_L3_NRT",name="s3a").populate(path=tmpdir)
+   # ----- 
+    ### Initializing satellite_class object ###
  
-   Given kwargs:
-  {'sd': '2022-2-1 11', 'ed': '2022-2-1 12', 'nID': 'cmems_L3_NRT', 'name': 's3a'}
+    Given kwargs:
+   {'sd': '2022-2-1 11', 'ed': '2022-2-1 12', 'region': 'global', 'nID': 'cmems_L3_NRT', 'name': 's3a'}
  
-   ### satellite_class object initialized ###
-  # ----- 
-   ### Read files and populate satellite_class object
-   ## Find and list files ...
-  8 valid files found
-  source template: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
+    ### satellite_class object initialized ###
+   # ----- 
+    ### Read files and populate satellite_class object
+    ## Find and list files ...
+   23 valid files found
+   source template: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
 
-  Checking variables..
-   Get filevarname for 
-  stdvarname: sea_surface_wave_significant_height 
-  varalias: Hs
-   !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
-  The following variables have the same standard_name:
-   ['VAVH', 'VAVH_UNFILTERED']
-   Searching *_cfg.yaml config file for definition
-   Variable defined in *_cfg.yaml is:
-  Hs = VAVH
+   Checking variables..
+    Get filevarname for 
+   stdvarname: sea_surface_wave_significant_height 
+   varalias: Hs
+    !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
+   The following variables have the same standard_name:
+    ['VAVH', 'VAVH_UNFILTERED']
+    Searching *_cfg.yaml config file for definition
+    Variable defined in *_cfg.yaml is:
+   Hs = VAVH
 
-  Choosing reader..
-  Chosen reader: satellite_readers.read_local_ncfiles
+   Choosing reader..
+   #
+   Environmental variable for WAVY_DIR not defined
+   Defaults are chosen
+   #
+   Chosen reader: satellite_readers.read_local_ncfiles
 
-  Reading..
-  Reading 10 chunks of files with chunk size 1
-  Total of 8 files
-  100%|█████████████████████████████████████████████████████████████████| 9/9 [00:00<00:00, 138.84it/s]
-   changing variables to aliases
-   Get filevarname for 
-  stdvarname: sea_surface_wave_significant_height 
-  varalias: Hs
-   !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
-  The following variables have the same standard_name:
-   ['VAVH', 'VAVH_UNFILTERED']
-   Searching *_cfg.yaml config file for definition
-   Variable defined in *_cfg.yaml is:
-  Hs = VAVH
-     VAVH is alreade named correctly and therefore not adjusted
-   Get filevarname for 
-  stdvarname: time 
-  varalias: time
-   Get filevarname for 
-  stdvarname: longitude 
-  varalias: lons
-     lons is alreade named correctly and therefore not adjusted
-   Get filevarname for 
-  stdvarname: latitude 
-  varalias: lats
-     lats is alreade named correctly and therefore not adjusted
-   enforcing lon max min = -180/180
+   Reading..
+   Reading 25 chunks of files with chunk size 1
+   Total of 23 files
+   100%|███████████████████████████████████████████| 24/24 [00:00<00:00, 43.18it/s]
+    changing variables to aliases
+    Get filevarname for 
+   stdvarname: sea_surface_wave_significant_height 
+   varalias: Hs
+    !!! standard_name:  sea_surface_wave_significant_height  is not unique !!! 
+   The following variables have the same standard_name:
+    ['VAVH', 'VAVH_UNFILTERED']
+    Searching *_cfg.yaml config file for definition
+    Variable defined in *_cfg.yaml is:
+   Hs = VAVH
+      VAVH is alreade named correctly and therefore not adjusted
+    Get filevarname for 
+   stdvarname: time 
+   varalias: time
+    Get filevarname for 
+   stdvarname: longitude 
+   varalias: lons
+      lons is alreade named correctly and therefore not adjusted
+    Get filevarname for 
+   stdvarname: latitude 
+   varalias: lats
+      lats is alreade named correctly and therefore not adjusted
+    enforcing lon max min = -180/180
  
-   ## Summary:
-  5211 footprints retrieved.
-  Time used for retrieving data:
-  0.07 seconds
+    ## Summary:
+   4287 footprints retrieved.
+   Time used for retrieving data:
+   0.58 seconds
  
-   ### satellite_class object populated ###
-  # ----- 
+    ### satellite_class object populated ###
+   # ----- 
 
 The satellite_class object has multiple class methods and class variables:
 
@@ -157,21 +161,22 @@ The satellite_class object has multiple class methods and class variables:
   sco.filter_GP(                                sco.varalias
   sco.filter_lanczos(                           sco.varname
   sco.filter_landMask(                          sco.vars
-  sco.filter_linearGAM(                         sco.write_to_nc(
+  sco.filter_linearGAM(                         
 
 With the retrieved variables in sco.vars::
 
-  >>> sco.vars
-  <xarray.Dataset>
-  Dimensions:  (time: 6901)
-  Coordinates:
-    * time     (time) datetime64[ns] 2022-02-01T09:30:00 ... 2022-02-01T12:26:16
-  Data variables:
-      Hs       (time) float32 3.559 3.551 3.553 3.553 ... 1.368 1.379 1.38 1.384
-      lons     (time) float64 175.7 175.7 175.6 175.6 ... 150.0 150.0 150.0 150.0
-      lats     (time) float64 53.74 53.8 53.86 53.91 ... -36.99 -36.93 -36.87
-  Attributes:
-      title:    wavy dataset
+   >>> sco.vars
+   <xarray.Dataset> Size: 137kB
+   Dimensions:  (time: 4287)
+   Coordinates:
+     * time     (time) datetime64[ns] 34kB 2022-02-01T10:30:00 ... 2022-02-01T12...
+   Data variables:
+       Hs       (time) float64 34kB 3.905 4.011 4.096 4.163 ... 2.15 2.18 2.203
+       lons     (time) float64 34kB 165.0 165.0 165.0 165.0 ... -14.05 -14.13 -14.2
+       lats     (time) float64 34kB 40.97 41.03 41.08 41.14 ... 69.16 69.11 69.06
+   Attributes:
+       title:    wavy dataset
+
 
 You can readily explore what you obtained utilizing the quicklook function.
 
