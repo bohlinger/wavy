@@ -51,14 +51,6 @@ cmems_L3_NRT:
         strsub: ['name']
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/name/%Y/%m
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region']
-        file_date_incr: m
     # optional, if not defined the class default is used
     reader: read_local_ncfiles
     collector: get_remote_files_copernicusmarine
@@ -114,14 +106,6 @@ cmems_L3_MY:
         strsub: ['name']
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/MY/name/%Y/%m
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region']
-        file_date_incr: m
     # optional, if not defined the class default is used
     reader: read_local_ncfiles
     collector: get_remote_files_cmems
@@ -165,15 +149,6 @@ L2_20Hz_s3a:
         strsub: ['name']
         path_date_incr_unit: 'd'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
-        trgt_tmplt:
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region']
-        file_date_incr: 'm'
     # optional, if not defined the default is used
     reader: read_local_20Hz_files
     collector: get_remote_files_cmems
@@ -223,15 +198,6 @@ L2_20Hz_c2:
         strsub: ['name']
         path_date_incr_unit: 'd'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
-        trgt_tmplt:
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region']
-        file_date_incr: 'm'
     # optional, if not defined the default is used
     reader: read_local_20Hz_files
     collector: get_remote_files_cmems
@@ -285,16 +251,6 @@ CCIv1_L3:
         strsub: ['varalias','name','region','nID']
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        #trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
-        trgt_tmplt:
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region','nID']
-        file_date_incr_unit: 'd'
-        file_date_incr: 1
     # optional, if not defined the default is used
     reader: read_local_ncfiles
     #collector: get_remote_files_cci
@@ -339,15 +295,6 @@ CCIv3_L3:
         strsub: ["nID"]
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region','nID']
-        file_date_incr_unit: 'd'
-        file_date_incr: 1
     # optional, if not defined the default is used
     reader: read_local_ncfiles
     collector:
@@ -392,15 +339,6 @@ CCIv3_L3_20Hz:
         strsub: ["nID"]
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/L3/nID/name/%Y/%m/
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region','nID']
-        file_date_incr_unit: 'd'
-        file_date_incr: 1
     # optional, if not defined the default is used
     reader: read_local_ncfiles
     collector:
@@ -445,15 +383,6 @@ s3a_sla_5Hz:
         strsub: ['name']
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        #trgt_tmplt: /home/patrikb/tmp_altimeter/SLA/
-        trgt_tmplt:
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region']
-        file_date_incr: m
     # optional, if not defined the class default is used
     reader: read_local_ncfiles
     collector: get_remote_files_cmems
@@ -495,15 +424,6 @@ cfo_swim:
         strsub: ["nID","name"]
         path_date_incr_unit: 'm'
         path_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt: /home/patrikb/tmp_altimeter/nID/name/%Y/%m/
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['varalias','name','region','nID']
-        file_date_incr_unit: 'd'
-        file_date_incr: 1
     # optional, if not defined the default is used
     reader: read_local_ncfiles
     collector: get_remote_files_cmems
