@@ -27,14 +27,7 @@ Apply the gridder:
    >>> from wavy.grid_stats import apply_metric
    >>> bb = (-179, 178, -80, 80)  # lonmin,lonmax,latmin,latmax
    >>> res = (5, 5) # lon/lat
-   >>> gco = gc(lons=sco.vars.lons.squeeze().values.ravel(),
-   ...          lats=sco.vars.lats.squeeze().values.ravel(),
-   ...          values=sco.vars.Hs.squeeze().values.ravel(),
-   ...          bb=bb, res=res,
-   ...          varalias=sco.varalias,
-   ...          units=sco.units,
-   ...          sdate=sco.vars.time,
-   ...          edate=sco.vars.time)
+   >>> gco = gc(oco=sco,bb=bb,res=res)
    >>> gridvar, lon_grid, lat_grid = apply_metric(gco=gco)
    >>> gco.quicklook(val_grid=gridvar,
    ...               lon_grid=lon_grid,

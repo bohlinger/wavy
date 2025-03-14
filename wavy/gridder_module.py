@@ -25,9 +25,9 @@ class gridder_class():
         print(" ")
         self.mvals = None
         if oco is not None:
-            self.olons = np.array(oco.vars['lons'])
-            self.olats = np.array(oco.vars['lats'])
-            self.ovals = np.array(oco.vars[oco.varalias])
+            self.olons = np.array(oco.vars['lons'].squeeze().values.ravel())
+            self.olats = np.array(oco.vars['lats'].squeeze().values.ravel())
+            self.ovals = np.array(oco.vars[oco.varalias].squeeze().values.ravel())
             self.stdvarname = oco.stdvarname
             self.varalias = oco.varalias
             self.units = oco.units
