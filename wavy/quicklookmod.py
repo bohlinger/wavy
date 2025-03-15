@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date
 from wavy.utils import compute_quantiles
+from wavy.validationmod import linreg_evm
 
 # read yaml config files:
 region_dict = load_or_default('region_cfg.yaml')
@@ -44,7 +45,7 @@ class quicklook_class_sat:
         # settings
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
-        sc = kwargs.get('sc', False)
+        scat = kwargs.get('sc', False)
         hst = kwargs.get('hist', False)  # histogram when ready
         mode = kwargs.get('mode', 'comb')  # comb, indiv
 
@@ -340,7 +341,7 @@ class quicklook_class_sat:
             else:
                 return fig, ax
 
-        if sc is True:
+        if scat is True:
             lq = np.arange(0.01, 1.01, 0.01)
             lq = kwargs.get('lq', lq)
             modq = compute_quantiles(plot_var_model, lq)
@@ -352,19 +353,26 @@ class quicklook_class_sat:
 
             ax.plot(plot_var_obs, plot_var_model,
                     linestyle='None', color=colors[0],
-                    marker='o', alpha=.5, ms=2)
+                    marker='o', alpha=.5, ms=2,
+                    label="data")
 
             # add quantiles
-            ax.plot(obsq, modq, 'r')
+            ax.plot(obsq, modq, 'r', label='QQ')
 
             # 45 degree line for orientation
-            ax.axline((0, 0), (1, 1), lw=.5, color='grey', ls='--')
+            ax.axline((0, 0), (1, 1), lw=.5, color='grey',
+                      ls='--', label="45 deg")
+
+            # linreg_evm line
+            rl = linreg_evm(plot_var_obs, plot_var_model)
+            ax.axline(xy1=(0, rl[1]), slope=rl[0],
+                      color='b', lw=.5, label="EVM-reg")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
             plt.ylabel('models (' + self.model + ')')
 
-            vartype = variable_info[self.varalias].get('type','default')
+            vartype = variable_info[self.varalias].get('type', 'default')
             if vartype == 'cyclic':
                 plt.xlim([0, 360])
                 plt.ylim([0, 360])
@@ -375,6 +383,8 @@ class quicklook_class_sat:
                 plt.xlim([minv, maxv+0.15*maxv])
                 plt.ylim([minv, maxv+0.15*maxv])
             ax.set_title(self.varalias + '[' + self.units + ']')
+            plt.legend()
+
             plt.tight_layout()
             #ax.set_title()
             plt.show()
