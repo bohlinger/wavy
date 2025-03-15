@@ -367,8 +367,7 @@ class quicklook_class_sat:
             rl = linreg_evm(plot_var_obs, plot_var_model)
             self.EVMreg = dict({'offset': rl[1], "slope": rl[0]})
             ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                      color='b', lw=1, label="EVM-reg",
-                      ls='-.')
+                      color='b', lw=1, label="EVM-reg")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
@@ -409,9 +408,6 @@ class quicklook_class_sat:
                        norm=kwargs.get('norm', mpl.colors.LogNorm()),
                        cmap=kwargs.get('cmap', mpl.cm.gray),
                        cmin=kwargs.get('cmin', 1))
-            plt.plot(obsq, modq, marker='None',
-                     color='red', alpha=.6, linestyle='-',
-                     mew=0, lw=1.5)
             cbar = plt.colorbar()
             cbar.ax.tick_params(labelsize=fs)
             cbar.set_label('Frequency', size=fs)
@@ -428,8 +424,7 @@ class quicklook_class_sat:
             # linreg_evm line
             rl = linreg_evm(plot_var_obs, plot_var_model)
             ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                      color='b', lw=1, label="EVM-reg",
-                      ls='-.')
+                      color='b', lw=1, label="EVM-reg")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
