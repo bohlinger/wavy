@@ -46,7 +46,7 @@ class quicklook_class_sat:
         m = kwargs.get('m', a)
         ts = kwargs.get('ts', a)
         scat = kwargs.get('sc', False)
-        hst = kwargs.get('hist', False)  # histogram when ready
+        hst = kwargs.get('hist', False)
         mode = kwargs.get('mode', 'comb')  # comb, indiv
 
         # set variables
@@ -365,33 +365,86 @@ class quicklook_class_sat:
 
             # linreg_evm line
             rl = linreg_evm(plot_var_obs, plot_var_model)
+            self.EVMreg = dict({'offset': rl[1], "slope": rl[0]})
             ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                      color='b', lw=.5, label="EVM-reg")
+                      color='b', lw=1, label="EVM-reg",
+                      ls='-.')
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
             plt.ylabel('models (' + self.model + ')')
 
-            vartype = variable_info[self.varalias].get('type', 'default')
-            if vartype == 'cyclic':
-                plt.xlim([0, 360])
-                plt.ylim([0, 360])
-            else:
-                maxv = np.nanmax([self.vars['model_values'],
-                                  self.vars['obs_values']])
-                minv = 0
-                plt.xlim([minv, maxv+0.15*maxv])
-                plt.ylim([minv, maxv+0.15*maxv])
+            maxv = np.nanmax([self.vars['model_values'],
+                              self.vars['obs_values']])
+            minv = 0
+            plt.xlim([minv, maxv*1.05])
+            plt.ylim([minv, maxv*1.05])
+
             ax.set_title(self.varalias + '[' + self.units + ']')
             plt.legend()
 
             plt.tight_layout()
+
             #ax.set_title()
-            plt.show()
             if kwargs.get("show", True) is True:
                 plt.show()
             else:
                 return fig, ax
+
+        if hst is True:
+            lq = np.arange(0.01, 1.01, 0.01)
+            lq = kwargs.get('lq', lq)
+            modq = compute_quantiles(plot_var_model, lq)
+            obsq = compute_quantiles(plot_var_obs, lq)
+
+            fig = plt.figure(figsize=(5, 4))
+            ax = fig.add_subplot(111)
+
+            # 2d histogram
+            lmin = 0
+            lmax = np.max([plot_var_obs, plot_var_model])*1.05
+            plt.hist2d(plot_var_obs, plot_var_model,
+                       bins=kwargs.get('bins', 100),
+                       range=[[lmin, lmax], [lmin, lmax]],
+                       norm=kwargs.get('norm', mpl.colors.LogNorm()),
+                       cmap=kwargs.get('cmap', mpl.cm.gray),
+                       cmin=kwargs.get('cmin', 1))
+            plt.plot(obsq, modq, marker='None',
+                     color='red', alpha=.6, linestyle='-',
+                     mew=0, lw=1.5)
+            cbar = plt.colorbar()
+            cbar.ax.tick_params(labelsize=fs)
+            cbar.set_label('Frequency', size=fs)
+            plt.xlim([lmin, lmax])
+            plt.ylim([lmin, lmax])
+
+            # add quantiles
+            ax.plot(obsq, modq, 'r', label='QQ')
+
+            # 45 degree line for orientation
+            ax.axline((0, 0), (1, 1), lw=.5, color='grey',
+                      ls='--', label="45 deg")
+
+            # linreg_evm line
+            rl = linreg_evm(plot_var_obs, plot_var_model)
+            ax.axline(xy1=(0, rl[1]), slope=rl[0],
+                      color='b', lw=1, label="EVM-reg",
+                      ls='-.')
+
+            # add axis labels
+            plt.xlabel('obs (' + self.nID + ')')
+            plt.ylabel('models (' + self.model + ')')
+
+            ax.set_title(self.varalias + '[' + self.units + ']')
+            plt.legend()
+
+            plt.tight_layout()
+
+            if kwargs.get("show", True) is True:
+                plt.show()
+            else:
+                return fig, ax
+
 
     def quick_anim():
         pass
