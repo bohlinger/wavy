@@ -7,7 +7,6 @@ valhall: # object nID (nameID)
         SAABWaveRadar_2: 1
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -32,7 +31,6 @@ fedjeosen: # object nID (nameID)
         strsub:
         file_date_incr_unit:
         file_date_incr:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_nc_thredds_static_coords_single_file
     collector:
@@ -57,7 +55,6 @@ asgarda: # object nID (nameID)
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -75,7 +72,6 @@ aastahansteen:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -93,7 +89,6 @@ brage:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -119,13 +114,6 @@ draugen: # object nID (nameID)
         fl_tmplt:
         strsub:
         date_incr:
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt:
-        fl_tmplt:
-        strsub:
-        file_date_incr:
     # optional, if not defined the class default is used
     reader: get_frost
     collector: 
@@ -158,7 +146,6 @@ gjoa:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -176,7 +163,6 @@ goliat:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -194,7 +180,6 @@ grane: # object nID (nameID)
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -212,7 +197,6 @@ gudrun:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -230,7 +214,6 @@ gullfaksc:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -248,7 +231,6 @@ heidrun:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -266,7 +248,6 @@ heimdal: # object nID (nameID)
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -284,7 +265,6 @@ johansverdrup: # object nID (nameID)
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -302,7 +282,6 @@ kvitebjorn:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -320,7 +299,6 @@ kristin:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -338,7 +316,6 @@ huldra:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -356,7 +333,6 @@ njorda:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -374,7 +350,6 @@ martinlingea:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -392,7 +367,6 @@ norne:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -410,7 +384,6 @@ ormenlange:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -428,7 +401,6 @@ oseberga:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -446,7 +418,6 @@ osebergc:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -464,7 +435,6 @@ osebergsyd:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -482,7 +452,6 @@ snorrea:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -500,7 +469,6 @@ snorreb:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -518,7 +486,6 @@ sleipnera:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -536,7 +503,6 @@ sleipnerb:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -554,7 +520,6 @@ statfjorda:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -572,7 +537,6 @@ statfjordb:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -590,7 +554,6 @@ trolla:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -608,7 +571,6 @@ trollb:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -626,7 +588,6 @@ trollc:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -644,7 +605,6 @@ ula:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -662,7 +622,6 @@ valhall:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -680,7 +639,6 @@ veslefrikk:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -698,7 +656,6 @@ visund:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -716,7 +673,6 @@ vestfjorden:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -734,7 +690,6 @@ yme:
         NA: 0
     download:
     wavy_input:
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_frost
     collector:
@@ -760,14 +715,6 @@ D_Breisundet_wave: # object nID (nameID)
                     obs/buoy-svv-e39/%Y/%m/"
         fl_tmplt: "%Y%m_E39_nID.nc"
         strsub: ['nID']
-        file_date_incr_unit: 'm'
-        file_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt:
-        fl_tmplt:
-        strsub:
         file_date_incr_unit: 'm'
         file_date_incr: 1
     # optional, if not defined the class default is used
@@ -829,14 +776,6 @@ AR_TS_MO_monthly: # object nID (nameID)
         strsub: ['name']
         file_date_incr_unit: 'm'
         file_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt:
-        fl_tmplt:
-        strsub:
-        file_date_incr_unit: 'm'
-        file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
     collector: get_remote_files_copernicusmarine
@@ -891,14 +830,6 @@ MO_Draugen_monthly: # object nID (nameID)
         strsub: ['name']
         file_date_incr_unit: 'm'
         file_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt:
-        fl_tmplt:
-        strsub:
-        file_date_incr_unit: 'm'
-        file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
     collector: get_remote_files_cmems
@@ -951,9 +882,6 @@ MO_Draugen_daily: # object nID (nameID)
         strsub: ['name']
         file_date_incr_unit: 'd'
         file_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
     # optional, if not defined the class default is used
     reader: get_cmems
     collector: get_remote_files_cmems
@@ -994,14 +922,6 @@ history_cmems_NRT: # object nID (nameID)
         src_tmplt:
         fl_tmplt: "AR_TS_MO_name_%Y%m.nc"
         strsub: ['name']
-        file_date_incr_unit: 'm'
-        file_date_incr: 1
-    # optional: where to write to
-    #           can be defined directly when calling wavy
-    wavy_output:
-        trgt_tmplt:
-        fl_tmplt:
-        strsub:
         file_date_incr_unit: 'm'
         file_date_incr: 1
     # optional, if not defined the class default is used
