@@ -31,9 +31,6 @@ Introduction
 
    This project is under active development. I try to keep the documentation pristine. Please do not hesitate to contact me if you experience troubles, have questions, or would like to contribute.
 
-.. note::
-   **wavy** just got updated with major changes also in the interfaces. If you need to use the former version (v.0.1.5) please use the branch wavy_v0.1.5.
-
 Credits
 =======
 If you are using **wavy** please mention the repo under https://github.com/bohlinger/wavy and for info from the documentation refer to this page `https://wavyopen.readthedocs.io/ <https://wavyopen.readthedocs.io/en/latest/index.html>`_. Additionally, the collocation methodology should be referred to with the following article:
