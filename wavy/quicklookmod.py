@@ -48,6 +48,7 @@ class quicklook_class_sat:
         scat = kwargs.get('sc', False)
         hst = kwargs.get('hist', False)
         mode = kwargs.get('mode', 'comb')  # comb, indiv
+        add = kwargs.get('add')
 
         # set variables
         try:
@@ -364,10 +365,11 @@ class quicklook_class_sat:
                       ls='--', label="45 deg")
 
             # linreg_evm line
-            rl = linreg_evm(plot_var_obs, plot_var_model)
-            self.EVMreg = dict({'offset': rl[1], "slope": rl[0]})
-            ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                      color='b', lw=1, label="EVM-reg")
+            if add is "evm_regression_line":
+                rl = linreg_evm(plot_var_obs, plot_var_model)
+                self.EVMreg = dict({'offset': rl[1], "slope": rl[0]})
+                ax.axline(xy1=(0, rl[1]), slope=rl[0],
+                          color='b', lw=1, label="EVM-regr")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
@@ -422,9 +424,10 @@ class quicklook_class_sat:
                       ls='--', label="45 deg")
 
             # linreg_evm line
-            rl = linreg_evm(plot_var_obs, plot_var_model)
-            ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                      color='b', lw=1, label="EVM-reg")
+            if add is "evm_regression_line":
+                rl = linreg_evm(plot_var_obs, plot_var_model)
+                ax.axline(xy1=(0, rl[1]), slope=rl[0],
+                          color='b', lw=1, label="EVM-regr")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
