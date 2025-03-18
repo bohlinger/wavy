@@ -48,17 +48,17 @@ class multisat_class(qls, fc):
         scos = []
         for i, n in enumerate(self.name):
             try:
-               sco = sc(sd=self.sd, ed=self.ed,
-                        nID=self.nID[i], name=n,
-                        twin=self.twin, distlim=self.distlim,
-                        region=self.region, varalias=self.varalias)
-               sco = sco.populate()
+                sco = sc(sd=self.sd, ed=self.ed,
+                         nID=self.nID[i], name=n,
+                         twin=self.twin, distlim=self.distlim,
+                         region=self.region, varalias=self.varalias)
+                sco = sco.populate()
+                if 'vars' in list(vars(sco)):
+                    scos.append(deepcopy(sco))
+                del sco
             except Exception as e:
                 print(e)
                 print('not data found for', n)
-            if 'vars' in vars(sco):
-                scos.append(deepcopy(sco))
-            del sco
 
         # consolidate scos
         cso = cs(scos)
