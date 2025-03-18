@@ -6,7 +6,7 @@ import numpy as np
 
 # define global functions
 
-def calc_model_activity_ratio(a,b):
+def calc_model_activity_ratio(a, b):
     """
     computes the model activity ratio of input a (mode) and input b (obs)
     if nans exist the prinziple of marginalization is applied
@@ -14,12 +14,12 @@ def calc_model_activity_ratio(a,b):
     """
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     mar = np.std(a1)/np.std(b1)
     return mar
 
-def calc_rmsd(a,b):
+def calc_rmsd(a, b):
     '''
     root mean square deviation
     if nans exist the prinziple of marginalization is applied
@@ -27,15 +27,15 @@ def calc_rmsd(a,b):
     '''
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     n = len(a1)
     diff2 = (a1-b1)**2
     msd = diff2.sum()/n
     rmsd = np.sqrt(msd)
     return msd, rmsd
 
-def calc_nrmsd(a,b):
+def calc_nrmsd(a, b):
     '''
     Normalized root mean square deviation
     if nans exist the prinziple of marginalization is applied
@@ -43,27 +43,27 @@ def calc_nrmsd(a,b):
     '''
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     diff2 = (a1-b1)**2
     msd = diff2.sum()/np.sum(b1**2)
     rmsd = np.sqrt(msd)
     return msd, rmsd
 
-def calc_drmsd(a,b):
+def calc_drmsd(a, b):
     '''
     debiased root mean square deviation
     if nans exist the prinziple of marginalization is applied
     '''
-    a,b = np.array(a),np.array(b)
+    a, b = np.array(a), np.array(b)
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     n = len(a1)
     diff2 = (a1-b1)**2
     msd = diff2.sum()/n
-    dmsd = msd - calc_bias(a,b)**2
+    dmsd = msd - calc_bias(a, b)**2
     drmsd = np.sqrt(dmsd)
     return dmsd, drmsd
 
@@ -84,12 +84,12 @@ def calc_corrcoef(a, b):
     '''
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
-    corr = np.corrcoef(a1,b1)[1,0]
+    a1 = a[idx]
+    b1 = b[idx]
+    corr = np.corrcoef(a1, b1)[1, 0]
     return corr
 
-def calc_bias(a,b):
+def calc_bias(a, b):
     """
     Bias
     if nans exist the prinziple of marginalization is applied
@@ -97,13 +97,13 @@ def calc_bias(a,b):
     """
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     N = len(a1)
     bias = np.sum(a1-b1)/N
     return bias
 
-def calc_nbias(a,b):
+def calc_nbias(a, b):
     """
     Normalized Bias [dimensionless]
     if nans exist the prinziple of marginalization is applied
@@ -111,12 +111,12 @@ def calc_nbias(a,b):
     """
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     nbias = np.sum(a1-b1)/np.sum(b1)
     return nbias
 
-def calc_mad(a,b):
+def calc_mad(a, b):
     """
     mean absolute deviation
     if nans exist the prinziple of marginalization is applied
@@ -124,8 +124,8 @@ def calc_mad(a,b):
     """
     comb = a + b
     idx = np.array(range(len(a)))[~np.isnan(comb)]
-    a1=a[idx]
-    b1=b[idx]
+    a1 = a[idx]
+    b1 = b[idx]
     N = len(a1)
     mad = np.sum(np.abs(a1-b1))/N
     return mad
@@ -157,7 +157,7 @@ def disp_validation(valid_dict):
     print('\n')
     pass
 
-def validate(results_dict,boot=None):
+def validate(results_dict, boot=None):
     import numpy as np
     """
     vars in dict: np.arrays with np.nan for invalids
@@ -230,13 +230,16 @@ def validate(results_dict,boot=None):
         validation_dict = {'rmsd': RMSD, 'mad': MSD, 'bias': BIAS, 'corr': CORR}
     return validation_dict
 
-def linreg_evm(x, y, stdx=1, stdy=1):
+def linreg_evm(x, y, **kwargs):
     #  Linear regression by the maximum likelihood effective variance method.
     #
     #  K.K.Kahma 1991. Iterative solution replaced by explicit solution 1998.
     #  J.-V. Björkqvist 2020. From MATLAB to Python
     #
     #  Reference: Orear,J 1982: Least squares when both variables have uncertanties J.Am Phys 50(10)
+
+    stdx = kwargs.get('stdx', 1)
+    stdy = kwargs.get('stdy', 1)
 
     x0 = np.mean(x)
     y0 = np.mean(y)

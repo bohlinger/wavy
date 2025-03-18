@@ -366,7 +366,7 @@ class quicklook_class_sat:
 
             # linreg_evm line
             if add is "evm_regression_line":
-                rl = linreg_evm(plot_var_obs, plot_var_model)
+                rl = linreg_evm(plot_var_obs, plot_var_model, **kwargs)
                 self.EVMreg = dict({'offset': rl[1], "slope": rl[0]})
                 ax.axline(xy1=(0, rl[1]), slope=rl[0],
                           color='b', lw=1, label="EVM-regr")
@@ -425,7 +425,7 @@ class quicklook_class_sat:
 
             # linreg_evm line
             if add is "evm_regression_line":
-                rl = linreg_evm(plot_var_obs, plot_var_model)
+                rl = linreg_evm(plot_var_obs, plot_var_model, **kwargs)
                 ax.axline(xy1=(0, rl[1]), slope=rl[0],
                           color='b', lw=1, label="EVM-regr")
 

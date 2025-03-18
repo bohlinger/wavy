@@ -528,7 +528,6 @@ class satellite_class(qls, fc):
         spec.loader.exec_module(reader_tmp)
 
         # pick reader
-        #reader = getattr(sat_reader, 'read_local_ncfiles')
         reader = getattr(reader_tmp, reader_str)
         self.reader = reader
         print('Chosen reader:', spec.name)
