@@ -114,7 +114,7 @@ class quicklook_class_sat:
             # add land
             ax.add_geometries(land.intersecting_geometries(
                     [-180, 180, 0, 90]),
-                    ccrs.PlateCarree(),
+                    projection,
                     facecolor=cfeature.COLORS['land'],
                     edgecolor='black', linewidth=1,
                     zorder=zorder_land)
@@ -171,14 +171,14 @@ class quicklook_class_sat:
                 sc2 = ax.scatter(lons_perp, lats_perp,
                                  s=.2, c='b', marker='.',
                                  edgecolor='face',
-                                 transform=ccrs.PlateCarree())
+                                 transform=projection)
             if len(plot_var.shape) > 1:
                 sc = ax.contourf(plot_lons.squeeze(),
                                  plot_lats.squeeze(),
                                  plot_var.squeeze(),
                                  cmap=cmap, levels=cflevels,
                                  vmin=vmin, vmax=vmax, norm=norm,
-                                 transform=ccrs.PlateCarree(),
+                                 transform=projection,
                                  transform_first=\
                                  kwargs.get('transform_first', False))
                 c = ax.contour(plot_lons.squeeze(),
@@ -186,7 +186,7 @@ class quicklook_class_sat:
                                plot_var.squeeze(),
                                levels=clevels,
                                colors='w', linewidths=0.3,
-                               transform=ccrs.PlateCarree(),
+                               transform=projection,
                                transform_first=\
                                kwargs.get('transform_first', False))
             else:
@@ -196,7 +196,7 @@ class quicklook_class_sat:
                             edgecolors='k',
                             linewidths=0.1,
                             cmap=cmap, norm=norm,
-                            transform=ccrs.PlateCarree())
+                            transform=projection)
 
             # axes for colorbar
             axins = inset_axes(ax,
@@ -231,7 +231,8 @@ class quicklook_class_sat:
                                latmin-lat_range*map_extent_multiplicator_lat,
                                latmax+lat_range*map_extent_multiplicator_lat],
                               crs=projection)
-
+            elif kwargs.get('map_extend') is False:
+                pass
             else:
                 ax.set_extent([kwargs.get("map_extent_llon"),
                                kwargs.get("map_extent_ulon"),
@@ -270,8 +271,8 @@ class quicklook_class_sat:
                                            .get('color','b'),
                                      marker=quicklook_dict[self.region]\
                                             ['poi'][poi]['marker'],
-                                     transform=ccrs.PlateCarree())
-                ax.text(plon, plat, pname, transform=ccrs.PlateCarree(),
+                                     transform=projection)
+                ax.text(plon, plat, pname, transform=projection,
                         zorder=100)
             #fig.suptitle('', fontsize=16) # unused
             if kwargs.get("show", True) is True:
