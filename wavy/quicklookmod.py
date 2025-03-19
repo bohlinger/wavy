@@ -240,12 +240,12 @@ class quicklook_class_sat:
                               crs=projection)
 
             #ax.coastlines(color='k')
-
-            gl = ax.gridlines(draw_labels=True, crs=projection,
-                              linewidth=1, color='grey', alpha=0.4,
-                              linestyle='-')
-            gl.top_labels = False
-            gl.right_labels = False
+            if projection == ccrs.PlateCarree():
+                gl = ax.gridlines(draw_labels=True, crs=projection,
+                                  linewidth=1, color='grey', alpha=0.4,
+                                  linestyle='-')
+                gl.top_labels = False
+                gl.right_labels = False
             plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
             auto_title = (self.nID + '\n'
                           + 'from ' 
