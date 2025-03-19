@@ -3,6 +3,7 @@
     Consists mostly of functions computing validation metrics
 """
 import numpy as np
+from scipy import stats
 
 # define global functions
 
@@ -236,7 +237,8 @@ def linreg_evm(x, y, **kwargs):
     #  K.K.Kahma 1991. Iterative solution replaced by explicit solution 1998.
     #  J.-V. Björkqvist 2020. From MATLAB to Python
     #
-    #  Reference: Orear,J 1982: Least squares when both variables have uncertanties J.Am Phys 50(10)
+    #  Reference: Orear,J 1982: Least squares when both variables have
+    #             uncertanties J.Am Phys 50(10)
 
     stdx = kwargs.get('stdx', 1)
     stdy = kwargs.get('stdy', 1)
@@ -261,3 +263,7 @@ def linreg_evm(x, y, **kwargs):
 
     P = np.append(P, y0-P[0]*x0)
     return P
+
+def linreg_std(x, y, **kwargs):
+    slope, intercept, r, p, std_err = stats.linregress(x, y)
+    return {'slope': slope, 'intercept': intercept}

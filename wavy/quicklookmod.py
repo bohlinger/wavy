@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date
 from wavy.utils import compute_quantiles
-from wavy.validationmod import linreg_evm
+from wavy.validationmod import linreg_evm, linreg_std
 
 # read yaml config files:
 region_dict = load_or_default('region_cfg.yaml')
@@ -48,7 +48,6 @@ class quicklook_class_sat:
         scat = kwargs.get('sc', False)
         hst = kwargs.get('hist', False)
         mode = kwargs.get('mode', 'comb')  # comb, indiv
-        add = kwargs.get('add')
 
         # set variables
         try:
@@ -365,11 +364,25 @@ class quicklook_class_sat:
                       ls='--', label="45 deg")
 
             # linreg_evm line
-            if add is "evm_regression_line":
+            if kwargs.get('evm_regression_line') is True:
                 rl = linreg_evm(plot_var_obs, plot_var_model, **kwargs)
-                self.EVMreg = dict({'offset': rl[1], "slope": rl[0]})
+                self.EVMreg = dict({'intercept': rl[1], "slope": rl[0]})
                 ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                          color='b', lw=1, label="EVM-regr")
+                          color=kwargs.get('evm_regression_col', 'lightblue'),
+                          lw=kwargs.get('evm_regression_lw', 1),
+                          ls=kwargs.get('evm_regression_ls', '-'),
+                          label="EVM-regr")
+
+            # std linreg line
+            if kwargs.get('std_regression_line') is True:
+                rl = linreg_std(plot_var_obs, plot_var_model, **kwargs)
+                self.linreg = dict({'intercept': rl['intercept'],
+                                    'slope': rl['slope']})
+                ax.axline(xy1=(0, rl['intercept']), slope=rl['slope'],
+                          color=kwargs.get('std_regression_col', 'lightblue'),
+                          lw=kwargs.get('std_regression_lw', 1),
+                          ls=kwargs.get('std_regression_ls', '-'),
+                          label="linregr")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
@@ -424,10 +437,25 @@ class quicklook_class_sat:
                       ls='--', label="45 deg")
 
             # linreg_evm line
-            if add is "evm_regression_line":
+            if kwargs.get('evm_regression_line') is True:
                 rl = linreg_evm(plot_var_obs, plot_var_model, **kwargs)
+                self.EVMreg = dict({'intercept': rl[1], "slope": rl[0]})
                 ax.axline(xy1=(0, rl[1]), slope=rl[0],
-                          color='b', lw=1, label="EVM-regr")
+                          color=kwargs.get('evm_regression_col', 'lightblue'),
+                          lw=kwargs.get('evm_regression_lw', 1),
+                          ls=kwargs.get('evm_regression_ls', '-'),
+                          label="EVM-regr")
+
+            # std linreg line
+            if kwargs.get('std_regression_line') is True:
+                rl = linreg_std(plot_var_obs, plot_var_model, **kwargs)
+                self.linreg = dict({'intercept': rl['intercept'],
+                                    'slope': rl['slope']})
+                ax.axline(xy1=(0, rl['intercept']), slope=rl['slope'],
+                          color=kwargs.get('std_regression_col', 'lightblue'),
+                          lw=kwargs.get('std_regression_lw', 1),
+                          ls=kwargs.get('std_regression_ls', '-'),
+                          label="linregr")
 
             # add axis labels
             plt.xlabel('obs (' + self.nID + ')')
