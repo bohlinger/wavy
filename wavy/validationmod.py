@@ -264,6 +264,55 @@ def linreg_evm(x, y, **kwargs):
     P = np.append(P, y0-P[0]*x0)
     return P
 
+def linreg_ievm(x, y, **kwargs):
+    #  Informed effective variance method.
+    #  Extended evm by Patrik Bohlinger for accounting for
+    #  non-stationary error variances.
+
+    stdx = [kwargs.get('stdx', 1)]
+    stdy = [kwargs.get('stdy', 1)]
+
+    if (len(stdx) == len(x) and len(stdy) == len(y)):
+        # stdx and stdy are vectors assumed derived from a
+        # non-stationary error variance function
+        pass
+    elif (len(stdx) == 1 and len(stdy) == 1):
+        # create vectors of same length
+        stdx = np.ones(len(x))*stdx[0]
+        stdy = np.ones(len(y))*stdy[0]
+    else:
+        print('The format of the provided error variances is not correct!')
+
+    x0 = np.mean(x)
+    y0 = np.mean(y)
+
+    sx2 = stdx**2
+    sy2 = stdy**2
+
+    Sx2 = sum((x-x0)**2)
+
+    Syx2 = sum(sy2*(x-x0)**2)
+    Sxy2 = sum(sx2*(y-y0)**2)
+
+    #Sxx = sum(sx2*(x-x0))
+    #Syy = sum(sy2*(y-y0))
+
+    Sxxyy = sum(stdx*(x-x0)*stdy*(y-y0))
+
+    Sxy = sum(np.sqrt(sx2)*(x-x0)*np.sqrt(sy2)*(y-y0))
+    Sxxy = sum(sx2*(x-x0)*(y-y0))
+
+    # Add what to do in case of only one value for error variance and one is 0
+
+    P = np.array([(Sxy2-Syx2
+                       + np.sqrt(Syx2**2 + Sxy2**2
+                                 - 2*Sxy2*Syx2
+                                 + 4*Sxxyy**2)
+                       )/(2*Sxxy)])
+
+    P = np.append(P, y0-P[0]*x0)
+    return P
+
 def linreg_std(x, y, **kwargs):
     slope, intercept, r, p, std_err = stats.linregress(x, y)
     return {'slope': slope, 'intercept': intercept}
