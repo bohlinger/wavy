@@ -316,6 +316,41 @@ def linreg_ievm(x, y, **kwargs):
     P = np.append(P, y0-P[0]*x0)
     return P
 
+def linreg_deming(x, y, **kwargs):
+    #  Informed effective variance method.
+    #  Extended evm by Patrik Bohlinger for accounting for
+    #  non-stationary error variances.
+
+    stdx = [kwargs.get('stdx', 1)]
+    stdy = [kwargs.get('stdy', 1)]
+
+    if (len(stdx) == len(x) and len(stdy) == len(y)):
+        # stdx and stdy are vectors assumed derived from a
+        # non-stationary error variance function
+        pass
+    elif (len(stdx) == 1 and len(stdy) == 1):
+        # create vectors of same length
+        stdx = np.ones(len(x))*stdx[0]
+        stdy = np.ones(len(y))*stdy[0]
+    else:
+        print('The format of the provided error variances is not correct!')
+
+    x0 = np.mean(x)
+    y0 = np.mean(y)
+
+    delta = stdy**2/stdx**2
+    dsxx = sum(delta*(x-x0)**2)
+    syy = sum((x-x0)**2)
+    sxy = sum(np.sqrt(delta)*(x-x0)*(y-y0))
+
+    # Add what to do in case of only one value for error variance and one is 0
+    b1 = (syy - dsxx + np.sqrt((syy-dsxx)**2+4*sxy)) / (2*sxy)
+    b0 = y0-b1*x0
+
+    P = np.append(b1, b0)
+    return P
+
+
 def linreg_std(x, y, **kwargs):
     slope, intercept, r, p, std_err = stats.linregress(x, y)
     return {'slope': slope, 'intercept': intercept}
