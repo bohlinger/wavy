@@ -289,24 +289,27 @@ def linreg_ievm(x, y, **kwargs):
     sx2 = stdx**2
     sy2 = stdy**2
 
-    Sx2 = sum((x-x0)**2)
+    s2 = sx2*sy2
 
     Syx2 = sum(sy2*(x-x0)**2)
     Sxy2 = sum(sx2*(y-y0)**2)
 
-    #Sxx = sum(sx2*(x-x0))
-    #Syy = sum(sy2*(y-y0))
+    #prodsum1 = sum(np.sqrt(s2)*(x-x0)**2)*sum(np.sqrt(s2)*(y-y0)**2)
+    prodsum2 = Syx2*Sxy2
+    prodsum = prodsum2
+    #print(prodsum1)
+    #print(prodsum2)
 
-    Sxxyy = sum(stdx*(x-x0)*stdy*(y-y0))
+    #Sxxyy = sum(stdx*(x-x0)*stdy*(y-y0))
+    Sxxyy = sum(np.sqrt(s2)*(x-x0)*(y-y0))
 
-    Sxy = sum(np.sqrt(sx2)*(x-x0)*np.sqrt(sy2)*(y-y0))
     Sxxy = sum(sx2*(x-x0)*(y-y0))
 
     # Add what to do in case of only one value for error variance and one is 0
 
     P = np.array([(Sxy2-Syx2
                        + np.sqrt(Syx2**2 + Sxy2**2
-                                 - 2*Sxy2*Syx2
+                                 - 2*prodsum
                                  + 4*Sxxyy**2)
                        )/(2*Sxxy)])
 
