@@ -4,6 +4,7 @@
 """
 import numpy as np
 from scipy import stats
+import pandas as pd
 
 # define global functions
 
@@ -321,6 +322,8 @@ def linreg_deming(x, y, **kwargs):
     #  Extended evm by Patrik Bohlinger for accounting for
     #  non-stationary error variances.
 
+    data = pd.DataFrame({'x': x, 'y': y})
+
     stdx = [kwargs.get('stdx', 1)]
     stdy = [kwargs.get('stdy', 1)]
 
@@ -335,21 +338,20 @@ def linreg_deming(x, y, **kwargs):
     else:
         print('The format of the provided error variances is not correct!')
 
-    x0 = np.mean(x)
-    y0 = np.mean(y)
-
+    cov = data.cov()
+    mean_x = data['x'].mean()
+    mean_y = data['y'].mean()
+    s_xx = cov['x']['x']
+    s_yy = cov['y']['y']
+    s_xy = cov['x']['y']
     delta = stdy**2/stdx**2
-    dsxx = sum(delta*(x-x0)**2)
-    syy = sum((x-x0)**2)
-    sxy = sum(np.sqrt(delta)*(x-x0)*(y-y0))
 
-    # Add what to do in case of only one value for error variance and one is 0
-    b1 = (syy - dsxx + np.sqrt((syy-dsxx)**2+4*sxy)) / (2*sxy)
-    b0 = y0-b1*x0
+    slope = (s_yy - delta * s_xx + np.sqrt((s_yy - delta * s_xx) ** 2
+             + 4 * delta * s_xy ** 2)) / (2 * s_xy)
+    intercept = mean_y - slope * mean_x
 
-    P = np.append(b1, b0)
+    P = np.append(np.mean(slope), np.mean(intercept))
     return P
-
 
 def linreg_std(x, y, **kwargs):
     slope, intercept, r, p, std_err = stats.linregress(x, y)
