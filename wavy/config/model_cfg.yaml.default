@@ -132,7 +132,7 @@ ww3_unstr:
     coords:
     wavy_input:
         src_tmplt: "/lustre/storeB/project/fou/om/sfiblues/\
-                    wave_hindcast/hindcast_v1/field/"
+                    wave_hindcast/hindcast_v2/field/"
         fl_tmplt: ww3.%Y%m.nc
     reader: read_ww3_unstructured_to_grid
     collector:
