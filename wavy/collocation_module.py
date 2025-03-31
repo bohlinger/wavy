@@ -263,6 +263,8 @@ class collocation_class(qls):
         print(" ")
         # make clones to prevent overwriting
         self.varalias = oco.varalias
+        self.varalias_obs = oco.varalias
+        self.varalias_mod = kwargs.get('varalias', oco.varalias)
         self.model = model
         self.leadtime = leadtime
         self.oco = oco
@@ -411,7 +413,7 @@ class collocation_class(qls):
             Mlons, Mlats = np.meshgrid(Mlons, Mlats)
             Mvars = Mvars.squeeze()
             assert len(Mlons.shape) == 2
-        obs_vars = tmp_dict[self.varalias]
+        obs_vars = tmp_dict[self.varalias_obs]
         obs_lons = tmp_dict['lons']
         obs_lats = tmp_dict['lats']
         # Compare wave heights of satellite with model with
@@ -503,7 +505,7 @@ class collocation_class(qls):
                     tmp_dict[self.oco.varalias] = \
                         self.oco.vars[self.oco.varalias].values[idx]
                     mco = mc(sd=fc_date[i], ed=fc_date[i], nID=self.model,
-                             leadtime=self.leadtime, varalias=self.varalias,
+                             leadtime=self.leadtime, varalias=self.varalias_mod,
                              **kwargs)
                     mco = mco.populate(**kwargs)
                     results_dict_tmp = self._collocate_field(
