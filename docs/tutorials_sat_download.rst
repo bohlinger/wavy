@@ -80,21 +80,24 @@ or by providing the environment variables directly, like:
    export COPERNICUSMARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
    export COPERNICUSMARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
 
-Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS, indicating the path of your choice where you want your data to be stored:
+Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS using the copercnicusmarine toolbox, indicating the path of your choice where you want your data to be stored:
 
 .. code-block:: yaml
 
    cmems_L3_NRT:
-      dst:
-         path_template: /chosen/path/to/satellite/data/L3/mission
+       download:
+           copernicus:
+               dataset_id: cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S
+               trgt_tmplt: /chosen/path/to/satellite/data/L3/name/%Y/%m
+
 
 There exists also something called strsub which defines strings that are o substituted. In this case some are predefined as:
 
 .. code-block:: yaml
 
-   strsub: ['varalias','mission','region']
+   strsub: ['name']
 
-The str "mission" in your path_template will be replaced by the satellite mission that you download. So for Sentinel-3a the final path for your downloaded files will be automatically /chosen/path/to/satellite/data/L3/s3a with subfolders on year and month.
+The str "name" in your path_template will be replaced by the satellite mission that you download. So for Sentinel-3a the final path for your downloaded files will be automatically /chosen/path/to/satellite/data/L3/s3a with subfolders on year and month.
 
 You can proceed now and download CMEMS NRT L3 data using the wavyDownload.py script:
 
@@ -137,7 +140,17 @@ You can also download altimeter data directly from python with the following lin
    >>> path = '/chosen/path/to/satellite/data/L3/s3a'
    >>> sco.download(path=path)
 
-In case of ftp downloads parallel python can be used with a keyword specifying the number of processes, e.g.:
+In case of ftp downloads the config setup is similar but you have to make adjustments under the ftp section:
+
+.. code-block:: yaml
+
+   download:
+       ftp: # downloading method
+           src_tmplt: "/path/to/remote/dir/%Y/%m"
+           trgt_tmplt: /chosen/path/to/satellite/data/L3/name/%Y/%m
+           strsub: ['name']
+
+With ftp, parallel python can be used with a keyword specifying the number of processes, e.g.:
 
 .. code-block:: python3
 

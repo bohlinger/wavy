@@ -11,7 +11,6 @@ Model output can be accessed and read using the model_module. The model_module c
         wavy_input:
             src_tmplt: /Path/To/
             fl_tmplt: myfile
-        wavy_output:
         reader: read_ww3_4km
         collector:
         vardef:
