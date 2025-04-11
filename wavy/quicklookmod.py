@@ -67,16 +67,6 @@ class quicklook_class_sat:
 
         fs = kwargs.get('fs', 12)
 
-        vmin = kwargs.get('vmin', 0)
-        vmax = kwargs.get('vmax', np.nanmax(plot_var))
-
-        levels = kwargs.get('levels',
-                            np.arange(vmin, vmax, .5))
-
-        cflevels = kwargs.get('cflevels', levels)
-        clevels = kwargs.get('clevels', levels)
-
-        # parse kwargs
         vartype = variable_info[self.varalias].get('type', 'default')
         if kwargs.get('cmap') is None:
             if vartype == 'cyclic':
@@ -86,13 +76,25 @@ class quicklook_class_sat:
         else:
             cmap = kwargs.get('cmap')
 
-        norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
         if m is True:
             import cartopy.crs as ccrs
             import cartopy.feature as cfeature
             import matplotlib.cm as mplcm
             from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
+            vmin = kwargs.get('vmin', 0)
+            vmax = kwargs.get('vmax', np.nanmax(plot_var))
+
+            levels_incr = kwargs.get('levels_incr', .5)
+
+            levels = kwargs.get('levels',
+                                np.arange(vmin, vmax, levels_incr))
+
+            cflevels = kwargs.get('cflevels', levels)
+            clevels = kwargs.get('clevels', levels)
+
+            norm = mpl.colors.BoundaryNorm(levels, cmap.N)
 
             zorder_land = kwargs.get('zorder_land', 10)
 
