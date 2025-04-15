@@ -502,9 +502,9 @@ class collocation_class(qls):
                         idx = collocate_times(ndt_datetime,
                                               target_t=target_date,
                                               twin=self.twin)
-                    # if method is 'before' get the values that fall between
+                    # if method is 'floor' get the values that fall between
                     # model time and model time + 1 hour
-                    elif self.colloc_time_method=='before':
+                    elif self.colloc_time_method=='floor':
                         sdate_colloc = target_date[0]
                         edate_colloc = target_date[0] + timedelta(hours=1)
                         idx = collocate_times(ndt_datetime,
@@ -512,9 +512,9 @@ class collocation_class(qls):
                                               sdate=sdate_colloc,
                                               edate=edate_colloc,
                                               twin=0)
-                    # if method is 'before' get the values that fall between
+                    # if method is 'ceil' get the values that fall between
                     # model time - 1 hour and model time
-                    elif self.colloc_time_method=='after':
+                    elif self.colloc_time_method=='ceil':
                         sdate_colloc = target_date[0] - timedelta(hours=1)
                         edate_colloc = target_date[0] 
                         idx = collocate_times(ndt_datetime,
