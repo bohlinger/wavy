@@ -254,12 +254,22 @@ def marginalize(a, b=None):
         b1 = b[idx]
         return a1, b1, idx
 
-def hour_rounder(t):
+def hour_rounder(t, method='nearest'):
     '''
-    Rounds to nearest hour by adding a timedelta hour if minute >= 30
+    Rounds to nearest hour adding a timedelta hour if minute >= 30 (default), 
+    or to the hour before or the hour after depending on the chosen method.
     '''
-    return (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
-          + timedelta(hours=t.minute//30))
+    if method=='nearest':
+        add_hour=t.minute//30
+    elif method=='before':
+        add_hour=0
+    elif method=='after':
+        add_hour=1
+
+    t = (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
+              + timedelta(hours=add_hour))
+
+    return t 
 
 def hour_rounder_pd(times):
     '''

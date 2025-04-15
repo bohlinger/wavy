@@ -193,7 +193,8 @@ def get_model_filename(nID, d, leadtime, **kwargs):
 
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model,
-                                               leadtime, **kwargs):
+                                               leadtime, colloc_time_method,
+                                               **kwargs):
     '''
     Finds valid dates that are close to desired dates at a precision
     of complete hours
@@ -201,7 +202,7 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model,
     #fc_dates_new = hour_rounder_pd(fc_dates)
 
     dt_tmp = [parse_date(str(d)) for d in fc_dates]
-    fc_dates_new = [hour_rounder(d) for d in dt_tmp]
+    fc_dates_new = [hour_rounder(d, method=colloc_time_method) for d in dt_tmp]
 
     fc_dates_new = np.unique(fc_dates_new)
     #if (leadtime is None or leadtime == 'best'):
@@ -279,6 +280,7 @@ class collocation_class(qls):
         self.twin = kwargs.get('twin', oco.twin)
         self.distlim = kwargs.get('distlim', 6)
         self.method = kwargs.get('method', 'closest')
+        self.colloc_time_method = kwargs.get('colloc_time_method', 'nearest')
         print(" ")
         print(" ### Collocation_class object initialized ###")
         
@@ -461,7 +463,7 @@ class collocation_class(qls):
 
         ndt_valid = find_valid_fc_dates_for_model_and_leadtime(
                                     ndt, self.model, self.leadtime,
-                                    **kwargs)
+                                    self.colloc_time_method, **kwargs)
 
         ndt_valid = np.unique(ndt_valid)
 
@@ -484,6 +486,7 @@ class collocation_class(qls):
                 'collocation_idx_x': [],
                 'collocation_idx_y': [],
                 }
+
         for i in tqdm(range(len(fc_date))):
             print(fc_date[i])
         #for i in range(len(fc_date)):
@@ -492,9 +495,33 @@ class collocation_class(qls):
                 #with NoStdStreams():
                     # filter needed obs within time period
                     target_date = [parse_date(str(fc_date[i]))]
-                    idx = collocate_times(ndt_datetime,
-                                          target_t=target_date,
-                                          twin=self.twin)
+                    
+                    # if method is 'nearest', get the values that fall within
+                    # a time window of +/- 30 minutes of model time by default 
+                    if self.colloc_time_method=='nearest':
+                        idx = collocate_times(ndt_datetime,
+                                              target_t=target_date,
+                                              twin=self.twin)
+                    # if method is 'before' get the values that fall between
+                    # model time and model time + 1 hour
+                    elif self.colloc_time_method=='before':
+                        sdate_colloc = target_date[0]
+                        edate_colloc = target_date[0] + timedelta(hours=1)
+                        idx = collocate_times(ndt_datetime,
+                                              target_t=target_date,
+                                              sdate=sdate_colloc,
+                                              edate=edate_colloc,
+                                              twin=0)
+                    # if method is 'before' get the values that fall between
+                    # model time - 1 hour and model time
+                    elif self.colloc_time_method=='after':
+                        sdate_colloc = target_date[0] - timedelta(hours=1)
+                        edate_colloc = target_date[0] 
+                        idx = collocate_times(ndt_datetime,
+                                              target_t=target_date,
+                                              sdate=sdate_colloc,
+                                              edate=edate_colloc,
+                                              twin=0)                                
 
                     print(len(idx), "footprints to be collocated")
                     # make tmp obs_obj with filtered data
