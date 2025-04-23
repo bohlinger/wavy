@@ -419,7 +419,7 @@ class quicklook_class_sat:
 
             # 2d histogram
             lmin = 0
-            lmax = np.max([plot_var_obs, plot_var_model])*1.05
+            lmax = np.nanmax([plot_var_obs, plot_var_model])*1.05
             plt.hist2d(plot_var_obs, plot_var_model,
                        bins=kwargs.get('bins', 100),
                        range=[[lmin, lmax], [lmin, lmax]],
