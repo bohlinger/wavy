@@ -257,13 +257,14 @@ def marginalize(a, b=None):
 def hour_rounder(t, method='nearest'):
     '''
     Rounds to nearest hour adding a timedelta hour if minute >= 30 (default), 
-    or to the hour before or the hour after depending on the chosen method.
+    or to the integer hour before (floor) or the integer hour after (ceil) the 
+    given time.
     '''
     if method=='nearest':
         add_hour=t.minute//30
-    elif method=='before':
+    elif method=='floor':
         add_hour=0
-    elif method=='after':
+    elif method=='ceil':
         add_hour=1
 
     t = (t.replace(second=0, microsecond=0, minute=0, hour=t.hour)

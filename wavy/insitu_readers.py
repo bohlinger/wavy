@@ -378,24 +378,21 @@ def get_cmems(**kwargs):
     # build a list of datasets using files that matches given dates
     for p in pathlst:
         try:
-            with xr.open_dataset(p) as ds:
+            ds = xr.open_dataset(p)    
+            ds = ds[var_list]
 
-                # use it after closing each original file
-                ds.load()
-                ds = ds[var_list]
+            # builds the dictionary given as an argument to
+            dict_var = {coord: ds.coords[coord].values
+                        for coord in list(ds.coords) if coord 
+                        in [lonstr, latstr, timestr]}
 
-                # builds the dictionary given as an argument to
-                dict_var = {coord: ds.coords[coord].values
-                            for coord in list(ds.coords) if coord 
-                            in [lonstr, latstr, timestr]}
+            dict_var.update({var: rebuild_split_variable(ds,
+                                          fixed_dim_str, var) 
+                             for var in list(ds.data_vars)})
 
-                dict_var.update({var: rebuild_split_variable(ds,
-                                              fixed_dim_str, var) 
-                                 for var in list(ds.data_vars)})
-
-                # build an xr.dataset with timestr as the only coordinate
-                # using build_xr_ds function
-                ds_list.append(build_xr_ds_cmems(dict_var, timestr))
+            # build an xr.dataset with timestr as the only coordinate
+            # using build_xr_ds function
+            ds_list.append(build_xr_ds_cmems(dict_var, timestr))
 
         except Exception as e:
             logger.exception(e)

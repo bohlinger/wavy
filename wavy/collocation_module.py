@@ -502,9 +502,9 @@ class collocation_class(qls):
                         idx = collocate_times(ndt_datetime,
                                               target_t=target_date,
                                               twin=self.twin)
-                    # if method is 'before' get the values that fall between
+                    # if method is 'floor' get the values that fall between
                     # model time and model time + 1 hour
-                    elif self.colloc_time_method=='before':
+                    elif self.colloc_time_method=='floor':
                         sdate_colloc = target_date[0]
                         edate_colloc = target_date[0] + timedelta(hours=1)
                         idx = collocate_times(ndt_datetime,
@@ -512,9 +512,9 @@ class collocation_class(qls):
                                               sdate=sdate_colloc,
                                               edate=edate_colloc,
                                               twin=0)
-                    # if method is 'before' get the values that fall between
+                    # if method is 'ceil' get the values that fall between
                     # model time - 1 hour and model time
-                    elif self.colloc_time_method=='after':
+                    elif self.colloc_time_method=='ceil':
                         sdate_colloc = target_date[0] - timedelta(hours=1)
                         edate_colloc = target_date[0] 
                         idx = collocate_times(ndt_datetime,
@@ -593,16 +593,16 @@ class collocation_class(qls):
         nID_model = self.model
         name_model = self.model 
         res = kwargs.get('res', (0.5,0.5))
+        colloc_time_method = self.colloc_time_method
         
         print('Using resolution {}'.format(res))
         # ADD CHECK LIMITS FOR LAT AND LON
         res_dict = {}
-            
-        date = pd.to_datetime((time + np.timedelta64(30, 'm'))\
-                                     .astype('datetime64[h]'))\
-                                     .strftime('%Y-%m-%d %H')
-            
-        mco = mc(sd=date, ed=date,
+
+        time = pd.to_datetime(time)
+        time = hour_rounder(time, method=colloc_time_method)
+        
+        mco = mc(sd=time, ed=time,
                  nID=nID_model, name=name_model,
                  max_lt=12).populate(twin=5) # ADD AS PARAMETERS
    
@@ -629,9 +629,7 @@ class collocation_class(qls):
         res_dict['hs'] = ts[0]
         res_dict['lon'] = lon_flat[0]
         res_dict['lat'] = lat_flat[0]
-        res_dict['time'] = (time + np.timedelta64(30, 'm'))\
-                                  .astype('datetime64[h]')\
-                                  .astype('datetime64[ms]')
+        res_dict['time'] = time
 
         return res_dict
 
