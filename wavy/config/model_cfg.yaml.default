@@ -297,3 +297,32 @@ cmems_MY_L4:
         remoteHostName: my.cmems-du.eu
     # optional, to ease grouping
     tags:
+
+MEPS:
+    name: MEPS
+    download:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/meps25epsarchive/%Y/%m/%d/"
+        fl_tmplt: meps_det_sfc_%Y%m%dT%HZ.ncml
+    # optional, if not defined the class default is used
+    reader: read_meps
+    collector:
+    # optional, needs to be defined if not cf and in variable_info.yaml
+    vardef:
+        time: time
+        lons: longitude
+        lats: latitude
+        U: wind_speed
+    coords:
+    # optional, info that can be used by class functions
+    misc:
+        init_times: [0,6,12,18]
+        init_step: 6
+        leadtimes: [0,6,12,18,24,36,48,60]
+        _FillValue: 9.96921e+36
+        grid_date: 2025-04-25 00:00:00
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 1
+    # optional, to ease grouping
+    tags:
