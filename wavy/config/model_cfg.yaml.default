@@ -303,7 +303,7 @@ MEPS:
     download:
     wavy_input:
         src_tmplt: "https://thredds.met.no/thredds/dodsC/meps25epsarchive/%Y/%m/%d/"
-        fl_tmplt: meps_det_sfc_%Y%m%dT%HZ.ncml
+        fl_tmplt: meps_det_2_5km_%Y%m%dT%HZ.nc
     # optional, if not defined the class default is used
     reader: read_meps
     collector:
