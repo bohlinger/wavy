@@ -24,7 +24,7 @@ dependencies:
   - pytest-benchmark
   - pytest-cov
   - pylint
-  - yapf>=0.40
+  - yapf
   - sphinx
   - python-dotenv
   - xdg
