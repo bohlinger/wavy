@@ -2,48 +2,34 @@ name: wavy
 channels:
   - conda-forge
 dependencies:
-  - python<=3.12
-  #- matplotlib>=3
-  - matplotlib
-  #- numpy>=1
-  - numpy>
-  #- scipy>=1
-  - scipy
-  - netCDF4
-  - pyyaml
-  #- pyproj>=3
-  - pyproj
-  #- cartopy>=0.21
-  - cartopy
-  - cmocean
-  - joblib
-  #- scikit-learn>=0.19
-  - scikit-learn
-  - pandas
-  - pyGAM
+  - python>=3.10
+  - matplotlib>=3.5
+  - numpy<=1.26.4
+  - scipy>=1.9
+  - netCDF4>=1.6
+  - pyyaml>=6
+  - pyproj>=2.3
+  - cartopy>=0.20
+  - cmocean>=3
+  - joblib>=1.4
+  - scikit-learn>=1.6
+  - pandas>=2.2
+  - pyGAM>=0.9.1
   #- scikit-sparse==0.4.5
-  - xarray
-  - zarr
-  - pyresample
-  - dask
-  - tqdm
+  - xarray>=2022.6.0
+  - pyresample>=1.30
+  - tqdm>=4.67
   - pytest
   - pytest-benchmark
   - pytest-cov
-  - coverage
   - pylint
-  - yapf
+  - yapf>=0.43
   - sphinx
   - python-dotenv
   - xdg
-  #- sentinelsat
-  - geojson
-  - roaring-landmask
-  - numba
-  - trajan
-  - copernicusmarine>=2.0.0
+  - geojson>=2.5
+  - roaring-landmask>=0.7
+  - copernicusmarine>=2.0
   - pip
   - pip:
     - click
-  #  - copernicusmarine<=2.0
-  # - hidefix

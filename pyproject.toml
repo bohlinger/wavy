@@ -1,37 +1,55 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "wavy"
-version = "0.1.0"
-description = "A package for processing wave measurements and wave model output."
-authors = ["Patrik Bohlinger <patrikb@met.no>"]
+requires-python = ">=3.10"
+version = "0.2.3"
+description = "A package for processing/calibrating/validating wave measurements and wave model output."
+authors = [
+  { name = "Patrik Bohlinger", email = "patrikb@met.no" }]
+dependencies = [
+  "matplotlib>=3.5",
+  "numpy<=1.26.4",
+  "scipy>=1.9",
+  "netCDF4>=1.6",
+  "pyyaml>=6",
+  "pyproj>=2.3",
+  "cmocean>=3",
+  "joblib>=1.4",
+  "pandas>=2.2",
+  "xarray>=2022.6.0",
+  "pyresample>=1.30",
+  "geojson>=2.5",
+  "Cartopy>=0.20",
+  "pyGAM>=0.9.1",
+  "roaring-landmask>=0.7",
+  "copernicusmarine>=2.0",
+  "xdg",
+  "tqdm>=4.67",
+  "python-dotenv",
+  "yapf>=0.43"
+  "pip",
+  "scikit-learn>=1.6"
+  #- scikit-sparse==0.4.5
+  ]
 
-[tool.poetry.scripts]
-wavyQuick = "apps.standalone.wavyQuick:main"
+[project.optional-dependencies]
+grib = ["pytest", "pytest-benchmark", "pytest-cov", "pylint", "sphinx"]
+
+[tool.yapfignore]
+ignore_patterns = [
+]
+
+"""
+  - pip:
+    - click
+
+"""
+
+[project.scripts]
 wavyDownload = "apps.standalone.download:main"
-
-[tool.poetry.dependencies]
-python = ">=3.9.1,<3.13"
-matplotlib = "^3.4.3"
-numpy = "^1.21.2"
-scipy = "^1.7.1"
-netCDF4 = "^1.5.7"
-PyYAML = "^5.4.1"
-pyproj = ">=3.1"
-Cartopy = ">=0.20"
-cmocean = "^2.0"
-joblib = "^1.0.1"
-scikit-learn = "^0.24.2"
-pandas = "^1.3.3"
-pygam = "^0.8.0"
-xarray = "^0.19.0"
-zarr = "^2.9.5"
-pyresample = "^1.21.0"
-dask = "^2022.01.0"
-tqdm = "^4.62.2"
-python-dotenv = "^0.19.0"
-sentinelsat = "^1.1.0"
-xdg = "^5.1.1"
-roaring-landmask = ">=0.5"
-geojson = "^2.5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -40,23 +58,19 @@ pylint = "^2.10.2"
 yapf = "^0.31.0"
 Sphinx = "^4.2.0"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--benchmark-disable"
 testpaths = [
   "tests",
 ]
+
 markers = [
   "need_credentials:need credentials to run"
 ]
 
-
 [tool.pylint.master]
-extension-pkg-whitelist="netCDF4,numpy,scipy"
+extension-pkg-whitelist="netCDF4,numpy,scipy,roaring_landmask"
 
 [tool.pylint.messages_control]
 disable = "all"
