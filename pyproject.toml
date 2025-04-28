@@ -7,8 +7,10 @@ name = "wavy"
 requires-python = ">=3.10"
 version = "0.2.3"
 description = "A package for processing/calibrating/validating wave measurements and wave model output."
+
 authors = [
   { name = "Patrik Bohlinger", email = "patrikb@met.no" }]
+
 dependencies = [
   "matplotlib>=3.5",
   "numpy<=1.26.4",
@@ -29,34 +31,14 @@ dependencies = [
   "xdg",
   "tqdm>=4.67",
   "python-dotenv",
-  "yapf>=0.43"
+  "yapf>=0.43",
   "pip",
+  "click",
   "scikit-learn>=1.6"
-  #- scikit-sparse==0.4.5
   ]
 
-[project.optional-dependencies]
-grib = ["pytest", "pytest-benchmark", "pytest-cov", "pylint", "sphinx"]
-
-[tool.yapfignore]
-ignore_patterns = [
-]
-
-"""
-  - pip:
-    - click
-
-"""
-
 [project.scripts]
-wavyDownload = "apps.standalone.download:main"
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
-pytest-benchmark = "^3.4.1"
-pylint = "^2.10.2"
-yapf = "^0.31.0"
-Sphinx = "^4.2.0"
+wavyDownload = "wavy.apps.standalone.download:main"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
