@@ -9,7 +9,7 @@
 Patrik Bohlinger, Norwegian Meteorological Institute, patrikb@met.no
 
 ## Purpose
-Package to aid the collocation of observations and wave model output as well as subsequent wave model validation. Observational sources can be satellite altimetry or in-situ data. A variety of open source alternatives is implemented.
+Package to aid the collocation of observations and wave model output as well as subsequent wave model validation and calibration. Observational sources can be satellite altimetry or in-situ data. A variety of open source alternatives is implemented.
 
 ## Docs
 For more information about the package as well as documentation please refer to the [documentation](https://wavyopen.readthedocs.io/en/latest/index.html).
