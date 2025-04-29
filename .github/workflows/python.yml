@@ -66,9 +66,9 @@ jobs:
           name: wheels
       - uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           miniforge-version: latest
-          miniforge-variant: Minforge3
+          miniforge-variant: Miniforge3
       - name: Publish to PyPi
         env:
           TWINE_USERNAME: __token__
