@@ -45,8 +45,7 @@ jobs:
       - name: Build wheels
         run: |
           conda activate test
-          mamba install -c conda-forge poetry
-          poetry build
+          python -m build -vv
 
       - name: Upload wheels
         if: matrix.python-version == '3.10' && matrix.os == 'ubuntu'
