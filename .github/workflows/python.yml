@@ -74,6 +74,6 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          pip install --upgrade twine
+          pip install --upgrade packaging twine
           twine upload --skip-existing *.tar.gz
 
