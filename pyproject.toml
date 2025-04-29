@@ -3,7 +3,7 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "wavy"
+name = "wavyopen"
 requires-python = ">=3.10"
 version = "0.2.5"
 description = "A package for processing/calibrating/validating wave measurements and wave model output."
