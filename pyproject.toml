@@ -33,7 +33,6 @@ dependencies = [
   "xdg",
   "tqdm>=4",
   "python-dotenv",
-  "yapf",
   "click",
   "scikit-learn>=1.6"
   ]
