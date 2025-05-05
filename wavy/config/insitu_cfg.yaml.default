@@ -617,22 +617,22 @@ ula:
     # optional, to ease grouping
     tags:
 
-valhall:
-    name: # sensor
-        NA: 0
-    download:
-    wavy_input:
-    # optional, if not defined the class default is used
-    reader: get_frost
-    collector:
-    # optional, needs to be defined if not cf and in variable_info.yaml
-    vardef:
-    coords:
-    # optional, info that can be used by class functions
-    misc:
-        ID: 76939
-    # optional, to ease grouping
-    tags:
+#valhall:
+#    name: # sensor
+#        NA: 0
+#    download:
+#    wavy_input:
+#    # optional, if not defined the class default is used
+#    reader: get_frost
+#    collector:
+#    # optional, needs to be defined if not cf and in variable_info.yaml
+#    vardef:
+#    coords:
+#    # optional, info that can be used by class functions
+#    misc:
+#        ID: 76939
+#    # optional, to ease grouping
+#    tags:
 
 veslefrikk:
     name: # sensor

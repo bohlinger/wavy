@@ -106,7 +106,9 @@ def call_frost_api_v1(
                 'typeids': str(get_typeid(insitu_dict, nID))
                 }
     print('parameters forst api call: ', parameters)
-    return requests.get(endpoint, parameters, auth=(client_id, client_id))
+    r = requests.get(endpoint, parameters, auth=(client_id, client_id))
+    # print(r.status_code, r.text)
+    return r
 
 
 def find_preferred(idx, sensors, refs, pref):
