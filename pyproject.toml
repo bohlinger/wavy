@@ -38,7 +38,8 @@ dependencies = [
   ]
 
 [project.scripts]
-wavyDownload = "wavy.apps.standalone.download:main"
+wavyDownload = "wavy.wavy.apps.wavyDownload:main"
+wavyCFG = "wavy.wavy.apps.wavyCFG:main"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
