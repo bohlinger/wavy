@@ -12,7 +12,7 @@ e.g.:
 
 .. code-block:: bash
 
-   $ cd ~/wavy/wavy/standalone
+   $ cd ~/wavy/wavy/apps
    $ ./wavyDownload.py -h
 
 .. toctree::
