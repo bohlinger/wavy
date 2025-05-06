@@ -1,7 +1,7 @@
 Download Satellite data
 #######################
 
-One strength of **wavy** is to ease obtaining and using satellite altimetry data. To get an overview over the supported missions or data sources go to wavy/apps/standalone and execute:
+One strength of **wavy** is to ease obtaining and using satellite altimetry data. To get an overview over the supported missions or data sources go to wavy/wavy/apps and execute:
 
 .. code-block:: bash
 
@@ -103,7 +103,7 @@ You can proceed now and download CMEMS NRT L3 data using the wavyDownload.py scr
 
 .. code-block:: bash
 
-   $ cd ~/wavy/apps/standalone
+   $ cd ~/wavy/wavy/apps
 
 To get help check ...
 

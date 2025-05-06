@@ -1,4 +1,4 @@
-Olso **wavy** workshop 2024
+Oslo **wavy** workshop 2024
 ===========================
 
 The following examples are tailored to the **wavy** Workshop. This workshop will focus on some simple examples that can be used as python code snippets in your workflow.
