@@ -6,14 +6,14 @@ In general, executable files usually have help function which can be read using 
 
 .. code-block:: bash
 
-   $ ./{Executable}.py -h
+   $ ./{Executable}.py --help
 
 e.g.:
 
 .. code-block:: bash
 
    $ cd ~/wavy/wavy/apps
-   $ ./wavyDownload.py -h
+   $ ./wavyDownload.py --help
 
 .. toctree::
    :maxdepth: 2

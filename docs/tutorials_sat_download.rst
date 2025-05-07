@@ -5,13 +5,13 @@ One strength of **wavy** is to ease obtaining and using satellite altimetry data
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py -h
+   $ ./wavyDownload.py --help
 
 
 or:
 .. code-block:: bash
 
-   $ ./wavyQuick.py -h
+   $ ./wavyQuick.py --help
 
 
 The help-message displayed would give you, among other information, the following options:
