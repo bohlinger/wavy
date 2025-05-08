@@ -48,11 +48,7 @@ ARCMFC3:
         lats: lat
     coords:
     wavy_input:
-    #src_tmplt: "https://thredds.met.no/thredds/dodsC/\
-    #            cmems/mywavewam3km_files/%Y/%m/"
-    #src_tmplt: "/lustre/storeA/project/copernicus/sea/mywavewam3_c47_new/arctic/%Y/%m/"
-        src_tmplt: "/lustre/storeA/project/copernicus/sea\
-                    /mywavewam3_preop/arctic/%Y/%m/"
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/cmems/mywavewam3km_files/%Y/%m/"
         # Best guess: 2019071500_MyWaveWam3_b20190715T06.nc
         # - This is actually 2019071500_*_b20190715T00* but due
         #   to delay the bulletin date/time is adjusted
@@ -131,8 +127,7 @@ ww3_unstr:
         nodes: node
     coords:
     wavy_input:
-        src_tmplt: "/lustre/storeB/project/fou/om/sfiblues/\
-                    wave_hindcast/hindcast_v2/field/"
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/norac_wave/field/"
         fl_tmplt: ww3.%Y%m.nc
     reader: read_ww3_unstructured_to_grid
     collector:
@@ -145,121 +140,6 @@ ww3_unstr:
         date_incr_unit: h
         date_incr: 1
     tags:
-
-ecwam:
-    name:
-    download:
-    vardef:
-        Hs: significant_wave_height
-        Mdir: wave_direction
-        Tp: peak_wave_period
-        Tm02: mean_wave_period
-        time: time
-        lons: longitude
-        lats: latitude
-        hmaxt: time_domain_max_ind_wave_height
-        hmaxst: space_time_max_ind_wave_height
-        hmax: sea_surface_wave_maximum_height
-    coords:
-    wavy_input:
-        src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
-        fl_tmplt: "ec_ocean_wave_%Y%m%dT%H00Z.nc"
-    reader: read_ecwam
-    collector:
-    misc:
-        init_times: [0,12]
-        init_step: 12
-        grid_date: 2023-09-18 00:00:00
-        convention: meteorological
-        date_incr_unit: h
-        date_incr: 3
-        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
-
-mwam3:
-    name:
-    download:
-    vardef:
-        Hs: hs
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    wavy_input:
-        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/\
-                    mywavewam3_latest/"
-        fl_tmplt: "MyWave_wam3_WAVE_%Y%m%dT%HZ.nc"
-    reader: read_ww3_4km
-    collector:
-    misc:
-        init_times: [0,12]
-        init_step: 12
-        grid_date: 2023-09-18 00:00:00
-        date_incr_unit: h
-        date_incr: 1
-
-mwam800_finnmark:
-    name:
-    download:
-    vardef:
-        Hs: hs
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    wavy_input:
-        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam800f_currhf/"
-        fl_tmplt: "mywavewam800_finnmark.an.%Y%m%d%H.nc"
-    reader: read_ww3_4km
-    collector:
-    misc:
-        init_times: [18]
-        init_step: 24
-        grid_date: 2024-10-25 18:00:00
-        date_incr_unit: h
-        date_incr: 1
-
-mwam800_nordnorge:
-    name:
-    download:
-    vardef:
-        Hs: hs
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    wavy_input:
-        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam800n_currhf/"
-        fl_tmplt: "mywavewam800_nordnorge.an.%Y%m%d%H.nc"
-    reader: read_ww3_4km
-    collector:
-    misc:
-        init_times: [18]
-        init_step: 24
-        grid_date: 2024-10-25 18:00:00
-        date_incr_unit: h
-        date_incr: 1
-
-NORA3_hc_waves:
-    name:
-    download:
-    vardef:
-        Hs: hs
-        time: time
-        lons: longitude
-        lats: latitude
-    coords:
-    wavy_input:
-        src_tmplt: "https://thredds.met.no/thredds/dodsC/windsurfer\
-                    /mywavewam3km_files/%Y/%m/"
-        fl_tmplt: "%Y%m%d_MyWam3km_hindcast.nc"
-    reader: read_ww3_4km
-    collector:
-    misc:
-        init_times: [0]
-        init_step: 24
-        grid_date: 2019-01-01 00:00:00
-        date_incr_unit: h
-        date_incr: 1
 
 cmems_MY_L4:
     # not mandatory for models
@@ -298,6 +178,35 @@ cmems_MY_L4:
     # optional, to ease grouping
     tags:
 
+ecwam:
+    name:
+    download:
+    vardef:
+        Hs: significant_wave_height
+        Mdir: wave_direction
+        Tp: peak_wave_period
+        Tm02: mean_wave_period
+        time: time
+        lons: longitude
+        lats: latitude
+        hmaxt: time_domain_max_ind_wave_height
+        hmaxst: space_time_max_ind_wave_height
+        hmax: sea_surface_wave_maximum_height
+    coords:
+    wavy_input:
+        src_tmplt: "/lustre/storeB/project/metproduction/products/ecmwf/nc/"
+        fl_tmplt: "ec_ocean_wave_%Y%m%dT%H00Z.nc"
+    reader: read_ecwam
+    collector:
+    misc:
+        init_times: [0,12]
+        init_step: 12
+        grid_date: 2023-09-18 00:00:00
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 3
+        proj4: "+proj=longlat +a=6367470 +e=0 +no_defs"
+
 MEPS:
     name: MEPS
     download:
@@ -326,3 +235,46 @@ MEPS:
         date_incr: 1
     # optional, to ease grouping
     tags:
+
+mwam800_finnmark:
+    name:
+    download:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/fou-hi/mywavewam800f_currhf/"
+        fl_tmplt: "mywavewam800_finnmark.an.%Y%m%d%H.nc"
+    reader: read_ww3_4km
+    collector:
+    misc:
+        init_times: [18]
+        init_step: 24
+        grid_date: 2024-10-25 18:00:00
+        date_incr_unit: h
+        date_incr: 1
+
+NORA3_hc_waves:
+    name:
+    download:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/windsurfer\
+                    /mywavewam3km_files/%Y/%m/"
+        fl_tmplt: "%Y%m%d_MyWam3km_hindcast.nc"
+    reader: read_ww3_4km
+    collector:
+    misc:
+        init_times: [0]
+        init_step: 24
+        grid_date: 2019-01-01 00:00:00
+        date_incr_unit: h
+        date_incr: 1

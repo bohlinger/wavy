@@ -1,0 +1,12 @@
+--- # in-situ observations
+
+valhall:
+    name:
+        SAABWaveRadar_1: 0
+        SAABWaveRadar_2: 1
+    reader: get_frost
+    collector:
+    vardef:
+    coords:
+    misc:
+        ID: 76939

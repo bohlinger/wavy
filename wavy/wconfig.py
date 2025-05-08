@@ -62,6 +62,13 @@ def load_or_default(name):
             resource_stream(__name__,
                             os.path.join('config', name + '.default')))
 
+def load_minimal(name):
+    logging.debug('attempting to load: %s..' % name)
+
+    from pkg_resources import resource_stream
+    return yaml.safe_load(resource_stream(__name__,
+                          os.path.join('config', name + '.minimal')))
+
 def load_dir(name):
     from pkg_resources import resource_stream
     #return resource_stream('wavy', name + '.py')

@@ -1,0 +1,24 @@
+--- # wave model specifications
+
+ww3_4km:
+    name:
+    download:
+    wavy_input:
+        src_tmplt: "https://thredds.met.no/thredds/dodsC/\
+                    ww3_4km_archive_files/%Y/%m/%d/"
+        fl_tmplt: ww3_4km_%Y%m%dT%HZ.nc
+    reader: read_ww3_4km
+    collector:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    misc:
+        init_times: [0,6,12,18]
+        init_step: 6
+        grid_date:
+        convention: meteorological
+        date_incr_unit: h
+        date_incr: 1

@@ -1,0 +1,32 @@
+--- # specifications for satellite missions
+
+########################################################################
+# """
+# general structure:
+#       + product (eumetsat/cmems)
+#           + specs
+# """
+########################################################################
+
+cmems_L3_NRT:
+    name:
+        s3a: s3a
+    download:
+        copernicus:
+            dataset_id: cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S
+            trgt_tmplt:
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            strsub: ['name']
+            server: "nrt.cmems-du.eu"
+            time_incr: 'h'
+    wavy_input:
+        src_tmplt:
+        fl_tmplt:
+        strsub:
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    reader: read_local_ncfiles
+    collector: get_remote_files_copernicusmarine
+    vardef:
+        Hs: VAVH
