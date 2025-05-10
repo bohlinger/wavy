@@ -58,7 +58,7 @@ class multisat_class(qls, fc):
                 del sco
             except Exception as e:
                 print(e)
-                print('not data found for', n)
+                print('no data found for', n)
 
         # consolidate scos
         cso = cs(scos)

@@ -17,7 +17,7 @@ cmems_L3_NRT:
             trgt_tmplt:
             path_date_incr_unit: 'm'
             path_date_incr: 1
-            strsub: ['name']
+            strsub:
             server: "nrt.cmems-du.eu"
             time_incr: 'h'
     wavy_input:

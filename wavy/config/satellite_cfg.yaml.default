@@ -28,7 +28,7 @@ cmems_L3_NRT:
             trgt_tmplt:
             path_date_incr_unit: 'm'
             path_date_incr: 1
-            strsub: ['name']
+            strsub:
             server: "nrt.cmems-du.eu"
             time_incr: 'h' # 'h', 'd', 'm'
     # optional: where to read from
@@ -73,16 +73,15 @@ cmems_L3_MY:
             trgt_tmplt:
             path_date_incr_unit: 'm'
             path_date_incr: 1
-            strsub: ['name']
+            strsub:
             server: "my.cmems-du.eu"
             time_incr: 'h' # 'h', 'd', 'm'
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
         src_tmplt: /home/patrikb/tmp_altimeter/L3/MY/name/%Y/%m
-        fl_tmplt: "varalias_name_region_\
-                        %Y%m%d%H%M%S_%Y%m%d%H%M%S.nc"
-        strsub: ['name']
+        fl_tmplt:
+        strsub:
         path_date_incr_unit: 'm'
         path_date_incr: 1
     # optional, if not defined the class default is used
@@ -111,9 +110,8 @@ L2_20Hz_s3a:
         ftp: # downloading method
             src_tmplt: "/products/v3/data/satellite/altimeter/\
                         l2_20Hz/l2/sentinel-3_a/%Y/%j/"
-            #trgt_tmplt: /home/patrikb/tmp_altimeter/20Hz/name/%Y/%j/
             trgt_tmplt:
-            strsub: ['name']
+            strsub:
             server: "eftp.ifremer.fr"
             path_date_incr_unit: 'd'
             path_date_incr: 1
@@ -159,7 +157,7 @@ L2_20Hz_c2:
             src_tmplt: "/products/v3/data/satellite/altimeter/\
                         l2_20Hz/l2/cryosat-2/%Y/%j/"
             trgt_tmplt:
-            strsub: ['name']
+            strsub:
             server: "eftp.ifremer.fr"
             path_date_incr_unit: 'd'
             path_date_incr: 1
@@ -169,7 +167,7 @@ L2_20Hz_c2:
     wavy_input:
         src_tmplt:
         fl_tmplt:
-        strsub: ['name']
+        strsub:
         path_date_incr_unit: 'd'
         path_date_incr: 1
     # optional, if not defined the default is used
@@ -209,7 +207,7 @@ CCIv1_L3:
             src_tmplt: "/neodc/esacci/sea_state/data/v1.1_release/\
                         l3/v1.1/%Y/%m/%d/"
             trgt_tmplt:
-            strsub: ['name', 'nID']
+            strsub:
             server: "ftp.ceda.ac.uk"
             path_date_incr_unit: 'd'
             path_date_incr: 1
@@ -219,7 +217,7 @@ CCIv1_L3:
     wavy_input:
         src_tmplt:
         fl_tmplt:
-        strsub: ['varalias','name','region','nID']
+        strsub:
         path_date_incr_unit: 'm'
         path_date_incr: 1
     # optional, if not defined the default is used
@@ -262,7 +260,7 @@ CCIv3_L3:
     wavy_input:
         src_tmplt:
         fl_tmplt: ESACCI-SEASTATE-L3-SWH-MULTI_1D-%Y%m%d-fv01.nc
-        strsub: ["nID"]
+        strsub:
         path_date_incr_unit: 'm'
         path_date_incr: 1
     # optional, if not defined the default is used
@@ -380,14 +378,14 @@ cfo_swim:
             path_date_incr_unit: 'm'
             path_date_incr: 1
             search_str: '%Y%m%dT'
-            strsub: ['nID','name']
+            strsub:
             server: "ftp-access.aviso.altimetry.fr"
     # optional: where to read from
     #           can be defined directly when calling wavy
     wavy_input:
         src_tmplt:
         fl_tmplt: 
-        strsub: ["nID","name"]
+        strsub:
         path_date_incr_unit: 'm'
         path_date_incr: 1
     # optional, if not defined the default is used
