@@ -50,23 +50,6 @@ def main(sd, ed, nid, name, path, nproc):
             \n s6a - Sentinel-6A Michael Freilich\n
             \n swon - SWOT nadir altimeter\n
             \n
-    The following most common missions are available from CCIv1:
-            \n
-            \ncci_L2P:\n
-            \n j1 - Jason-1\n
-            \n j2 - Jason-2\n
-            \n j3 - Jason-3\n
-            \n c2 - Cryosat-2\n
-            \n envisat - Envisat\n
-            \n ers1 - European Remote-Sensing Satellite-1\n
-            \n ers2 - European Remote-Sensing Satellite-2\n
-            \n topex - TOPEX/Poseidon\n
-            \n al - SARAL/AltiKa\n
-            \n gfo - GEOSAT Follow-On\n
-            \n
-            \ncci_L3:\n
-            \n multi - multimission product 1991-2018\n
-            \n\
 
     Note that these examples are not exclusive,\n
     almost any other source could be added and exploited.
