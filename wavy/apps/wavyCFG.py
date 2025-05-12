@@ -12,6 +12,8 @@ from wavy.wconfig import load_or_default, load_minimal
         help='target path')
 @click.option('--t', type=str, default='default',
         help='type (default or minimal)')
+@click.option('--c', type=str, default='default',
+        help='clean')
 def main(f, path, t):
     if path is None:
         path = os.getcwd() 
@@ -25,8 +27,8 @@ def main(f, path, t):
 
     # Write the dictionary to a YAML file
     with open(fstr, 'w') as file:
-        yaml.dump(default_cfg, file, default_flow_style=False,
-                  sort_keys=False, width=80)
+        yaml.dump(default_cfg, file, default_flow_style=None,
+                  indent=4, sort_keys=False, width=80)
 
 
 if __name__ == "__main__":
