@@ -1,0 +1,136 @@
+Vietnam Validation Workshop 2025
+================================
+
+The following examples are tailored to the **wavy** Vietnam Validation Workshop 2025.
+
+0. Installation of wavyopen and preparation
+###########################################
+**wavyopen** is wavy's pip and conda package which can easily be installed with pip, conda, or mamba. In this workshop we will install the conda package in a fresh conda environment like:
+
+.. code::
+
+   conda create --name wavyopen --channel=conda-forge
+   conda activate wavyopen
+   conda install wavyopen
+
+Instead of mamba you can use conda as an inplace replacement like:
+
+.. code::
+
+   mamba create --name wavyopen --channel=conda-forge
+   mamba activate wavyopen
+   mamba install wavyopen
+
+When activated, you can use wavyopen in any directory of your computer.
+
+Since you probably have multiple, independent projects at the same time it may make sense to follow a general workflow of creating a project directory, specifying your environment variables, preparing config files, creating scripts. Let's go through each of these steps together:
+
+#. Create a project directory:
+
+   .. code::
+   
+      mkdir ~/wavyopen_vietnam25
+      mkdir ~/wavyopen_vietnam25/config
+      mkdir ~/wavyopen_vietnam25/scripts
+      mkdir ~/wavyopen_vietnam25/data
+
+
+#. Specify enfironmental variables
+
+   .. code::
+
+      cd ~/wavyopen_vietnam25
+      touch .env
+
+   Specify now where you will have your **wavy** config files in the .env-file.
+
+   .. code::
+
+      WAVY_CONFIG=~/wavyopen_vitenam25/config/
+
+   Also, if you would like to download data you need to have you copernicus marine credentials stored in the environment. This can be done anywhere (.bashrc, .profilerc, any shell wrapper script, manually, ...) and it could also be done in the .env file which we will do for this workshop.
+
+   .. code::
+
+      COPERNICUSMARINE_SERVICE_USERNAME=
+      COPERNICUSMARINE_SERVICE_PASSWORD=
+
+#. Preparing your config files:
+   The config files can be established following some prepared **wavy** examples which you can obtain using the wavyCFG script like:
+
+   .. code::
+
+      cd ~/wavyopen_vitenam25/config
+      wavyCFG --help
+      wavyCFG --path ./. --f satellite_cfg.yaml --t minimal
+      wavyCFG --path ./. --f model_cfg.yaml --t minimal
+      wavyCFG --path ./. --f region_cfg.yaml --t default
+
+#. Adjustments and further preparations are done in the subsequent sections.
+
+
+1. Downloading data satellite data
+##################################
+First we need to adjust the satellite_cfg.yaml file for your purpose. Please open the satellite_cfg.yaml file and ammend it. Specifically, the target template for the downloads (trgt_tmplt) and the source template for files that wavy should use (src_tmplt) need to be defined. I am choosing here:
+
+.. code::
+
+   trgt_tmplt: ~/wavyopen_vitenam25/data/name/%Y/%m/
+   src_tmplt: ~/wavyopen_vitenam25/data/name/%Y/%m/
+
+Now you can use the wavyDownload script to download data from the copernicus marine service.
+
+.. code::
+
+   wavyDownload --help
+   wavyDownload --sd 2025-05-01 --ed 2025-05-10 --nID cmems_L3_NRT --name s3a
+
+You can repeat this for all the other satellites as well (s3a, c2, j3, h2b, al, cfo, s6a, swon).
+
+
+2. Process satellite data
+#########################
+Now, you can start preparing python scripts reading, processing, and plotting your data. This may look like:
+
+.. code-block:: python3
+
+   from wavy import sc, gc, ms
+   from wavy.grid_stats import apply_metric
+
+   # satellite data from directory
+   sco = sc(nID='cmems_L3_NRT',
+            name='s3a',
+            sd='2025-05-01', ed='2025-05-10',
+            region="NorthSea").populate()
+   sco.quicklook(a=True)
+
+   # satellite data from multiple sources
+   mso = ms(nID=['cmems_L3_NRT'],
+            name=['s3a', 's3b', 'c2', 'cfo', 'h2b', 'j3', 'al', 's6a','swon'],
+            sd='2025-01-01', ed='2025-01-10',
+            region='NorthSea')
+   mso.quicklook(a=True, mode='indiv')
+
+   # grid satellite data
+   bb = (-5, 12, 50, 62)  # lonmin,lonmax,latmin,latmax
+   res = (1, 1)  # lon/lat
+   gco = gc(oco=mso, bb=bb, res=res)
+   gridvar, lon_grid, lat_grid = apply_metric(gco=gco)
+   gco.quicklook(val_grid=gridvar, lon_grid=lon_grid, lat_grid=lat_grid,
+                 title="", metric='mor', land_mask_resolution='i')
+
+
+Now, introduce your custom region in region_cfg.yaml and rerun the script by replacing "NorthSea".
+
+
+3. Add custom model to wavy
+###########################
+Add the ecwam model to the model_specs.yaml file (if it is not added already).
+
+
+4. Collocate satellite with model
+#################################
+
+
+5. Validate with model against satellite observations
+#####################################################

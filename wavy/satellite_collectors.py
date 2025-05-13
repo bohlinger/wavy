@@ -189,7 +189,6 @@ def get_remote_files_copernicusmarine(**kwargs):
     product = kwargs.get('nID')
     sdate = kwargs.get('sd')
     edate = kwargs.get('ed')
-    nproc = kwargs.get('nproc', 1)
     name = kwargs.get('name', 's3a')
 
     # if CMEMS credentials are defined in environment other options 
@@ -197,16 +196,14 @@ def get_remote_files_copernicusmarine(**kwargs):
     if 'COPERNICUSMARINE_SERVICE_USERNAME' in os.environ:
         username = os.getenv('COPERNICUSMARINE_SERVICE_USERNAME')
     else:
-        username = None
+        username = kwargs.get('COPERNICUSMARINE_SERVICE_USERNAME')
     if 'COPERNICUSMARINE_SERVICE_PASSWORD' in os.environ:
         password = os.getenv('COPERNICUSMARINE_SERVICE_PASSWORD')
     else:
-        password = None
+        password = kwargs.get('COPERNICUSMARINE_SERVICE_PASSWORD')
 
-    if (username is not None and password is not None):
-        no_metadata_cache = True
-    else:
-        no_metadata_cache = False
+    if (username is None or password is None):
+        print('--> Please provide complete credentials!')
 
     dict_for_sub = kwargs
 
@@ -215,14 +212,14 @@ def get_remote_files_copernicusmarine(**kwargs):
 
     # Get time increment
     time_incr = satellite_dict[product]['download']['copernicus']\
-                .get('time_incr','h')
+                .get('time_incr', 'h')
     
     # Chose search template for time given time_incr
-    if time_incr=='h':
+    if time_incr == 'h':
         file_search_template = '%Y%m%dT%H'
-    elif time_incr=='d':
+    elif time_incr == 'd':
         file_search_template = '%Y%m%dT'
-    elif time_incr=='m':
+    elif time_incr == 'm':
         file_search_template = '%Y%m'
     print('Date search format:', file_search_template)
 
@@ -277,11 +274,11 @@ def get_remote_files_copernicusmarine(**kwargs):
             # check if download path_local exists if not create
             if not os.path.exists(path_local):
                 os.makedirs(path_local, exist_ok=True)
-    
+
             # Create regexp filter
             tmpdate_str = tmpdate.strftime(file_search_template)
             regexp_tmp = "*{}*_*_*.nc".format(tmpdate_str)
-            # Fetch data corresponding to tmp date 
+            # Fetch data corresponding to tmp date
             try:
                 cmc.get(
                     dataset_id=dataset_id,

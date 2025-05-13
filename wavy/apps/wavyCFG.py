@@ -12,8 +12,6 @@ from wavy.wconfig import load_or_default, load_minimal
         help='target path')
 @click.option('--t', type=str, default='default',
         help='type (default or minimal)')
-@click.option('--c', type=str, default='default',
-        help='clean')
 def main(f, path, t):
     if path is None:
         path = os.getcwd() 
