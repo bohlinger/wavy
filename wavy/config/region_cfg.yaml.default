@@ -7,41 +7,11 @@ rect:
         llcrnrlat: -90.
         urcrnrlon: 180.
         urcrnrlat: 90.
-    Moskenes:
-        llcrnrlon: 11.5
-        llcrnrlat: 67.
-        urcrnrlon: 14.
-        urcrnrlat: 68.5
     Sulafj:
         llcrnrlon: 5.
         llcrnrlat: 62.
         urcrnrlon: 8.14
         urcrnrlat: 63.15
-    SulafjD:
-        llcrnrlon: 5.968
-        llcrnrlat: 62.4
-        urcrnrlon: 6.078
-        urcrnrlat: 62.5
-    Fedje:
-        llcrnrlon: 4
-        llcrnrlat: 60.2
-        urcrnrlon: 5.3
-        urcrnrlat: 61.7
-    Valhall:
-        llcrnrlon: 2.5
-        llcrnrlat: 55
-        urcrnrlon: 4.5
-        urcrnrlat: 58
-    fedjeosen:
-        llcrnrlon: 4.4
-        llcrnrlat: 60.6
-        urcrnrlon: 4.8
-        urcrnrlat: 60.9
-    OO:
-        llcrnrlon: 10
-        llcrnrlat: -45 # 45S
-        urcrnrlon: 45
-        urcrnrlat: -25 # 25S
        
 # polynomial
 poly:

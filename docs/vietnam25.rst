@@ -13,7 +13,7 @@ The following examples are tailored to the **wavy** Vietnam Validation Workshop 
    conda activate wavyopen
    conda install wavyopen
 
-Instead of mamba you can use conda as an inplace replacement like:
+Assuming you have mamba installed you can, instead of conda, use mamba as an inplace replacement like:
 
 .. code::
 
@@ -125,7 +125,50 @@ Now, introduce your custom region in region_cfg.yaml and rerun the script by rep
 
 3. Add custom model to wavy
 ###########################
-Add the ecwam model to the model_specs.yaml file (if it is not added already).
+Add the ecwam model to the model_specs.yaml file (if it is not added already). For instance you can add your ecwam model like:
+
+.. code-block:: yaml
+
+   ecwam_vietnam:
+       name:
+       vardef:
+           Hs: sea_surface_wave_significant_height
+           time: time
+           lons: longitude
+           lats: latitude
+       coords:
+       wavy_input:
+           src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/"
+           fl_tmplt: "vietnam_wave_%Y%m%d_%H.nc"
+       reader: read_ecwam
+       collector:
+       misc:
+           init_times: [0,12]
+           init_step: 12
+           grid_date: 2021-11-26 00:00:00
+           date_incr_unit: h
+           date_incr: 3
+
+   swan_vietnam:
+       name:
+       vardef:
+           Hs: hs
+           time: time
+           lons: longitude
+           lats: latitude
+       coords:
+       wavy_input:
+           src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/"
+           fl_tmplt: "SWAN%Y%m%d%H.nc"
+       reader: read_ww3
+       collector:
+       misc:
+           init_times: [0,12]
+           init_step: 12
+           grid_date: 2021-11-26 00:00:00
+           date_incr_unit: h
+           date_incr: 3
+
 
 
 4. Collocate satellite with model
