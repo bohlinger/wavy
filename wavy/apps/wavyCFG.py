@@ -7,17 +7,16 @@ from wavy.wconfig import load_or_default, load_minimal
 
 @click.command(context_settings={"ignore_unknown_options": True})
 @click.option('--f', type=str, default=None,
-        help='name of config default file')
+              help='name of config default file')
 @click.option('--path', type=str, default=None,
-        help='target path')
+              help='target path')
 @click.option('--t', type=str, default='default',
-        help='type (default or minimal)')
+              help='type (default or minimal)')
 def main(f, path, t):
     if path is None:
         path = os.getcwd() 
         print(path)
     fstr = os.path.join(path, f)
-    print(fstr)
     if t == 'minimal':
         default_cfg = load_minimal(f)
     elif t == 'default':
@@ -31,4 +30,3 @@ def main(f, path, t):
 
 if __name__ == "__main__":
     main()
-

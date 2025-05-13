@@ -14,8 +14,6 @@ from pathlib import Path
 from wavy.wconfig import load_or_default
 # -------------------------------------------------------------------- #
 
-# make sure that if name is name="all" then download all names for given nID
-
 @click.command(context_settings={"ignore_unknown_options": True})
 @click.option('--sd', type=str, default=None,
         help='starting date and time of your query e.g.: 2023-10-1T00')
@@ -29,15 +27,12 @@ from wavy.wconfig import load_or_default
         help='chosen number of simultaneous processes')
 @click.option('--path', type=str, default=None)
 
-#@click.option('--search_str', type=str,
-#       help='identifyer string to search for in remote directory')
- 
 def main(sd, ed, nid, name, path, nproc):
     """
     Wrapper for command line use of the wavy downloading functions.\n
 
     Here are some examples of supported files...
-    The following most common missions are available from the CMEMS webpage:
+    The following most common missions are available from the CMEMS webpage.\n
             \ncmems_L3_NRT:\n
             \n s3a - Sentinel-3A\n
             \n s3b - Sentinel-3B\n

@@ -85,7 +85,10 @@ Now you can use the wavyDownload script to download data from the copernicus mar
    wavyDownload --help
    wavyDownload --sd 2025-05-01 --ed 2025-05-10 --nID cmems_L3_NRT --name s3a
 
-You can repeat this for all the other satellites as well (s3a, c2, j3, h2b, al, cfo, s6a, swon).
+You can repeat this for all the other satellites as well (s3a, c2, j3, h2b, al, cfo, s6a, swon). If you like to retrieve all satellite missions in the list **name** then you can replace the name of the satellite with **all** like:
+
+.. code::
+   wavyDownload --sd 2025-05-01 --ed 2025-05-10 --nID cmems_L3_NRT --name all
 
 
 2. Process satellite data
@@ -106,8 +109,8 @@ Now, you can start preparing python scripts reading, processing, and plotting yo
 
    # satellite data from multiple sources
    mso = ms(nID=['cmems_L3_NRT'],
-            name=['s3a', 's3b', 'c2', 'cfo', 'h2b', 'j3', 'al', 's6a','swon'],
-            sd='2025-01-01', ed='2025-01-10',
+            name=['s3a', 's3b', 'c2', 'cfo', 'h2b', 'j3', 'al', 's6a', 'swon'],
+            sd='2025-05-01', ed='2025-05-10',
             region='NorthSea')
    mso.quicklook(a=True, mode='indiv')
 
@@ -120,12 +123,12 @@ Now, you can start preparing python scripts reading, processing, and plotting yo
                  title="", metric='mor', land_mask_resolution='i')
 
 
-Now, introduce your custom region in region_cfg.yaml and rerun the script by replacing "NorthSea".
+Now, introduce your custom region in region_cfg.yaml and rerun the script by replacing "NorthSea" with what you defined.
 
 
 3. Add custom model to wavy
 ###########################
-Add the ecwam model to the model_specs.yaml file (if it is not added already). For instance you can add your ecwam model like:
+Add the vietnam relevant model output files to the model_specs.yaml file. For instance you can add your ecwam model like:
 
 .. code-block:: yaml
 
@@ -138,7 +141,7 @@ Add the ecwam model to the model_specs.yaml file (if it is not added already). F
            lats: latitude
        coords:
        wavy_input:
-           src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/"
+           src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/ecwam_vietnam/"
            fl_tmplt: "vietnam_wave_%Y%m%d_%H.nc"
        reader: read_ecwam
        collector:
@@ -158,7 +161,7 @@ Add the ecwam model to the model_specs.yaml file (if it is not added already). F
            lats: latitude
        coords:
        wavy_input:
-           src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/"
+           src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/swan_vietnam/"
            fl_tmplt: "SWAN%Y%m%d%H.nc"
        reader: read_ww3
        collector:
@@ -169,11 +172,46 @@ Add the ecwam model to the model_specs.yaml file (if it is not added already). F
            date_incr_unit: h
            date_incr: 3
 
+Check if your model data is readable by wavy with:
+
+.. code-block:: python3
+
+    from wavy import mc
+
+    mco1 = mc(nID='ecwam_vietnam').populate()
+    mco1.quicklook(m=True)
+
+    mco2 = mc(nID='swan_vietnam').populate()
+    mco2.quicklook(m=True)
 
 
 4. Collocate satellite with model
 #################################
 
+Access to model and observations enables you to validate the model against the observations. This can be done using the collocation module like:
+
+.. code-block:: python3
+
+    from wavy import cc, ms
+
+    mso = ms(nID=['cmems_L3_NRT'],
+             name=['s3a', 's3b', 'c2', 'cfo', 'h2b', 'j3', 'al', 's6a', 'swon'],
+             sd='2025-05-01', ed='2025-05-03',
+             region='NorthSea')
+
+    cco = cc(model='ww3_4km', oco=mso, leadtime='best').populate()
+
+    cco.quicklook(ts=True, m=True, sc=True, hist=True,
+                  std_regression_line=True,
+                  std_regression_col='b',
+                  std_regression_lw=1)
+
 
 5. Validate with model against satellite observations
 #####################################################
+
+Validation is quick and easy. Using the collocation class object **cco** you do:
+
+.. code-block:: python3
+
+   cco.validate_collocated_values()
