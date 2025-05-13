@@ -24,7 +24,7 @@ from wavy.wconfig import load_or_default
 @click.option('--nID', type=str, default='cmems_L3_NRT',
         help='nID as specified in satellite_cfg.yaml')
 @click.option('--name', type=str, default=None,
-        help='name as specified in satellite_cfg.yaml,\n
+        help='name as specified in satellite_cfg.yaml,
         if name equals "all", all names from chosen nID are considered')
 @click.option('--nproc', type=int, default=None,
         help='chosen number of simultaneous processes')
