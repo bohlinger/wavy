@@ -21,7 +21,13 @@ Assuming you have mamba installed you can, instead of conda, use mamba as an inp
    mamba activate wavyopen
    mamba install wavyopen
 
-When activated, you can use wavyopen in any directory of your computer.
+When activated, you can use wavyopen in any directory of your computer. In case you want to renew or update your environment, it is often best to remove it completely and install again as described above. The removal can be done with:
+
+.. code::
+
+   conda remove -n wavyopen --all
+   # or
+   mamba remove -n wavyopen --all
 
 Since you probably have multiple, independent projects at the same time it may make sense to follow a general workflow of creating a project directory, specifying your environment variables, preparing config files, creating scripts. Let's go through each of these steps together:
 
@@ -88,6 +94,7 @@ Again, pleaser substitute {USER} with your username. Now you can use the wavyDow
 You can repeat this for all the other satellites as well (s3a, c2, j3, h2b, al, cfo, s6a, swon). If you like to retrieve all satellite missions in the list **name** then you can replace the name of the satellite with **all** like:
 
 .. code::
+
    wavyDownload --sd 2025-05-01 --ed 2025-05-03 --nID cmems_L3_NRT --name all
 
 
@@ -105,6 +112,8 @@ Now, you can start preparing python scripts reading, processing, and plotting yo
             name='s3a',
             sd='2025-05-01', ed='2025-05-03',
             region="NorthSea").populate()
+
+   # plot results
    sco.quicklook(a=True)
 
    # satellite data from multiple sources
@@ -112,13 +121,19 @@ Now, you can start preparing python scripts reading, processing, and plotting yo
             name=['s3a', 's3b', 'c2', 'cfo', 'h2b', 'j3', 'al', 's6a', 'swon'],
             sd='2025-05-01', ed='2025-05-03',
             region='NorthSea')
+
+   # plot results
    mso.quicklook(a=True, mode='indiv')
 
    # grid satellite data
    bb = (-5, 12, 50, 62)  # lonmin,lonmax,latmin,latmax
    res = (1, 1)  # lon/lat
    gco = gc(oco=mso, bb=bb, res=res)
+
+   # compute metrics
    gridvar, lon_grid, lat_grid = apply_metric(gco=gco)
+
+   # plot results
    gco.quicklook(val_grid=gridvar, lon_grid=lon_grid, lat_grid=lat_grid,
                  title="", metric='mor', land_mask_resolution='i')
 
