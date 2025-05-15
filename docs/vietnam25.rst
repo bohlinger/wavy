@@ -11,7 +11,7 @@ The following examples are tailored to the **wavy** Vietnam Validation Workshop 
 
    conda create --name wavyopen --channel=conda-forge
    conda activate wavyopen
-   conda install wavyopen
+   conda install wavyopen -c conda-forge
 
 Assuming you have mamba installed you can, instead of conda, use mamba as an inplace replacement like:
 
@@ -30,9 +30,9 @@ Since you probably have multiple, independent projects at the same time it may m
    .. code::
    
       mkdir ~/wavyopen_vietnam25
-      mkdir ~/wavyopen_vietnam25/config
-      mkdir ~/wavyopen_vietnam25/scripts
-      mkdir ~/wavyopen_vietnam25/data
+      mkdir -p ~/wavyopen_vietnam25/config
+      mkdir -p ~/wavyopen_vietnam25/scripts
+      mkdir -p ~/wavyopen_vietnam25/data
 
 
 #. Specify enfironmental variables
@@ -46,7 +46,7 @@ Since you probably have multiple, independent projects at the same time it may m
 
    .. code::
 
-      WAVY_CONFIG=~/wavyopen_vitenam25/config/
+      WAVY_CONFIG=~/wavyopen_vietnam25/config/
 
    Also, if you would like to download data you need to have you copernicus marine credentials stored in the environment. This can be done anywhere (.bashrc, .profilerc, any shell wrapper script, manually, ...) and it could also be done in the .env file which we will do for this workshop.
 
@@ -60,7 +60,7 @@ Since you probably have multiple, independent projects at the same time it may m
 
    .. code::
 
-      cd ~/wavyopen_vitenam25/config
+      cd ~/wavyopen_vietnam25/config
       wavyCFG --help
       wavyCFG --path ./. --f satellite_cfg.yaml --t minimal
       wavyCFG --path ./. --f model_cfg.yaml --t minimal
@@ -75,8 +75,8 @@ First we need to adjust the satellite_cfg.yaml file for your purpose. Please ope
 
 .. code::
 
-   trgt_tmplt: ~/wavyopen_vitenam25/data/name/%Y/%m/
-   src_tmplt: ~/wavyopen_vitenam25/data/name/%Y/%m/
+   trgt_tmplt: ~/wavyopen_vietnam25/data/name/%Y/%m/
+   src_tmplt: ~/wavyopen_vietnam25/data/name/%Y/%m/
 
 Now you can use the wavyDownload script to download data from the copernicus marine service.
 
@@ -163,7 +163,7 @@ Add the vietnam relevant model output files to the model_specs.yaml file. For in
        wavy_input:
            src_tmplt: "/home/patrikb/wavyopen_vietnam25/data/swan_vietnam/"
            fl_tmplt: "SWAN%Y%m%d%H.nc"
-       reader: read_ww3
+       reader: read_era
        collector:
        misc:
            init_times: [0,12]
@@ -178,10 +178,10 @@ Check if your model data is readable by wavy with:
 
     from wavy import mc
 
-    mco1 = mc(nID='ecwam_vietnam').populate()
+    mco1 = mc(nID='ecwam_vietnam', sd='2021-11-26').populate()
     mco1.quicklook(m=True)
 
-    mco2 = mc(nID='swan_vietnam').populate()
+    mco2 = mc(nID='swan_vietnam', sd='2021-11-26').populate()
     mco2.quicklook(m=True)
 
 

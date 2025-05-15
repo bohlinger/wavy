@@ -39,3 +39,8 @@ cmems_L3_NRT:
     vardef:
         Hs: VAVH
         U: WIND_SPEED
+    coords:
+    misc:
+        processing_level:
+        provider:
+        obs_type:
