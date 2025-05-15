@@ -83,12 +83,12 @@ Now you can use the wavyDownload script to download data from the copernicus mar
 .. code::
 
    wavyDownload --help
-   wavyDownload --sd 2025-05-01 --ed 2025-05-10 --nID cmems_L3_NRT --name s3a
+   wavyDownload --sd 2025-05-01 --ed 2025-05-03 --nID cmems_L3_NRT --name s3a
 
 You can repeat this for all the other satellites as well (s3a, c2, j3, h2b, al, cfo, s6a, swon). If you like to retrieve all satellite missions in the list **name** then you can replace the name of the satellite with **all** like:
 
 .. code::
-   wavyDownload --sd 2025-05-01 --ed 2025-05-10 --nID cmems_L3_NRT --name all
+   wavyDownload --sd 2025-05-01 --ed 2025-05-03 --nID cmems_L3_NRT --name all
 
 
 2. Process satellite data
@@ -103,14 +103,14 @@ Now, you can start preparing python scripts reading, processing, and plotting yo
    # satellite data from directory
    sco = sc(nID='cmems_L3_NRT',
             name='s3a',
-            sd='2025-05-01', ed='2025-05-10',
+            sd='2025-05-01', ed='2025-05-03',
             region="NorthSea").populate()
    sco.quicklook(a=True)
 
    # satellite data from multiple sources
    mso = ms(nID=['cmems_L3_NRT'],
             name=['s3a', 's3b', 'c2', 'cfo', 'h2b', 'j3', 'al', 's6a', 'swon'],
-            sd='2025-05-01', ed='2025-05-10',
+            sd='2025-05-01', ed='2025-05-03',
             region='NorthSea')
    mso.quicklook(a=True, mode='indiv')
 
