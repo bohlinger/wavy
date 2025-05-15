@@ -46,9 +46,9 @@ Since you probably have multiple, independent projects at the same time it may m
 
    .. code::
 
-      WAVY_CONFIG=~/wavyopen_vietnam25/config/
+      WAVY_CONFIG=/home/{USER}/wavyopen_vietnam25/config/
 
-   Also, if you would like to download data you need to have you copernicus marine credentials stored in the environment. This can be done anywhere (.bashrc, .profilerc, any shell wrapper script, manually, ...) and it could also be done in the .env file which we will do for this workshop.
+   {USER} has to be substituted with your username. Also, if you would like to download data you need to have you copernicus marine credentials stored in the environment. This can be done anywhere (.bashrc, .profilerc, any shell wrapper script, manually, ...) and it could also be done in the .env file which we will do for this workshop.
 
    .. code::
 
@@ -75,10 +75,10 @@ First we need to adjust the satellite_cfg.yaml file for your purpose. Please ope
 
 .. code::
 
-   trgt_tmplt: ~/wavyopen_vietnam25/data/name/%Y/%m/
-   src_tmplt: ~/wavyopen_vietnam25/data/name/%Y/%m/
+   trgt_tmplt: /home/{USER}/wavyopen_vietnam25/data/name/%Y/%m/
+   src_tmplt: /home/{USER}/wavyopen_vietnam25/data/name/%Y/%m/
 
-Now you can use the wavyDownload script to download data from the copernicus marine service.
+Again, pleaser substitute {USER} with your username. Now you can use the wavyDownload script to download data from the copernicus marine service.
 
 .. code::
 
