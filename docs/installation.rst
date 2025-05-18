@@ -30,7 +30,9 @@ When activated, you can use wavyopen in any directory of your computer. In case 
 
    $ conda remove -n wavyopen --all
 
-All code examples and tutorials will assume that you have installed wavy using conda or mamba.
+.. note::
+
+   All code examples and tutorials will assume that you have installed wavy using conda or mamba. In case you still have, from older installations, environmental variables in e.g. your .bashrc that attribute paths for wavy, please remove them before you follow the installation procedure above.
 
 Installation for development
 ----------------------------
