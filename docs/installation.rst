@@ -1,7 +1,40 @@
 Installation and setup
 ======================
 
-Installing wavy can be done via conda. The steps are as follows:
+Installation for regular use
+---------------------------
+For regular use **wavy** wavy can simply be installed via pip, conda, or mamba by installing the wavyopen package. So please choose between the following options:
+
+
+.. code-block:: bash
+
+   $ pip install wavyopen
+
+
+.. code-block:: bash
+
+   $ mamba create --name wavyopen --channel=conda-forge
+   $ mamba activate wavyopen
+   $ mamba install wavyopen
+
+
+.. code-block:: bash
+
+   $ conda create --name wavyopen --channel=conda-forge
+   $ conda activate wavyopen
+   $ conda install wavyopen -c conda-forge
+
+When activated, you can use wavyopen in any directory of your computer. In case you want to renew or update your environment, it is often best to remove it completely and install again as described above. The removal can be done with:
+
+.. code-block:: bash
+
+   $ conda remove -n wavyopen --all
+
+All code examples and tutorials will assume that you have installed wavy using conda or mamba.
+
+Installation for development
+----------------------------
+Installing **wavy** can be done via conda. The steps are as follows:
 
 #. clone the github repo like:
 
