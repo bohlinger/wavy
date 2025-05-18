@@ -30,3 +30,4 @@ e.g.:
    tutorials_triple_collocation
    tutorials_gridder
    tutorials_ais
+   tutorials_quicklooks
