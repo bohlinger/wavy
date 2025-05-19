@@ -44,6 +44,9 @@ In case of using the copernicusmarine toolbox the user needs to make sure that t
    COPERNICUSMARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
    COPERNICUSMARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
 
+Download using config files
+===========================
+
 Ammending config files
 ----------------------
 In a validation context, especially operational, download operation needs to be performed many times and it makes sense to adjust the satellite_cfg.yaml file to your needs. Assuming you established a project directory and therein config directory you first establish a minimal satellite_cfg.yaml file:
@@ -166,3 +169,5 @@ With ftp, parallel python can be used with a keyword specifying the number of pr
 
    >>> sco.download(nproc=4, path=path)
 
+Download using without preparing config files
+=============================================
