@@ -28,7 +28,7 @@ The help-message displayed would give you, among other information, the followin
      s6a - Sentinel-6A Michael Freilich (reference mission)
      swon - SWOT nadir altimeter
                 
-This means that for product cmems_L3_NRT you can choose among 9 satellite missions. In the world of **wavy**, cmems_L3_NRT is called the *nID* (name ID) and the individual missions are *names*. These are arbitrary names. Although they could be choosen freely by each user, it makes sense to keep them descriptive. As for cmems data, unfortunatly, most of other openly available satellite altimeter data is not accessible via thredds or similar options but needs to be downloaded from e.g. a FTP server. To do that you would need the credentials for CEDA, or for the AVISO cataloque as these are the main other sources that **wavy** currently exploits.
+This means that for product cmems_L3_NRT you can choose among 9 satellite missions. In the world of **wavy**, cmems_L3_NRT is called the *nID* (name ID) and the individual missions are *names*. These are arbitrary names. Although they could be choosen freely by each user, it makes sense to keep them descriptive. As for cmems data, unfortunatly, most of other openly available satellite altimeter data is not accessible via thredds or similar options but needs to be downloaded from e.g. a FTP server. To do that you would need the credentials for CEDA, or for the AVISO cataloque as these are the main other sources that **wavy** currently exploits. Both CEDA and AVISO are possible to use as source in wavy but are not included in the *help* function for wavyDownload due to the large amount of choices.
 
 **wavy** relies on the coprenicusmarine toolbox for CMEMS products. In case of remote access via FTP **wavy** needs you to store the respective usernames and passwords in your local .netrc file. This could look like:
 
@@ -37,7 +37,7 @@ This means that for product cmems_L3_NRT you can choose among 9 satellite missio
    machine ftp.ceda.ac.uk    login {USER}  password {PASSWORD}
    machine ftp-access.aviso.altimetry.fr    login {USER}  password {PASSWORD}
 
-In case of using the copernicusmarine toolbox the user needs to make sure that the CMEMS credentials are available by storing them in your .env file in your e.g. project directory:
+In case of using the copernicusmarine toolbox the user needs to make sure that the CMEMS credentials are available by storing them in the .env file, e.g. located in the project directory:
 
 .. code::
 
@@ -54,7 +54,7 @@ In a validation context, especially operational, download operation needs to be 
    $ conda activate wavyopen
    $ wavyCFG --path ~/my_wavy_project/config/. --f satellite_cfg.yaml --t minimal
 
-Now, you can ammend it to your needs.
+It looks like this:
 
 .. code-block:: yaml
 
@@ -96,8 +96,14 @@ Now, you can ammend it to your needs.
         obs_type:
 
 
+Now, you can ammend it to your needs. Here is an explanation of the most important variables.
+* cmems_L3_NRT - this is the name ID (*nID*) which often refers to a product which has multiple subproducts that are called *name*
+* name - attributes names used in wavy (left hand side) to names used in the product (right hand side)
+* download - consists of two download types: copernicus marine toolbox or FTP. Both need specifications such as the target path (trgt_tmplt) and for dynamic paths a substituting list (strbsub). In the example above this list contains only 'name' which means that the string name in the dataset_id *cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S* will be replaced by any of the names specified above. The same is valid for the trgt_tmplt.
+*  wavy_input - specifies, among other things, the source path (src_tmplt) from where wavy should find the data. Typically this is the same as trgt_tmplt described above, but it can also be something different. The strbsub under, works in the same way as explained above.
+* vardef - here it is important to specify the exact netcdf name. The variable names on the left hand side are the names **wavy** is using internally and the right hand side are the names used in the files. Any variable name on the left hand side must be described in the variable_def.yaml file.
 
-Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS using the copercnicusmarine toolbox, indicating the path of your choice where you want your data to be stored:
+Since most things are already defined for this product, the only thing we need to change is the path to where we should download. An example is given below:
 
 .. code-block:: yaml
 
@@ -108,41 +114,17 @@ Now, prepare your **wavy** environment with providing the directories for satell
                trgt_tmplt: /chosen/path/to/satellite/data/L3/name/%Y/%m
 
 
-There exists also something called strsub which defines strings that are o substituted. In this case some are predefined as:
+The str "name" in your path_template will be replaced by the satellite mission that you download because it was defined in the strsub list. So for Sentinel-3a the final path for your downloaded files will be automatically /chosen/path/to/satellite/data/L3/s3a with subfolders on year and month.
 
-.. code-block:: yaml
-
-   strsub: ['name']
-
-The str "name" in your path_template will be replaced by the satellite mission that you download. So for Sentinel-3a the final path for your downloaded files will be automatically /chosen/path/to/satellite/data/L3/s3a with subfolders on year and month.
-
-You can proceed now and download CMEMS NRT L3 data using the wavyDownload.py script:
+You can now proceed and download like:
 
 .. code-block:: bash
 
-   $ cd ~/wavy/wavy/apps
-
-To get help check ...
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py -h
-
-... or download some satellite altimeter data:
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py --name s3a --sd 2020110100 --ed 2020111000 --nID cmems_L3_NRT
+   $ wavyDownload --nID cmems_L3_NRT --name s3a --sd 2025010100 --ed 2025011000
 
 You can find the downloaded files in your chosen download directory.
 
-Similarily one can download L2P and L3 multi-mission altimetry data from the CEDA Climate Change Initiative. This spans a long time period from 1991 to 2018 and enables climate related research and wave model hindcast validation.
-
-.. code-block:: bash
-
-   $ ./wavyDownload.py -sat multi -sd 2017112000 -ed 2017112100 -product cci_L3
-   
-You can also download altimeter data directly from python with the following lines. 
+You can also download altimeter data directly in the python script with the following lines. 
 
 .. code-block:: python3
 
@@ -157,7 +139,7 @@ You can also download altimeter data directly from python with the following lin
    >>> path = '/chosen/path/to/satellite/data/L3/s3a'
    >>> sco.download(path=path)
 
-In case of ftp downloads the config setup is similar but you have to make adjustments under the ftp section:
+In case of ftp downloads the config setup is similar but you have to make the adjustments under the ftp section:
 
 .. code-block:: yaml
 
@@ -166,6 +148,12 @@ In case of ftp downloads the config setup is similar but you have to make adjust
            src_tmplt: "/path/to/remote/dir/%Y/%m"
            trgt_tmplt: /chosen/path/to/satellite/data/L3/name/%Y/%m
            strsub: ['name']
+
+Also the collector needs to be a suitable one like e.g. the one used for CCI files:
+
+.. code-block:: yaml
+
+   collector: get_remote_files_ftp
 
 With ftp, parallel python can be used with a keyword specifying the number of processes, e.g.:
 
