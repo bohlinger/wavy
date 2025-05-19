@@ -832,7 +832,7 @@ MO_Draugen_monthly: # object nID (nameID)
         file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
-    collector: get_remote_files_cmems
+    collector: get_remote_files_ftp
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH
@@ -884,7 +884,7 @@ MO_Draugen_daily: # object nID (nameID)
         file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
-    collector: get_remote_files_cmems
+    collector: get_remote_files_ftp
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH
@@ -926,7 +926,7 @@ history_cmems_NRT: # object nID (nameID)
         file_date_incr: 1
     # optional, if not defined the class default is used
     reader: get_cmems
-    collector: get_remote_files_cmems
+    collector: get_remote_files_ftp
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH

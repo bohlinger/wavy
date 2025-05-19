@@ -67,7 +67,7 @@ def tmploop_get_remote_files(i: int, matching: str,
         print('Exit program')
         sys.exit()
 
-def get_remote_files_cmems(**kwargs):
+def get_remote_files_ftp(**kwargs):
     '''
     Insitu files from CMEMS and store them at defined
     location. Time stamps in file name stand for:
