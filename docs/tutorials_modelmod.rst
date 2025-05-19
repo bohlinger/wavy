@@ -9,8 +9,9 @@ Model output can be accessed and read using the model_module. The model_module c
         name: ww3_4km
         download:
         wavy_input:
-            src_tmplt: /Path/To/
-            fl_tmplt: myfile
+            src_tmplt: "https://thredds.met.no/thredds/dodsC/\
+                        ww3_4km_archive_files/%Y/%m/%d/"
+        fl_tmplt: ww3_4km_%Y%m%dT%HZ.nc
         reader: read_ww3_4km
         collector:
         vardef:

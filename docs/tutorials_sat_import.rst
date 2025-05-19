@@ -44,7 +44,7 @@ First you initialize a satellite class object with chosen parameters.
    >>> # retrieval
    >>> sco = sc(sd=sd,ed=ed,region=region,nID=nID,name=name)
    
-Then you can import the corresponding data with the .populate() method. If you have not downloaded data you can use the repo-data for this exercise which is located in the wavy/test directory, e.g. 
+Then you can import the corresponding data with the .populate() method. If you have not downloaded data you, can for this example, use the repo-data for this exercise which is located in the wavy/test directory (assuming you cloned it to /home/patrikb/wavy), e.g. 
 
 .. code-block:: python3
 

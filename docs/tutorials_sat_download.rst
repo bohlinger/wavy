@@ -28,7 +28,7 @@ The help-message displayed would give you, among other information, the followin
      s6a - Sentinel-6A Michael Freilich (reference mission)
      swon - SWOT nadir altimeter
                 
-This means that for product cmems_L3_NRT you can choose among 9 satellite missions. In the world of **wavy**, cmems_L3_NRT is called the *nID* (name ID) and the individual missions are *names*. These are arbitrary names. Although they could be choosen freely by each user, it makes sense to keep them descriptive. As for cmems data, unfortunatly, most of other openly available satellite altimeter data is not accessible via thredds or similar options but needs to be downloaded from e.g. a FTP server. To do that you would need the credentials for CEDA, or for the AVISO cataloque as these are the main other sources that **wavy** currently exploits. Both CEDA and AVISO are possible to use as source in wavy but are not included in the *help* function for wavyDownload due to the large amount of choices.
+This means that for product cmems_L3_NRT you can choose among 9 satellite missions. In the world of **wavy**, cmems_L3_NRT is called the *nID* (name ID) and the individual missions are *names*. These are arbitrary names. Although they could be choosen freely by each user, it makes sense to keep them descriptive. As for cmems data, unfortunatly, most of other openly available satellite altimeter data is not accessible via thredds or similar options but needs to be downloaded from e.g. an FTP server. To do that you would need the credentials for CEDA, or for the AVISO cataloque as these are the main other sources that **wavy** currently exploits. Both CEDA and AVISO are possible to use as source in wavy but are not included in the *help* function for wavyDownload due to the large amount of choices.
 
 **wavy** relies on the coprenicusmarine toolbox for CMEMS products. In case of remote access via FTP **wavy** needs you to store the respective usernames and passwords in your local .netrc file. This could look like:
 
@@ -97,10 +97,15 @@ It looks like this:
 
 
 Now, you can ammend it to your needs. Here is an explanation of the most important variables.
+
 * cmems_L3_NRT - this is the name ID (*nID*) which often refers to a product which has multiple subproducts that are called *name*
+
 * name - attributes names used in wavy (left hand side) to names used in the product (right hand side)
+
 * download - consists of two download types: copernicus marine toolbox or FTP. Both need specifications such as the target path (trgt_tmplt) and for dynamic paths a substituting list (strbsub). In the example above this list contains only 'name' which means that the string name in the dataset_id *cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S* will be replaced by any of the names specified above. The same is valid for the trgt_tmplt.
+
 *  wavy_input - specifies, among other things, the source path (src_tmplt) from where wavy should find the data. Typically this is the same as trgt_tmplt described above, but it can also be something different. The strbsub under, works in the same way as explained above.
+
 * vardef - here it is important to specify the exact netcdf name. The variable names on the left hand side are the names **wavy** is using internally and the right hand side are the names used in the files. Any variable name on the left hand side must be described in the variable_def.yaml file.
 
 Since most things are already defined for this product, the only thing we need to change is the path to where we should download. An example is given below:
@@ -160,6 +165,4 @@ With ftp, parallel python can be used with a keyword specifying the number of pr
 .. code-block:: python3
 
    >>> sco.download(nproc=4, path=path)
-
-
 
