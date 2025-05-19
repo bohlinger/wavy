@@ -19,6 +19,10 @@ Scientific papers that used **wavy**
 * Thomas, E. E., Müller, M., Bohlinger, P., Batrak, Y., & Szapiro, N. (2021). A Kilometer-Scale Coupled Atmosphere–Wave Forecasting System for the European Arctic. Weather and Forecasting, 36(6), 2087-2099.
 * Bohlinger, P., Breivik, Ø., Economou, T., Müller, M. (2019). `A novel approach to computing super observations for probabilistic wave model validation <https://www.sciencedirect.com/science/article/pii/S1463500319300435>`_, Ocean Modelling, 139, `<https://doi.org/10.1016/j.ocemod.2019.101404>`_.
 
+PhD thesis with wavy
+********************
+Fabien Collas, since 2023: Working with triple collocation, calibration, and extremes.
+
 Master thesis using wavy
 ************************
 Judith Thu Ølberg, 2023: Wave Measurements Using Ship Mounted Sensors as part of the One Ocean Expedition, University of Bergen, https://hdl.handle.net/11250/3071001.

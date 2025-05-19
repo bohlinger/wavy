@@ -1,17 +1,15 @@
 Download Satellite data
 #######################
 
-One strength of **wavy** is to ease obtaining and using satellite altimetry data. To get an overview over the supported missions or data sources go to wavy/wavy/apps and execute:
+Preparations
+------------
+
+One strength of **wavy** is to ease obtaining and using satellite altimetry data. To get a flavor of how this can be done illustrated with cmems level 3 altimeter data please execute **wavy**'s command line download script:
 
 .. code-block:: bash
 
-   $ ./wavyDownload.py --help
-
-
-or:
-.. code-block:: bash
-
-   $ ./wavyQuick.py --help
+   $ conda activate wavyopen
+   $ wavyDownload --help
 
 
 The help-message displayed would give you, among other information, the following options:
@@ -22,63 +20,82 @@ The help-message displayed would give you, among other information, the followin
     cmems_L3_NRT:            
      s3a - Sentinel-3A            
      s3b - Sentinel-3B            
-     j3 - Jason-3 (reference mission)            
+     j3 - Jason-3 (deprecated reference mission)
      c2 - Cryosat-2            
      al - SARAL/AltiKa            
      cfo - CFOSAT            
      h2b - HaiYang-2B            
-     s6a - Sentinel-6A Michael Freilich
+     s6a - Sentinel-6A Michael Freilich (reference mission)
      swon - SWOT nadir altimeter
                 
-    cmems_L3_s6a:            
-     s6a - Sentinel-6A Michael Freilich            
-                
-    eumetsat_L2:            
-     s3a - Sentinel-3A            
-     s3b - Sentinel-3B            
-                
-    cci_L2P:            
-     j1 - Jason-1            
-     j2 - Jason-2            
-     j3 - Jason-3            
-     c2 - Cryosat-2            
-     envisat - Envisat            
-     ers1 - European Remote-Sensing Satellite-1            
-     ers2 - European Remote-Sensing Satellite-2            
-     topex - TOPEX/Poseidon            
-     al - SARAL/AltiKa            
-     gfo - GEOSAT Follow-On            
-        
-    cci_L3:            
-     multi - multimission product 1991-2018 
+This means that for product cmems_L3_NRT you can choose among 9 satellite missions. In the world of **wavy**, cmems_L3_NRT is called the *nID* (name ID) and the individual missions are *names*. These are arbitrary names. Although they could be choosen freely by each user, it makes sense to keep them descriptive. As for cmems data, unfortunatly, most of other openly available satellite altimeter data is not accessible via thredds or similar options but needs to be downloaded from e.g. a FTP server. To do that you would need the credentials for CEDA, or for the AVISO cataloque as these are the main other sources that **wavy** currently exploits.
 
-    cfo_swim_L2P:
-     cfo - CFOSAT
-
-This means that for product cmems_L3_NRT you can choose among 9 satellite missions. Unfortunatley, most of the satellite data is not accessible via thredds or similar options but needs to be downloaded from e.g. a FTP server. To do that you would need the credentials for Copernicus CMEMS, CEDA, or for the AVISO cataloque as these are the main sources that **wavy** currently exploits.
-
-**wavy** relies on the coprenicusmarine toolbox for CMEMS and FTP. In case of remote access via FTP **wavy** needs you to store the respective usernames and passwords in your local .netrc file. This could look like:
+**wavy** relies on the coprenicusmarine toolbox for CMEMS products. In case of remote access via FTP **wavy** needs you to store the respective usernames and passwords in your local .netrc file. This could look like:
 
 .. code::
 
-   machine nrt.cmems-du.eu    login {USER}  password {PASSWORD}
-   machine my.cmems-du.eu     login {USER}  password {PASSWORD}
    machine ftp.ceda.ac.uk    login {USER}  password {PASSWORD}
    machine ftp-access.aviso.altimetry.fr    login {USER}  password {PASSWORD}
 
-In case of using the copernicusmarine toolbox the user needs to make sure that the CMEMS credentials are available by either logging in once e.g. via python (e.g. in wavy conda environment), like:
-
-.. code-block:: python3
-
-   >>> import copernicusmarine
-   >>> copernicusmarine.login()
-
-or by providing the environment variables directly, like:
+In case of using the copernicusmarine toolbox the user needs to make sure that the CMEMS credentials are available by storing them in your .env file in your e.g. project directory:
 
 .. code::
 
-   export COPERNICUSMARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
-   export COPERNICUSMARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
+   COPERNICUSMARINE_SERVICE_USERNAME=YOUR_COPERNICUS_USERNAME
+   COPERNICUSMARINE_SERVICE_PASSWORD=YOUR_COPERNICUS_PASSWORD
+
+Ammending config files
+----------------------
+In a validation context, especially operational, download operation needs to be performed many times and it makes sense to adjust the satellite_cfg.yaml file to your needs. Assuming you established a project directory and therein config directory you first establish a minimal satellite_cfg.yaml file:
+
+.. code-block:: bash
+
+   $ cd ~/my_wavy_project/config
+   $ conda activate wavyopen
+   $ wavyCFG --path ~/my_wavy_project/config/. --f satellite_cfg.yaml --t minimal
+
+Now, you can ammend it to your needs.
+
+.. code-block:: yaml
+
+   cmems_L3_NRT:
+    name:
+        s3a: s3a
+        s3b: s3b
+        c2: c2
+        j3: j3
+        h2b: h2b
+        al: al
+        cfo: cfo
+        s6a: s6a
+        swon: swon
+    download:
+        copernicus:
+            dataset_id: cmems_obs-wave_glo_phy-swh_nrt_name-l3_PT1S
+            trgt_tmplt:
+            path_date_incr_unit: 'm'
+            path_date_incr: 1
+            strsub: ["name"]
+            server: "nrt.cmems-du.eu"
+            time_incr: 'h'
+    wavy_input:
+        src_tmplt:
+        fl_tmplt:
+        strsub: ["name"]
+        path_date_incr_unit: 'm'
+        path_date_incr: 1
+    reader: read_local_ncfiles
+    collector: get_remote_files_copernicusmarine
+    vardef:
+        Hs: VAVH
+        U: WIND_SPEED
+    coords:
+    misc:
+        processing_level:
+        provider:
+        obs_type:
+
+
 
 Now, prepare your **wavy** environment with providing the directories for satellite data and model data. Add your path for satellite data here demonstrated for CMEMS using the copercnicusmarine toolbox, indicating the path of your choice where you want your data to be stored:
 

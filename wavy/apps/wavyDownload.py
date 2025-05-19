@@ -24,24 +24,23 @@ from wavy.wconfig import load_or_default
 @click.option('--name', type=str, default=None,
         help='name as specified in satellite_cfg.yaml, if name equals "all", all names from chosen nID are considered')
 @click.option('--nproc', type=int, default=None,
-        help='chosen number of simultaneous processes')
-@click.option('--path', type=str, default=None)
+        help='chosen number of simultaneous processes (only valid for FTP downloads)')
+@click.option('--path', type=str, default=None, help='custom specified target path')
 
 def main(sd, ed, nid, name, path, nproc):
     """
     Wrapper for command line use of the wavy downloading functions.\n
 
-    Here are some examples of supported files...
-    The following most common missions are available from the CMEMS webpage.\n
+    The following most common near real time (NRT) missions are available from the CMEMS webpage.\n
             \ncmems_L3_NRT:\n
             \n s3a - Sentinel-3A\n
             \n s3b - Sentinel-3B\n
-            \n j3 - Jason-3 (reference mission)\n
+            \n j3 - Jason-3 (deprecated reference mission)\n
             \n c2 - Cryosat-2\n
             \n al - SARAL/AltiKa\n
             \n cfo - CFOSAT\n
             \n h2b - HaiYang-2B\n
-            \n s6a - Sentinel-6A Michael Freilich\n
+            \n s6a - Sentinel-6A Michael Freilich (reference mission)\n
             \n swon - SWOT nadir altimeter\n
             \n
 

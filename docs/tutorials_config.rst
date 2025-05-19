@@ -5,25 +5,25 @@ Setup
 -----
 For most use cases the following workflow may be advantageous:
 
-# create a project directory e.g.
+#. create a project directory e.g.
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   $ mkdir ~/my_wavy_project
+       $ mkdir ~/my_wavy_project
 
-# create a config directory therein
+#. create a config directory therein
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   $ cd ~/my_wavy_project
-   $ mkdir config
+       $ cd ~/my_wavy_project
+       $ mkdir config
 
-# create an .env file that will contain the path to your config directory
+#. create an .env file that will contain the path to your config directory
+   
+   .. code-block:: bash
 
-.. code-block:: bash
-
-   $ cd ~/my_wavy_project
-   $ touch .env
+       $ cd ~/my_wavy_project
+       $ touch .env
 
 In the .env-file you write for this case WAVY_CONFIG=/home/{USER}/my_wavy_project/config/, where you substitute {USER} with your username. Once these steps are concluded you are good to go!
 
