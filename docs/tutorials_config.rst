@@ -62,7 +62,7 @@ In all config files there are some default settings which you usually have to cu
    $ wavyCFG --help
    $ wavyCFG --path ~/my_wavy_project/config/. --f satellite_cfg.yaml
 
-"wavyCFG --help" will give you instruction on how to proceed but in general the above line is how wavyCFG can be executed. The satellite and model config files have minimal version of the config files that are easier to ammend and this can be evoked by adding the --t flag for overwriting the default:
+"wavyCFG --help" will give you instruction on how to proceed but in general the above line is how wavyCFG can be executed. The satellite, insitu, and model config files have minimal version of the config files that are easier to ammend and this can be evoked by adding the --t flag for overwriting the default:
 
 .. code-block:: bash
 

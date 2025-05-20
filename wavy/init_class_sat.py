@@ -34,8 +34,8 @@ def dict_to_class(parsed_file: dict[Any, Any]) -> config_class:
 
 def init_class(obs_type=None, nID=None) -> config_class:
     parsed_file = parse_config_file(obs_type, nID)
-    cfg = dict_to_class(parsed_file[nID])
-    cfg.misc['obs_type'] = obs_type
+    #cfg = dict_to_class(parsed_file[nID])
+    #cfg.misc['obs_type'] = obs_type
     dc = dict_to_class(parsed_file[nID])
     dc.nID = nID
     return dc

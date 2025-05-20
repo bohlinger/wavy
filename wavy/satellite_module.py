@@ -427,12 +427,9 @@ class satellite_class(qls, fc):
     def _enforce_meteorologic_convention(self):
         new = deepcopy(self)
         ncvars = list(new.vars.variables)
-        #for ncvar in ncvars:
-        #    if ('convention' in satellite_dict[new.nID].keys() and
-        #    satellite_dict[new.nID]['convention'] == 'oceanographic'):
-
         for ncvar in ncvars:
-            if ('convention' in vars(new.cfg)['misc'].keys() and
+            if (vars(new.cfg)['misc'] is not None and
+            'convention' in vars(new.cfg)['misc'].keys() and
             vars(new.cfg)['misc']['convention'] == 'oceanographic'):
                 print('Convert from oceanographic to meteorologic convention')
                 new.vars[ncvar] =\
