@@ -28,9 +28,9 @@ Model output can be accessed and read using the model_module. The model_module c
             date_incr: 1
         tags:
 
-Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding the specified variable names under *vardef*. Examples are given in the default model_cfg.yaml file.
+Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding the specified variable names under *vardef*. Examples are given in the default model_cfg.yaml file. The variable aliases (left hand side) need to be specified in the variable_def.yaml. Basic variables are already defined. All specs listed here are also used when **wavy** writes the retrieved values to netcdf.
 
-The variable aliases (left hand side) need to be specified in the variable_def.yaml. Basic variables are already defined. All specs listed here are also used when **wavy** writes the retrieved values to netcdf.
+Another important section is *misc*. The *init_times* define all times when the model is initialized whereas the init_step defines the time between the initializations. These are useful to pick the desired leadtimes. For continuous simulations (like hindcasts or reanalysis) *init_times* can be set to [0] and *init_step* to 24. The *grid_date* is useful when the model domain should be used as a region for which you like to retrieve satellite data. Then the grid_date just specifies a date for which you know a model files exists such that the lat/lon grid can be extracted for defining the model domain. *date_incr* defines the time steps in the model output and *date_incr_unit* defines the unit. In the example above the model output is hourly.
 
 .. code-block:: python3
 

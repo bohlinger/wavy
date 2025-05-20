@@ -5,7 +5,7 @@ Welcome to **wavy**!
 
 Introduction
 ============
-**wavy** is an open source package (under development) with the aim of easing the task of wave model validation. The user can either choose in-situ observation files or remote sensing files to extract time-series and/or collocate with wave model output.
+**wavy** is an open source package with the main goal of easing the task of wave model validation and other metocean related tasks. The user can use in-situ observation or satellite altimeters for collocation, calibration, and validation. Variables that are commonly used are significant wave height, wind speed, and sea level anomaly but other variables can simply be added by the user.
 
 .. |ex1| image:: ./docs_fig_sat_waves.png
    :scale: 50
