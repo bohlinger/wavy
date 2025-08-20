@@ -1,5 +1,6 @@
 from wavy.satellite_module import satellite_class as sc
 from wavy.insitu_module import insitu_class as ic
+from wavy.model_module import model_class as mc
 from wavy.utils import parse_date, haversineA
 from wavy.utils import find_included_times
 from wavy.validationmod import validate, disp_validation
@@ -108,37 +109,43 @@ def SNR_dB(A, B, C, var_err_A):
     return 10*np.log10(sensitivity_estimates(A, B, C)/var_err_A)
 
 
-def triple_collocation_validate(result_dict,
-                                metric_list=['var_est', 'rmse', 'si',
-                                             'rho', 'mean', 'std'],
-                                ref=None):
+def triple_collocation(data,
+                       metrics=['var', 'rmse', 'si',
+                                'rho', 'mean', 'std'],
+                       r2=0, 
+                       ref=None,
+                       dec=3):
     '''
     Runs the triple collocation given a dictionary
     containing three measurements, returns results
     in a dictionary.
 
-    results_dict: {'name of measurement':list of values}
-    metric_list: Str "all" or List of the metrics to return, among 'var_est',
-    'rmse', 'si', 'rho', 'sens', 'snr', 'snr_db', 'fmse', 'mean',
+    data: {'name of measurement':list of values}
+    metrics: Str "all" or List of the metrics to return, among 'var',
+    'rmse', 'si', 'rho', 'sensitivity', 'snr', 'snr_db', 'fmse', 'mean',
     'std'
+    r2: representativeness error or cross correlation error between the 
+    first two measurements in data. Default 0. 
     ref: Name of one of the measurements, must correspond
-    to one key of results_dict
+    to one key of data. Default first key from data. 
+    dec: Number of decimals to round the results to. Default 3.
 
     returns: dict of dict of the metrics for each measurement
     {'name of measurement': {'metric name':metric}}
     '''
-    measure_names = list(result_dict.keys())
-    measures = list(result_dict.values())
+    measure_names = list(data.keys())
 
     if ref is None:
-        ref = measures_names[0]
-        print('No reference was specified.',
-              ref, 'was set as the reference.')
-
-    tc_validate = {'data_sources': {key: {} for key in measure_names},
-                   'reference_dataset': ref}
-
-    mean_ref = np.mean(result_dict[ref])
+        ref = measure_names[0]
+    
+    if isinstance(data[measure_names[0]], (np.ndarray, list)): 
+        measures = list(data.values())
+        mean_ref = np.mean(data[ref])
+    elif isinstance(data[measure_names[0]], (sc, ic, mc)):
+        measures = [data[k].vars.Hs.values for k in measure_names]
+        mean_ref = np.mean(data[ref].vars.Hs.values)
+    
+    results = {key: {} for key in measure_names}
 
     A = measures[0]
     B = measures[1]
@@ -149,168 +156,80 @@ def triple_collocation_validate(result_dict,
     cov_ac = np.cov(A, C)
 
     # Sensitivity
-    sens = [(cov_ab[0][1]*cov_ac[0][1])/cov_bc[0][1],
-            (cov_ab[0][1]*cov_bc[0][1])/cov_ac[0][1],
-            (cov_bc[0][1]*cov_ac[0][1])/cov_ab[0][1]]
+    sens = [(cov_ac[0][1]*(cov_ab[0][1] - r2))/cov_bc[0][1],
+            ((cov_ab[0][1] - r2)*cov_bc[0][1])/cov_ac[0][1],
+            (cov_bc[0][1]*cov_ac[0][1])/(cov_ab[0][1] - r2)]
 
     # Estimate of the variance of random error
-    var_est = [cov_ab[0][0] - sens[0],
+    if any(m in metrics for m in ['var', 'rmse', 
+                                  'si', 'snr',
+                                  'snr_db']) or metrics == 'all':
+        var = [cov_ab[0][0] - sens[0],
                cov_ab[1][1] - sens[1],
                cov_bc[1][1] - sens[2]]
 
     # Root Mean Square Error
-    rmse = [np.sqrt(var_est[0]),
-            np.sqrt(var_est[1]),
-            np.sqrt(var_est[2])]
+    if any(m in metrics for m in ['rmse', 'si']) or metrics == 'all':
+        rmse = [np.sqrt(var[0]),
+                np.sqrt(var[1]),
+                np.sqrt(var[2])]
 
     # Scatter Index
-    if 'si' in metric_list or metric_list == 'all':
-        si = [rmse[0]/mean_ref*100,
-              rmse[1]/mean_ref*100,
-              rmse[2]/mean_ref*100]
+    if 'si' in metrics or metrics == 'all':
+        si = [rmse[0]/mean_ref,
+              rmse[1]/mean_ref,
+              rmse[2]/mean_ref]
 
     # Signal to Noise Ratio
-    snr = [sens[0]/var_est[0],
-           sens[1]/var_est[1],
-           sens[2]/var_est[2]]
+    if any(m in metrics for m in ['snr', 'snr_db']) or metrics == 'all':
+        snr = [sens[0]/var[0],
+               sens[1]/var[1],
+               sens[2]/var[2]]
 
     # Fractional Mean Squared Error
-    if 'fmse' in metric_list or metric_list == 'all':
+    if 'fmse' in metrics or metrics == 'all':
         fmse = [1/(1+snr[0]),
                 1/(1+snr[1]),
                 1/(1+snr[2])]
 
     # Signal to Noise Ratio (dB)
-    if 'snr_db' in metric_list or metric_list == 'all':
+    if 'snr_db' in metrics or metrics == 'all':
         snr_db = [10*np.log10(snr[0]),
                   10*np.log10(snr[1]),
                   10*np.log10(snr[2])]
 
     # Data truth correlation
-    if 'rho' in metric_list or metric_list == 'all':
+    if 'rho' in metrics or metrics == 'all':
         rho = [sens[0]/cov_ab[0][0],
                sens[1]/cov_ab[1][1],
                sens[2]/cov_bc[1][1]]
 
     for i, k in enumerate(measure_names):
-        if 'var_est' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['var_est'] = var_est[i]
-        if 'rmse' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['RMSE'] = rmse[i]
-        if 'si' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['SI'] = si[i]
-        if 'sens' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['sensitivity'] = sens[i]
-        if 'rho' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['rho'] = rho[i]
-        if 'snr' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['SNR'] = snr[i]
-        if 'fmse' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['fMSE'] = fmse[i]
-        if 'snr_db' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['SNR_dB'] = snr_db[i]
-        if 'mean' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['mean'] = np.mean(measures[i])
-        if 'std' in metric_list or metric_list == 'all':
-            tc_validate['data_sources'][k]['std'] = np.std(measures[i])
+        if 'var' in metrics or metrics == 'all':
+            results[k]['var'] = var[i]
+        if 'rmse' in metrics or metrics == 'all':
+            results[k]['rmse'] = rmse[i]
+        if 'si' in metrics or metrics == 'all':
+            results[k]['si'] = si[i]
+        if 'sensitivity' in metrics or metrics == 'all':
+            results[k]['sensitivity'] = sens[i]
+        if 'rho' in metrics or metrics == 'all':
+            results[k]['rho'] = rho[i]
+        if 'snr' in metrics or metrics == 'all':
+            results[k]['snr'] = snr[i]
+        if 'fmse' in metrics or metrics == 'all':
+            results[k]['fmse'] = fmse[i]
+        if 'snr_db' in metrics or metrics == 'all':
+            results[k]['snr_db'] = snr_db[i]
+        if 'mean' in metrics or metrics == 'all':
+            results[k]['mean'] = np.mean(measures[i])
+        if 'std' in metrics or metrics == 'all':
+            results[k]['std'] = np.std(measures[i])
 
-    return tc_validate
-
-
-def disp_tc_validation(tc_validate, dec=3):
-    '''
-    Displays results of triple collocation into a table
-    '''
-
-    ref = tc_validate["reference_dataset"]
-
-    data_sources_res = tc_validate["data_sources"]
-    data_sources_names = data_sources_res.keys()
-
-    metrics_names = data_sources_res[ref].keys()
-
-    data = np.array([np.round(list(data_sources_res[k].values()), dec)
-                    for k in data_sources_names])
-    data = np.transpose(data)
-
-    format_row = "{:>12}" * (len(data_sources_names) + 1)
-    print(format_row.format("", *data_sources_names))
-    for ds, row in zip(metrics_names, data):
-        print(format_row.format(ds, *row))
-
-    print("\n The reference for the SI is:", ref)
-
-
-def tc_analysis_wavy_objects(data, ref=None,
-                             metric_list=['var_est', 'rmse', 'si',
-                                          'rho', 'mean', 'std'],
-                             calibrate=True, calibration_ref=None):
-    '''
-    Runs the triple collocation given a dictionary
-    containing three wavy objects, returns results
-    in a dictionary.
-
-    data: {'name of measurement':wavy object of satellite,
-                                 model or insitu class}
-    metric_list: Str "all" or List of the metrics to return, among 'var_est',
-    'rmse', 'si', 'rho', 'sens', 'snr', 'snr_db', 'fmse', 'mean',
-    'std'
-    ref: Name of one of the measurements, must correspond
-    to one key of results_dict. Data source to use for metrics
-    that depend on one reference data source.
-    calibrate: True or False. Choose if calibration should be applied
-    to the data or not.
-    calibration_ref: Name of the measurement which will be used to calibrate
-    the two other data sources.
-
-    returns: dict of dict of the metrics for each measurement
-    {'name of measurement': {'metric name':metric}}
-    '''
-    list_keys = list(data.keys())
-
-    if ref is None:
-        ref = list_keys[0]
-        print("Since no reference was given,",
-              ref, "is taken as a reference.")
-
-    # Fetch the 1D-arrays for each data source
-    data_bis = {}
-    for k in list_keys:
-        data_bis[k] = data[k].vars.Hs.values
-
-    # Recreate dict of data, removing the nan values
-    list_data = list(data_bis.values())
-    list_data_na_rm = remove_nan(list_data[0],
-                                 list_data[1],
-                                 list_data[2])
-
-    for i, k in enumerate(list_keys):
-        data_bis[k] = list_data_na_rm[i]
-
-    # Recreate dict of data, after calibrating
-    if calibrate:
-        if calibration_ref is None:
-            calibration_ref = list_keys[0]
-            print("Since no reference was given for the calibration,",
-                  calibration_ref, "is taken as a reference.")
-
-        # Get the two keys of data sources that are not the calibration
-        # reference in order to give the right arguments for calibration
-        keys_left = [k for k in list_keys if k != calibration_ref]
-        # Apply calibration
-        calibrated_data = calibration(data_bis[calibration_ref],
-                                      data_bis[keys_left[0]],
-                                      data_bis[keys_left[1]])
-        # Overwrite the calibrated data in the data dictionary
-        data_bis[keys_left[0]] = calibrated_data[0]
-        data_bis[keys_left[1]] = calibrated_data[1]
-
-    # Apply triple collocation analysis
-    tc_results = triple_collocation_validate(data_bis,
-                                             metric_list=metric_list,
-                                             ref=ref)
-
-    return tc_results
+    results = pd.DataFrame(results).transpose().round(dec)
+    results.attrs['ref'] = ref
+    
+    return results
 
 
 def calibration(R, A, B):
