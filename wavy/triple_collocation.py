@@ -232,6 +232,227 @@ def triple_collocation(data,
     return results
 
 
+def get_CDF(data, step, 
+            llim=None, ulim=None, 
+            data_min=None, data_max=None, 
+            dec=3, no_empty_bins=True):
+
+      N = len(data)
+      if data_max == None:
+          data_max = np.ceil(np.max(data)) + 2 
+      if data_min == None:
+          data_min = np.floor(np.min(data)) - 2
+
+      if llim==None and ulim==None:
+          bins = np.arange(data_min,data_max+step,step)
+      elif llim==None and ulim!=None:
+          bins = np.concatenate([np.arange(data_min,ulim,step),
+                                np.array([data_max])])
+      elif llim!=None and ulim==None:
+          bins = np.concatenate([np.array([data_min]), 
+                                np.arange(llim,data_max+step,step)])
+      else:
+          bins = np.concatenate([np.array([data_min]), 
+                                 np.arange(llim,ulim,step), 
+                                 np.array([data_max])])
+   
+      count_bins = [np.sum((data > bins[i]) &\
+                           (data <= bins[i+1])) for i in range(len(bins)-1)]  
+
+      idx_null = [i for i, v in enumerate(count_bins) if v == 0]
+
+      if no_empty_bins==True:
+          if len(idx_null) > 0:
+              list_bins_null = ['({},{}]'.format(round(bins[i],dec), 
+                                                 round(bins[i+1],dec))\
+                                                 for i in idx_null]
+              print('Warning: bins ' + ', '.join(list_bins_null) +\
+                    ' do not have any data.') 
+    
+              if idx_null[0]!=0:
+                  print("Invalid CDF, contains empty bins!")
+                  return None
+      
+      CDF = [np.sum(count_bins[0:i])/N for i in range(1,len(count_bins)+1)]
+
+      df_CDF = pd.DataFrame({'lower bound':bins[:-1], 
+                             'upper bound':bins[1:], 
+                             'CDF':CDF, 
+                             'count':count_bins})     
+
+      return df_CDF
+
+def CDF_matching_cal(old, CDF_old, CDF_new):
+
+    new = []
+    min_bound = np.min(CDF_new['lower bound'])
+    
+    for x_tmp in old: 
+
+        row_old_tmp = CDF_old[(x_tmp > CDF_old['lower bound']) &\
+                              (x_tmp <= CDF_old['upper bound'])].iloc[0,:]
+        b_i = row_old_tmp['upper bound']
+        b_i_1 = row_old_tmp['lower bound']
+        a_x = (x_tmp - b_i_1)/(b_i - b_i_1)
+        C_b_i = row_old_tmp['CDF']        
+        C_b_i_1 = CDF_old[CDF_old['upper bound']==b_i_1]['CDF'].values[0]
+        C_x = a_x * C_b_i_1 + (1 - a_x) * C_b_i
+                
+        row_new_tmp = CDF_new[CDF_new['CDF'] >= C_x].iloc[0,:]
+        b_k = row_new_tmp['upper bound']
+        b_k_1 = row_new_tmp['lower bound']
+        C_tild_b_k = row_new_tmp['CDF']
+
+        if b_k_1 <= min_bound:
+            x_tild = min_bound
+        else:
+            C_tild_b_k_1 =\
+                     CDF_new[CDF_new['upper bound'] == b_k_1].iloc[0,:]['CDF']
+            a_C_x =  (C_x - C_tild_b_k_1)/(C_tild_b_k - C_tild_b_k_1)
+            x_tild = a_C_x * b_k_1 + (1 - a_C_x) * b_k  
+
+        new.append(x_tild)
+
+    return np.array(new)
+    
+
+def calibration_triplets_cdf_matching(data, ref, step, seed=5):
+    
+    measure_names = list(data.keys())
+
+    size = len(data[measure_names[0]]) 
+    
+    tc_res = triple_collocation(data, metrics=['var'], ref=ref)
+    
+    np.random.seed(seed)
+    
+    max_var = np.max(tc_res['var'])
+    
+    data_err = {}
+    
+    for k in data.keys():
+    
+        if tc_res.loc[k,'var'] == max_var:
+            data_err[k] = copy.copy(data[k])
+        else: 
+            e_diff = np.random.normal(0,np.sqrt(max_var - tc_res.loc[k,'var']),
+                                      size)
+            data_err[k] =  copy.copy(data[k]) + e_diff
+        
+    data_max = np.ceil(np.max([np.max(d) for d in data_err.values()])) + 1
+    data_min = np.ceil(np.min([np.min(d) for d in data_err.values()])) - 1
+    
+    CDF_dict = {}
+    
+    max_low_idx = 0
+    min_up_idx = np.inf
+    
+    for k in data.keys():
+    
+        CDF_tmp = get_CDF(data_err[k], 
+                          data_min=data_min,
+                          data_max=data_max,
+                          step=step, 
+                          dec=3,
+                          no_empty_bins=False)
+        CDF_dict[k] = CDF_tmp
+    
+        list_null_count = [idx for idx in range(len(CDF_tmp)) if\
+                           CDF_tmp['count'][idx]==0]
+        
+        list_low_idx = [j for j in list_null_count if j < len(CDF_tmp)/2]
+        if len(list_low_idx) > 0:
+            max_low_idx_tmp = np.max(list_low_idx)
+        else: 
+            max_low_idx_tmp = 0
+    
+        list_up_idx = [j for j in list_null_count if j > len(CDF_tmp)/2]
+        if len(list_up_idx) > 0:
+            min_up_idx_tmp = np.min(list_up_idx)
+        else:
+            min_up_idx_tmp = len(CDF_tmp) - 1
+        
+        if max_low_idx_tmp > max_low_idx:
+             max_low_idx = max_low_idx_tmp
+        
+        if min_up_idx_tmp < min_up_idx:
+             min_up_idx = min_up_idx_tmp 
+    
+    for k in CDF_dict.keys():
+        
+        CDF_tmp = CDF_dict[k] 
+          
+        nb_values = CDF_tmp['count'].sum()
+        
+        core_cdf = CDF_tmp.iloc[max_low_idx+1:min_up_idx, :]
+        
+        lower_bin_cdf = CDF_tmp.iloc[:max_low_idx+1, :]
+        
+        lower_bin_cdf_df = pd.DataFrame({
+                           'lower bound':np.min(lower_bin_cdf['lower bound']), 
+                           'upper bound':np.max(lower_bin_cdf['upper bound']), 
+                           'CDF': np.sum(lower_bin_cdf['count'])/nb_values, 
+                           'count':np.sum(lower_bin_cdf['count'])
+                           },
+                           index=[0])
+        
+        upper_bin_cdf = CDF_tmp.iloc[min_up_idx:, :]
+        
+        upper_bin_cdf_df = pd.DataFrame({
+                           'lower bound':np.min(upper_bin_cdf['lower bound']), 
+                           'upper bound':np.max(upper_bin_cdf['upper bound']), 
+                           'CDF': CDF_tmp['CDF'][min_up_idx-1]+\
+                                  np.sum(upper_bin_cdf['count'])/nb_values, 
+                           'count':np.sum(upper_bin_cdf['count'])
+                           },
+                           index=[min_up_idx])
+        
+        final_cdf = pd.concat([lower_bin_cdf_df, core_cdf, upper_bin_cdf_df], 
+                              ignore_index=True)
+    
+        CDF_dict[k] = final_cdf
+    
+    max_matching = final_cdf.iloc[-1]['lower bound'] 
+    min_matching = final_cdf.iloc[0]['upper bound']
+
+    print("Upper limit for CDF matching: ", round(max_matching,3))
+    print("Lower limit for CDF matching: ", round(min_matching,3))
+    
+    idx_to_cal = (data[measure_names[0]] < max_matching) &\
+                 (data[measure_names[1]] < max_matching) &\
+                 (data[measure_names[2]] < max_matching) &\
+                 (data[measure_names[0]] > min_matching) &\
+                 (data[measure_names[1]] > min_matching) &\
+                 (data[measure_names[2]] > min_matching)
+    
+    data_to_cal = {measure_names[i]:data[measure_names[i]][idx_to_cal] for\
+                   i in range(3)}
+    
+    data_cal = {}
+    
+    for name in measure_names: 
+    
+         if name == ref: 
+             data_cal[name] = data_to_cal[ref]
+    
+         else: 
+             data_cal[name] = CDF_matching_cal(data_to_cal[name], 
+                                               CDF_dict[name], 
+                                               CDF_dict[ref])
+    
+    # Remove values that would have exceeded the upper and lower bounds after calibration
+    idx_cal = (data_cal[measure_names[0]] < max_matching) &\
+              (data_cal[measure_names[1]] < max_matching) &\
+              (data_cal[measure_names[2]] <= max_matching) &\
+              (data_cal[measure_names[0]] > min_matching) &\
+              (data_cal[measure_names[1]] > min_matching) &\
+              (data_cal[measure_names[2]] > min_matching)
+    
+    data_cal_final = {name:data_cal[name][idx_cal] for name in data_cal.keys()}
+
+    return data_cal_final
+    
+
 def calibration(R, A, B):
     '''
     Calibrate A and B relatively to R using triple collocation calibration
