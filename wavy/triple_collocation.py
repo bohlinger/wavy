@@ -453,30 +453,66 @@ def calibration_triplets_cdf_matching(data, ref, step, seed=5):
     return data_cal_final
     
 
-def calibration(R, A, B):
+def calibration_triplets_tc(data, ref, r2=0, cal_cst=False):
     '''
     Calibrate A and B relatively to R using triple collocation calibration
     constant estimates, following Gruber et al., 2016 method.
-
-    R (list of floats): Reference data to use for calibration.
-    A, B (lists of floats): Data series to calibrate relatively to the
-    reference.
+    
+    data (dict of lists of floats): Dictionary of the data to calibrate.
+    ref (string): Name of the reference data to use for calibration.
+    r2 (float): Representativeness error
+    cal_cst (bool): If True, returns a dictionary for the calibration
+                    constantes in addition to the calibrated data. 
 
     returns:
-    A_R, B_R (lists of floats): Calibrated data series
+    data_cal (dict of lists of floats): Dictionary of the calibrated data series
     '''
-    c_AB = np.cov(A, B)[0, 1]
+    R = data[ref]
+
+    measure_names = list(data.keys())
+
+    if ref == measure_names[0]:
+        A = data[measure_names[1]]
+        B = data[measure_names[2]]
+        idx_R = 0
+        idx_A = 1
+        idx_B = 2
+    elif ref == measure_names[1]:
+        A = data[measure_names[0]]
+        B = data[measure_names[2]]
+        idx_R = 1
+        idx_A = 0
+        idx_B = 2
+    elif ref == measure_names[2]:
+        A = data[measure_names[0]]
+        B = data[measure_names[1]]
+        idx_R = 2
+        idx_A = 0
+        idx_B = 1
+    else:
+        print("Invalid reference. {} does not appear in the keys of the input data dictionary.")
+   
+    c_AB = np.cov(A, B)[0, 1] 
     c_RA = np.cov(R, A)[0, 1]
     c_RB = np.cov(R, B)[0, 1]
 
     a_A = c_AB/c_RB
-    a_B = c_AB/c_RA
-    a_R = 1
+    a_B = c_AB/(c_RA - a_A*r2)
+    a_R = 1.0
 
     A_R = (a_R/a_A)*(A - np.mean(A)) + np.mean(R)
     B_R = (a_R/a_B)*(B - np.mean(B)) + np.mean(R)
 
-    return A_R, B_R
+    res = {idx_R:R, idx_A:A_R, idx_B:B_R}
+    res_cst = {idx_R:a_R, idx_A:a_A, idx_B:a_B}
+    
+    data_cal = {measure_names[i]:res[i] for i in range(3)}
+    cal_cst = {measure_names[i]:res_cst[i] for i in range(3)}
+
+    if cal_cst==False:
+        return data_cal
+    else:
+        return data_cal, cal_cst
 
 
 def bootstrap_ci(result_dict,
