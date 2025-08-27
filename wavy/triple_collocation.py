@@ -454,7 +454,7 @@ def calibration_triplets_cdf_matching(data, ref, step, seed=5):
     return data_cal_final
     
 
-def calibration_triplets_tc(data, ref, r2=0, cal_cst=False):
+def calibration_triplets_tc(data, ref, r2=0, return_cal_cst=False):
     '''
     Calibrate A and B relatively to R using triple collocation calibration
     constant estimates, following Gruber et al., 2016 method.
@@ -512,7 +512,7 @@ def calibration_triplets_tc(data, ref, r2=0, cal_cst=False):
     data_cal = {measure_names[i]:res[i] for i in range(3)}
     cal_cst = {measure_names[i]:res_cst[i] for i in range(3)}
 
-    if cal_cst==False:
+    if return_cal_cst==False:
         return data_cal
     else:
         return data_cal, cal_cst
@@ -549,7 +549,6 @@ def least_squares_merging(data, tc_results=None, return_var=False, **kwargs):
                                         ref=ref,
                                         dec=dec)
 
-    print(tc_results)
     s_0_sq = tc_results['var'][measure_names[0]]
     s_1_sq = tc_results['var'][measure_names[1]]
     s_2_sq = tc_results['var'][measure_names[2]]
