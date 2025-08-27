@@ -11,6 +11,41 @@ from datetime import datetime, timedelta
 import random
 
 
+def filter_collocation_distance(data, dist_max, name):
+    """ 
+    Filters the datasets according to a maximum collocation
+    distance between satellite and in-situ.
+
+    data (dict of wavy objects): wavy objects to filter given
+                                 the maximum collocation distance.
+                                 One of the objects must contain
+                                 the collocation distance.
+    dist_max (float): Maximum collocation distance in km.
+    name (string): key from the dictionary that refers to the
+                   wavy object containing the distance
+
+    returns:
+    data_filtered (dict of wavy objects): dictionary of the wavy objects 
+                                 filtered using the maximum collocation 
+                                 distance given.
+    """
+    data_filtered = {}
+
+    dist_data = data[name].vars.colloc_dist.values
+    
+    idx_dist = (dist_data <= dist_max)
+
+    for k in data.keys():
+
+        wavy_obj_tmp = copy.deepcopy(data[k])
+        wavy_obj_tmp.vars = wavy_obj_tmp.vars.where(idx_dist).\
+                                              dropna(dim='time')
+
+        data_filtered[k] = wavy_obj_tmp
+        
+    return data_filtered
+
+
 def remove_nan(A, B, C):
     '''
     Find indexes of nan values in each of three
