@@ -46,6 +46,35 @@ def filter_collocation_distance(data, dist_max, name):
     return data_filtered
 
 
+def filter_values(data, ref_data, min=0.0, max=25.0, return_ref_data=False):
+    '''
+    Filters the values for each data serie given as input. 
+
+    data (dict of arrays): data to filter
+    ref_data (string or array): Either a string corresponding
+                    to a key in data or an array. Values for all
+                    data are filtered with respect to the ref_data.
+    min (float): minimum value that ref_data should take. 
+    max (float): maximum value that ref_data should take.
+    '''
+
+    if isinstance(ref_data, str):
+        ref_data = data[ref_data]
+    
+    idx = (ref_data >= min) & (ref_data < max)
+
+    data_filtered = {}
+
+    for k in data.keys():
+        data_filtered[k] = data[k][idx]
+    
+    if return_ref_data == False:
+        return data_filtered
+    else:
+        ref_data_filtered=ref_data[idx]
+        return data_filtered, ref_data_filtered
+
+
 def remove_nan(A, B, C):
     '''
     Find indexes of nan values in each of three
