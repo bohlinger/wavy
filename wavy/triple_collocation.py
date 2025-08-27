@@ -440,7 +440,8 @@ def calibration_triplets_cdf_matching(data, ref, step, seed=5):
                                                CDF_dict[name], 
                                                CDF_dict[ref])
     
-    # Remove values that would have exceeded the upper and lower bounds after calibration
+    # Remove values that would have exceeded the upper and lower 
+    # bounds after calibration
     idx_cal = (data_cal[measure_names[0]] < max_matching) &\
               (data_cal[measure_names[1]] < max_matching) &\
               (data_cal[measure_names[2]] <= max_matching) &\
@@ -465,7 +466,8 @@ def calibration_triplets_tc(data, ref, r2=0, cal_cst=False):
                     constantes in addition to the calibrated data. 
 
     returns:
-    data_cal (dict of lists of floats): Dictionary of the calibrated data series
+    data_cal (dict of lists of floats): Dictionary of the calibrated 
+                                        data series
     '''
     R = data[ref]
 
@@ -490,7 +492,8 @@ def calibration_triplets_tc(data, ref, r2=0, cal_cst=False):
         idx_A = 0
         idx_B = 1
     else:
-        print("Invalid reference. {} does not appear in the keys of the input data dictionary.")
+        print("Invalid reference. {} does not appear\
+               in the keys of the input data dictionary.")
    
     c_AB = np.cov(A, B)[0, 1] 
     c_RA = np.cov(R, A)[0, 1]
@@ -513,6 +516,57 @@ def calibration_triplets_tc(data, ref, r2=0, cal_cst=False):
         return data_cal
     else:
         return data_cal, cal_cst
+
+
+def least_squares_merging(data, tc_results=None, return_var=False, **kwargs):
+    '''
+    Merges the three data series given as input following the least 
+    squares merging method described in Yilmaz et al., 2012. 
+
+    data (dict of lists of floats): Dictionary of the data to calibrate.
+    tc_results (pandas DataFrame): table of the results of triple collocation
+               for the given data. Must contain the variance. If None, the 
+               triple collocation is performed using the data and kwargs given.
+    return_var (bool): If True, returns the variance of the error of the merged 
+               data in addition to the merged data.
+
+    returns:
+    least_squares_merge (numpy array): series of merged data
+    least_squares_var (float): variance of error of the merged data    
+    '''
+    measure_names = list(data.keys())
+    data_0 = data[measure_names[0]]
+    data_1 = data[measure_names[1]]
+    data_2 = data[measure_names[2]]
+
+    if tc_results is None:
+        r2 = kwargs.get('r2', 0)
+        ref = kwargs.get('ref', None)
+        dec = kwargs.get('dec', 3)
+        tc_results = triple_collocation(data, 
+                                        metrics=['var'],
+                                        r2=r2,
+                                        ref=ref,
+                                        dec=dec)
+
+    print(tc_results)
+    s_0_sq = tc_results['var'][measure_names[0]]
+    s_1_sq = tc_results['var'][measure_names[1]]
+    s_2_sq = tc_results['var'][measure_names[2]]
+    
+    s_12 = s_1_sq * s_2_sq
+    s_02 = s_0_sq * s_2_sq
+    s_01 = s_0_sq * s_1_sq
+    w_0 = s_12/(s_01+s_02+s_12)
+    w_1 = s_02/(s_01+s_02+s_12)
+    w_2 = s_01/(s_01+s_02+s_12)
+    least_squares_merge = np.array(w_0 * data_0 + w_1 * data_1 + w_2 * data_2)
+    least_squares_var = w_0**2 * s_0_sq + w_1**2 * s_1_sq + w_2**2 * s_2_sq
+
+    if return_var==False:
+        return least_squares_merge
+    else: 
+        return least_squares_merge, least_squares_var
 
 
 def bootstrap_ci(result_dict,
