@@ -75,6 +75,43 @@ def filter_values(data, ref_data, min=0.0, max=25.0, return_ref_data=False):
         return data_filtered, ref_data_filtered
 
 
+def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05): 
+    '''
+    Filter data when the two given model data differ by more than a given
+    percentage. Dynamical collocation filtering method for collocation
+    refers to Dodet et al., 2025.
+
+    data (dict of lists): data to filter 
+    mod_1 (string or list): Either key from data for the first model data
+                            or the list of values of the model directly
+    mod_2 (string or list): Either key from data for the first model data
+                            or the list of values of the model directly
+    max_rel_diff (float): Maximum relative difference (abs(mod_1-mod_2)/mod_1)
+                          allowed between values from mod_1 and mod_2.
+
+    returns:
+    data_filtered (dict of lists): filtered data
+    '''
+
+    if isinstance(mod_1, str):
+        mod_1 = data[mod_1]
+
+    if isinstance(mod_2, str):
+        mod_2 = data[mod_2]
+
+    mod_1 = np.array(mod_1)
+    mod_2 = np.array(mod_2)
+    
+    idx = np.abs(mod_1 - mod_2)/mod_1 < 0.05
+
+    data_filtered = {}
+
+    for k in data.keys():
+        data_filtered[k] = data[k][idx]
+
+    return data_filtered
+
+
 def remove_nan(A, B, C):
     '''
     Find indexes of nan values in each of three
