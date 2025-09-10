@@ -669,6 +669,112 @@ def least_squares_merging(data, tc_results=None, return_var=False, **kwargs):
         return least_squares_merge, least_squares_var
 
 
+def spectra_cco(cco, fs, returns='average',nsample=64):
+    """
+    Calculate the power spectra for both model and observation series 
+    of a collocation class object. The series are separated into 
+    samples of a given length. Up to one missing value for each
+    sample is filled with interpolation. A Hamming window is applied
+    for each sample. 
+
+    cco (collocation_class object or xarray dataset): collocation class object 
+              for which the spectra are calculated. If xarray.dataset 
+              is given, it must have a single time dimension and obs_values 
+              and model_values variables.
+    fs (float): frequency of the time series
+    returns (str): If 'average' returns the average power spectra of the time series. 
+                   If 'list' returns lists of power spectra of each samples of the given series.
+    nsample (int): size of the samples to calculate the power spectra. 
+
+    return:
+    PS_mod (numpy array): average spectra of cco model values or individual spectra for each sample
+    PS_obs (numpy array): average spectra of cco observation values or individual spectra for each sample
+    f (numpy array): frequencies for the spectra
+    """
+    from scipy.signal import periodogram
+    from wavy.collocation_module import collocation_class as cc
+    
+    if isinstance(cco, cc): 
+        cco_vars = cco.vars.dropna(dim='time')
+    elif isinstance(cco, xr.Dataset):
+        cco_vars = cco.dropna(dim='time')
+    
+    step_cco = [(cco_vars.time.values[i+1] - cco_vars.time.values[i])/np.timedelta64(1,'s') for\
+                i in range(len(cco_vars.time)-1)]
+    step_cco.append(np.nan)
+    median_step = np.median(step_cco)
+        
+    i_0 = 0
+    i_1 = i_0 + nsample
+    
+    list_PS_obs = []
+    list_PS_mod = []
+    
+    while i_1 < len(cco_vars.time.values): 
+    
+        sample_tmp = cco_vars.isel(time=range(i_0,i_1))
+    
+        step_tmp = [(sample_tmp.time.values[i+1] - sample_tmp.time.values[i])/np.timedelta64(1,'s') for\
+                    i in range(len(sample_tmp.time)-1)]
+        step_tmp.append(np.nan)  
+        
+        idx_1_na = np.argwhere((step_tmp > 1.5*median_step) & (step_tmp < 2.5*median_step))
+        idx_2_na = np.argwhere(step_tmp > 2.5*median_step)
+    
+        if len(idx_2_na) > 0:
+            i_0 = idx_2_na[-1][0]
+            i_1 = i_0 + nsample
+            continue
+    
+        for idx in idx_1_na:
+            idx = idx[0]
+        
+            time_idx = sample_tmp.time.values[idx]
+            obs_idx = sample_tmp.obs_values.values[idx]
+            mod_idx = sample_tmp.model_values.values[idx]
+            time_idx_1 = sample_tmp.time.values[idx+1]
+            obs_idx_1 = sample_tmp.obs_values.values[idx+1]
+            mod_idx_1 = sample_tmp.model_values.values[idx+1]
+            
+            time_between = time_idx + np.timedelta64(int(1000*median_step),'ms')
+            obs_between= (obs_idx + obs_idx_1)/2
+            mod_between = (mod_idx + mod_idx_1)/2 
+        
+            ds_between = xr.Dataset(
+                                data_vars={'obs_values': (('time'), [obs_between]),
+                                           'model_values': (('time'), [mod_between])},
+                                coords={'time': [time_between]}
+                                   ) 
+    
+            sample_tmp = xr.concat([sample_tmp, ds_between], dim='time').sortby('time')
+    
+        sample_tmp = sample_tmp.isel(time=range(0,nsample))
+        
+        obs_val_tmp = sample_tmp.obs_values.values
+        mod_val_tmp = sample_tmp.model_values.values
+        
+        f, PS_obs_tmp =  periodogram(obs_val_tmp, fs=fs, window='hamming')
+        f, PS_mod_tmp =  periodogram(mod_val_tmp, fs=fs, window='hamming')
+    
+        list_PS_obs.append(PS_obs_tmp)
+        list_PS_mod.append(PS_mod_tmp)
+    
+        i_0 = i_1 - len(idx_1_na)
+        i_1 = i_0 + nsample
+    
+    mean_PS_mod = np.mean(np.array(list_PS_mod), axis=0)
+    mean_PS_obs = np.mean(np.array(list_PS_obs), axis=0)
+    
+    if returns == 'list':
+        PS_mod = np.array(list_PS_mod)
+        PS_obs = np.array(list_PS_obs)
+    elif returns == 'average':
+        PS_mod = mean_PS_mod
+        PS_obs = mean_PS_obs
+        
+    return PS_mod, PS_obs, f
+
+
 def bootstrap_ci(result_dict,
                  conf=95.,
                  sample_size=None,
