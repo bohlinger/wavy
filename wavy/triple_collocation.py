@@ -9,6 +9,7 @@ import pandas as pd
 import copy
 from datetime import datetime, timedelta
 import random
+import xarray as xr
 
 
 def filter_collocation_distance(data, dist_max, name):
@@ -773,6 +774,42 @@ def spectra_cco(cco, fs, returns='average',nsample=64):
         PS_obs = mean_PS_obs
         
     return PS_mod, PS_obs, f
+    
+    
+def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq'):
+    """
+    Estimates the representativeness error r2 by integrating the difference
+    between the average power spectra of the model and the observations. 
+    Integrates up to a given threshold resolution (inverse of the frequency), 
+    or from a given threshold frequency. 
+    
+    PS_mod (numpy array): power spectra for the model
+    PS_obs (numpy array): power spectra for the observations
+    f (numpy array): frequencies of the power spectra
+    threshold (float): either upper resolution to integrate to, or minimum 
+                       frequency to integrate from
+    threshold_type (str): indicate whether the threshold corresponds to a minimum 
+                          frequency ('freq') or to a maximum resolution ('inv_freq') 
+
+    return:
+    r2 (float): representativeness error estimate
+    """
+    freq_step = f[1] - f[0]
+    diff_PS = PS_obs - PS_mod
+    weighted_diff_PS = freq_step*diff_PS
+
+    if threshold_type == 'freq':
+        if threshold==0:
+            threshold=np.inf
+        else:
+            threshold = 1/threshold    
+    
+
+    f_1 = [1/f[i] if f[i] != 0 else np.inf for i in range(len(f)) ]
+    idx_threshold = np.argwhere(np.array(f_1) <= threshold)[0][0]
+    r2 = np.sum(weighted_diff_PS[idx_threshold:])
+    
+    return r2
 
 
 def bootstrap_ci(result_dict,
