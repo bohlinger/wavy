@@ -98,16 +98,20 @@ With: :math:`\epsilon_{x} \sim \mathcal{N}(0,0.1)`, :math:`\epsilon_{y} \sim \ma
    >>> import numpy as np
    >>> n = len(df)
    >>> np.random.seed(1)
-   >>> e_x = np.random.normal(0, 0.01, n)
+   >>> e_x = np.random.normal(0, 0.1, n)
    >>> np.random.seed(5)
-   >>> e_y = np.random.normal(0, 0.04, n)
+   >>> e_y = np.random.normal(0, 0.2, n)
    >>> np.random.seed(11)
-   >>> e_z = np.random.normal(0, 0.04, n)
+   >>> e_z = np.random.normal(0, 0.2, n)
 
    >>> # Generating the simulated measurements
    >>> df['x'] = df['t'] + e_x
    >>> df['y'] = a_y*df['t'] + b_y + e_y
    >>> df['z'] = a_z*df['t'] + b_z + e_z
+   
+   >>> # Save data into a dictionary 
+   >>> data = df[['x', 'y', 'z']].to_dict(orient='list')
+   
    
 Now we can have a look at the generated measurements: 
 
@@ -116,9 +120,9 @@ Now we can have a look at the generated measurements:
    >>> import matplotlib.pyplot as plt
    >>> fig, ax = plt.subplots(1,1,figsize=(12,5))
    >>> g1 = ax.plot(df['t'], c='black', label='$t$')
-   >>> g2 = ax.scatter(np.arange(0,n),df['x'], c='#d73027', alpha=0.7, marker='.', label='$x$')
-   >>> g3 = ax.scatter(np.arange(0,n),df['y'], c='#fc8d59', alpha=0.7, marker='.', label='$y$')
-   >>> g4 = ax.scatter(np.arange(0,n),df['z'], c='#4575b4', alpha=0.7, marker='.',label='$z$')
+   >>> g2 = ax.scatter(np.arange(0,n),data['x'], c='#d73027', alpha=0.7, marker='.', label='$x$')
+   >>> g3 = ax.scatter(np.arange(0,n),data['y'], c='#fc8d59', alpha=0.7, marker='.', label='$y$')
+   >>> g4 = ax.scatter(np.arange(0,n),data['z'], c='#4575b4', alpha=0.7, marker='.',label='$z$')
    >>> ax.legend(fontsize=13)
    >>> plt.show()
 
@@ -131,9 +135,8 @@ Before applying the Triple Collocation analysis, let us now calibrate :math:`y` 
 
    >>> import wavy.triple_collocation as tc
 
-   >>> df['y^x'], df['z^x'] = tc.calibration(R=df['x'].values, 
-   ...                                       A=df['y'].values, 
-   ...                                       B=df['z'].values)
+   >>> data_cal = tc.calibration_triplets_tc(data, ref='x')
+
 
 Let us look at the series after calibration. 
 
@@ -141,9 +144,9 @@ Let us look at the series after calibration.
 
    >>> fig, ax = plt.subplots(1,1,figsize=(12,5))
    >>> g1 = ax.plot(df['t'], c='black', label='$t$')
-   >>> g2 = ax.scatter(np.arange(0,n),df['x'], c='#d73027', alpha=0.7, marker='.', label='$x$')
-   >>> g3 = ax.scatter(np.arange(0,n),df['y^x'], c='#fc8d59', alpha=0.7, marker='.', label='$y^x$')
-   >>> g4 = ax.scatter(np.arange(0,n),df['z^x'], c='#4575b4', alpha=0.7, marker='.',label='$z^x$')
+   >>> g2 = ax.scatter(np.arange(0,n),data_cal['x'], c='#d73027', alpha=0.7, marker='.', label='$x$')
+   >>> g3 = ax.scatter(np.arange(0,n),data_cal['y'], c='#fc8d59', alpha=0.7, marker='.', label='$y^x$')
+   >>> g4 = ax.scatter(np.arange(0,n),data_cal['z'], c='#4575b4', alpha=0.7, marker='.',label='$z^x$')
    >>> ax.legend(fontsize=13)
    >>> plt.show()
    
@@ -151,42 +154,24 @@ Let us look at the series after calibration.
 .. image:: ./docs_fig_tc_2.png
    :scale: 80
 
-Let us first prepare the data, it should take the form of a dictionnary as follows: 
-
-.. code-block:: python3
-
-   >>> data = {'x':df['x'].values,
-   ...         'y^x':df['y^x'].values,
-   ...         'z^x':df['z^x'].values}
-
-or directly if using pandas as in this example: 
-
-.. code-block:: python3
-
-   >>> data = df[['x', 'y^x', 'z^x']].to_dict(orient='list')
 
 Then we can run the Triple Collocation analysis. A reference is defined for the metrics that are calculated relatively to one of the three measurements.
 
 .. code-block:: python3
 
-   >>> ref='x'
-   >>> tc_results = tc.triple_collocation_validate(data,ref=ref)
+   >>> tc_results = tc.triple_collocation(data_cal,ref='x')
 
 This returns a dictionary with the results of the Triple Collocation analysis. It can be displayed in a table as follows (the results are rounded to the third decimal by default):
 
 .. code-block:: python3
 
-   >>> tc.disp_tc_validation(tc_results)
-   
-                       x         y^x         z^x
-     var_est        0.01        0.16       0.024
-        RMSE       0.098         0.4       0.155
-          SI       4.658      18.936       7.319
-         rho       0.981       0.759       0.955
-        mean       2.114       2.114       2.114
-         std       0.717       0.815       0.727
+   >>> tc_results
 
-     The reference for the SI is: x
+          var   rmse     si    rho   mean    std
+     x  0.010  0.098  0.047  0.981  2.114  0.717
+     y  0.160  0.400  0.189  0.759  2.114  0.815
+     z  0.024  0.155  0.073  0.955  2.114  0.727
+
 
 Now we can check the variances of error estimated with Triple collocation are indeed the ones we input when simulating the data. 
 So in theory we had (also rounding to the third decimal): 
