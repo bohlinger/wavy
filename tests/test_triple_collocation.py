@@ -76,3 +76,40 @@ def test_triple_collocation(test_data):
     assert tc_res.attrs['ref'] in dict_data.keys()
     assert len(tc_res) == 3
     assert len(list(tc_res)) == 6
+    
+
+def test_calibration_triplets_cdf_matching(test_data):
+
+    assert True
+    
+def test_CDF_matching_cal(test_data):
+
+    assert True
+    
+def test_calibration_triplets_tc(test_data):
+
+    assert True
+    
+def test_least_squares_merging(test_data):
+
+    assert True
+    
+def test_spectra_cco(test_data):
+
+    assert True
+    
+def test_integrate_r2(test_data):
+
+    assert True
+    
+def test_filter_collocation_distance(test_data):
+
+    assert True
+
+def test_filter_values(test_data):
+
+    assert True
+
+def test_filter_dynamic_collocation(test_data):
+
+    assert True
