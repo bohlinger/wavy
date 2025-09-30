@@ -133,84 +133,6 @@ def remove_nan(A, B, C):
     return A, B, C
 
 
-def mixed_second_moment(A, B):
-    '''
-    Returns the mixed second moment
-    of given lists A and B
-    '''
-    N = len(A)
-    mixed_serie_tmp = [A[i]*B[i] for i in range(N)]
-
-    return np.sum(mixed_serie_tmp)/N
-
-
-def covariance(A, B):
-    '''
-    Returns the covariance of lists
-    A and B
-    '''
-    return mixed_second_moment(A, B) - np.mean(A)*np.mean(B)
-
-
-def variance_estimates(A, B, C):
-    '''
-    Returns the estimate of vairance of random
-    error from list A, according to triple
-    collocation method with the covariance notation
-    as in Gruber et al., 2016
-    '''
-    return covariance(A, A) -\
-        (covariance(A, B)*covariance(A, C))/covariance(B, C)
-
-
-def RMSE(A, B, C):
-    '''
-    Returns the Root Mean Square Error of
-    error from A
-    '''
-    return np.sqrt(variance_estimates(A, B, C))
-
-
-def SI(A, B, C, ref):
-    '''
-    Returns the scatter index from A, with
-    reference to ref measurements
-    '''
-    return 100 * RMSE(A, B, C) / np.mean(ref)
-
-
-def sensitivity_estimates(A, B, C):
-    '''
-    Returns sensitivity estimates of measurements
-    A according to Gruber et al., 2016 definition
-    '''
-    return (covariance(A, B)*covariance(A, C)) / covariance(B, C)
-
-
-def SNR(A, B, C, var_err_A):
-    '''
-    Returns signal-to-noise ratio of measurements A
-    according to Gruber et al., 2016 definition
-    '''
-    return sensitivity_estimates(A, B, C)/var_err_A
-
-
-def fMSE(A, B, C, var_err_A):
-    '''
-    Returns fractional Mean Square Error of measurements A
-    according to Gruber et al., 2016 definition
-    '''
-    return 1/(1+SNR(A, B, C, var_err_A))
-
-
-def SNR_dB(A, B, C, var_err_A):
-    '''
-    Returns signal-to-noise ratio in dB of measurements A
-    according to Gruber et al., 2016 definition
-    '''
-    return 10*np.log10(sensitivity_estimates(A, B, C)/var_err_A)
-
-
 def triple_collocation(data,
                        metrics=['var', 'rmse', 'si',
                                 'rho', 'mean', 'std'],
@@ -782,7 +704,7 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
     between the average power spectra of the model and the observations. 
     Integrates up to a given threshold resolution (inverse of the frequency), 
     or from a given threshold frequency. 
-    
+    s
     PS_mod (numpy array): power spectra for the model
     PS_obs (numpy array): power spectra for the observations
     f (numpy array): frequencies of the power spectra
@@ -810,66 +732,3 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
     r2 = np.sum(weighted_diff_PS[idx_threshold:])
     
     return r2
-
-
-def bootstrap_ci(result_dict,
-                 conf=95.,
-                 sample_size=None,
-                 metric='var_est',
-                 n_bootstrap=100,
-                 ref=None):
-    '''
-    Calculate 95% confidence intervals for a given estimate
-    returned by triple_collocation_validate function, using
-    bootstrap sampling.
-
-    results_dict: {'name of measurement':list of values}
-    sample_size: size of the bootstrap samples that will
-    be drawn from the data.
-    metric: metric for which the confidence interval is
-    required. Must be one of the list that can be given
-    to triple_collocation_validate metric_list argument.
-    n_bootstrap: number of generated bootstrap samples.
-    ref: Name of one of the measurements, must correspond
-    to one key of results_dict
-
-    returns: dict containing mean, upper and lower
-    value of the 95% confidence interval for each
-    data source.
-    {'name of measurement': {'metric name':metric}}
-    '''
-    measure_names = list(result_dict.keys())
-    measures = list(result_dict.values())
-
-    if ref is None:
-        ref = measure_names[0]
-    if sample_size is None:
-        sample_size = len(measures[0])
-
-    indexes = np.arange(0, len(measures[0]))
-
-    dict_res_tc = {m: [] for m in measure_names}
-
-    for i in range(n_bootstrap):
-
-        rand_ind_tmp = random.choices(indexes, k=sample_size)
-        result_dict_tmp = {key: [result_dict[key][j] for j in rand_ind_tmp] for
-                           key in measure_names}
-        tc_validate_tmp = triple_collocation_validate(result_dict_tmp,
-                                                      metric_list=[metric],
-                                                      ref=ref)
-
-        for m in measure_names:
-            dict_res_tc[m].append(
-                list(tc_validate_tmp['data_sources'][m].values())[0]
-                                 )
-
-    dict_ci = {m: {} for m in measure_names}
-    for m in measure_names:
-        dict_ci[m]['mean'] = np.mean(dict_res_tc[m])
-        percentiles = np.percentile(dict_res_tc[m],
-                                    [(100-conf)/2, conf + (100-conf)/2])
-        dict_ci[m]['ci_l'] = percentiles[0]
-        dict_ci[m]['ci_u'] = percentiles[1]
-
-    return dict_ci
