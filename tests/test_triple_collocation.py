@@ -81,14 +81,44 @@ def test_triple_collocation(test_data):
 def test_calibration_triplets_cdf_matching(test_data):
 
     assert True
-    
-def test_CDF_matching_cal(test_data):
-
-    assert True
-    
+        
 def test_calibration_triplets_tc(test_data):
 
-    assert True
+    # Wavy objects
+    # Import in-situ data
+    ico = ic(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='history_cmems_NRT',
+             name='Norne')
+    ico.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_ico.nc")
+                              )
+    # Import satellite data
+    sco = sc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='CCIv1_L3',
+             name='multi')
+    sco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_sco.nc")
+                              )
+    # Import model data
+    mco = mc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='NORA3_hc_waves')
+    mco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_mco.nc")
+                              )
+    # Create dictionary for triple collocation function
+    dict_data = {'insitu': ico.vars.Hs.values, 
+                 'satellite': sco.vars.Hs.values,
+                 'model': mco.vars.Hs.values}
+    # Apply triple collocation
+    ref = 'insitu'
+    
+    data_cal = tc.calibration_triplets_tc(dict_data, ref=ref)
+    
+    assert list(dict_data.keys()) == list(data_cal.keys())
+
     
 def test_least_squares_merging(test_data):
 
