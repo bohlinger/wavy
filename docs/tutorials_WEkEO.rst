@@ -31,9 +31,9 @@ Add it to jupyter:
 Restart JupyterLab Kernel List and refresh your JupyterLab tab in WEkEO.
 Go to Kernel → Change Kernel, and you should see Python (wavyopen) in the list.
 
-Create a project directory and the usual setup with config, data, and scrips. Now, you can almoist proceed as usual but a hack needs to be made for the invisible dot-files.
+Create a project directory and the usual setup with config, data, and scripts. Now, you can almost proceed as usual but a minor hack needs to be made for the invisible dot-files.
 
-To create an .env file at the project root dir, first create a file called something visible like envtmp and put in all information **wavy** needs like:
+To create an .env file at the project root directory, first create a file called something visible like envtmp and put in all information **wavy** needs like:
 
 .. code-block:: bash
 
@@ -59,7 +59,7 @@ Then cp your envtmp to .env, i.e.
 
    cp envtmp .env
    
-to establish the invisible .env-file and voilà everything should be in place.
+to establish the invisible .env-file and voilà, everything should be in place.
 
 As usual you have to ammend your config scripts to efficiently use **wavy**. This is done as usual but let's do one example with it. Go to your config directory and run:
 
@@ -67,7 +67,7 @@ As usual you have to ammend your config scripts to efficiently use **wavy**. Thi
 
    wavyCFG --f satellite_cfg.yaml --path ./. --t minimal
 
-Then ammend the paths for downloading (trgt_tmplt) and for wavy_input (src_tmplt). In my case the config file then looks like:
+Then open satellite_cfg.yaml and ammend the paths for downloading (trgt_tmplt) and for wavy_input (src_tmplt). In my case the config file then looks like:
 
 .. code-block:: yaml
 
@@ -95,19 +95,19 @@ Then ammend the paths for downloading (trgt_tmplt) and for wavy_input (src_tmplt
         misc: {processing_level: null, provider: null, obs_type: null}
         tags: null
 
-Then wavy can download satellite data and retrieve FROST data. For satellite do e.g.:
+Then, **wavy** can download satellite data and retrieve FROST data. For satellite do e.g.:
 
 .. code-block:: bash
 
     wavyDownload --sd 20250101 --ed 20250102 --nID cmems_L3_NRT --name s3a
 
 
-Now you can try out lines like in the other tutorials, e.g.:
+Now, you can try out lines like in the other tutorials, e.g.:
 
 .. image:: ./wavy_WEkEO_example.png
 
 
-In the Jupyter notebook on WEkEO it may be beneficial to damped the quite verbose output from wavy starting the processing cells with:
+In the Jupyter notebook on WEkEO it may be beneficial to tune down the quite verbose output from **wavy** starting the processing cells with:
 
 .. code-block:: bash
 
