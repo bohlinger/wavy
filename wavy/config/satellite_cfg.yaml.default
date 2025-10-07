@@ -16,6 +16,7 @@ cmems_L3_NRT:
         c2: c2
         j3: j3
         h2b: h2b
+        h2c: h2c
         al: al
         cfo: cfo
         s6a: s6a
@@ -36,7 +37,7 @@ cmems_L3_NRT:
     wavy_input:
         src_tmplt:
         fl_tmplt:
-        strsub:
+        strsub: ['name']
         path_date_incr_unit: 'm'
         path_date_incr: 1
     # optional, if not defined the class default is used

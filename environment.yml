@@ -26,6 +26,8 @@ dependencies:
   - pylint
   - yapf
   - sphinx
+  - sphinx-autoapi
+  - sphinx_rtd_theme
   - python-dotenv
   - xdg
   - geojson>=2.5

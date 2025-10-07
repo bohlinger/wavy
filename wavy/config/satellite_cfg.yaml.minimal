@@ -15,6 +15,7 @@ cmems_L3_NRT:
         c2: c2
         j3: j3
         h2b: h2b
+        h2c: h2c
         al: al
         cfo: cfo
         s6a: s6a

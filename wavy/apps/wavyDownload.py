@@ -40,6 +40,7 @@ def main(sd, ed, nid, name, path, nproc):
             \n al - SARAL/AltiKa\n
             \n cfo - CFOSAT\n
             \n h2b - HaiYang-2B\n
+            \n h2c - HaiYang-2C\n
             \n s6a - Sentinel-6A Michael Freilich (reference mission)\n
             \n swon - SWOT nadir altimeter\n
             \n
