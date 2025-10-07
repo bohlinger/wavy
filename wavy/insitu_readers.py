@@ -324,7 +324,7 @@ def get_nc_thredds_static_coords_single_file(**kwargs):
                               cfg, meta)
 
     # read all paths
-    ds = xr.open_dataset(pathlst[0])
+    ds = xr.open_dataset(pathlst[0], engine='netcdf4')
     ds_sort = ds.sortby(timestr)
 
     ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
@@ -380,7 +380,7 @@ def get_cmems(**kwargs):
     # build a list of datasets using files that matches given dates
     for p in pathlst:
         try:
-            ds = xr.open_dataset(p)    
+            ds = xr.open_dataset(p, engine='netcdf4')
             ds = ds[var_list]
 
             # builds the dictionary given as an argument to

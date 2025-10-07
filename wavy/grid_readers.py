@@ -58,7 +58,7 @@ def read_ww3_unstructured_to_grid(**kwargs):
     # retrieve sliced data
     ds_lst = []
     for p in pathlst:
-        ds = xr.open_dataset(p)
+        ds = xr.open_dataset(p, engine='netcdf4')
         # subsample times accroding to temporal range
         if sd == ed:
             ds = ds.sel({timestr: sd})

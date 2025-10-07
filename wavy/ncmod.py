@@ -49,7 +49,7 @@ def check_if_ncfile_accessible(fstr):
     # but cannot handle escape characters (apparently)
     fstr_repl = fstr.replace('\\', '')
     try:
-        xs = xr.open_dataset(fstr_repl)
+        ds = xr.open_dataset(fstr_repl, engine='netcdf4')
         return True
     except (OSError, FileNotFoundError) as e:
         print("Desired file not accessible")
@@ -62,7 +62,8 @@ def read_netcdfs(paths, dim='time', decode_times=None, use_cftime=None):
         # use a context manager, to ensure the file gets closed after use
         with xr.open_dataset(path,
                 decode_times=decode_times,
-                use_cftime=use_cftime) as ds:
+                use_cftime=use_cftime,
+                engine='netcdf4') as ds:
             # use it after closing each original file
             ds.load()
             return ds
@@ -88,7 +89,8 @@ path, remoteHostName, usr, pw, decode_times=None, use_cftime=None):
     tmp_path = build_usr_pw_path(path, remoteHostName, usr, pw)
     ds = xr.open_dataset(tmp_path,
                          decode_times=decode_times,
-                         use_cftime=use_cftime)
+                         use_cftime=use_cftime,
+                         engine='netcdf4')
     return ds
 
 def read_netcdfs_naive(paths, varnames, varalias):
@@ -180,7 +182,9 @@ def build_xr_ds_from_dict(dict_var, var_name_ref):
 
 def read_netcdfs_KF(paths, dim='time'):
     # https://github.com/knutfrode/concepts/blob/main/Open_MFDataset_overlap.ipynb
-    datasets = [xr.open_dataset(p, chunks='auto') for p in paths]
+    datasets = [xr.open_dataset(p,
+                                chunks='auto',
+                                engine='netcdf4') for p in paths]
     print('Concatenating...')
     ds = xr.concat(datasets, dim=dim,
                    compat='override',
@@ -196,13 +200,13 @@ def read_mf_netcdfs(paths):
 
 @lru_cache(maxsize=32)
 def process_one_path_lru(path, t, varname):
-    with xr.open_dataset(path) as ds:
+    with xr.open_dataset(path, engine='netcdf4') as ds:
         da = ds.sel(time=t)[varname]
         da.load()
         return da
 
 def process_one_path(path,t,varname):
-    with xr.open_dataset(path) as ds:
+    with xr.open_dataset(path, engine='netcdf4') as ds:
         da = ds.sel(time=t)[varname]
         da.load()
         return da
@@ -255,7 +259,7 @@ def get_swim_var_coords(varalias):
     return varnamedict
 
 def read_swim_nc(path,varnamedict):
-    ds = xr.open_dataset(path)
+    ds = xr.open_dataset(path, engine='netcdf4')
     var = eval("ds[varnamedict['varname']].values"+varnamedict['varidx'])
     time = eval("ds[varnamedict['timename']].values"+varnamedict['timeidx'])
     lons = eval("ds[varnamedict['lonname']].values"+varnamedict['lonidx'])

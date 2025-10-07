@@ -15,8 +15,6 @@ dependencies:
   - scikit-learn>=1.6
   - pandas>=2.2
   - pyGAM>=0.9
-  #- scikit-sparse==0.4.5
-  #- xarray>=2022.6.0
   - xarray>=2024
   - pyresample>=1.30
   - tqdm>=4
@@ -25,9 +23,10 @@ dependencies:
   - pytest-cov
   - pylint
   - yapf
+  - fsspec
+  - requests
+  - aiohttp
   - sphinx
-#  - sphinx-autoapi
-#  - sphinx_rtd_theme
   - python-dotenv
   - xdg
   - geojson>=2.5
@@ -36,3 +35,8 @@ dependencies:
   - pip
   - pip:
     - click
+
+#  - sphinx-autoapi
+#  - sphinx_rtd_theme
+#  - scikit-sparse==0.4.5
+#  - xarray>=2022.6.0

@@ -41,7 +41,7 @@ def read_ww3_4km(**kwargs):
     for i in range(len(fc_dates)):
         d = fc_dates[i]
         p = pathlst[i]
-        ds = xr.open_dataset(p)
+        ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
         ds_sliced = ds_sliced[[varname,
                                model_dict[nID]['vardef']['lons'],
@@ -73,7 +73,7 @@ def read_meps(**kwargs):
     for i in range(len(fc_dates)):
         d = fc_dates[i]
         p = pathlst[i]
-        ds = xr.open_dataset(p)
+        ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
         ds_sliced = ds_sliced[[varname,
                                model_dict[nID]['vardef']['lons'],
@@ -108,7 +108,7 @@ def read_noresm_making_waves(**kwargs):
 
     ds_lst = []
     for i in range(len(pathlst)):
-        ds = xr.open_dataset(pathlst[i])
+        ds = xr.open_dataset(pathlst[i], engine='netcdf4')
         ds2 = ds.convert_calendar("all_leap")
         datetimeindex = ds2.indexes[timename].to_datetimeindex()
         ds[timename] = datetimeindex
@@ -296,7 +296,7 @@ def read_era(**kwargs):
     for i in range(len(fc_dates)):
         d = parse_date(fc_dates[i])
         p = pathlst[i]
-        ds = xr.open_dataset(p)
+        ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d},
                             method='nearest')
         ds_sliced = ds_sliced[[varname,
@@ -331,7 +331,7 @@ def read_NORA3_wind(**kwargs):
     for i in range(len(fc_dates)):
         d = fc_dates[i]
         p = pathlst[i]
-        ds = xr.open_dataset(p)
+        ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
         ds_sliced = ds_sliced.sel({'height': hlevel})
         ds_sliced = ds_sliced[[varname,
