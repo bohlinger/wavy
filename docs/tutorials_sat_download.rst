@@ -128,7 +128,7 @@ You can now proceed and download like:
 
 .. code-block:: bash
 
-   $ wavyDownload --nID cmems_L3_NRT --name s3a --sd 2025010100 --ed 2025011000
+   $ wavyDownload --nID cmems_L3_NRT --name s3a --sd 20250101T00 --ed 20250110T00
 
 You can find the downloaded files in your chosen download directory.
 
