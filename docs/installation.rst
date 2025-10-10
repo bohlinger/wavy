@@ -2,7 +2,7 @@ Installation and setup
 ======================
 
 Installation for regular use
----------------------------
+----------------------------
 For regular use **wavy** wavy can simply be installed via pip, conda, or mamba by installing the wavyopen package. So please choose between the following options:
 
 
@@ -33,6 +33,11 @@ When activated, you can use wavyopen in any directory of your computer. In case 
 .. note::
 
    All code examples and tutorials will assume that you have installed wavy using conda or mamba. In case you still have, from older installations or the development installation described below, environmental variables in e.g. your .bashrc that attribute paths for wavy, please remove them before you follow the installation procedure above.
+
+Installation for WEkEO
+----------------------
+Please refer to the tutorial on WEkEO [:ref:`wekeo-label`].
+
 
 Installation for development
 ----------------------------

@@ -1,13 +1,14 @@
+.. _wekeo-label:
 **wavy** on WEkEO
 #################
 
 WEkEO (wekeo.copernicus.eu) provides a workspace where you can run scripts and Jupyter notebooks on a cloud for free. As such WEkEO is a great platform to try out wavy in a lightweight context. Here are some quick instructions on how to install **wavy** on WEkEO:
 
-Open a new command window on your WEkEO workspace and install python environment for wavyopen:
+Open a new command window on your WEkEO workspace and install python environment for wavyopen (with a python version >3.10 & <3.14):
 
 .. code-block:: bash
 
-   mamba create --name wavyopen --channel=conda-forge
+   mamba create --name wavyopen python=3.12 --channel conda-forge
    conda activate wavyopen
    mamba install wavyopen
 
