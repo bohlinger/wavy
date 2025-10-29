@@ -31,12 +31,13 @@ class filter_class:
     def apply_limits(self, **kwargs):
         print('Apply limits (crude cleaning using valid range)')
         new = deepcopy(self)
+        varalias = kwargs.get('varalias',new.varalias[0])
         llim = kwargs.get('llim',
-                          variable_def[new.varalias]['valid_range'][0])
+                          variable_def[varalias]['valid_range'][0])
         ulim = kwargs.get('ulim',
-                          variable_def[new.varalias]['valid_range'][1])
+                          variable_def[varalias]['valid_range'][1])
         ds = deepcopy(new.vars)
-        y = ds[new.varalias]
+        y = ds[varalias]
         tmpdict = {'y': y}
         df = pd.DataFrame(data=tmpdict)
         dfmask = df['y'].between(llim, ulim, inclusive='both')
@@ -126,7 +127,7 @@ class filter_class:
         print('Apply lanczos filter')
         from wavy.utils import runmean
         new = deepcopy(self)
-
+        varalias = kwargs.get('varalias', new.varalias[0])
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -145,7 +146,7 @@ class filter_class:
                 tmp_tgc_idx = range(k, l+1)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     window = kwargs.get('window')
                     cutoff = kwargs.get('cutoff')
                     weights = lanczos_weights(window, cutoff)
@@ -159,14 +160,15 @@ class filter_class:
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
-        new.vars[new.varalias].values = flatten(ts_lst)
+        new.vars[varalias].values = flatten(ts_lst)
         return new
 
     def filter_runmean(self, **kwargs):
         print('Apply running mean filter')
         from wavy.utils import runmean
         new = deepcopy(self)
-
+        varalias = kwargs.get('varalias', new.varalias[0])
+        
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -186,7 +188,7 @@ class filter_class:
                 tmp_tgc_idx = range(k, l+1)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     window = kwargs.get('window')
                     ts, _ = runmean(y, window,
                                     mode=mode)
@@ -197,13 +199,14 @@ class filter_class:
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
-        new.vars[new.varalias].values = flatten(ts_lst)
+        new.vars[varalias].values = flatten(ts_lst)
         return new
 
     def filter_GP(self, **kwargs):
         print('Apply GPR filter')
         new = deepcopy(self)
-
+        varalias = kwargs.get('varalias', new.varalias[0])
+        
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -222,7 +225,7 @@ class filter_class:
                 tmp_tgc_idx = range(k, l+1)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
                     X = x  # points for prediction
                     ts = smoother_GP(x, y, X, **kwargs)
@@ -233,7 +236,7 @@ class filter_class:
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
-        new.vars[new.varalias].values = flatten(ts_lst)
+        new.vars[varalias].values = flatten(ts_lst)
 
         return new
 
@@ -243,6 +246,7 @@ class filter_class:
     def filter_linearGAM(self, **kwargs):
         print('Apply LinearGAM filter')
         new = deepcopy(self)
+        varalias = kwargs.get('varalias', new.varalias[0])
 
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -262,7 +266,7 @@ class filter_class:
                 tmp_tgc_idx = range(k, l+1)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
                     X = x  # points for prediction
                     ts = smoother_linearGAM(x, y, X, **kwargs)
@@ -273,7 +277,7 @@ class filter_class:
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
-        new.vars[new.varalias].values = flatten(ts_lst)
+        new.vars[varalias].values = flatten(ts_lst)
 
         return new
 
@@ -294,6 +298,7 @@ class filter_class:
         Uses slider blocks as basis
         """
         new = deepcopy(self)
+        varalias = kwargs.get('varalias', new.varalias[0])
 
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -314,7 +319,7 @@ class filter_class:
                 print('tmp_tgc_idx', tmp_idx)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     idx = new.cleaner_blockStd(y, **kwargs)
                     print('idx', idx)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
@@ -346,7 +351,8 @@ class filter_class:
         Uses slider blocks as basis
         """
         new = deepcopy(self)
-
+        varalias = kwargs.get('varalias', new.varalias[0])
+        
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -366,7 +372,7 @@ class filter_class:
                 print('tmp_tgc_idx', tmp_idx)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     idx = new.cleaner_blockQ(y, **kwargs)
                     print('idx', idx)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
@@ -385,7 +391,8 @@ class filter_class:
     def despike_GP(self, **kwargs):
         print('Apply GPR despiking')
         new = deepcopy(self)
-
+        varalias = kwargs.get('varalias', new.varalias[0])
+        
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -403,7 +410,7 @@ class filter_class:
                 tmp_tgc_idx = range(k, l+1)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
                     idx = cleaner_GP(x, y, **kwargs)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
@@ -425,7 +432,8 @@ class filter_class:
     def despike_linearGAM(self, **kwargs):
         print('Apply GAM despiking')
         new = deepcopy(self)
-
+        varalias = kwargs.get('varalias', new.varalias[0])
+        
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -443,7 +451,7 @@ class filter_class:
                 tmp_tgc_idx = range(k, l+1)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
-                    y = tmp_ds[new.varalias].values[tmp_tgc_idx]
+                    y = tmp_ds[varalias].values[tmp_tgc_idx]
                     x = tmp_ds['time'].values[tmp_tgc_idx].astype(float)
                     X = x  # points for prediction
                     idx = cleaner_linearGAM(X, y, **kwargs)
@@ -671,16 +679,18 @@ class filter_class:
         Returns:
             vardict
         """
-        stdvarname = variable_def[self.varalias]['standard_name']
+        varalias = kwargs.get('varalias', self.varalias[0])
+        stdvarname = variable_def[varalias]['standard_name']
+        
         # clone ingoing vardict
         vardict = deepcopy(self.vars)
         # make ts in vardict unique
         vardict = vardict_unique(vardict)
         # apply physical limits
         if kwargs.get('limits') is not None:
-            vardict = apply_limits(self.varalias,vardict)
+            vardict = apply_limits(varalias,vardict)
         # rm NaNs
-        vardict = rm_nan_from_vardict(self.varalias,vardict)
+        vardict = rm_nan_from_vardict(varalias,vardict)
 
         # start main filter section
         if (kwargs.get('land_mask') == True ):
@@ -702,7 +712,7 @@ class filter_class:
                     else:
                         tmpdict[key] = vardict[key]
                 newtmpdict = self.filter_main(tmpdict,
-                                              varalias=self.varalias,
+                                              varalias=varalias,
                                               **kwargs)
                 # append to newvardict
                 for key in tmpdict:
@@ -718,17 +728,17 @@ class filter_class:
                 # create chunks with size of slider
                 print(len(vardict['time']))
                 print(len(vardict[stdvarname]))
-                vardict = filter_slider(vardict, self.varalias, **kwargs)
+                vardict = filter_slider(vardict, varalias, **kwargs)
             else:
                 if kwargs.get('cleaner') is not None:
                     method = kwargs.get('cleaner')
-                    vardict = apply_cleaner(self.varalias, vardict,
+                    vardict = apply_cleaner(varalias, vardict,
                                             method=method,
                                             **kwargs)
                 if kwargs.get('smoother') is not None:
                     output_dates = kwargs.get('output_dates')
                     method = kwargs.get('smoother')
-                    vardict = apply_smoother(self.varalias, vardict,
+                    vardict = apply_smoother(varalias, vardict,
                                              output_dates=output_dates,
                                              method=method,
                                              **kwargs)

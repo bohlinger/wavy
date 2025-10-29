@@ -258,14 +258,19 @@ class collocation_class(qls):
     '''
 
     def __init__(self, oco=None, model=None, poi=None,
-    distlim=None, leadtime=None, **kwargs):
+    distlim=None, leadtime=None, varalias=None, **kwargs):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")
         # make clones to prevent overwriting
-        self.varalias = oco.varalias
-        self.varalias_obs = oco.varalias
-        self.varalias_mod = kwargs.get('varalias', oco.varalias)
+        if varalias==None:
+            if isinstance(oco.varalias,str):
+                varalias = oco.varalias
+            else: 
+                varalias = oco.varalias[0]
+        self.varalias = varalias
+        self.varalias_obs = varalias
+        self.varalias_mod = kwargs.get('varalias_mod', varalias)
         self.model = model
         self.leadtime = leadtime
         self.oco = oco
@@ -274,7 +279,7 @@ class collocation_class(qls):
         self.obstype = str(type(oco))[8:-2]
         self.stdvarname = oco.stdvarname
         self.region = oco.region
-        self.units = variable_def[self.varalias].get('units')
+        self.units = variable_def[varalias].get('units')
         self.sd = oco.sd
         self.ed = oco.ed
         self.twin = kwargs.get('twin', oco.twin)
@@ -529,8 +534,8 @@ class collocation_class(qls):
                     tmp_dict['time'] = self.oco.vars['time'].values[idx]
                     tmp_dict['lats'] = self.oco.vars['lats'].values[idx]
                     tmp_dict['lons'] = self.oco.vars['lons'].values[idx]
-                    tmp_dict[self.oco.varalias] = \
-                        self.oco.vars[self.oco.varalias].values[idx]
+                    tmp_dict[self.varalias] = \
+                        self.oco.vars[self.varalias].values[idx]
                     mco = mc(sd=fc_date[i], ed=fc_date[i], nID=self.model,
                              leadtime=self.leadtime, varalias=self.varalias_mod,
                              **kwargs)
