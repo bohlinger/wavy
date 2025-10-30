@@ -2,7 +2,7 @@
 **wavy** on WEkEO
 #################
 
-WEkEO (wekeo.copernicus.eu) provides a workspace where you can run scripts and Jupyter notebooks on a cloud for free. As such WEkEO is a great platform to try out wavy in a lightweight context. Here are some quick instructions on how to install **wavy** on WEkEO:
+WEkEO (wekeo.copernicus.eu) provides a workspace where you can run scripts and Jupyter notebooks on a cloud for free. As such WEkEO is a great platform to try out **wavy** in a lightweight context. Here are some quick instructions on how to install **wavy** on WEkEO:
 
 Open a new command window on your WEkEO workspace and install python environment for wavyopen (with a python version >3.10 & <3.14):
 
@@ -30,7 +30,7 @@ Add it to jupyter:
    python -m ipykernel install --user --name wavyopen --display-name "Python (wavyopen)"
 
 Restart JupyterLab Kernel List and refresh your JupyterLab tab in WEkEO.
-Go to Kernel → Change Kernel, and you should see Python (wavyopen) in the list.
+Go to Kernel → Change Kernel, and you should see Python (wavyopen) in the list, choose this one.
 
 Create a project directory and the usual setup with config, data, and scripts. Now, you can almost proceed as usual but a minor hack needs to be made for the invisible dot-files.
 
