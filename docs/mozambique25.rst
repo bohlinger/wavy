@@ -146,7 +146,7 @@ Now, you can start preparing python scripts or notebooks reading, processing, an
 
 .. image:: ./mozambique_example_global_ipynb_crop.png
 
-You can introduce your custom region in region_cfg.yaml, for Mozambique choose e.g.:
+Since **wavy** is quite verbose I added the line *%%capture captured_output* on top of some cells. If you like you can remove it to see what is going on under the hood. You can also introduce your custom region in region_cfg.yaml, for Mozambique choose e.g.:
 
 .. code-block:: yaml
 
