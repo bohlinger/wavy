@@ -17,4 +17,5 @@ Workshops and show cases
    vietnam25
    mozambique23
    mozambique24
+   mozambique25
    tanzania25

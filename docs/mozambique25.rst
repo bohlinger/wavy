@@ -1,5 +1,5 @@
-Tanzania WEkEO workshop 2025
-============================
+Mozambique WEkEO workshop 2025
+==============================
 
 
 **wavy** installation on WEkEO
@@ -144,18 +144,18 @@ Process satellite data
 ######################
 Now, you can start preparing python scripts or notebooks reading, processing, and plotting your data. This may look like:
 
-.. image:: ./tanzania_example_global_ipynb_crop.png
+.. image:: ./mozambique_example_global_ipynb_crop.png
 
-You can introduce your custom region in region_cfg.yaml, for Tanzania choose e.g.:
+You can introduce your custom region in region_cfg.yaml, for Mozambique choose e.g.:
 
 .. code-block:: yaml
 
    rect:
-    tanzania: {llcrnrlon: 38.0, llcrnrlat: -15.0, urcrnrlon: 50, urcrnrlat: 0}
+    mozambique: {llcrnrlon: 28.3, llcrnrlat: -27.8, urcrnrlon: 46, urcrnrlat: -10}
 
 Applied to the notebook this looks like:
 
-.. image:: ./tanzania_example_regional_ipynb_crop.png
+.. image:: ./mozambique_example_region_ipynb_crop.png
 
 
 The data you retrieved is stored in the respective objects *sco* and *mso*. You can explore the content by e.g.:

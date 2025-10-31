@@ -113,3 +113,8 @@ In the Jupyter notebook on WEkEO it may be beneficial to tune down the quite ver
 .. code-block:: bash
 
    %%capture captured_output
+
+
+.. note::
+   
+   For some reason on WEkEO the wavyopen conda environment looses its name and you cannot activate simply by **conda activate wavyopen**. In this case please query the conda environments and activate the correct one without a name like:
