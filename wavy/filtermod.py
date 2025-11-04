@@ -31,7 +31,10 @@ class filter_class:
     def apply_limits(self, **kwargs):
         print('Apply limits (crude cleaning using valid range)')
         new = deepcopy(self)
-        varalias = kwargs.get('varalias',new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         llim = kwargs.get('llim',
                           variable_def[varalias]['valid_range'][0])
         ulim = kwargs.get('ulim',
@@ -127,7 +130,10 @@ class filter_class:
         print('Apply lanczos filter')
         from wavy.utils import runmean
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -167,8 +173,10 @@ class filter_class:
         print('Apply running mean filter')
         from wavy.utils import runmean
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
-        
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -246,7 +254,10 @@ class filter_class:
     def filter_linearGAM(self, **kwargs):
         print('Apply LinearGAM filter')
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
 
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -298,7 +309,10 @@ class filter_class:
         Uses slider blocks as basis
         """
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
 
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -351,7 +365,10 @@ class filter_class:
         Uses slider blocks as basis
         """
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -391,7 +408,10 @@ class filter_class:
     def despike_GP(self, **kwargs):
         print('Apply GPR despiking')
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -432,7 +452,10 @@ class filter_class:
     def despike_linearGAM(self, **kwargs):
         print('Apply GAM despiking')
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
