@@ -781,3 +781,39 @@ def build_xr_ds(var: tuple, varnames: tuple):
             attrs={'title': 'wavy dataset'}
         )
     return ds
+    
+    
+def build_xr_ds_multivar(var: tuple, varnames: tuple, varalias: list):
+
+    len_varalias = len(varalias)
+
+    ds = xr.Dataset({**{
+            varnames[i]: xr.DataArray(
+                    data=var[i],
+                    dims=[varnames[len_varalias+2]],
+                    coords={'time': var[len_varalias+2]},
+                    attrs=variable_def[varnames[i]],
+                    ) for i in range(len_varalias)},
+            varnames[len_varalias]: xr.DataArray(
+                    data=var[len_varalias],
+                    dims=[varnames[len_varalias+2]],
+                    coords={'time': var[len_varalias+2]},
+                    attrs=variable_def[varnames[len_varalias]],
+                    ),
+            varnames[len_varalias+1]: xr.DataArray(
+                    data=var[len_varalias+1],
+                    dims=[varnames[len_varalias+2]],
+                    coords={'time': var[len_varalias+2]},
+                    attrs=variable_def[varnames[len_varalias+1]],
+                    ),
+            varnames[len_varalias+2]: xr.DataArray(
+                    data=var[len_varalias+2],
+                    dims=[varnames[len_varalias+2]],
+                    coords={'time': var[len_varalias+2]},
+                    attrs=variable_def[varnames[len_varalias+2]],
+                    )
+                },
+            attrs={'title': 'wavy dataset'}
+        )
+    return ds
+    

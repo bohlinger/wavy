@@ -94,9 +94,12 @@ class insitu_class(qls, fc):
         self.nID = kwargs.get('nID')
         self.name = kwargs.get('name',
                                list(dc.name.keys())[0])
-        self.varalias = kwargs.get('varalias', 'Hs')
-        self.stdvarname = variable_def[self.varalias]['standard_name']
-        self.units = variable_def[self.varalias].get('units')
+        self.varalias = kwargs.get('varalias', ['Hs'])
+        if isinstance(self.varalias, str):
+            self.varalias = [self.varalias]
+        self.units = [variable_def[v].get('units') for v in self.varalias]
+        self.stdvarname = [variable_def[v].get('standard_name') for v in\
+                           self.varalias]     
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
@@ -337,9 +340,11 @@ class insitu_class(qls, fc):
 
     def _change_varname_to_aliases(self):
         # variables
-        ncvar = get_filevarname(self.varalias, variable_def,
-                                vars(self.cfg), self.meta)
-        self.vars = self.vars.rename({ncvar: self.varalias})
+        for v in self.varalias:
+            ncvar = get_filevarname(v, variable_def,
+                                    vars(self.cfg), self.meta)
+            self.vars = self.vars.rename({ncvar: v})
+       
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
@@ -361,8 +366,9 @@ class insitu_class(qls, fc):
         self.vars['time'].attrs['standard_name'] = \
             variable_def['time'].get('standard_name')
         # enforce standard_name for variable alias
-        self.vars[self.varalias].attrs['standard_name'] = \
-            self.stdvarname
+        for i in range(len(self.varalias)):
+            self.vars[self.varalias[i]].attrs['standard_name'] = \
+                self.stdvarname[i]
         return self
 
     @staticmethod

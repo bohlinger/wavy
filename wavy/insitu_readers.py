@@ -34,7 +34,7 @@ from wavy.utils import make_subdict
 from wavy.utils import parse_date
 from wavy.utils import flatten
 from wavy.utils import find_direction_convention
-from wavy.utils import build_xr_ds
+from wavy.utils import build_xr_ds, build_xr_ds_multivar
 from wavy.utils import date_dispatcher
 from wavy.wconfig import load_or_default
 # ---------------------------------------------------------------------#
@@ -61,7 +61,7 @@ def make_frost_reference_time_period(sdate, edate):
 
 def call_frost_api(
      sdate: datetime, edate: datetime,
-     nID: str, varstr: str, sensor: str) -> 'requests.models.Response':
+     nID: str, varstr_list: list, sensor: str) -> 'requests.models.Response':
     """
     make frost api call
     """
@@ -71,7 +71,7 @@ def call_frost_api(
     frost_reference_time = make_frost_reference_time_period(sdate, edate)
     if client_id is None:
         print("No Frost CLIENT_ID given!")
-    r = call_frost_api_v1(nID, varstr,
+    r = call_frost_api_v1(nID, varstr_list,
                           frost_reference_time,
                           client_id, sensor)
     print(r.url)
@@ -87,7 +87,7 @@ def call_frost_api(
 
 
 def call_frost_api_v1(
-        nID: str, varstr: str, frost_reference_time: str,
+        nID: str, varstr_list: list, frost_reference_time: str,
         client_id: str, sensor: str)\
     -> 'requests.models.Response':
     """
@@ -97,7 +97,7 @@ def call_frost_api_v1(
     endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/kvkafka/get?'
     parameters = {
                 'stationids': ID,
-                'elementids': varstr,
+                'elementids': varstr_list,
                 'time': frost_reference_time,
                 'levels': 'all',
                 'incobs': 'true',
@@ -212,23 +212,25 @@ def get_frost(**kwargs):
     edate = kwargs.get('ed')
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
-    varstr = [variables_frost[varalias]['frost_name']]
+    if isinstance(varalias, str):
+        varalias = [varalias]
+    varstr_list = [variables_frost[v]['frost_name'] for v in varalias]
     sensor = insitu_dict[nID]['name'][kwargs.get('name', 0)]
-    r = call_frost_api(sdate, edate, nID, varstr, sensor)
+    r = call_frost_api(sdate, edate, nID, varstr_list, sensor)
     df, _, lon, lat = get_frost_df_v1(r)
-    var = df[varalias].values
+    var = tuple(list(df[v].values) for v in varalias)
     timevec = df['time'].values
     timedt = [parse_date(str(d)) for d in timevec]
 
     # rm datetime timezone info
     timedt = [d.replace(tzinfo=None) for d in timedt]
-    lons = len(var)*[lon]
-    lats = len(var)*[lat]
-    varnames = (varalias, 'lons', 'lats', 'time')
-    var_tuple = (var, lons, lats, timedt)
+    lons = len(var[0])*[lon]
+    lats = len(var[0])*[lat]
+    varnames = (*tuple(varalias), 'lons', 'lats', 'time')
+    var_tuple = (*var, lons, lats, timedt)
 
     # build xarray ds
-    ds = build_xr_ds(var_tuple, varnames)
+    ds = build_xr_ds_multivar(var_tuple, varnames, varalias)
     return ds
 
 
@@ -236,13 +238,15 @@ def get_nc_thredds(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, str):
+        varalias = [varalias]
     pathlst = kwargs.get('pathlst')
     cfg = vars(kwargs['cfg'])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_def,
-                            cfg, meta)
+    ncvar = [get_filevarname(v, variable_def,
+                             cfg, meta) for v in varalias]
     lonstr = get_filevarname('lons', variable_def,
                              cfg, meta)
     latstr = get_filevarname('lats', variable_def,
@@ -254,7 +258,7 @@ def get_nc_thredds(**kwargs):
     ds = read_netcdfs(pathlst, dim=timestr)
     ds_sort = ds.sortby(timestr)
     ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
-    var_sliced = ds_sliced[[ncvar, lonstr, latstr]]
+    var_sliced = ds_sliced[ncvar + [lonstr, latstr]]
     return var_sliced
 
 
@@ -262,13 +266,15 @@ def get_nc_thredds_static_coords(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, str):
+        varalias = [varalias]
     pathlst = kwargs.get('pathlst')
     cfg = vars(kwargs['cfg'])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_def,
-                            cfg, meta)
+    ncvar = [get_filevarname(v, variable_def,
+                             cfg, meta) for v in varalias]
     lonstr = get_filevarname('lons', variable_def,
                              cfg, meta)
     latstr = get_filevarname('lats', variable_def,
@@ -289,13 +295,13 @@ def get_nc_thredds_static_coords(**kwargs):
         lats = np.ones(ds_sliced[timestr].shape)\
                 *cfg['misc']['coords'][kwargs.get('name')]['lat']
 
-    var_sliced = ds_sliced[[ncvar]]
+    var_sliced = ds_sliced[ncvar]
 
     # combine and create dataset
     ds_combined = xr.Dataset({
-            ncvar: xr.DataArray(data=var_sliced[ncvar].data,
+            **{ncvar[i]:xr.DataArray(data=var_sliced[ncvar[i]].data,
                                 dims=[timestr],
-                                coords={timestr: var_sliced.time.data}),
+                                coords={timestr: var_sliced.time.data})},
             "lons": xr.DataArray(data=lons, dims=[timestr],
                                  coords={timestr: var_sliced.time.data}),
             "lats": xr.DataArray(data=lats, dims=[timestr],
@@ -309,13 +315,15 @@ def get_nc_thredds_static_coords_single_file(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, str):
+        varalias = [varalias]
     pathlst = kwargs.get('pathlst')
     cfg = vars(kwargs['cfg'])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_def,
-                            cfg, meta)
+    ncvar = [get_filevarname(v, variable_def,
+                             cfg, meta) for v in varalias]
     lonstr = get_filevarname('lons', variable_def,
                              cfg, meta)
     latstr = get_filevarname('lats', variable_def,
@@ -336,13 +344,14 @@ def get_nc_thredds_static_coords_single_file(**kwargs):
         lats = np.ones(ds_sliced[timestr].shape)\
                 *cfg['misc']['coords'][kwargs.get('name')]['lat']
 
-    var_sliced = ds_sliced[[ncvar]]
+    var_sliced = ds_sliced[ncvar]
 
     # combine and create dataset
+    
     ds_combined = xr.Dataset({
-            ncvar: xr.DataArray(data=var_sliced[ncvar].data,
+            **{ncvar[i]:xr.DataArray(data=var_sliced[ncvar[i]].data,
                                 dims=[timestr],
-                                coords={timestr: var_sliced.time.data}),
+                                coords={timestr: var_sliced.time.data})},
             "lons": xr.DataArray(data=lons, dims=[timestr],
                                  coords={timestr: var_sliced.time.data}),
             "lats": xr.DataArray(data=lats, dims=[timestr],
@@ -356,6 +365,8 @@ def get_cmems(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, str):
+        varalias = [varalias]
     pathlst = kwargs.get('pathlst')
     cfg = vars(kwargs['cfg'])
     # check if dimensions are fixed
@@ -364,8 +375,8 @@ def get_cmems(**kwargs):
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = get_filevarname(varalias, variable_def,
-                            cfg, meta)
+    ncvar = [get_filevarname(v, variable_def,
+                             cfg, meta) for v in varalias]
     lonstr = get_filevarname('lons', variable_def,
                              cfg, meta)
     latstr = get_filevarname('lats', variable_def,
@@ -373,7 +384,7 @@ def get_cmems(**kwargs):
     timestr = get_filevarname('time', variable_def,
                               cfg, meta)
 
-    var_list = [ncvar, lonstr, latstr]
+    var_list = ncvar + [lonstr, latstr]
 
     ds_list = []
 

@@ -159,8 +159,7 @@ def build_xr_ds_multivar(darray: np.ndarray, varnames: dict, varalias: list):
     import xarray as xr
     
     len_varalias = len(varalias)
-    print("HERE!!!!!!!!!!!!!!!!!!!!")
-    print(darray)
+    
     ds = xr.Dataset({
             **{varnames[varalias[i]]: xr.DataArray(
                     data=darray[i],
