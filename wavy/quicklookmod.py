@@ -49,9 +49,17 @@ class quicklook_class_sat:
         hst = kwargs.get('hist', False)
         mode = kwargs.get('mode', 'comb')  # comb, indiv
 
+        if isinstance(self.varalias, list):
+            varalias = kwargs.get('varalias', self.varalias[0])
+            idx_units = np.argwhere(np.array(self.varalias)==varalias)[0][0]
+            units_to_plot = self.units[idx_units]
+        else:
+            varalias = self.varalias
+            units_to_plot = self.units
+
         # set variables
         try:
-            plot_var = self.vars[self.varalias]
+            plot_var = self.vars[varalias]
             plot_lons = self.vars.lons
             plot_lats = self.vars.lats
         except Exception as e:
@@ -67,7 +75,7 @@ class quicklook_class_sat:
 
         fs = kwargs.get('fs', 12)
 
-        vartype = variable_info[self.varalias].get('type', 'default')
+        vartype = variable_info[varalias].get('type', 'default')
         if kwargs.get('cmap') is None:
             if vartype == 'cyclic':
                 cmap = mpl.cm.twilight
@@ -213,9 +221,9 @@ class quicklook_class_sat:
             # - colorbar
             if kwargs.get("cbar", True) is True:
                 cbar = fig.colorbar(sc, cax=axins,
-                        label=self.varalias + ' [' + self.units + ']',
+                        label=varalias + ' [' + units_to_plot + ']',
                         ticks=levels)
-                cbar.ax.set_ylabel(self.units, size=fs)
+                cbar.ax.set_ylabel(units_to_plot, size=fs)
                 cbar.ax.tick_params(labelsize=fs)
 
             # - add extend
@@ -305,7 +313,7 @@ class quicklook_class_sat:
                         marker='o',alpha=.5,ms=2)
             except Exception as e:
                 pass
-            plt.ylabel(self.varalias + ' [' + self.units + ']')
+            plt.ylabel(varalias + ' [' + units_to_plot + ']')
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
@@ -335,7 +343,7 @@ class quicklook_class_sat:
                         marker='o',alpha=.5,ms=2)
             except Exception as e:
                 pass
-            plt.ylabel(self.varalias + ' [' + self.units + ']')
+            plt.ylabel(varalias + ' [' + units_to_plot + ']')
             plt.legend(loc='best')
             plt.tight_layout()
             #ax.set_title()
@@ -397,7 +405,7 @@ class quicklook_class_sat:
             plt.xlim([minv, maxv*1.05])
             plt.ylim([minv, maxv*1.05])
 
-            ax.set_title(self.varalias + '[' + self.units + ']')
+            ax.set_title(varalias + '[' + units_to_plot + ']')
             plt.legend()
 
             plt.tight_layout()
@@ -464,7 +472,7 @@ class quicklook_class_sat:
             plt.xlabel('obs (' + self.nID + ')')
             plt.ylabel('models (' + self.model + ')')
 
-            ax.set_title(self.varalias + '[' + self.units + ']')
+            ax.set_title(varalias + '[' + units_to_plot + ']')
             plt.legend()
 
             plt.tight_layout()

@@ -27,12 +27,14 @@ class multisat_class(qls, fc):
         # parse and translate date input
         self.nID = kwargs.get('nID', ['cmems_L3_NRT'])
         self.name = kwargs.get('name', ['s3a'])
-        self.varalias = kwargs.get('varalias', 'Hs')
-        self.stdvarname = variable_def[self.varalias].get('standard_name')
+        self.varalias = kwargs.get('varalias', ['Hs'])
+        if isinstance(self.varalias, str):
+            self.varalias = [self.varalias]
+        self.stdvarname = [variable_def[v].get('standard_name') \
+                           for v in self.varalias]
+        self.units = [variable_def[v].get('units') for v in self.varalias]
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
-        self.varalias = kwargs.get('varalias', 'Hs')
-        self.units = variable_def[self.varalias].get('units')
         self.twin = kwargs.get('twin', 30)
         self.distlim = kwargs.get('distlim', 6)
         self.region = kwargs.get('region', 'global')

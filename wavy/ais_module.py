@@ -46,7 +46,7 @@ def get_AIS_data(bbox, sd=None, ed=None, minspeed=0.5):
     data = "-d '" + str(dict_data).replace("'", '"') + "'"
 
     curl_request = curl_com + url_req + head_1 + head_2 + head_3 + data
-
+   
     # get result content of curl request
     stream = os.popen(curl_request)
     output = stream.read()
@@ -56,7 +56,7 @@ def get_AIS_data(bbox, sd=None, ed=None, minspeed=0.5):
         data=dict_output["data"],
         columns=["mmsi", "datetime", "lon",
                  "lat", "x1", "x2", "x3", "x4",
-                 "x5", "x6"])
+                 "x5", "x6", "x7", "x8"])
 
     # Get ship info
     unique_mmsi = [int(mm) for mm in df_request["mmsi"].unique()]

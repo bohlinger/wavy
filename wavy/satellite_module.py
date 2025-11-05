@@ -112,9 +112,12 @@ class satellite_class(qls, fc):
         # add other class object variables
         self.nID = kwargs.get('nID')
         self.name = dc.name[kwargs.get('name', 's3a')]
-        self.varalias = kwargs.get('varalias', 'Hs')
-        self.units = variable_def[self.varalias].get('units')
-        self.stdvarname = variable_def[self.varalias].get('standard_name')
+        self.varalias = kwargs.get('varalias', ['Hs'])
+        if isinstance(self.varalias, str):
+            self.varalias = [self.varalias]
+        self.units = [variable_def[v].get('units') for v in self.varalias]
+        self.stdvarname = [variable_def[v].get('standard_name') for v in\
+                           self.varalias]     
         self.twin = int(kwargs.get('twin', 30))
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
@@ -344,6 +347,7 @@ class satellite_class(qls, fc):
         self.coords = list(self.vars.coords)
         return self
 
+
     def _get_sat_ts(self, **kwargs):
         """
         Main function to obtain data from satellite missions.
@@ -360,7 +364,7 @@ class satellite_class(qls, fc):
         pathlst = self.pathlst
         chunk_size = kwargs.get('chunk_size', 1)
         region = kwargs.get('region', new.region)
-
+       
         if isinstance(region, dict):
             new.region = region['name']
 
@@ -397,7 +401,7 @@ class satellite_class(qls, fc):
                                           .crop_to_poi().vars)
                     except Exception as e:
                         logger.exception(e)
-
+                    
         if len(ds_lst) > 1:
             combined = xr.concat(ds_lst, 'time',
                                  coords='minimal',
@@ -412,6 +416,7 @@ class satellite_class(qls, fc):
         new.coords = list(new.vars.coords)
 
         return new
+
 
     def _enforce_longitude_format(self):
         new = deepcopy(self)
@@ -447,13 +452,14 @@ class satellite_class(qls, fc):
         print(' changing variables to aliases')
         new = deepcopy(self)
         # variables
-        ncvar = get_filevarname(new.varalias, variable_def,
-                                satellite_dict[new.nID], new.meta)
-        if new.varalias in list(new.vars.keys()):
-            print('  ', ncvar, 'is alreade named correctly and'
-                + ' therefore not adjusted')
-        else:
-            new.vars = new.vars.rename({ncvar: new.varalias})
+        for v in new.varalias:
+            ncvar = get_filevarname(v, variable_def,
+                                    satellite_dict[new.nID], new.meta)
+            if v in list(new.vars.keys()):
+                print('  ', ncvar, 'is alreade named correctly and'
+                    + ' therefore not adjusted')
+            else:
+                new.vars = new.vars.rename({ncvar: v})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
@@ -485,9 +491,11 @@ class satellite_class(qls, fc):
         new.vars['time'].attrs['standard_name'] = \
             variable_def['time'].get('standard_name')
         # enforce standard_name for variable alias
-        new.vars[self.varalias].attrs['standard_name'] = \
-            new.stdvarname
+        for i in range(len(self.varalias)):
+            new.vars[self.varalias[i]].attrs['standard_name'] = \
+                new.stdvarname[i]
         return new
+        
 
     def populate(self, **kwargs):
         print(" ### Read files and populate satellite_class object")
@@ -500,8 +508,9 @@ class satellite_class(qls, fc):
         print('')
         print('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
-        ncvar = get_filevarname(self.varalias, variable_def,
-                                satellite_dict[self.nID], self.meta)
+        ncvar = [get_filevarname(v, variable_def,
+                 satellite_dict[self.nID], self.meta)\
+                 for v in self.varalias]
         print('')
         print('Choosing reader..')
         # define reader
@@ -537,11 +546,11 @@ class satellite_class(qls, fc):
             try:
                 t0 = time.time()
                 print('Reading..')
+                
                 self = self._get_sat_ts(**kwargs)
-                #self = self._get_sat_ts_blunt(**kwargs)
-
                 self = self._change_varname_to_aliases()
                 self = self._change_stdvarname_to_cfname()
+                
                 self = self._enforce_meteorologic_convention()
 
                 # convert longitude

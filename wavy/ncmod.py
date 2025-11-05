@@ -153,6 +153,39 @@ def build_xr_ds(darray: np.ndarray, varnames: dict, varalias: str):
             attrs={'title': 'wavy dataset'}
         )
     return ds
+    
+    
+def build_xr_ds_multivar(darray: np.ndarray, varnames: dict, varalias: list):
+    import xarray as xr
+    
+    len_varalias = len(varalias)
+    
+    ds = xr.Dataset({
+            **{varnames[varalias[i]]: xr.DataArray(
+                    data=darray[i],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[len_varalias+2]}
+                    ) for i in range(len_varalias)},
+            varnames['lons']: xr.DataArray(
+                    data=darray[len_varalias],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[len_varalias+2]}
+                    ),
+            varnames['lats']: xr.DataArray(
+                    data=darray[len_varalias+1],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[len_varalias+2]}
+                    ),
+            varnames['time']: xr.DataArray(
+                    data=darray[len_varalias+2],
+                    dims=[varnames['time']],
+                    coords={varnames['time']: darray[len_varalias+2]}
+                    )
+                },
+            attrs={'title': 'wavy dataset'}
+        )
+    return ds
+
 
 def build_xr_ds_from_dict(dict_var, var_name_ref):
     ds = xr.Dataset({
@@ -384,6 +417,45 @@ def get_filevarname(varalias, variable_info, srcdict, ncdict):
     else:
         print(' !!! variable not defined nor ' +
               'available in nc-file !!!')
+
+
+def get_filevarname_list(varalias, variable_info, srcdict, ncdict):
+    stdname = variable_info[varalias]['standard_name']
+    print(' Get filevarname for \n' + 'stdvarname:', stdname,
+          '\n' + 'varalias:', varalias, ncdict)   
+    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
+    if (filevarname is None and 'alias' in variable_info[varalias]):
+        filevarname = get_varname_for_cf_stdname_in_ncfile(
+            ncdict, variable_info[varalias]['alias'])
+    if (filevarname is not None and len(filevarname) > 1):
+        print(' !!! standard_name: ', stdname, ' is not unique !!!',
+              '\nThe following variables have the same standard_name:\n',
+              filevarname)
+        print(' Searching *_cfg.yaml config file for definition')
+        filevarname = None
+    if filevarname is not None:
+        return filevarname[0]
+    tmpdict = finditem(srcdict, 'vardef')
+    if len(tmpdict)==0:
+        tmpdict = [{'None':None}]
+    vardefdict = tmpdict[0]
+    if (filevarname is None and varalias in vardefdict.keys()):
+        filevarname = vardefdict[varalias]
+        print(' Variable defined in *_cfg.yaml is:')
+        print(varalias, '=', filevarname)
+        return filevarname
+    elif (filevarname is None
+          and varalias not in vardefdict.keys()
+          and 'aliases_of_vector_components' in variable_info[varalias]):
+        print(
+          'Checking variable_info if variable can be ' +
+          'computed from vector components')
+        filevarname = variable_info[varalias]['aliases_of_vector_components']
+        return filevarname
+    else:
+        print(' !!! variable not defined nor ' +
+              'available in nc-file !!!')
+
 
 def get_nc_ts(pathtofile, varlst):
     import os.path
