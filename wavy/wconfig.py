@@ -2,6 +2,8 @@ import os
 import yaml
 import logging
 
+from importlib.resources import files
+
 logger = logging.getLogger(__name__)
 import dotenv
 import xdg
@@ -57,10 +59,9 @@ def load_or_default(name):
 
     except FileNotFoundError:
         logging.debug('could not load from local directory, using default.')
-        from pkg_resources import resource_stream
-        return yaml.safe_load(
-            resource_stream(__name__,
-                            os.path.join('config', name + '.default')))
+        config_path = files(__name__).joinpath('config', name + '.default')
+        with config_path.open('r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
 
 def load_minimal(name):
     logging.debug('attempting to load: %s..' % name)
@@ -70,6 +71,5 @@ def load_minimal(name):
                           os.path.join('config', name + '.minimal')))
 
 def load_dir(name):
-    from pkg_resources import resource_stream
-    #return resource_stream('wavy', name + '.py')
-    return resource_stream(__name__, name + '.py')
+    resource_path = files(__name__).joinpath(f"{name}.py")
+    return resource_path.open('rb')  # Open the file in binary mode
