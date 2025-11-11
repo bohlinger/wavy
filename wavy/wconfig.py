@@ -59,7 +59,7 @@ def load_or_default(name):
 
     except FileNotFoundError:
         logging.debug('could not load from local directory, using default.')
-        config_path = files(__name__).joinpath('config', name + '.default')
+        config_path = files().joinpath('config', name + '.default')
         with config_path.open('r', encoding='utf-8') as f:
             return yaml.safe_load(f)
 
@@ -71,5 +71,5 @@ def load_minimal(name):
                           os.path.join('config', name + '.minimal')))
 
 def load_dir(name):
-    resource_path = files(__name__).joinpath(f"{name}.py")
+    resource_path = files().joinpath(f"{name}.py")
     return resource_path.open('rb')  # Open the file in binary mode
