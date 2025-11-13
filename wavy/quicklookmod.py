@@ -51,6 +51,7 @@ class quicklook_class_sat:
 
         if isinstance(self.varalias, list):
             varalias = kwargs.get('varalias', self.varalias[0])
+            assert isinstance(varalias, str), "varalias argument should be a string"
             idx_units = np.argwhere(np.array(self.varalias)==varalias)[0][0]
             units_to_plot = self.units[idx_units]
         else:
@@ -328,8 +329,9 @@ class quicklook_class_sat:
             ax = fig.add_subplot(111)
             for oco in self.ocos:
                 label = oco.name
+                
                 ax.plot(oco.vars['time'],
-                        oco.vars[oco.varalias],
+                        oco.vars[varalias],
                         linestyle=kwargs.get('linestyle',''),
                         label=label,
                         marker='o',alpha=.5, ms=2)
