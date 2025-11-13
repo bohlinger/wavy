@@ -38,6 +38,8 @@ class multisat_class(qls, fc):
         self.twin = kwargs.get('twin', 30)
         self.distlim = kwargs.get('distlim', 6)
         self.region = kwargs.get('region', 'global')
+        self.path = kwargs.get('path', len(self.name)*[None])
+        self.wavy_path = kwargs.get('wavy_path', len(self.name)*[None])
         t0 = time.time()
 
         # products: either None, same as names, or one product
@@ -54,7 +56,8 @@ class multisat_class(qls, fc):
                          nID=self.nID[i], name=n,
                          twin=self.twin, distlim=self.distlim,
                          region=self.region, varalias=self.varalias)
-                sco = sco.populate()
+                sco = sco.populate(path=self.path[i], 
+                                   wavy_path=self.wavy_path[i])
                 if 'vars' in list(vars(sco)):
                     scos.append(deepcopy(sco))
                 del sco

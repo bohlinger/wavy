@@ -4,9 +4,7 @@ import yaml
 import numpy as np
 import os
 from copy import deepcopy
-from wavy.insitu_module import insitu_class as ic
-from wavy.satellite_module import satellite_class as sc
-
+from wavy import ic, sc, ms
 
 def test_filter_runmean(test_data):
     varalias = 'Hs'  # default
@@ -144,3 +142,57 @@ def test_filter_distance_to_coast(test_data):
     assert len(flst) >= 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
+
+def test_filter_landMask_ms(test_data):
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    name = ['s3a','s3b']
+    varalias = 'Hs'
+
+    # init multisat_object
+    mso = ms(sd=sd,
+         ed=ed, 
+         name=name,
+         varalias = varalias, 
+         path = [str(test_data/"L3/s3a"),
+                 str(test_data/"L3/s3b")])
+    # read data
+    mso = mso.filter_landMask()
+    assert mso.__class__.__name__ == 'multisat_class'
+    # compare number of available variables
+    vlst = list(vars(mso).keys())
+    assert len(vlst) == 18
+    # compare number of available functions
+    dlst = dir(mso)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) >= 27
+    assert type(mso.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(mso).keys()
+
+def test_filter_distance_to_coast_ms(test_data):
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    name = ['s3a','s3b']
+    varalias = 'Hs'
+
+    # init multisat_object
+    mso = ms(sd=sd,
+         ed=ed, 
+         name=name,
+         varalias = varalias, 
+         path = [str(test_data/"L3/s3a"),
+                 str(test_data/"L3/s3b")])
+    # read data
+    mso = mso.filter_distance_to_coast(llim=50000, ulim=1000000)
+    assert mso.__class__.__name__ == 'multisat_class'
+    # compare number of available variables
+    vlst = list(vars(mso).keys())
+    assert len(vlst) == 17
+    # compare number of available functions
+    dlst = dir(mso)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) >= 27
+    assert type(mso.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(mso).keys()
+     
+
