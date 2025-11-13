@@ -152,9 +152,12 @@ class model_class(qls):
         # add other class object variables
         self.nID = kwargs.get('nID')
         self.model = kwargs.get('model', self.nID)
-        self.varalias = kwargs.get('varalias', 'Hs')
-        self.units = variable_def[self.varalias].get('units')
-        self.stdvarname = variable_def[self.varalias].get('standard_name')
+        self.varalias = kwargs.get('varalias', ['Hs'])
+        if isinstance(self.varalias, str):
+            self.varalias = [self.varalias]
+        self.units = [variable_def[v].get('units') for v in self.varalias]
+        self.stdvarname = [variable_def[v].get('standard_name') for v in\
+                           self.varalias]                             
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
@@ -540,27 +543,29 @@ class model_class(qls):
 
     def _enforce_meteorologic_convention(self):
         print(' enforcing meteorological convention')
-        if ('convention' in vars(self.cfg)['misc'].keys() and
-        vars(self.cfg)['misc']['convention'] == 'oceanographic'):
-            print('Convert from oceanographic to meteorologic convention')
-            self.vars[self.varalias] =\
-                convert_meteorologic_oceanographic(self.vars[self.varalias])
-        elif 'to_direction' in self.vars[self.varalias].attrs['standard_name']:
-            print('Convert from oceanographic to meteorologic convention')
-            self.vars[self.varalias] =\
-                convert_meteorologic_oceanographic(self.vars[self.varalias])
+        for v in self.varalias:
+            if ('convention' in vars(self.cfg)['misc'].keys() and
+            vars(self.cfg)['misc']['convention'] == 'oceanographic'):
+                print('Convert from oceanographic to meteorologic convention')
+
+                self.vars[v] = convert_meteorologic_oceanographic(self.vars[v])
+            
+            elif 'to_direction' in self.vars[v].attrs['standard_name']:
+                print('Convert from oceanographic to meteorologic convention')
+                self.vars[v] = convert_meteorologic_oceanographic(self.vars[v])
         return self
 
     def _change_varname_to_aliases(self):
         print(' changing variables to aliases')
         # variables
-        ncvar = get_filevarname(self.varalias, variable_def,
-                                vars(self.cfg), self.meta)
-        if self.varalias in list(self.vars.keys()):
-            print('  ', ncvar, 'is alreade named correctly and'
-                + ' therefore not adjusted')
-        else:
-            self.vars = self.vars.rename({ncvar: self.varalias})
+        for v in self.varalias:
+            ncvar = get_filevarname(v, variable_def,
+                                    vars(self.cfg), self.meta)
+            if v in list(self.vars.keys()):
+                print('  ', ncvar, 'is alreade named correctly and'
+                    + ' therefore not adjusted')
+            else:
+                self.vars = self.vars.rename({ncvar: v})
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
@@ -584,8 +589,9 @@ class model_class(qls):
         self.vars['time'].attrs['standard_name'] = \
             variable_def['time'].get('standard_name')
         # enforce standard_name for variable alias
-        self.vars[self.varalias].attrs['standard_name'] = \
-            self.stdvarname
+        for i in range(len(self.varalias)):
+            self.vars[self.varalias[i]].attrs['standard_name'] = \
+                self.stdvarname[i]
         return self
 
     def populate(self, **kwargs):
@@ -601,8 +607,10 @@ class model_class(qls):
             print('')
             print('Checking variables..')
             self.meta = ncdumpMeta(self.pathlst[0])
-            ncvar = get_filevarname(self.varalias, variable_def,
-                                    vars(self.cfg), self.meta)
+            ncvar = [get_filevarname(v, variable_def,
+                                    vars(self.cfg), 
+                                    self.meta) for \
+                                     v in self.varalias]
             print('')
             print('Choosing reader..')
             # define reader

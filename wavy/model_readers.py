@@ -36,6 +36,8 @@ def read_ww3_4km(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, str):
+        varname = [varname]
     ds_lst = []
     # retrieve sliced data
     for i in range(len(fc_dates)):
@@ -43,9 +45,8 @@ def read_ww3_4km(**kwargs):
         p = pathlst[i]
         ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
-        ds_sliced = ds_sliced[[varname,
-                               model_dict[nID]['vardef']['lons'],
-                               model_dict[nID]['vardef']['lats']]]
+        ds_sliced = ds_sliced[varname + [model_dict[nID]['vardef']['lons'],
+                                         model_dict[nID]['vardef']['lats']]]
 
         ds_lst.append(ds_sliced)
 
@@ -68,6 +69,8 @@ def read_meps(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, str):
+        varname = [varname]
     ds_lst = []
     # retrieve sliced data
     for i in range(len(fc_dates)):
@@ -75,9 +78,8 @@ def read_meps(**kwargs):
         p = pathlst[i]
         ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
-        ds_sliced = ds_sliced[[varname,
-                               model_dict[nID]['vardef']['lons'],
-                               model_dict[nID]['vardef']['lats']]]
+        ds_sliced = ds_sliced[varname + [model_dict[nID]['vardef']['lons'],
+                                         model_dict[nID]['vardef']['lats']]]
 
         ds_lst.append(ds_sliced)
 
@@ -101,7 +103,11 @@ def read_noresm_making_waves(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, list):
+        varname = varname[0]
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, list):
+        varalias = varalias[0]
     timename = model_dict[nID]['vardef']['time']
     lonsname = model_dict[nID]['vardef']['lons']
     latsname = model_dict[nID]['vardef']['lats']
@@ -148,12 +154,14 @@ def read_remote_ncfiles_aggregated_credentials(**kwargs):
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, str):
+        varalias = [varalias]
     nID = kwargs.get('nID')
     remoteHostName = kwargs.get('remoteHostName')
     path = kwargs.get('pathlst')[0]
 
     # varnames
-    varname = model_dict[nID]['vardef'][varalias]
+    varname = [model_dict[nID]['vardef'][v] for v in varalias]
     lonsname = model_dict[nID]['vardef']['lons']
     latsname = model_dict[nID]['vardef']['lats']
     timename = model_dict[nID]['vardef']['time']
@@ -170,10 +178,10 @@ def read_remote_ncfiles_aggregated_credentials(**kwargs):
             path, remoteHostName, usr, pw)
 
     ds_sliced = ds.sel(time=slice(sd, ed))
-    var_sliced = ds_sliced[[varname, lonsname, latsname]]
+    var_sliced = ds_sliced[varname + [lonsname, latsname]]
 
     # forge into correct format varalias, lons, lats with dim time
-    ds = build_xr_ds_grid(var_sliced[varname],
+    ds = build_xr_ds_grid_multivar([var_sliced[v] for v in varname],
                           var_sliced[lonsname],
                           var_sliced[latsname],
                           var_sliced[timename],
@@ -203,6 +211,8 @@ def read_field(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, list):
+        varname = varname[0]
     timename = model_dict[nID]['vardef']['time']
     lonsname = model_dict[nID]['vardef']['lons']
     latsname = model_dict[nID]['vardef']['lats']
@@ -249,7 +259,11 @@ def read_ecwam(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, list):
+        varname = varname[0]
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, list):
+        varalias = varalias[0]
     timename = model_dict[nID]['vardef']['time']
     lonsname = model_dict[nID]['vardef']['lons']
     latsname = model_dict[nID]['vardef']['lats']
@@ -291,6 +305,8 @@ def read_era(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, str):
+        varname = [varname]
     ds_lst = []
     # retrieve sliced data
     for i in range(len(fc_dates)):
@@ -299,8 +315,8 @@ def read_era(**kwargs):
         ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d},
                             method='nearest')
-        ds_sliced = ds_sliced[[varname,
-                               model_dict[nID]['vardef']['lons'],
+        ds_sliced = ds_sliced[varname+
+                              [model_dict[nID]['vardef']['lons'],
                                model_dict[nID]['vardef']['lats']]]
 
         ds_lst.append(ds_sliced)
@@ -325,6 +341,8 @@ def read_NORA3_wind(**kwargs):
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
     varname = kwargs.get('varname')
+    if isinstance(varname, str):
+        varname = [varname]
     hlevel = kwargs.get('heightlevel', 10)
     ds_lst = []
     # retrieve sliced data
@@ -334,8 +352,8 @@ def read_NORA3_wind(**kwargs):
         ds = xr.open_dataset(p, engine='netcdf4')
         ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
         ds_sliced = ds_sliced.sel({'height': hlevel})
-        ds_sliced = ds_sliced[[varname,
-                               model_dict[nID]['vardef']['lons'],
+        ds_sliced = ds_sliced[varname +
+                              [model_dict[nID]['vardef']['lons'],
                                model_dict[nID]['vardef']['lats']]]
 
         ds_lst.append(ds_sliced)
