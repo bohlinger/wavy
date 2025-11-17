@@ -25,12 +25,23 @@ class gridder_class():
         print(" ")
         self.mvals = None
         if oco is not None:
+            self.varalias = kwargs.get('varalias', oco.varalias)
+            if isinstance(self.varalias, list):
+                if len(self.varlias) > 1: 
+                    print("Warning: gridder does not work with more than one \
+                           variable at the moment.")
+                    print("First variable selected as default: {}".format(
+                           self.varalias[0])) 
+                self.varalias=self.varalias[0]
+            self.stdvarname = oco.stdvarname
+            if isinstance(self.stdvarname, list):
+                self.stdvarname=self.stdvarname[0]
+            self.units = oco.units
+            if isinstance(self.units, list):
+                self.units = self.units[0]
             self.olons = np.array(oco.vars['lons'].squeeze().values.ravel())
             self.olats = np.array(oco.vars['lats'].squeeze().values.ravel())
-            self.ovals = np.array(oco.vars[oco.varalias].squeeze().values.ravel())
-            self.stdvarname = oco.stdvarname
-            self.varalias = oco.varalias
-            self.units = oco.units
+            self.ovals = np.array(oco.vars[self.varalias].squeeze().values.ravel())
             self.sdate = oco.vars['time'][0]
             self.edate = oco.vars['time'][-1]
         elif cco is not None:
