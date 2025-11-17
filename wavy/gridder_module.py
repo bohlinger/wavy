@@ -27,7 +27,7 @@ class gridder_class():
         if oco is not None:
             self.varalias = kwargs.get('varalias', oco.varalias)
             if isinstance(self.varalias, list):
-                if len(self.varlias) > 1: 
+                if len(self.varalias) > 1: 
                     print("Warning: gridder does not work with more than one \
                            variable at the moment.")
                     print("First variable selected as default: {}".format(
