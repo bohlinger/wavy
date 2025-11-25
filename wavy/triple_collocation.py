@@ -592,7 +592,7 @@ def least_squares_merging(data, tc_results=None, return_var=False, **kwargs):
         return least_squares_merge, least_squares_var
 
 
-def spectra_cco(cco, fs, returns='average',nsample=64):
+def spectra_cco(cco, fs, varalias, returns='average',nsample=64):
     """
     Calculate the power spectra for both model and observation series 
     of a collocation class object. The series are separated into 
@@ -601,9 +601,9 @@ def spectra_cco(cco, fs, returns='average',nsample=64):
     for each sample. 
 
     cco (collocation_class object or xarray dataset): collocation class object 
-              for which the spectra are calculated. If xarray.dataset 
-              is given, it must have a single time dimension and obs_values 
-              and model_values variables.
+             for which the spectra are calculated. If xarray.dataset 
+             is given, it must have a single time dimension and 'obs_'+varalias 
+             and 'model_'+varalias variables.
     fs (float): frequency of the time series
     returns (str): If 'average' returns the average power spectra of the time series. 
                    If 'list' returns lists of power spectra of each samples of the given series.
@@ -653,19 +653,19 @@ def spectra_cco(cco, fs, returns='average',nsample=64):
             idx = idx[0]
         
             time_idx = sample_tmp.time.values[idx]
-            obs_idx = sample_tmp.obs_values.values[idx]
-            mod_idx = sample_tmp.model_values.values[idx]
+            obs_idx = sample_tmp['obs_'+varalias].values[idx]
+            mod_idx = sample_tmp['model_'+varalias].values[idx]
             time_idx_1 = sample_tmp.time.values[idx+1]
-            obs_idx_1 = sample_tmp.obs_values.values[idx+1]
-            mod_idx_1 = sample_tmp.model_values.values[idx+1]
+            obs_idx_1 = sample_tmp['obs_'+varalias].values[idx+1]
+            mod_idx_1 = sample_tmp['model_'+varalias].values[idx+1]
             
             time_between = time_idx + np.timedelta64(int(1000*median_step),'ms')
             obs_between= (obs_idx + obs_idx_1)/2
             mod_between = (mod_idx + mod_idx_1)/2 
         
             ds_between = xr.Dataset(
-                                data_vars={'obs_values': (('time'), [obs_between]),
-                                           'model_values': (('time'), [mod_between])},
+                                data_vars={'obs_'+varalias: (('time'), [obs_between]),
+                                           'model_'+varalias: (('time'), [mod_between])},
                                 coords={'time': [time_between]}
                                    ) 
     
@@ -673,8 +673,8 @@ def spectra_cco(cco, fs, returns='average',nsample=64):
     
         sample_tmp = sample_tmp.isel(time=range(0,nsample))
         
-        obs_val_tmp = sample_tmp.obs_values.values
-        mod_val_tmp = sample_tmp.model_values.values
+        obs_val_tmp = sample_tmp['obs_'+varalias].values
+        mod_val_tmp = sample_tmp['model_'+varalias].values
         
         f, PS_obs_tmp =  periodogram(obs_val_tmp, fs=fs, window='hamming')
         f, PS_mod_tmp =  periodogram(mod_val_tmp, fs=fs, window='hamming')
@@ -726,7 +726,6 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
         else:
             threshold = 1/threshold    
     
-
     f_1 = [1/f[i] if f[i] != 0 else np.inf for i in range(len(f)) ]
     idx_threshold = np.argwhere(np.array(f_1) <= threshold)[0][0]
     r2 = np.sum(weighted_diff_PS[idx_threshold:])
