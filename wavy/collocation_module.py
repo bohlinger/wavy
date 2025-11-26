@@ -308,6 +308,16 @@ class collocation_class(qls):
             ds = new._build_xr_dataset(results_dict)
             ds = ds.assign_coords(time=ds.time.values)
             new.vars = ds
+            
+            # Add extra variables from oco
+            list_vars_cco = list(new.vars.keys())
+            list_vars_oco = ['obs_' + v for v in list(new.oco.vars.keys())]
+            list_vars_extra = [v[4:] for v in list_vars_oco if v not in\
+                               list_vars_cco]
+            new.vars = new.vars.merge(new.oco.vars[list_vars_extra].\
+                              rename({v:'obs_'+v for v in list_vars_extra}), 
+                                     join='left')
+            
             new = new._drop_duplicates(**kwargs)
             t1 = time.time()
             print(" ")
