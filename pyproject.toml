@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wavyopen"
 requires-python = ">=3.12"
-version = "0.5.0"
+version = "0.5.1"
 description = "A package for processing/calibrating/validating wave measurements and wave model output."
 license = "MIT"
 license-files = ["LICENSE"]
