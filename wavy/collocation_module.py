@@ -258,7 +258,7 @@ class collocation_class(qls):
     '''
 
     def __init__(self, oco=None, model=None, poi=None,
-    distlim=None, leadtime=None, varalias=None, **kwargs):
+                 leadtime=None, varalias=None, **kwargs):
         print('# ----- ')
         print(" ### Initializing collocation_class object ###")
         print(" ")
