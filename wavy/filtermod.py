@@ -33,6 +33,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         llim = kwargs.get('llim',
@@ -132,6 +139,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
@@ -175,8 +189,17 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
+        
+        print("Applying filter to {}".format(varalias))
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -213,8 +236,17 @@ class filter_class:
     def filter_GP(self, **kwargs):
         print('Apply GPR filter')
         new = deepcopy(self)
-        varalias = kwargs.get('varalias', new.varalias[0])
-        
+        if isinstance(new.varalias, list):
+            varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
+        else: 
+            varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -256,9 +288,15 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
-
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -311,6 +349,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
 
@@ -367,6 +412,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         
@@ -410,6 +462,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         
@@ -454,6 +513,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
+            
+            if (len(new.varalias) > 1) and\
+             (kwargs.get('varalias', None) is None):
+                msg="Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, "+\
+                      "please specify it using varalias."
+                print(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         
