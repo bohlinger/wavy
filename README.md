@@ -5,8 +5,10 @@
 [![Coverage Status](https://coveralls.io/repos/github/bohlinger/wavy/badge.svg?branch=master)](https://coveralls.io/github/bohlinger/wavy?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/wavyopen/badge/?version=latest)](https://wavyopen.readthedocs.io/en/latest/?badge=latest)
 
-### Main developer and moderation:
+### Core developers:
 Patrik Bohlinger, Norwegian Meteorological Institute, patrikb@met.no
+Gaute Hope, Norwegian Meteorological Institute, gauteh@met.no
+Fabien Collas, Norwegian Meteorological Institute, fabienc@met.no
 
 ## Purpose
 Package to aid the collocation of observations and wave model output as well as subsequent wave model validation and calibration. Observational sources can be satellite altimetry or in-situ data. A variety of open source alternatives is implemented.

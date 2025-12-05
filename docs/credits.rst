@@ -10,7 +10,8 @@ If you are using **wavy** please mention the repo under https://github.com/bohli
 
 Scientific papers that used **wavy**
 ************************************
-* Hope, G., Seldal, T., Rabault, J., Bryhni, H., Bohlinger, P., Björkqvist, J.-V., and Coauthors, 2025: SFY—A Lightweight, High-Frequency, and Phase-Resolving Wave Buoy for Coastal Waters. J. Atmos. Oceanic Technol., 42, 133–154, https://doi.org/10.1175/JTECH-D-23-0170.1.
+* Rabault, J., Halsne, T., Carrasco, A., Korosov, A., Voermans, J., Bohlinger, P., and Coauthors (2025): Buoy measurements of strong waves in ice amplitude modulation: a signature of the impact of sea ice closedness on waves in ice attenuation, The Cryosphere, 19, 6229–6260, https://doi.org/10.5194/tc-19-6229-2025.
+* Hope, G., Seldal, T., Rabault, J., Bryhni, H., Bohlinger, P., Björkqvist, J.-V., and Coauthors (2025): SFY—A Lightweight, High-Frequency, and Phase-Resolving Wave Buoy for Coastal Waters. J. Atmos. Oceanic Technol., 42, 133–154, https://doi.org/10.1175/JTECH-D-23-0170.1.
 * Altiparmaki, O., Breivik, Ø., Aouf, L., Bohlinger, P., Johannessen, J. A., Collard, F., and Coauthors (2024). Influence of ocean currents on wave modeling and satellite observations: Insights from the one ocean expedition. Journal of Geophysical Research: Oceans, 129, e2024JC021581. https://doi.org/10.1029/2024JC021581
 * Ølberg, J.T., Bohlinger, P., Breivik, Ø., and Coauthors (2024). Wave measurements using open source ship mounted ultrasonic altimeter and motion correction system during the one ocean circumnavigation. Ocean Engineering, 292, https://doi.org/10.1016/j.oceaneng.2023.116586.
 * Rabault, J., and Coauthors (2022). Openmetbuoy-v2021: An easy-to-build, affordable, customizable, open-source instrument for oceanographic measurements of drift and waves in sea ice and the open ocean. Geosciences, 12 (3).
