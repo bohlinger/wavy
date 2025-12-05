@@ -39,6 +39,10 @@ Internal usage at MET Norway
 * project based validation of wave models
 * operational and project based tuning of wave models
 
+Educational use at University of Bergen (UiB)
+*********************************************
+* GEOF343 at Geophysical Institute (https://www4.uib.no/en/studies/courses/geof343)
+
 Public operational validation tasks using **wavy**
 **************************************************
 Operational model validation for the Copernicus CMEMS product ARCTIC_ANALYSIS_FORECAST_WAV_002_014 (https://cmems.met.no/ARC-MFC/Wave3kmValidation/index.html)
