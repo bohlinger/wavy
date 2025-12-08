@@ -103,6 +103,9 @@ class insitu_class(qls, fc):
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
+        depth_lvls = kwargs.get('depth_lvls', None)
+        if depth_lvls is not None:
+            self.depth_lvls = depth_lvls
         self.cfg = dc
         print(" ")
         print(" ### insitu_class object initialized ### ")
