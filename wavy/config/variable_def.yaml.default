@@ -295,12 +295,6 @@ MdirToST:
   units: degree
   _FillValue: -999.9
 
-eHmax:
-  standard_name: expected_maximum_wave_height
-  long_name: 'expected maximum wave height'
-  units: m
-  _FillValue: -999.9
-
 eTm:
   standard_name: expected_wave_period
   long_name: 'expected wave period'
