@@ -159,9 +159,6 @@ U:
     standard_name: wind_speed
     units: m s-1
     _FillValue: -999.9
-    aliases_of_vector_components:
-        alt1: [ua,va]
-        alt2: [ux,vy]
     valid_range: [0., 200]
 
 Udir:
@@ -225,3 +222,162 @@ hmaxst:
     long_name: 'space time domain maximum individual wave height'
     units: m
     _FillValue: -999.9
+    
+UdirTo:
+  standard_name: wind_to_direction
+  long_name: 'Wind direction'
+  units: degree
+  _FillValue: -999.9
+
+FV:
+  standard_name: friction_velocity
+  long_name: 'friction velocity'
+  units: m s-1
+  _FillValue: -999.9
+
+DC:
+  standard_name: drag_coefficient
+  long_name: 'drag coefficient'
+  units: NA
+  _FillValue: -999.9
+
+MdirTo:
+  standard_name: sea_surface_wave_to_direction
+  long_name: 'Total mean wave direction'
+  units: degree
+  _FillValue: -999.9
+
+HsSea:
+  standard_name: sea_surface_wind_wave_significant_height
+  long_name: 'Sea significant wave height'
+  units: m
+  _FillValue: -999.9
+
+TpSea:
+  standard_name: sea_surface_wind_wave_peak_period_from_variance_spectral_density
+  long_name: 'Sea peak period'
+  units: s
+  _FillValue: -999.9
+
+Tm10Sea:
+  standard_name: sea_surface_wind_wave_mean_period_from_variance_spectral_density_inverse_frequency_moment
+  long_name: 'Sea mean period'
+  units: s
+  _FillValue: -999.9
+
+MdirToSea:
+  standard_name: sea_surface_wind_wave_to_direction
+  long_name: 'Sea mean wave direction'
+  units: degree
+  _FillValue: -999.9
+
+SIC:
+  standard_name: sea_ice_concentration
+  long_name: 'sea ice concentration'
+  units: '1'
+  _FillValue: -999.9
+
+HsST:
+  standard_name: sea_surface_swell_wave_significant_height
+  long_name: 'Swell significant wave height'
+  units: m
+  _FillValue: -999.9
+
+TpST:
+  standard_name: sea_surface_swell_wave_period_at_variance_spectral_density_maximum
+  long_name: 'Swell peak period'
+  units: s
+  _FillValue: -999.9
+
+MdirToST:
+  standard_name: sea_surface_swell_wave_to_direction
+  long_name: 'Swell mean wave direction'
+  units: degree
+  _FillValue: -999.9
+
+eHmax:
+  standard_name: expected_maximum_wave_height
+  long_name: 'expected maximum wave height'
+  units: m
+  _FillValue: -999.9
+
+eTm:
+  standard_name: expected_wave_period
+  long_name: 'expected wave period'
+  units: s
+  _FillValue: -999.9
+
+fpI:
+  standard_name: interpolated_peak_frequency
+  long_name: 'interpolated peak frequency'
+  units: s
+  _FillValue: -999.9
+
+HsS1:
+  standard_name: sea_surface_primary_swell_wave_significant_height
+  long_name: 'first swell significant wave height'
+  units: m
+  _FillValue: -999.9
+
+TmS1:
+  standard_name: sea_surface_primary_swell_wave_mean_period
+  long_name: 'first swell mean period'
+  units: s
+  _FillValue: -999.9
+
+MdirToS1:
+  standard_name: sea_surface_primary_swell_wave_to_direction
+  long_name: 'first swell direction'
+  units: degree
+  _FillValue: -999.9
+
+HsS2:
+  standard_name: sea_surface_secondary_swell_wave_significant_height
+  long_name: 'second swell significant wave height'
+  units: m
+  _FillValue: -999.9
+
+TmS2:
+  standard_name: sea_surface_secondary_swell_wave_mean_period
+  long_name: 'second swell mean period'
+  units: s
+  _FillValue: -999.9
+
+MdirToS2:
+  standard_name: sea_surface_secondary_swell_wave_to_direction
+  long_name: 'second swell direction'
+  units: degree
+  _FillValue: -999.9
+
+HsS3:
+  standard_name: sea_surface_tertiary_swell_wave_significant_height
+  long_name: 'third swell significant wave height'
+  units: m
+  _FillValue: -999.9
+
+TmS3:
+  standard_name: sea_surface_tertiary_swell_wave_mean_period
+  long_name: 'third swell mean period'
+  units: m s-1
+  _FillValue: -999.9
+
+MdirToS3:
+  standard_name: sea_surface_tertiary_swell_wave_to_direction
+  long_name: 'third swell direction'
+  units: degree
+  _FillValue: -999.9
+
+SIT:
+  standard_name: sea_ice_thickness
+  long_name: 'sea ice thickness'
+  units: m
+  _FillValue: -999.9
+
+PdirTo:
+    standard_name: "sea_surface_wave_to_direction_at_variance_spectral\
+                    _density_maximum"
+    units: degree
+    valid_range: [0.,360.]
+    _FillValue: -999.9
+    type: cyclic
+
