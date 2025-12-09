@@ -179,7 +179,7 @@ def read_local_20Hz_files(**kwargs):
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     twin = kwargs.get('twin')
-
+    nc_dim = satellite_dict[nID].get('misc',{}).get('nc_dim', 'time')
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
@@ -195,7 +195,7 @@ def read_local_20Hz_files(**kwargs):
                               satellite_dict[nID], ncmeta)
 
     # retrieve sliced data
-    ds = read_netcdfs(pathlst)
+    ds = read_netcdfs(pathlst, dim=nc_dim)
     ds_sort = ds.sortby(timestr)
 
     # get indices for included time period
