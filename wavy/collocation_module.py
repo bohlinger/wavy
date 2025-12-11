@@ -317,7 +317,7 @@ class collocation_class(qls):
             new.vars = new.vars.merge(new.oco.vars[list_vars_extra].\
                               rename({v:'obs_'+v for v in list_vars_extra}), 
                                      join='left')
-            
+                        
             new = new._drop_duplicates(**kwargs)
             t1 = time.time()
             print(" ")
@@ -373,7 +373,7 @@ class collocation_class(qls):
                         data=results_dict['model_time'],
                         dims=['time'],
                         coords={'time': results_dict['obs_time']},
-                        attrs=variable_def['time'],
+                        attrs={},
                         ),
                 'model_lons': xr.DataArray(
                         data=results_dict['model_lons'],
