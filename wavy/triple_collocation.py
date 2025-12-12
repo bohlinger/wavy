@@ -103,7 +103,7 @@ def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05):
     mod_1 = np.array(mod_1)
     mod_2 = np.array(mod_2)
     
-    idx = np.abs(mod_1 - mod_2)/mod_1 < 0.05
+    idx = np.abs(mod_1 - mod_2)/mod_1 < max_rel_diff
 
     data_filtered = {}
 
