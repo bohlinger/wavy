@@ -291,6 +291,8 @@ class collocation_class(qls):
         self.distlim = kwargs.get('distlim', 6)
         self.method = kwargs.get('method', 'closest')
         self.colloc_time_method = kwargs.get('colloc_time_method', 'nearest')
+        self.nproc = kwargs.get('nproc',16)
+        self.res = kwargs.get('res',(0.5,0.5))
         print(" ")
         print(" ### Collocation_class object initialized ###")
         
@@ -641,7 +643,7 @@ class collocation_class(qls):
    
         nID_model = self.model
         name_model = self.model 
-        res = kwargs.get('res', (0.5,0.5))
+        res = self.res
         colloc_time_method = self.colloc_time_method
         
         print('Using resolution {}'.format(res))
@@ -697,7 +699,7 @@ class collocation_class(qls):
         lat_mod_list=[]
         time_mod_list=[]
         
-        nproc = kwargs.get('nproc', 16)
+        nproc = self.nproc
         
         oco_vars = self.oco.vars
 
