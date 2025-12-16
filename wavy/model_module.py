@@ -249,6 +249,8 @@ class model_class(qls):
             init_times = np.array(range(25)).astype('float')
         date = fc_date - timedelta(hours=leadtime)
         date_hour = hour_rounder(date).hour
+        print('date:', date)
+        print('date_hour:', date_hour)
         if date_hour in init_times:
             print('Leadtime', leadtime, \
                   'available for date', fc_date)
@@ -302,21 +304,25 @@ class model_class(qls):
                             + tmpstr)
             else:
                 filedate = self._get_model_filedate(fc_date, leadtime)
-                filename = (filedate.strftime(vars(self.cfg)
-                                ['wavy_input']['src_tmplt'])
-                          + filedate.strftime(vars(self.cfg)
-                                ['wavy_input']['fl_tmplt']))
+                if filedate is None:
+                    filename = None
+                else:
+                    filename = (filedate.strftime(vars(self.cfg)
+                                    ['wavy_input']['src_tmplt'])
+                              + filedate.strftime(vars(self.cfg)
+                                    ['wavy_input']['fl_tmplt']))
         else:
             raise ValueError("Chosen model is not specified in model_cfg.yaml")
         # replace/escape special characters
-        filename = filename.replace(" ", "\\ ")\
-                           .replace("?", "\\?")\
-                           .replace("&", "\\&")\
-                           .replace("(", "\\(")\
-                           .replace(")", "\\)")\
-                           .replace("*", "\\*")\
-                           .replace("<", "\\<")\
-                           .replace(">", "\\>")
+        if filename is not None:
+            filename = filename.replace(" ", "\\ ")\
+                               .replace("?", "\\?")\
+                               .replace("&", "\\&")\
+                               .replace("(", "\\(")\
+                               .replace(")", "\\)")\
+                               .replace("*", "\\*")\
+                               .replace("<", "\\<")\
+                               .replace(">", "\\>")
         return filename
 
     def _make_model_filename_wrapper(self, fc_date, leadtime, **kwargs):
