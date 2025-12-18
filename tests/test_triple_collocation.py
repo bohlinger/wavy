@@ -194,9 +194,21 @@ def test_least_squares_merging(test_data):
     assert len(least_squares_merge) == len(dict_data['insitu'])
 
     
-def test_spectra_cco(test_data):
+def test_get_mean_spectra(test_data):
 
-    assert True
+    # Wavy objects
+    # Import in-situ data
+    ico = ic(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='history_cmems_NRT',
+             name='Norne')
+    ico.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_ico.nc")
+                              )
+                              
+    spectra = tc.get_mean_spectra(ico.vars, varname='Hs', fs=6, nsample=64)
+    
+    assert len(spectra) == 32
     
 def test_integrate_r2(test_data):
 
