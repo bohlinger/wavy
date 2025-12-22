@@ -63,12 +63,28 @@ def load_or_default(name):
         with config_path.open('r', encoding='utf-8') as f:
             return yaml.safe_load(f)
 
+#def load_minimal(name):
+#    logging.debug('attempting to load: %s..' % name)
+#
+#    from pkg_resources import resource_stream
+#    return yaml.safe_load(resource_stream(__name__,
+#                          os.path.join('config', name + '.minimal')))
+
 def load_minimal(name):
     logging.debug('attempting to load: %s..' % name)
 
-    from pkg_resources import resource_stream
-    return yaml.safe_load(resource_stream(__name__,
-                          os.path.join('config', name + '.minimal')))
+    file_path = os.path.join(os.path.dirname(__file__), 'config', f'{name}.minimal')
+
+    try:
+        with open(file_path, 'r') as file:
+            return yaml.safe_load(file)
+    except FileNotFoundError:
+        logging.error(f"File not found: {file_path}")
+        print('try default')
+        return None
+    except yaml.YAMLError as e:
+        logging.error(f"Error parsing YAML file: {file_path}, error: {e}")
+        return None
 
 def load_dir(name):
     resource_path = files().joinpath(f"{name}.py")
