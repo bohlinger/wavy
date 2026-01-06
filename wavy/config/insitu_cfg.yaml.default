@@ -836,6 +836,7 @@ MO_Draugen_monthly: # object nID (nameID)
     # optional, needs to be defined if not cf and in variable_info.yaml
     vardef:
         Hs: VAVH
+        U: WSPD
         lats: LATITUDE
         lons: LONGITUDE
         time: TIME

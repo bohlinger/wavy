@@ -144,3 +144,74 @@ def test_filter_distance_to_coast(test_data):
     assert len(flst) >= 47
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
+
+def test_filter_ico_multivar(test_data): 
+
+    varalias = ['Hs','U']  # default
+    sd = "2023-7-2 00"
+    ed = "2023-7-3 00"
+    nID = 'MO_Draugen_monthly'
+    name = 'Draugen'
+    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
+    ico = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
+    
+    assert len(ico.vars['time']) > 0
+    assert len(ico.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in ico.vars['Hs'])
+    assert not all(np.isnan(v) for v in ico.vars['U'])
+    
+    filter_1 = ico.filter_runmean(window=3,
+                             chunk_min=3,
+                             sampling_rate_Hz=1/600,
+                             varalias='Hs')
+    
+    assert len(filter_1.vars['time']) > 0
+    assert len(filter_1.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in filter_1.vars['Hs'])
+    assert not all(np.isnan(v) for v in filter_1.vars['U'])
+    
+    filter_2 = filter_1.apply_limits(llim=1, ulim=3, 
+                                    varalias='Hs')
+    
+    assert len(filter_2.vars['time']) > 0
+    assert len(filter_2.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in filter_2.vars['Hs'])
+    assert not all(np.isnan(v) for v in filter_2.vars['U'])
+
+def test_filter_sco_multivar(test_data): 
+
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    name = 's3a'
+    varalias = ['Hs','U']
+    twin = 30
+    nID = 'cmems_L3_NRT'
+    # init satellite_object
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
+             varalias=varalias,
+             twin=twin)
+    # read data
+    sco = sco.populate(path=str(test_data/"L3/s3a"))
+    
+    assert len(sco.vars['time']) > 0
+    assert len(sco.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in sco.vars['Hs'])
+    assert not all(np.isnan(v) for v in sco.vars['U'])
+    
+    filter_1 = sco.filter_runmean(window=3,
+                             chunk_min=3,
+                             sampling_rate_Hz=1/600,
+                             varalias='Hs')
+    
+    assert len(filter_1.vars['time']) > 0
+    assert len(filter_1.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in filter_1.vars['Hs'])
+    assert not all(np.isnan(v) for v in filter_1.vars['U'])
+    
+    filter_2 = filter_1.apply_limits(llim=1, ulim=3, 
+                                    varalias='Hs')
+    
+    assert len(filter_2.vars['time']) > 0
+    assert len(filter_2.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in filter_2.vars['Hs'])
+    assert not all(np.isnan(v) for v in filter_2.vars['U'])

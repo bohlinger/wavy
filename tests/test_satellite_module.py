@@ -106,6 +106,35 @@ def test_default_reader(test_data):
     assert not 'error' in vars(sco).keys()
 
 
+def test_sco_multivar(test_data):
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    name = 's3a'
+    varalias = ['Hs','U']
+    twin = 30
+    nID = 'cmems_L3_NRT'
+    # init satellite_object
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
+             varalias=varalias,
+             twin=twin)
+    # read data
+    sco = sco.populate(path=str(test_data/"L3/s3a"))
+    assert sco.__class__.__name__ == 'satellite_class'
+    # compare number of available variables
+    vlst = list(vars(sco).keys())
+    assert len(vlst) == 19
+    # compare number of available functions
+    dlst = dir(sco)
+    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    assert len(flst) >= 47
+    assert type(sco.vars == 'xarray.core.dataset.Dataset')
+    assert not 'error' in vars(sco).keys()
+    assert len(sco.vars['time']) > 0
+    assert len(sco.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in sco.vars['Hs'])
+    assert not all(np.isnan(v) for v in sco.vars['U'])
+
+
 def test_polygon_region(test_data):
     sd = "2022-2-01 01"
     ed = "2022-2-03 23"

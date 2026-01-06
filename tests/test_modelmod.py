@@ -59,6 +59,15 @@ def test_NORA3_hc_waves():
     assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 3
 
+def test_mco_multivar():
+    #get_model
+    mco = mc(nID='ww3_4km', sd="2023-6-1", ed="2023-6-1 00", varalias=['Hs', 'U'])
+    assert mco.__class__.__name__ == 'model_class'
+    mco.populate()
+    print(mco.vars)
+    assert len(vars(mco).keys()) == 18
+    assert len(mco.vars.keys()) == 4
+
 # Fails
 #def test_MY_L4_thredds():
 #    """
