@@ -205,18 +205,73 @@ def test_get_mean_spectra(test_data):
     ico.vars = xr.open_dataset(
                               str(test_data/"triple_collocation/Norne_ico.nc")
                               )
-                              
+
     spectra = tc.get_mean_spectra(ico.vars, varname='Hs', fs=6, nsample=64)
     
     assert len(spectra) == 32
     
 def test_integrate_r2(test_data):
 
-    assert True
+    # Wavy objects
+    # Import in-situ data
+    ico = ic(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='history_cmems_NRT',
+             name='Norne')
+    ico.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_ico.nc")
+                              )
+
+    # Import model data
+    mco = mc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='NORA3_hc_waves')
+    mco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_mco.nc")
+                              )
+    
+    ps_ico = tc.get_mean_spectra(ico.vars, varname='Hs', fs=6, nsample=64)
+    ps_mod = tc.get_mean_spectra(mco.vars, varname='Hs', fs=6, nsample=64)
+
+    r2 = tc.integrate_r2(ps_ico['spectra'], ps_mod['spectra'], ps_ico['f'])
+
+    assert isinstance(r2, float)
+    assert not(np.isnan(r2))
     
 def test_filter_collocation_distance(test_data):
 
-    assert True
+    # Wavy objects
+    # Import in-situ data
+    ico = ic(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='history_cmems_NRT',
+             name='Norne')
+    ico.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_ico.nc")
+                              )
+    # Import satellite data
+    sco = sc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='CCIv1_L3',
+             name='multi')
+    sco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_sco.nc")
+                              )
+    # Import model data
+    mco = mc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='NORA3_hc_waves')
+    mco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_mco.nc")
+                              )
+    # Create dictionary for triple collocation function
+    dict_data = {'insitu': ico, 'satellite': sco, 'model': mco}
+
+    data_filtered = tc.filter_collocation_distance(dict_data, dist_max=10, name='satellite')
+
+    assert dict_data.keys() == data_filtered.keys()
+    assert len(dict_data['insitu'].vars.time) >= len(data_filtered['insitu'].vars.time)
+    assert np.max(data_filtered['satellite'].vars.colloc_dist) <= 10 
 
 def test_filter_values(test_data):
 
@@ -257,4 +312,37 @@ def test_filter_values(test_data):
 
 def test_filter_dynamic_collocation(test_data):
 
-    assert True
+    # Wavy objects
+    # Import in-situ data
+    ico = ic(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='history_cmems_NRT',
+             name='Norne')
+    ico.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_ico.nc")
+                              )
+    # Import satellite data
+    sco = sc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='CCIv1_L3',
+             name='multi')
+    sco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_sco.nc")
+                              )
+    # Import model data
+    mco = mc(sd='2014-01-01',
+             ed='2018-12-31',
+             nID='NORA3_hc_waves')
+    mco.vars = xr.open_dataset(
+                              str(test_data/"triple_collocation/Norne_mco.nc")
+                              )
+    # Create dictionary for triple collocation function
+    dict_data = {'insitu': ico.vars.Hs.values, 
+                 'satellite': sco.vars.Hs.values,
+                 'model': mco.vars.Hs.values}
+    
+    data_filtered = tc.filter_dynamic_collocation(dict_data, 'insitu', 'model', max_rel_diff=0.05)
+    
+    assert dict_data.keys() == data_filtered.keys()
+    assert len(dict_data['insitu']) >= len(data_filtered['insitu'])
+    assert all((data_filtered['insitu'][i] - data_filtered['model'][i])/data_filtered['insitu'][i] <= 0.05 for i in range(len(data_filtered['insitu'])))
