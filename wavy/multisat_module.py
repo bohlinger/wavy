@@ -88,6 +88,19 @@ class multisat_class(qls, fc):
         print(" ### multisat object initialized ###")
         print('# ----- ')
 
+    def crop_to_period(self, **kwargs):
+        """
+        Function to crop the variable dictionary to a given period
+        """
+        new = deepcopy(self)
+        sd = parse_date(kwargs.get('sd', str(new.sd)))
+        ed = parse_date(kwargs.get('ed', str(new.ed)))
+        print('Crop to time period:', sd, 'to', ed)
+        new.vars = new.vars.sortby("time").sel(time=slice(sd, ed))
+        new.sd = sd
+        new.ed = ed
+        return new
+
 
 def find_valid_names(scos):
     names = [scos[0].name]
