@@ -37,7 +37,9 @@ dependencies = [
   "scikit-learn>=1.6",
   "fsspec",
   "requests",
-  "aiohttp"
+  "aiohttp",
+  "dill",
+  "geopandas"
   ]
 
 [project.scripts]

@@ -33,6 +33,7 @@ dependencies:
   - roaring-landmask>=0.7
   - copernicusmarine>=2.0
   - dill
+  - geopandas
   - pip
   - pip:
     - click
