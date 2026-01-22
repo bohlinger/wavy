@@ -165,9 +165,9 @@ def get_frost_df_v1(r: 'requests.models.Response')\
             print("   affected variable: ", frostvar)
             # 1. prioritize according to paramid
             if len(np.unique(paramids)) > 1:
-                print('multiple parameterids (',
+                print('multiple paramids (',
                         len(np.unique(paramids)), ')')
-                print('parameterids:', np.unique(paramids))
+                print('paramids:', np.unique(paramids))
                 idx = find_preferred(
                         idx, sensors, paramids,
                         variables_frost[vn]['prime_paramid'])
