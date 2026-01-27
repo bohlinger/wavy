@@ -3,6 +3,10 @@ Collocating model output and observations
 
 One of the main focus of **wavy** is to ease the collocation of observations and numerical wave models for model validation. For this purpose there is a collocation module and a config-file called collocation_specs.yaml where you can specify the name and path for the collocation file to be dumped if you wish to save them.
 
+.. note::
+
+   It is important that the model that you want to collocate with is defined according to the section on reading model output [:ref:`model-label`]
+
 Collocation of satellite and wave model
 ****************************************
 

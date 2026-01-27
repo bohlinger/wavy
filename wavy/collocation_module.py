@@ -211,6 +211,7 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model,
     fc_dates_new = [d for d in fc_dates_new
                     if get_model_filename(model, d, leadtime, **kwargs)
                     is not None]
+    print(fc_dates_new)
     return fc_dates_new
 
 
@@ -263,10 +264,10 @@ class collocation_class(qls):
         print(" ### Initializing collocation_class object ###")
         print(" ")
         # make clones to prevent overwriting
-        if varalias==None:
-            if isinstance(oco.varalias,str):
+        if varalias == None:
+            if isinstance(oco.varalias, str):
                 varalias = oco.varalias
-            else: 
+            else:
                 varalias = oco.varalias[0]
         self.varalias = varalias
         if isinstance(self.varalias, str):
@@ -295,9 +296,9 @@ class collocation_class(qls):
         self.res = kwargs.get('res',(0.5,0.5))
         print(" ")
         print(" ### Collocation_class object initialized ###")
-        
+
     def populate(self, **kwargs):
-    
+
         new = deepcopy(self)
         print(" ")
         print(" ## Collocate ... ")
@@ -335,7 +336,7 @@ class collocation_class(qls):
             print("! collocation_class object may be empty !")
         # add class variables
         print('# ----- ')
-        
+
         return new
 
     def _build_xr_dataset(self, results_dict):
@@ -415,7 +416,7 @@ class collocation_class(qls):
         return ds
 
     def _drop_duplicates(self, **kwargs):
-        
+
         dim = kwargs.get('dim_duplicates', 'time')
         keep = kwargs.get('keep_duplicates', 'first')
         print('Removing duplicates according to', dim)
@@ -534,9 +535,9 @@ class collocation_class(qls):
                 #with NoStdStreams():
                     # filter needed obs within time period
                     target_date = [parse_date(str(fc_date[i]))]
-                    
+
                     # if method is 'nearest', get the values that fall within
-                    # a time window of +/- 30 minutes of model time by default 
+                    # a time window of +/- 30 minutes of model time by default
                     if self.colloc_time_method=='nearest':
                         idx = collocate_times(ndt_datetime,
                                               target_t=target_date,
@@ -640,12 +641,12 @@ class collocation_class(qls):
     def _collocate_centered_model_value(self, time, lon, lat, **kwargs):
 
         #(time, lon, lat, nID_model, name_model, res):
-   
+
         nID_model = self.model
         name_model = self.model 
         res = self.res
         colloc_time_method = self.colloc_time_method
-        
+
         print('Using resolution {}'.format(res))
         # ADD CHECK LIMITS FOR LAT AND LON
         res_dict = {}
@@ -691,7 +692,7 @@ class collocation_class(qls):
         return res_dict
 
     def _collocate_regridded_model(self, **kwargs):
-    
+
         from joblib import Parallel, delayed
     
         hs_mod_list=[] 
@@ -704,7 +705,7 @@ class collocation_class(qls):
         oco_vars = self.oco.vars
 
         length = len(oco_vars.time.values)
-        
+
         #Parallel should be optional, with nproc as parameter
         colloc_mod_list = Parallel(n_jobs=nproc)(
                                delayed(self._collocate_centered_model_value) (
@@ -740,7 +741,7 @@ class collocation_class(qls):
             'collocation_idx_x': [0]*length,
             'collocation_idx_y': [0]*length,
             }
-        
+       
         return results_dict
 
     def collocate(self, **kwargs):

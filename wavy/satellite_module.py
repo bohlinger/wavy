@@ -69,7 +69,7 @@ def crop_to_period(ds, sd, ed):
     """
     Function to crop the dataset to a given period
     """
-    ds_sliced = ds.sel(time=slice(sd, ed))
+    ds_sliced = ds.sortby("time").sel(time=slice(sd, ed))
     return ds_sliced
 
 
@@ -668,7 +668,7 @@ class satellite_class(qls, fc):
                 if (region not in region_dict['rect']
                 and region not in region_dict['geojson']
                 and isinstance(region, dict) is False):
-                    sys.exit("Region is not defined")
+                    raise KeyError("Region is not defined")
                 else:
                     print("Specified region: " + region + "\n"
                           + " --> Bounds: " +
@@ -709,7 +709,7 @@ class satellite_class(qls, fc):
         sd = parse_date(kwargs.get('sd', str(new.sd)))
         ed = parse_date(kwargs.get('ed', str(new.ed)))
         print('Crop to time period:', sd, 'to', ed)
-        new.vars = new.vars.sel(time=slice(sd, ed))
+        new.vars = new.vars.sortby("time").sel(time=slice(sd, ed))
         new.sd = sd
         new.ed = ed
         return new

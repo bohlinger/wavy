@@ -564,7 +564,7 @@ class poi_class(qls, fc):
         sd = parse_date(kwargs.get('sd', str(new.sd)))
         ed = parse_date(kwargs.get('ed', str(new.ed)))
         print('Crop to time period:', sd, 'to', ed)
-        new.vars = new.vars.sel(time=slice(sd, ed))
+        new.vars = new.vars.sortby("time").sel(time=slice(sd, ed))
         new.sd = sd
         new.ed = ed
         return new

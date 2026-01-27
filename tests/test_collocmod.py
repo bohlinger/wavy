@@ -77,6 +77,27 @@ def test_insitu_collocation_and_validation(test_data, tmpdir):
 
     # validate
 
+def test_insitu_collocation_leadtime(test_data, tmpdir):
+    sd = "2024-01-01 10"
+    ed = "2024-01-01 19"
+    varalias = 'Hs'
+    twin = 30
+    model = 'ww3_4km'
+    nID = 'D_Breisundet_wave'
+    name = 'wavescan'
+
+    # init insitu_object and check for polygon region
+    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias,
+             name=name, twin=twin)
+
+    # read data
+    ico = ico.populate()
+
+    # collocate
+    cco = cc(oco=ico, model=model, leadtime=10, twin=9).populate()
+    assert len(vars(cco).keys()) == 19
+    assert len(cco.vars.keys()) == 9
+    assert len(cco.vars.time) == 2
 
 def test_poi_collocation():
     # define poi dictionary for track

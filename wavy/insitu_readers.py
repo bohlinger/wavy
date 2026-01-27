@@ -94,7 +94,7 @@ def call_frost_api_v1(
     frost call, retrieve data from frost v1
     """
     ID = insitu_dict[nID]['misc']['ID']
-    endpoint = 'https://frost-beta.met.no/api/v1/obs/met.no/kvkafka/get?'
+    endpoint = ' https://frost-rc.met.no/api/v1/obs/base/get?'
     parameters = {
                 'stationids': ID,
                 'elementids': varstr_list,
@@ -105,7 +105,7 @@ def call_frost_api_v1(
                 'sensors': sensor,  # limit to one sensor
                 'typeids': str(get_typeid(insitu_dict, nID))
                 }
-    print('parameters forst api call: ', parameters)
+    print('parameters frost api call: ', parameters)
     r = requests.get(endpoint, parameters, auth=(client_id, client_id))
     # print(r.status_code, r.text)
     return r
@@ -150,29 +150,29 @@ def get_frost_df_v1(r: 'requests.models.Response')\
     time_idx = lenlst.index(max(lenlst))
     dfc = pd.json_normalize(r.json()
             ['data']['tseries'][time_idx]['observations'])['time'].to_frame()
-    dinfo = {'sensor': {}, 'level': {}, 'parameterid': {},
+    dinfo = {'sensor': {}, 'level': {}, 'paramid': {},
              'geometric height': {}, 'masl': {}}
     for vn in variables_frost:
         frostvar = variables_frost[vn]['frost_name']
         idx = np.array(df['header.extra.element.id']
                 [df['header.extra.element.id'] == frostvar].index.to_list())
         sensors = df['header.id.sensor'][idx].values
-        parameterids = df['header.id.parameterid'][idx].values
+        paramids = df['header.id.paramid'][idx].values
         levels = df['header.id.level'][idx].values
         if len(sensors) != len(np.unique(sensors)):
             print("-> id.sensor was not unique " 
                     + "selecting according to variable_def.yaml")
             print("   affected variable: ", frostvar)
-            # 1. prioritize according to parameterid
-            if len(np.unique(parameterids)) > 1:
-                print('multiple parameterids (',
-                        len(np.unique(parameterids)), ')')
-                print('parameterids:', np.unique(parameterids))
+            # 1. prioritize according to paramid
+            if len(np.unique(paramids)) > 1:
+                print('multiple paramids (',
+                        len(np.unique(paramids)), ')')
+                print('paramids:', np.unique(paramids))
                 idx = find_preferred(
-                        idx, sensors, parameterids,
-                        variables_frost[vn]['prime_parameterid'])
+                        idx, sensors, paramids,
+                        variables_frost[vn]['prime_paramid'])
                 sensors = df['header.id.sensor'][idx].values
-                parameterids = df['header.id.parameterid'][idx].values
+                paramids = df['header.id.paramid'][idx].values
                 levels = df['header.id.level'][idx].values
             # 2. prioritize according to level
             if len(np.unique(levels)) > 1:
@@ -182,7 +182,7 @@ def get_frost_df_v1(r: 'requests.models.Response')\
                         idx, sensors, levels,
                         variables_frost[vn]['prime_level'])
                 sensors = df['header.id.sensor'][idx].values
-                parameterids = df['header.id.parameterid'][idx].values
+                paramids = df['header.id.paramid'][idx].values
                 levels = df['header.id.level'][idx].values
         for n, i in enumerate(idx):
             dftmp = pd.json_normalize(r.json()\
@@ -191,7 +191,7 @@ def get_frost_df_v1(r: 'requests.models.Response')\
             vns = vn
             #vns = vn + '_'a \
             #            + str(df['header.id.sensor'][i])
-            dftmp = dftmp.rename(columns={ dftmp.columns[0]: vns }).\
+            dftmp = dftmp.rename(columns={dftmp.columns[0]: vns}).\
                             astype(float)
             dftmp[vns] = dftmp[vns].mask(dftmp[vns] < 0, np.nan)
             dfc = pd.concat([dfc, dftmp.reindex(dfc.index)], axis=1)
@@ -202,8 +202,8 @@ def get_frost_df_v1(r: 'requests.models.Response')\
                 dinfo['level'][vns] = variables_frost[vn]['default_level']
             else:
                 dinfo['level'][vns] = levels[n]
-            # parameterid
-            dinfo['parameterid'][vns] = parameterids[n]
+            # paramid
+            dinfo['paramid'][vns] = paramids[n]
     return dfc, dinfo, lon, lat
 
 

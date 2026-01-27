@@ -1,3 +1,5 @@
+.. _model-label:
+
 Read model data
 ###############
 
@@ -27,6 +29,18 @@ Model output can be accessed and read using the model_module. The model_module c
             date_incr_unit: h
             date_incr: 1
         tags:
+
+Various predefined functions to aid reading the model output files are implemented. Those are called *reader* and have to be defined as in the example above for the operational WAVEWATCH_III model (*reader: read_ww3_4km*). The following readers are implemented so far:
+
+* read_ww3_4km  (for non-regular lat/lon, common for other projections than lat/lon)
+* read_meps
+* read_field
+* read_ecwam
+* read_ww3_unstructured_to_grid   (made for our unstructured NORAC WW3 hindcast)
+* read_era  (seems to work for many regular lat/lon grids)
+* read_NORA3_wind
+
+Please try them out and see if any of those work for you. If not, let us know so we can help.
 
 Often there are ambiguities due to the multiple usage of standard_names. Any such problem can be solved here in the config-file by adding the specified variable names under *vardef*. Examples are given in the default model_cfg.yaml file. The variable aliases (left hand side) need to be specified in the variable_def.yaml. Basic variables are already defined. All specs listed here are also used when **wavy** writes the retrieved values to netcdf.
 

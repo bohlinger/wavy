@@ -1,9 +1,5 @@
 import pytest
-import os
-import sys
-from wavy import ms, sc
-from wavy.consolidate import consolidate_class as cs
-from wavy.wconfig import load_or_default
+from wavy import ms
 
 def test_multisat(test_data):
     sd = "2022-2-1 12"
@@ -22,7 +18,6 @@ def test_multisat(test_data):
     assert mso.__class__.__name__ == 'multisat_class'
     # compare number of available variables
     vlst = list(vars(mso).keys())
-    print(vlst)
     assert len(vlst) == 17
     # compare number of available functions
     dlst = dir(mso)
