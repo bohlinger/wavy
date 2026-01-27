@@ -96,7 +96,7 @@ def test_insitu_collocation_leadtime(test_data, tmpdir):
     # collocate
     cco = cc(oco=ico, model=model, leadtime=10, twin=9).populate()
     assert len(vars(cco).keys()) == 19
-    assert len(cco.vars.keys()) == 9
+    assert len(cco.vars.keys()) == 10
     assert len(cco.vars.time) == 2
 
 def test_poi_collocation():
