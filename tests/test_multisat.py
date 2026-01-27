@@ -1,7 +1,8 @@
 import pytest
 import os
 import sys
-from wavy import ms
+from wavy import ms, sc
+from wavy.consolidate import consolidate_class as cs
 from wavy.wconfig import load_or_default
 
 def test_multisat(test_data):
