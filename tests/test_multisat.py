@@ -23,7 +23,7 @@ def test_multisat(test_data):
     # compare number of available variables
     vlst = list(vars(mso).keys())
     print(vlst)
-    assert len(vlst) == 15
+    assert len(vlst) == 17
     # compare number of available functions
     dlst = dir(mso)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
@@ -48,7 +48,7 @@ def test_multisat_multivar(test_data):
     assert mso.__class__.__name__ == 'multisat_class'
     # compare number of available variables
     vlst = list(vars(mso).keys())
-    assert len(vlst) == 15
+    assert len(vlst) == 17
     # compare number of available functions
     dlst = dir(mso)
     flst = [n for n in dlst if n not in vlst if '__' not in n]

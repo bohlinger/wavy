@@ -38,6 +38,8 @@ class multisat_class(qls, fc):
         self.twin = kwargs.get('twin', 30)
         self.distlim = kwargs.get('distlim', 6)
         self.region = kwargs.get('region', 'global')
+        self.path = kwargs.get('path', len(self.name)*[None])
+        self.wavy_path = kwargs.get('wavy_path', len(self.name)*[None])
         t0 = time.time()
 
         # products: either None, same as names, or one product
@@ -54,7 +56,8 @@ class multisat_class(qls, fc):
                          nID=self.nID[i], name=n,
                          twin=self.twin, distlim=self.distlim,
                          region=self.region, varalias=self.varalias)
-                sco = sco.populate()
+                sco = sco.populate(path=self.path[i], 
+                                   wavy_path=self.wavy_path[i])
                 if 'vars' in list(vars(sco)):
                     scos.append(deepcopy(sco))
                 del sco
@@ -84,6 +87,19 @@ class multisat_class(qls, fc):
         print(" ")
         print(" ### multisat object initialized ###")
         print('# ----- ')
+
+    def crop_to_period(self, **kwargs):
+        """
+        Function to crop the variable dictionary to a given period
+        """
+        new = deepcopy(self)
+        sd = parse_date(kwargs.get('sd', str(new.sd)))
+        ed = parse_date(kwargs.get('ed', str(new.ed)))
+        print('Crop to time period:', sd, 'to', ed)
+        new.vars = new.vars.sortby("time").sel(time=slice(sd, ed))
+        new.sd = sd
+        new.ed = ed
+        return new
 
 
 def find_valid_names(scos):
