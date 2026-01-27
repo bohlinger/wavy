@@ -126,6 +126,29 @@ def test_cmems_insitu_daily(test_data):
 #              if '.nc' in filelist[i]]
 #    assert len(nclist) >= 1
 
+def test_cmems_insitu_multivar(test_data):
+    varalias = ['Hs','U']  # default
+    sd = "2023-7-2 00"
+    ed = "2023-7-3 00"
+    nID = 'MO_Draugen_monthly'
+    name = 'Draugen'
+    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
+    print(ico)
+    print(vars(ico).keys())
+    assert ico.__class__.__name__ == 'insitu_class'
+    assert len(vars(ico).keys()) == 12
+    ico.list_input_files(show=True)
+    new = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
+    assert len(new.vars.keys()) == 4
+    # check if some data was imported
+    assert len(new.vars['time']) > 0
+    # check that not all data is nan
+    assert not all(np.isnan(v) for v in new.vars['time'])
+    assert not all(np.isnan(v) for v in new.vars['Hs'])
+    assert not all(np.isnan(v) for v in new.vars['U'])
+    assert not all(np.isnan(v) for v in new.vars['lons'])
+    assert not all(np.isnan(v) for v in new.vars['lats'])
+
 
 def test_insitu_poi(tmpdir):
     # define poi dictionary for track

@@ -7,6 +7,7 @@ from wavy.grid_stats import apply_metric
 from wavy.wconfig import load_or_default
 
 validation_metric_abbreviations = load_or_default('validation_metrics.yaml')
+variable_def = load_or_default('variable_def.yaml')
 
 class gridder_class():
 
@@ -28,40 +29,67 @@ class gridder_class():
             self.varalias = kwargs.get('varalias', oco.varalias)
             if isinstance(self.varalias, list):
                 if len(self.varalias) > 1: 
-                    print("Warning: gridder does not work with more than one \
-                           variable at the moment.")
-                    print("First variable selected as default: {}".format(
-                           self.varalias[0])) 
+                    print("Warning: gridder only expects one varalias.")
+                    print("First varalias selected as default: {}".format(
+                           self.varalias[0]))
+                    print("If you want to select another variable, please "\
+                          +"specify with varalias argument.") 
                 self.varalias=self.varalias[0]
-            self.stdvarname = oco.stdvarname
-            if isinstance(self.stdvarname, list):
-                self.stdvarname=self.stdvarname[0]
-            self.units = oco.units
-            if isinstance(self.units, list):
-                self.units = self.units[0]
+            self.units = variable_def[self.varalias].get('units')
+            self.stdvarname = variable_def[self.varalias].get('standard_name')
             self.olons = np.array(oco.vars['lons'].squeeze().values.ravel())
             self.olats = np.array(oco.vars['lats'].squeeze().values.ravel())
             self.ovals = np.array(oco.vars[self.varalias].squeeze().values.ravel())
             self.sdate = oco.vars['time'][0]
             self.edate = oco.vars['time'][-1]
         elif cco is not None:
+            self.varalias = kwargs.get('varalias', cco.varalias)
+            if isinstance(self.varalias, list):
+                if len(self.varalias) > 1: 
+                    print("Warning: gridder only expects one varalias.")
+                    print("First varalias selected as default: {}".format(
+                           self.varalias[0]))
+                    print("If you want to select another variable, please "\
+                          +"specify with varalias argument.") 
+                self.varalias=self.varalias[0]
+            
+            list_vars = list(cco.vars.variables)
+            assert 'model_'+self.varalias in list_vars, "model_{}".format(self.varalias) +\
+                                      " is missing in "+\
+                                      "the dataset, if you would like to "+\
+                                      "validate another variable, please "+\
+                                      "specify with varalias."
+            assert 'obs_'+self.varalias in list_vars, "obs_{}".format(self.varalias) +\
+                                      " is missing in "+\
+                                      "the dataset, if you would like to "+\
+                                      "validate another variable, please "+\
+                                      "specify with varalias."    
+            
             self.olons = np.array(cco.vars['obs_lons'])
             self.olats = np.array(cco.vars['obs_lats'])
-            self.ovals = np.array(cco.vars['obs_values'])
-            self.mvals = np.array(cco.vars['model_values'])
-            self.stdvarname = cco.stdvarname
-            self.varalias = cco.varalias
-            self.units = cco.units
+            self.ovals = np.array(cco.vars['obs_'+self.varalias])
+            self.mvals = np.array(cco.vars['model_'+self.varalias])
+            self.units = variable_def[self.varalias].get('units')
+            self.stdvarname = variable_def[self.varalias].get('standard_name')
             self.sdate = cco.vars['time'][0]
             self.edate = cco.vars['time'][-1]
         elif mco is not None:
+            self.varalias = kwargs.get('varalias', mco.varalias)
+            if isinstance(self.varalias, list):
+                if len(self.varalias) > 1: 
+                    print("Warning: gridder only expects one varalias.")
+                    print("First varalias selected as default: {}".format(
+                           self.varalias[0]))
+                    print("If you want to select another variable, please "\
+                          +"specify with varalias argument.") 
+                self.varalias=self.varalias[0]
             self.olons = np.array(mco.vars.lons.squeeze().values.flatten())
             self.olats = np.array(mco.vars.lats.squeeze().values.flatten())
             self.ovals = np.array(
-                    mco.vars[mco.varalias].squeeze().values.flatten())
+                    mco.vars[self.varalias].squeeze().values.flatten())
             self.stdvarname = mco.stdvarname
-            self.varalias = mco.varalias
-            self.units = mco.units
+            self.units = variable_def[self.varalias].get('units')
+            self.stdvarname = variable_def[self.varalias].get('standard_name')
             self.sdate = mco.vars['time'][0]
             self.edate = mco.vars['time'][-1]
         else:

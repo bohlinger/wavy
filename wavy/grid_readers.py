@@ -40,13 +40,15 @@ def read_ww3_unstructured_to_grid(**kwargs):
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
+    if isinstance(varalias, str):
+        varalias = [varalias]
     sd = kwargs.get('sd')
     ed = kwargs.get('ed')
     meta = kwargs.get('meta')
 
     # get meta data
-    varstr = get_filevarname(varalias, variable_def,
-                              model_dict[nID], meta)
+    varstr = [get_filevarname(v, variable_def,
+                              model_dict[nID], meta) for v in varalias]
     lonstr = get_filevarname('lons', variable_def,
                               model_dict[nID], meta)
     latstr = get_filevarname('lats', variable_def,
@@ -72,12 +74,12 @@ def read_ww3_unstructured_to_grid(**kwargs):
             if (dt >= sd and dt <= ed):
                 # varnames = (varname, lonstr, latstr, timestr)
                 if len(times) < 2:
-                    var = (ds[varstr].data,
+                    var = (*tuple(ds[v].data for v in varstr),
                            ds[lonstr].data,
                            ds[latstr].data,
                            t.reshape((1,)))
                 else:
-                    var = (ds[varstr].sel({timestr: t}).data,
+                    var = (*tuple(ds[v].sel({timestr: t}).data for v in varstr),
                            ds[lonstr].data,
                            ds[latstr].data,
                            t.reshape((1,)))
@@ -99,29 +101,54 @@ def read_ww3_unstructured_to_grid(**kwargs):
 
 def get_gridded_dataset(var, t, **kwargs):
     varstr = kwargs.get('varalias')
+    if isinstance(varstr, str):
+        varstr = [varstr]
+    len_varstr = len(varstr)
+
+    var_means_list = []
+
+    print(var)
 
     if kwargs.get('interp') is None:
         print(" Apply gridding, no interpolation")
         # grid data
-        gridvar, lon_grid, lat_grid = \
-            grid_point_cloud_ds(var[0], var[1], var[2], t, **kwargs)
+        
+        for i in range(len_varstr): 
+            gridvar, lon_grid, lat_grid = \
+                grid_point_cloud_ds(var[i], 
+                                    var[len_varstr], 
+                                    var[len_varstr+1], 
+                                    t, 
+                                    **kwargs)
 
-        var_means = gridvar['mor']
-        # transpose dims
-        var_means = np.transpose(var_means)
-        field_shape = (list(var_means.shape[::-1]) + [1])[::-1]
-        var_means = var_means.reshape(field_shape)
+            var_means = gridvar['mor']
+            # transpose dims
+            var_means = np.transpose(var_means)
+            field_shape = (list(var_means.shape[::-1]) + [1])[::-1]
+            var_means = var_means.reshape(field_shape)
+
+            var_means_list.append(var_means)
+
     else:
         print(" Apply gridding with interpolation")
-        var_means, lon_grid, lat_grid = \
-                grid_point_cloud_interp_ds(
-                    var[0], var[1], var[2], **kwargs)
-        # transpose dims
-        field_shape = (list(var_means.shape[::-1]) + [1])[::-1]
-        var_means = var_means.reshape(field_shape)
+        for i in range(len_varstr):
+
+            var_means, lon_grid, lat_grid = \
+                    grid_point_cloud_interp_ds(
+                        var[i], 
+                        var[len_varstr], 
+                        var[len_varstr+1], 
+                        **kwargs)
+            
+            # transpose dims
+            field_shape = (list(var_means.shape[::-1]) + [1])[::-1]
+            var_means = var_means.reshape(field_shape)
+            
+            var_means_list.append(var_means)
+            
     # create xr.dataset
-    ds = build_xr_ds_grid(
-            var_means,
+    ds = build_xr_ds_grid_multivar(
+            var_means_list,
             np.unique(lon_grid), np.unique(lat_grid),
             t.reshape((1,)),
             varstr=varstr)
@@ -157,6 +184,41 @@ def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, **kwargs):
              attrs={'title': 'wavy dataset'}
          )
     return ds
+
+
+def build_xr_ds_grid_multivar(var_means_list, lon_grid, lat_grid, t, **kwargs):
+    print(" building xarray dataset from grid")
+    varstr = kwargs.get('varstr')
+    if isinstance(varstr, str):
+        varstr = [varstr]
+
+    ds = xr.Dataset({
+            **{varstr[i]: xr.DataArray(
+                     data=var_means_list[i],
+                     dims=['time', 'latitude', 'longitude'],
+                     coords={'latitude': lat_grid,
+                             'longitude': lon_grid,
+                             'time': t},
+                     attrs=variable_def[varstr[i]],
+                     ) for i in range(len(var_means_list))},
+            'lons': xr.DataArray(
+                     data=lon_grid,
+                     dims=['longitude'],
+                     coords={'longitude': lon_grid},
+                     attrs=variable_def['lons'],
+                     ),
+            'lats': xr.DataArray(
+                     data=lat_grid,
+                     dims=['latitude'],
+                     coords={'latitude': lat_grid},
+                     attrs=variable_def['lats'],
+                     ),
+                 },
+             attrs={'title': 'wavy dataset'}
+         )
+    return ds
+    
+
 
 def build_xr_ds_grid_2D(var_means, lon_grid, lat_grid, t, **kwargs):
     print(" building xarray dataset from grid")

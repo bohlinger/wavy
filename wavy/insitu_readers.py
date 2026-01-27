@@ -369,6 +369,8 @@ def get_cmems(**kwargs):
         varalias = [varalias]
     pathlst = kwargs.get('pathlst')
     cfg = vars(kwargs['cfg'])
+    depth_lvls = kwargs.get('depth_lvls', None)
+
     # check if dimensions are fixed
     fixed_dim_str = list(cfg['misc']['fixed_dim'].keys())[0]
     fixed_dim_idx = cfg['misc']['fixed_dim'][fixed_dim_str]
@@ -399,14 +401,30 @@ def get_cmems(**kwargs):
                         for coord in list(ds.coords) if coord 
                         in [lonstr, latstr, timestr]}
 
+            len_timestr = len(dict_var[timestr])
+
+            for coord in [lonstr, latstr]:
+                if len(dict_var[coord].shape)==0:
+                    dict_var[coord] = np.array([dict_var[coord]]*len_timestr)
+
+            list_vars_tmp = list(ds.data_vars)
+            
+            if depth_lvls is not None:
+
+                dict_var.update({var: ds.sel(DEPTH=depth_lvls[var])[var]\
+                                 .values for var in depth_lvls.keys()})
+
+                list_vars_tmp = [k for k in list(ds.data_vars) if k
+                                 not in list(depth_lvls.keys())]
+
             dict_var.update({var: rebuild_split_variable(ds,
                                           fixed_dim_str, var) 
-                             for var in list(ds.data_vars)})
+                             for var in list_vars_tmp})
 
             # build an xr.dataset with timestr as the only coordinate
             # using build_xr_ds function
             ds_list.append(build_xr_ds_cmems(dict_var, timestr))
-
+            
         except Exception as e:
             logger.exception(e)
     

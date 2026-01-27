@@ -27,11 +27,32 @@ def test_sat_collocation_and_validation(test_data, tmpdir):
 
     # collocate
     cco = cc(oco=sco, model=model, leadtime='best', distlim=6).populate()
-    assert len(vars(cco).keys()) == 19
-    assert len(cco.vars.keys()) == 9
+    assert len(vars(cco).keys()) == 21
+    assert len(cco.vars.keys()) == 10
 
     # validate
 
+def test_cco_multivar(test_data):
+    sd = "2022-2-1 12"
+    ed = "2022-2-1 12"
+    name = 's3a'
+    varalias = 'Hs'
+    twin = 30
+    nID = 'cmems_L3_NRT'
+    model = 'ww3_4km'
+    # init satellite_object and check for polygon region
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
+             varalias=varalias, twin=twin)
+    # read data
+    sco = sco.populate(reader='read_local_ncfiles',
+                       path=str(test_data/"L3/s3a"))
+    # crop to region
+    sco = sco.crop_to_region(model)
+    
+    # collocate
+    cco = cc(oco=sco, model=model, leadtime='best', distlim=6, varalias=['Hs','Tm01']).populate()
+    assert len(vars(cco).keys()) == 21
+    assert len(cco.vars.keys()) == 11
 
 def test_insitu_collocation_and_validation(test_data, tmpdir):
     sd = "2022-2-1 12"
@@ -51,8 +72,8 @@ def test_insitu_collocation_and_validation(test_data, tmpdir):
 
     # collocate
     cco = cc(oco=ico, model=model, leadtime='best', distlim=6).populate()
-    assert len(vars(cco).keys()) == 19
-    assert len(cco.vars.keys()) == 9
+    assert len(vars(cco).keys()) == 21
+    assert len(cco.vars.keys()) == 10
 
     # validate
 
@@ -74,8 +95,8 @@ def test_insitu_collocation_leadtime(test_data, tmpdir):
 
     # collocate
     cco = cc(oco=ico, model=model, leadtime=10, twin=9).populate()
-    assert len(vars(cco).keys()) == 19
-    assert len(cco.vars.keys()) == 9
+    assert len(vars(cco).keys()) == 21
+    assert len(cco.vars.keys()) == 10
     assert len(cco.vars.time) == 2
 
 def test_poi_collocation():
@@ -90,8 +111,8 @@ def test_poi_collocation():
 
     # collocate
     cco = cc(oco=pco, model='ww3_4km', leadtime='best').populate()
-    assert len(vars(cco).keys()) == 19
-    assert len(cco.vars.keys()) == 9
+    assert len(vars(cco).keys()) == 21
+    assert len(cco.vars.keys()) == 10
 
 
 #    # write to nc

@@ -51,6 +51,8 @@ class quicklook_class_sat:
 
         if isinstance(self.varalias, list):
             varalias = kwargs.get('varalias', self.varalias[0])
+            assert varalias in self.varalias, "varalias must be one of {}"\
+                                              .format(self.varalias)
             assert isinstance(varalias, str), "varalias argument should be a string"
             idx_units = np.argwhere(np.array(self.varalias)==varalias)[0][0]
             units_to_plot = self.units[idx_units]
@@ -64,11 +66,22 @@ class quicklook_class_sat:
             plot_lons = self.vars.lons
             plot_lats = self.vars.lats
         except Exception as e:
-            plot_var = self.vars.obs_values
+            list_vars = list(self.vars.variables)
+            assert 'model_'+varalias in list_vars,"model_{}".format(varalias)+\
+                                      " is missing in "+\
+                                      "the dataset, if you would like to "+\
+                                      "validate another variable, please "+\
+                                      "specify with varalias."
+            assert 'obs_'+varalias in list_vars, "obs_{}".format(varalias) +\
+                                      " is missing in "+\
+                                      "the dataset, if you would like to "+\
+                                      "validate another variable, please "+\
+                                      "specify with varalias." 
+            plot_var = self.vars["obs_"+varalias]
             plot_lons = self.vars.obs_lons
             plot_lats = self.vars.obs_lats
-            plot_var_obs = self.vars.obs_values
-            plot_var_model = self.vars.model_values
+            plot_var_obs = self.vars["obs_"+varalias]
+            plot_var_model = self.vars["model_"+varalias]
 
         if str(type(self)) == "<class 'wavy.model_module.model_class'>":
             if len(plot_lons.shape) < 2:
@@ -401,8 +414,8 @@ class quicklook_class_sat:
             plt.xlabel('obs (' + self.nID + ')')
             plt.ylabel('models (' + self.model + ')')
 
-            maxv = np.nanmax([self.vars['model_values'],
-                              self.vars['obs_values']])
+            maxv = np.nanmax([self.vars['model_'+varalias],
+                              self.vars['obs_'+varalias]])
             minv = 0
             plt.xlim([minv, maxv*1.05])
             plt.ylim([minv, maxv*1.05])
