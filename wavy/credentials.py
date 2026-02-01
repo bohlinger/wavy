@@ -21,8 +21,9 @@ def credentials_from_txt(remoteHostName=None):
     if remoteHostName is None:
         remoteHostName = "nrt.cmems-du.eu"
     # get user home path
-    usrhome = os.getenv("HOME")
-    with open(usrhome + "/credentials.txt", 'r') as f:
+    usrhome = os.path.expanduser("~")
+    cred_path = os.path.join(usrhome, "credentials.txt")
+    with open(cred_path, 'r') as f:
         for line in f:
             items = line.split(',')
             if remoteHostName in items[0]:
@@ -31,26 +32,29 @@ def credentials_from_txt(remoteHostName=None):
     return user, pw
 
 def get_credentials(remoteHostName=None):
-    # get credentials from .netrc
-    usrhome = os.getenv("HOME")
-    if os.path.isfile(usrhome + "/.netrc"):
-        try:
-            print('Obtaining credentials from .netrc')
-            user, pw = \
-                credentials_from_netrc(remoteHostName=remoteHostName)
-            return user, pw
-        except AttributeError:
-            print("Credentials in netrc file not registered")
-            print("Try local file credentials.txt")
-            print("File must contain:")
-            print("user='username'")
-            print("pw='yourpassword'")
-            except_key = 1
-    elif (os.path.isfile(usrhome + "/.netrc") is False
-    or except_key == 1):
-        try:
-            user, pw = credentials_from_txt()
-            return user, pw
-        except:
-            print("Credentials could not be obtained")
+    usrhome = os.path.expanduser("~")
 
+    # Windows sometimes uses _netrc instead of .netrc
+    netrc_paths = [
+        os.path.join(usrhome, ".netrc"),
+        os.path.join(usrhome, "_netrc")
+    ]
+
+    for cred_path in netrc_paths:
+        if os.path.isfile(cred_path):
+            try:
+                print("Obtaining credentials from netrc")
+                return credentials_from_netrc(remoteHostName=remoteHostName)
+            except AttributeError:
+                print("Credentials in netrc file not registered")
+                break
+            except Exception as e:
+                print(f"Failed reading netrc: {e}")
+                break
+
+    # Fallback to credentials.txt
+    try:
+        print("Trying local file credentials.txt")
+        return credentials_from_txt(remoteHostName=remoteHostName)
+    except Exception as e:
+        raise RuntimeError("Credentials could not be obtained") from e
