@@ -408,7 +408,7 @@ def find_included_times_pd(unfiltered_t: list,
                            sdate: datetime, edate: datetime) -> list:
     idx = np.array(range(len(unfiltered_t)))
     df = pd.to_datetime(unfiltered_t)
-    mask = ((df >= sdate.isoformat()) & (df <= edate.isoformat()))
+    mask = ((df >= sdate.isoformat()) & (df < edate.isoformat()))
     return list(idx[mask])
 
 def find_included_times(
@@ -422,11 +422,11 @@ def find_included_times(
     if (sdate is None and edate is None):
         idx = [i for i in range(len(unfiltered_t))
                if (unfiltered_t[i] >= target_t-timedelta(minutes=twin)
-               and unfiltered_t[i] <= target_t+timedelta(minutes=twin))]
+               and unfiltered_t[i] < target_t+timedelta(minutes=twin))]
     else:
         idx = [i for i in range(len(unfiltered_t))
                if (unfiltered_t[i] >= sdate-timedelta(minutes=twin)
-               and unfiltered_t[i] <= edate+timedelta(minutes=twin))]
+               and unfiltered_t[i] < edate+timedelta(minutes=twin))]
     return idx
 
 def collocate_times(
