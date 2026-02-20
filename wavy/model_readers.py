@@ -12,6 +12,8 @@ from datetime import timedelta
 import xarray as xr
 import netCDF4
 from functools import lru_cache
+import pandas as pd
+import gc
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -336,6 +338,78 @@ def read_era(**kwargs):
 
     return combined
 
+def read_era5(**kwargs):
+    """
+    Reads and concatenates ERA data from a list of paths, based on specific forecast dates.
+
+    Parameters:
+        pathlst (list): List of file paths to read datasets from.
+        nID (str): Model identifier for accessing metadata (`model_dict`).
+        fc_dates (list): List of forecast dates to slice the datasets.
+        varname (str or list): Variable(s) to extract from the datasets.
+
+    Returns:
+        xarray.Dataset: Concatenated dataset containing the selected variables and slices.
+    """
+    pathlst = kwargs.get('pathlst')
+    nID = kwargs.get('nID')
+    fc_dates = kwargs.get('fc_dates')
+    varname = kwargs.get('varname')
+
+    # Ensure varname is a list
+    if isinstance(varname, str):
+        varname = [varname]
+
+    ds_lst = []
+
+    for i, (d, p) in enumerate(zip(fc_dates, pathlst)):
+        # Parse and normalize the date
+        d = parse_date(d)
+
+        try:
+            # Debug: Inspect the dataset
+            print(f"Opening dataset: {p}")
+            with xr.open_dataset(p, engine='netcdf4') as ds:
+
+                time_coord = ds[model_dict[nID]['vardef']['time']]
+
+                # Ensure `d` matches the format of the time coordinate
+                if isinstance(time_coord.values[0], np.datetime64):
+                    d = np.datetime64(d)
+                elif isinstance(time_coord.values[0], str):
+                    d = str(d)
+                elif isinstance(time_coord.values[0], pd.Timestamp):
+                    d = pd.Timestamp(d)
+
+                # Slice the dataset
+                ds_sliced = ds.sel({model_dict[nID]['vardef']['time']: d})
+
+                # Select required variables
+                ds_sliced = ds_sliced[varname + [
+                    model_dict[nID]['vardef']['lons'],
+                    model_dict[nID]['vardef']['lats']
+                ]]
+                ds_lst.append(ds_sliced)
+        except Exception as e:
+            print(f"Error processing file {p}: {e}")
+            continue
+
+        gc.collect()
+
+    # Concatenate all datasets
+    print("Concatenating datasets...")
+    combined = xr.concat(
+        ds_lst,
+        dim=model_dict[nID]['vardef']['time'],
+        coords='minimal',
+        data_vars='minimal',
+        compat='override',
+        combine_attrs='override',
+        join='override'
+    )
+    print("Concatenation complete.")
+
+    return combined
 
 def read_NORA3_wind(**kwargs):
     pathlst = kwargs.get('pathlst')
