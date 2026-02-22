@@ -38,6 +38,7 @@ Various predefined functions to aid reading the model output files are implement
 * read_ecwam
 * read_ww3_unstructured_to_grid   (made for our unstructured NORAC WW3 hindcast)
 * read_era  (seems to work for many regular lat/lon grids)
+* read_era5  (like read_era but more memory efficient)
 * read_NORA3_wind
 
 Please try them out and see if any of those work for you. If not, let us know so we can help.
