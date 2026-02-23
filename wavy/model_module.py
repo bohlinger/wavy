@@ -138,18 +138,22 @@ class model_class(qls):
     station classes.
     '''
     def __init__(self, **kwargs):
-        print('# ----- ')
-        print(" ### Initializing model_class object ###")
-        print(" ")
-        print(" Given kwargs:")
-        print(kwargs)
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info('# ----- ')
+        logger.info(" ### Initializing model_class object ###")
+        logger.info(" ")
+        logger.info(" Given kwargs:")
+        logger.info(kwargs)
 
         # initializing useful attributes from config file
         dc = init_class('model', kwargs.get('nID'))
         # parse and translate date input
         self.sd = parse_date(kwargs.get('sd'))
         self.ed = parse_date(kwargs.get('ed', self.sd))
-        print('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
+        logger.info('Chosen period: ' + str(self.sd) + ' - ' + str(self.ed))
 
         # add other class object variables
         self.nID = kwargs.get('nID')
@@ -166,9 +170,9 @@ class model_class(qls):
         self.leadtime = kwargs.get('leadtime', 'best')
         self.cfg = dc
 
-        print(" ")
-        print(" ### model_class object initialized ### ")
-        print('# ----- ')
+        logger.info(" ")
+        logger.info(" ### model_class object initialized ### ")
+        logger.info('# ----- ')
 
 
     def crop_to_period(self, **kwargs):
@@ -659,7 +663,7 @@ class model_class(qls):
         log_level = str(kwargs.get('logging', 'WARNING').upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
-        print(" ### Read files and populate model_class object")
+        logger.info(" ### Read files and populate model_class object")
 
         fc_dates = make_fc_dates(self.sd, self.ed,
                                  self.cfg.misc['date_incr_unit'],
@@ -739,14 +743,15 @@ class model_class(qls):
                     self.units = variable_def[newvaralias].get('units')
                 # create label for plotting
                 t1 = time.time()
-                print(" ")
-                print(' ## Summary:')
-                print(str(len(self.vars['time'])) + " time steps retrieved.")
-                print("Time used for retrieving data:")
-                print(round(t1-t0, 2), "seconds")
-                print(" ")
-                print(" ### model_class object populated ###")
-                print('# ----- ')
+                logger.info(" ")
+                logger.info(' ## Summary:')
+                logger.info(str(len(self.vars['time']))
+                            + " time steps retrieved.")
+                logger.info("Time used for retrieving data:")
+                logger.info(round(t1-t0, 2), "seconds")
+                logger.info(" ")
+                logger.info(" ### model_class object populated ###")
+                logger.info('# ----- ')
             except Exception as e:
                 logger.exception(e)
                 logger.error(e)
