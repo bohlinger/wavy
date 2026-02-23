@@ -20,9 +20,6 @@ import glob
 from copy import deepcopy
 
 import logging
-#logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=30)
-logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import hour_rounder, make_fc_dates
@@ -70,13 +67,18 @@ def check_date(filelst, date):
         idx = [0]
     return idx[0], idx[-1]
 
-def generate_bestguess_leadtime(model, fc_date, lidx=None):
+def generate_bestguess_leadtime(model, fc_date, lidx=None, **kwargs):
     """
     fct to return leadtimes for bestguess
     """
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     if isinstance(fc_date, list):
         leadtime = \
-            [generate_bestguess_leadtime(model, date) for date in fc_date]
+            [generate_bestguess_leadtime(model, date, **kwargs)
+                for date in fc_date]
     else:
         init_times = \
             np.array(model_dict[model]['misc']['init_times']).astype('float')
@@ -101,8 +103,8 @@ def generate_bestguess_leadtime(model, fc_date, lidx=None):
         elif (leadtime == 1 and model_dict[model]['misc']['date_incr'] == 1):
             return leadtime
         else:
-            print('Lead time ' + str(leadtime) + 'h'
-                  + ' not available for model ' + model)
+            logger.warning('Lead time ' + str(leadtime) + 'h'
+                           + ' not available for model ' + model)
 
 # function used by satellite_module
 # should probably be placed somewhere else
@@ -173,10 +175,14 @@ class model_class(qls):
         """
         Function to crop the variable dictionary to a given period
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
         sd = parse_date(kwargs.get('sd', str(new.sd)))
         ed = parse_date(kwargs.get('ed', str(new.ed)))
-        print('Crop to time period:', sd, 'to', ed)
+        logger.info('Crop to time period:', sd, 'to', ed)
         new.vars = new.vars.sel(time=slice(sd, ed))
         new.sd = sd
         new.ed = ed
@@ -231,7 +237,7 @@ class model_class(qls):
         parent = finditem(self.meta, item)
         return parent
 
-    def _get_model_filedate(self, fc_date, leadtime):
+    def _get_model_filedate(self, fc_date, leadtime, **kwargs):
         '''
         get init_date for latest model output file and checks if available
 
@@ -242,21 +248,27 @@ class model_class(qls):
         return:
             suitable datetime to create model filename
         '''
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         if ('init_times' in vars(self.cfg)['misc'].keys()
                 and vars(self.cfg)['misc']['init_times'] is not None):
             init_times = \
                 np.array(vars(self.cfg)['misc']['init_times']).astype('float')
         else:
-            print('init_times for chosen model not specified in config file')
-            print('Assuming continuous simulation with hourly values')
+            logger.warning(
+                'init_times for chosen model not specified in config file')
+            logger.warning(
+                'Assuming continuous simulation with hourly values')
             init_times = np.array(range(25)).astype('float')
         date = fc_date - timedelta(hours=leadtime)
         date_hour = hour_rounder(date).hour
-        print('date:', date)
-        print('date_hour:', date_hour)
+        logger.info('date:', date)
+        logger.info('date_hour:', date_hour)
         if date_hour in init_times:
-            print('Leadtime', leadtime, \
-                  'available for date', fc_date)
+            logger.info('Leadtime', leadtime, \
+                        'available for date', fc_date)
             init_diffs = date_hour - init_times
             init_diffs[init_diffs < 0] = np.nan
             h_idx = np.where(init_diffs == \
@@ -264,11 +276,11 @@ class model_class(qls):
             h = int(init_times[h_idx[0][0]])
             return datetime(date.year, date.month, date.day, h)
         else:
-            #print('Leadtime', leadtime , \
-            #      'not available for date' ,fc_date, '!')
+            logger.warning('leadtime for fc_date not available')
+            logger.warning('-> returning None')
             return None
 
-    def _make_model_filename(self, fc_date, leadtime):
+    def _make_model_filename(self, fc_date, leadtime, **kwargs):
         """
         creates/returns filename based on fc_date,leadtime
 
@@ -286,7 +298,8 @@ class model_class(qls):
         """
         if self.nID in model_dict:
             if 'xtra_h' in vars(self.cfg)['misc']:
-                filedate = self._get_model_filedate(fc_date, leadtime)
+                filedate = self._get_model_filedate(
+                                fc_date, leadtime, **kwargs)
                 pathdate = filedate + timedelta(hours=leadtime) \
                                     * vars(self.cfg)['misc']['lt_switch_p']
                 tmpstr = vars(self.cfg)['wavy_input']['fl_tmplt']
@@ -306,7 +319,8 @@ class model_class(qls):
                                 vars(self.cfg)['wavy_input']['src_tmplt'])
                             + tmpstr)
             else:
-                filedate = self._get_model_filedate(fc_date, leadtime)
+                filedate = self._get_model_filedate(
+                                fc_date, leadtime, **kwargs)
                 if filedate is None:
                     filename = None
                 else:
@@ -340,6 +354,10 @@ class model_class(qls):
         return:
             filename
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         remoteHostName = kwargs.get('remoteHostName',
                                     self.cfg.misc.get('remoteHostName'))
 
@@ -350,39 +368,45 @@ class model_class(qls):
             leadtime = 'best'
 
         if (isinstance(fc_date, datetime) and leadtime != 'best'):
-            filename = self._make_model_filename(fc_date, leadtime)
+            filename = self._make_model_filename(fc_date, leadtime, **kwargs)
         elif (isinstance(fc_date, datetime) and leadtime == 'best'):
             switch = False
-            leadtime = generate_bestguess_leadtime(self.nID, fc_date)
+            leadtime = generate_bestguess_leadtime(self.nID, fc_date,
+                                                   **kwargs)
             if leadtime is not None:
                 while switch is False:
-                    filename = self._make_model_filename(fc_date, leadtime)
+                    filename = self._make_model_filename(
+                                    fc_date, leadtime, **kwargs)
                     # check if file is accessible
                     if remoteHostName is not None:
                         filename = build_usr_pw_path(filename,
                                                      remoteHostName,
                                                      usr, pw)
-                    switch = check_if_ncfile_accessible(filename)
+                    switch = check_if_ncfile_accessible(filename, **kwargs)
                     if (switch is False):
-                        print("Desired file:", filename, " not accessible")
-                        print("Continue to look for date" 
-                              + " with extended leadtime")
+                        logger.warning(
+                            "Desired file:", filename, " not accessible")
+                        logger.warning(
+                            "Continue to look for date" 
+                            + " with extended leadtime")
                         leadtime = (leadtime
                                     + vars(self.cfg)['misc']['init_step'])
                     if (kwargs.get('max_lt') is not None
                         and leadtime > kwargs.get('max_lt')):
-                        print("Leadtime:", leadtime,
+                        logger.warning("Leadtime:", leadtime,
                               "is greater as maximum allowed leadtime:",
                               str(kwargs.get('max_lt')))
                         break
             else:
                 filename = None
         elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
-            filename = [self._make_model_filename(date, leadtime)
+            filename = [self._make_model_filename(date, leadtime, **kwargs)
                         for date in fc_date]
         elif (isinstance(fc_date, list) and leadtime == 'best'):
-            leadtime = generate_bestguess_leadtime(self.nID, fc_date)
-            filename = [self._make_model_filename(fc_date[i], leadtime[i])
+            leadtime = generate_bestguess_leadtime(
+                       self.nID, fc_date, **kwargs)
+            filename = [self._make_model_filename(
+                        fc_date[i], leadtime[i], **kwargs)
                         for i in range(len(fc_date))]
         elif leadtime is None:
             filename = None
@@ -402,7 +426,8 @@ class model_class(qls):
         return flst
 
 
-    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
+    def _get_files(self, dict_for_sub=None, path=None,
+    wavy_path=None, **kwargs):
         """
         Function to retrieve list of files/paths for available
         locally stored data. This list is used for other functions
@@ -419,6 +444,10 @@ class model_class(qls):
             pathlst - list of paths
             filelst - list of files
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         filelst = []
         pathlst = []
         tmpdate = self.sd
@@ -426,7 +455,7 @@ class model_class(qls):
             pathtotals = [wavy_path]
             filelst = [wavy_path]
         elif path is None:
-            print('path is None -> checking config file')
+            logger.info('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
             self.cfg.misc['date_incr_unit'], self.cfg.misc['date_incr'])):
                 try:
@@ -438,7 +467,8 @@ class model_class(qls):
                         make_subdict(strsublst,
                                      class_object_dict=dict_for_sub)
                     path = make_pathtofile(path_template,
-                                           strsublst, subdict)
+                                           strsublst, subdict,
+                                           **kwargs)
                     path = tmpdate.strftime(path)
                     if os.path.isdir(path):
                         tmplst = np.sort(os.listdir(path))
@@ -509,7 +539,8 @@ class model_class(qls):
             wavy_path = kwargs.get('wavy_path', None)
             pathlst, _ = self._get_files(vars(self),
                                          path=path,
-                                         wavy_path=wavy_path)
+                                         wavy_path=wavy_path,
+                                         **kwargs)
 
         if show is True:
             print(" ")
@@ -533,42 +564,60 @@ class model_class(qls):
         self.coords = list(self.vars.coords)
         return self
 
-    def _enforce_longitude_format(self):
+    def _enforce_longitude_format(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
         # adjust longitude -180/180
         attrs = new.vars.lons.attrs
-        print(' enforcing lon max min = -180/180')
+        logger.info(' enforcing lon max min = -180/180')
         attrs['valid_max'] = 180
         attrs['valid_min'] = -180
         attrs['comments'] = 'forced to range: -180 to 180'
         try:
             new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
         except Exception as e:
-            new.vars.assign_coords({"lons": ((new.vars.lons.values + 180) % 360) - 180})
+            logger.info('Exception in _enforce_longitude_format:')
+            logger.info(e)
+            new.vars.assign_coords({"lons":
+                ((new.vars.lons.values + 180) % 360) - 180})
         return new
 
-    def _enforce_meteorologic_convention(self):
-        print(' enforcing meteorological convention')
+    def _enforce_meteorologic_convention(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info(' enforcing meteorological convention')
         for v in self.varalias:
             if ('convention' in vars(self.cfg)['misc'].keys() and
             vars(self.cfg)['misc']['convention'] == 'oceanographic'):
-                print('Convert from oceanographic to meteorologic convention')
+                logger.info(
+                    'Convert from oceanographic to meteorologic convention')
 
                 self.vars[v] = convert_meteorologic_oceanographic(self.vars[v])
-            
+
             elif 'to_direction' in self.vars[v].attrs['standard_name']:
-                print('Convert from oceanographic to meteorologic convention')
+                logger.info(
+                    'Convert from oceanographic to meteorologic convention')
                 self.vars[v] = convert_meteorologic_oceanographic(self.vars[v])
         return self
 
-    def _change_varname_to_aliases(self):
-        print(' changing variables to aliases')
+    def _change_varname_to_aliases(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info(' changing variables to aliases')
         # variables
         for v in self.varalias:
             ncvar = get_filevarname(v, variable_def,
-                                    vars(self.cfg), self.meta)
+                                    vars(self.cfg), self.meta,
+                                    **kwargs)
             if v in list(self.vars.keys()):
-                print('  ', ncvar, 'is alreade named correctly and'
+                logger.info('  ', ncvar, 'is alreade named correctly and'
                     + ' therefore not adjusted')
             else:
                 self.vars = self.vars.rename({ncvar: v})
@@ -576,17 +625,22 @@ class model_class(qls):
         coords = ['time', 'lons', 'lats']
         for c in coords:
             ncvar = get_filevarname(c, variable_def,
-                                    vars(self.cfg), self.meta)
+                                    vars(self.cfg), self.meta,
+                                    **kwargs)
             if c in list(self.vars.keys()):
-                print('  ', c, 'is alreade named correctly and'
+                logger.info('  ', c, 'is alreade named correctly and'
                     + ' therefore not adjusted')
             else:
                 self.vars = self.vars.rename({ncvar: c})\
                                         .set_index(time='time')
         return self
 
-    def _change_stdvarname_to_cfname(self):
-        print(' complying to cf standard names')
+    def _change_stdvarname_to_cfname(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info(' complying to cf standard names')
         # enforce standard_name for coordinate aliases
         self.vars['lons'].attrs['standard_name'] = \
             variable_def['lons'].get('standard_name')
@@ -601,6 +655,10 @@ class model_class(qls):
         return self
 
     def populate(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print(" ### Read files and populate model_class object")
 
         fc_dates = make_fc_dates(self.sd, self.ed,
@@ -610,23 +668,23 @@ class model_class(qls):
         self.pathlst = self.list_input_files(**kwargs)
 
         if len(self.pathlst) > 0:
-            print('')
-            print('Checking variables..')
+            logger.info('')
+            logger.info('Checking variables..')
             self.meta = ncdumpMeta(self.pathlst[0])
             ncvar = [get_filevarname(v, variable_def,
                                     vars(self.cfg), 
-                                    self.meta) for \
+                                    self.meta, **kwargs) for \
                                      v in self.varalias]
-            print('')
-            print('Choosing reader..')
+            logger.info('')
+            logger.info('Choosing reader..')
             # define reader
             dotenv.load_dotenv()
             WAVY_DIR = os.getenv('WAVY_DIR', None)
             if WAVY_DIR is None:
-                print('#')
-                print('Environmental variable for WAVY_DIR not defined')
-                print('Defaults are chosen')
-                print('#')
+                logger.debug('#')
+                logger.debug('Environmental variable for WAVY_DIR not defined')
+                logger.debug('Defaults are chosen')
+                logger.debug('#')
                 reader_mod_str = load_dir('model_readers').name
             else:
                 reader_mod_str = WAVY_DIR + '/wavy/model_readers.py'
@@ -642,8 +700,8 @@ class model_class(qls):
             # pick reader
             reader = getattr(reader_tmp, reader_str)
             self.reader = reader
-            print('Chosen reader:', spec.name)
-            print('')
+            logger.info('Chosen reader:', spec.name)
+            logger.info('')
 
             # possible to select list of variables
             self.varname = ncvar
@@ -656,16 +714,16 @@ class model_class(qls):
 
             try:
                 t0 = time.time()
-                print('Reading..')
+                logger.debug('Reading..')
                 self = self._get_model(remoteHostName=remoteHostName,
                                        **kwargs)
 
-                self = self._change_varname_to_aliases()
-                self = self._change_stdvarname_to_cfname()
-                self = self._enforce_meteorologic_convention()
+                self = self._change_varname_to_aliases(**kwargs)
+                self = self._change_stdvarname_to_cfname(**kwargs)
+                self = self._enforce_meteorologic_convention(**kwargs)
 
                 # convert longitude
-                self = self._enforce_longitude_format()
+                self = self._enforce_longitude_format(**kwargs)
 
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
@@ -691,12 +749,11 @@ class model_class(qls):
                 print('# ----- ')
             except Exception as e:
                 logger.exception(e)
-                #logger.debug(traceback.format_exc())
-                print(e)
-                print('Error encountered')
-                print('model_class object not populated')
+                logger.error(e)
+                logger.error('Error encountered')
+                logger.error('model_class object not populated')
         else:
-            print('No data data found')
-            print('model_class object not populated')
-            print('# ----- ')
+            logger.warning('No data data found')
+            logger.warning('model_class object not populated')
+            logger.warning('# ----- ')
         return self

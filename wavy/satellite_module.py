@@ -23,9 +23,6 @@ import xarray as xr
 from tqdm import tqdm
 #import traceback
 import logging
-#logging.basicConfig(level=logging.DEBUG)
-#logging.basicConfig(level=30)
-#logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.ncmod import ncdumpMeta
