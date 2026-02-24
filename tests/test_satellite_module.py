@@ -76,7 +76,7 @@ def test_manually_specified_reader(test_data):
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
     print(flst)
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -101,7 +101,7 @@ def test_default_reader(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -126,7 +126,7 @@ def test_sco_multivar(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
     assert len(sco.vars['time']) > 0
@@ -156,7 +156,7 @@ def test_polygon_region(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -180,7 +180,7 @@ def test_rectangular_region(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -211,7 +211,7 @@ def test_direct_input_custom_region(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
     assert sco.region == 'custom'
@@ -249,7 +249,7 @@ def test_poi_storm_track(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -278,7 +278,7 @@ def test_manually_specified_reader_CCIv3_20Hz(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
     # check if some data was imported

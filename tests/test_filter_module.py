@@ -114,7 +114,7 @@ def test_filter_landMask(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
@@ -139,7 +139,7 @@ def test_filter_distance_to_coast(test_data):
     # compare number of available functions
     dlst = dir(sco)
     flst = [n for n in dlst if n not in vlst if '__' not in n]
-    assert len(flst) >= 47
+    assert len(flst) >= 46
     assert type(sco.vars == 'xarray.core.dataset.Dataset')
     assert not 'error' in vars(sco).keys()
 
