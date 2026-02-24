@@ -138,7 +138,7 @@ def read_remote_ncfiles_aggregated(**kwargs):
 
     # retrieve sliced data
     ds = read_netcdfs_with_credentials_aggregated(
-            pathlst, remoteHostName, usr, pw, dim=timename)
+            pathlst, remoteHostName, usr, pw)
 
     ds_sort = ds.sortby(timename)
     ds_sliced = ds_sort.sel(time=slice(sd, ed))

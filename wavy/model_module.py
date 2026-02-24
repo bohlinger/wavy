@@ -163,7 +163,7 @@ class model_class(qls):
             self.varalias = [self.varalias]
         self.units = [variable_def[v].get('units') for v in self.varalias]
         self.stdvarname = [variable_def[v].get('standard_name') for v in\
-                           self.varalias]                             
+                           self.varalias]
         self.distlim = kwargs.get('distlim', 6)
         self.filter = kwargs.get('filter', False)
         self.region = kwargs.get('region', 'global')
@@ -186,7 +186,8 @@ class model_class(qls):
         new = deepcopy(self)
         sd = parse_date(kwargs.get('sd', str(new.sd)))
         ed = parse_date(kwargs.get('ed', str(new.ed)))
-        logger.info('Crop to time period:', sd, 'to', ed)
+        logger.info('Crop to time period: '
+                    + str(sd) + ' to ' + str(ed))
         new.vars = new.vars.sel(time=slice(sd, ed))
         new.sd = sd
         new.ed = ed
@@ -268,15 +269,15 @@ class model_class(qls):
             init_times = np.array(range(25)).astype('float')
         date = fc_date - timedelta(hours=leadtime)
         date_hour = hour_rounder(date).hour
-        logger.info('date:', date)
-        logger.info('date_hour:', date_hour)
+        logger.info('date: ' + str(date))
+        logger.info('date_hour: ' + str(date_hour))
         if date_hour in init_times:
-            logger.info('Leadtime', leadtime, \
-                        'available for date', fc_date)
+            logger.info('Leadtime ' + str(leadtime) +
+                        ' available for date ' + str(fc_date))
             init_diffs = date_hour - init_times
             init_diffs[init_diffs < 0] = np.nan
             h_idx = np.where(init_diffs == \
-                            np.min(init_diffs[~np.isnan(init_diffs)]))
+                             np.min(init_diffs[~np.isnan(init_diffs)]))
             h = int(init_times[h_idx[0][0]])
             return datetime(date.year, date.month, date.day, h)
         else:
@@ -389,16 +390,18 @@ class model_class(qls):
                     switch = check_if_ncfile_accessible(filename, **kwargs)
                     if (switch is False):
                         logger.warning(
-                            "Desired file:", filename, " not accessible")
+                            "Desired file: " +
+                            str(filename) +
+                            " not accessible")
                         logger.warning(
-                            "Continue to look for date" 
-                            + " with extended leadtime")
+                            "Continue to look for date" +
+                            " with extended leadtime")
                         leadtime = (leadtime
                                     + vars(self.cfg)['misc']['init_step'])
                     if (kwargs.get('max_lt') is not None
                         and leadtime > kwargs.get('max_lt')):
-                        logger.warning("Leadtime:", leadtime,
-                              "is greater as maximum allowed leadtime:",
+                        logger.warning("Leadtime: " + str(leadtime) +
+                              " is greater as maximum allowed leadtime: " +
                               str(kwargs.get('max_lt')))
                         break
             else:
@@ -625,8 +628,9 @@ class model_class(qls):
                                     vars(self.cfg), self.meta,
                                     **kwargs)
             if v in list(self.vars.keys()):
-                logger.info('  ', ncvar, 'is alreade named correctly and'
-                    + ' therefore not adjusted')
+                logger.info('  ' + str(ncvar)
+                            + 'is alreade named correctly and'
+                            + ' therefore not adjusted')
             else:
                 self.vars = self.vars.rename({ncvar: v})
         # coords
@@ -636,8 +640,9 @@ class model_class(qls):
                                     vars(self.cfg), self.meta,
                                     **kwargs)
             if c in list(self.vars.keys()):
-                logger.info('  ', c, 'is alreade named correctly and'
-                    + ' therefore not adjusted')
+                logger.info('  ' + str(c) +
+                            ' is alreade named correctly and' +
+                            ' therefore not adjusted')
             else:
                 self.vars = self.vars.rename({ncvar: c})\
                                         .set_index(time='time')
@@ -708,7 +713,7 @@ class model_class(qls):
             # pick reader
             reader = getattr(reader_tmp, reader_str)
             self.reader = reader
-            logger.info('Chosen reader:', spec.name)
+            logger.info('Chosen reader: ' + spec.name)
             logger.info('')
 
             # possible to select list of variables

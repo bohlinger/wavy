@@ -218,8 +218,9 @@ def check_if_file_is_valid(fc_date, model, leadtime, **kwargs):
     logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
     fname = get_model_filename(model, fc_date, leadtime, **kwargs)
-    logger.info('Check if requested file:\n',
-                fname, '\nis available and valid')
+    logger.info('Check if requested file:\n'
+                + str(fname)
+                + '\nis available and valid')
     try:
         nc = netCDF4.Dataset(fname, mode='r')
         time = nc.variables['time']
@@ -471,8 +472,8 @@ class collocation_class(qls):
         obs_lats = tmp_dict['lats']
         # Compare wave heights of satellite with model with
         # constraint on distance and time frame
-        logger.info("Perform collocation with distance limit\n",
-                    "distlim:", self.distlim)
+        logger.info("Perform collocation with distance limit\n" +
+                    "distlim: " + str(self.distlim))
         index_array_2d, distance_array, _ =\
                                     collocation_fct(
                                     obs_lons, obs_lats,
@@ -711,7 +712,6 @@ class collocation_class(qls):
 
         from joblib import Parallel, delayed
     
-        hs_mod_list=[] 
         lon_mod_list=[]
         lat_mod_list=[]
         time_mod_list=[]
@@ -748,7 +748,7 @@ class collocation_class(qls):
             'model_time': time_mod_list,
             'obs_time': time_obs_list,
             'dist': [0]*length,
-            **{'model_'+ v: var_mod_list[v] for v in self.varalias_mod},
+            **{'model_' + v: var_mod_list[v] for v in self.varalias_mod},
             'model_lons': lon_mod_list,
             'model_lats': lat_mod_list,
             **{'obs_'+v: oco_vars[v].values for v in self.varalias_obs},
@@ -757,7 +757,7 @@ class collocation_class(qls):
             'collocation_idx_x': [0]*length,
             'collocation_idx_y': [0]*length,
             }
-       
+
         return results_dict
 
     def collocate(self, **kwargs):
@@ -786,7 +786,6 @@ class collocation_class(qls):
 
 
     def validate_collocated_values(self, **kwargs):
-        
         varalias = kwargs.get('varalias', self.varalias[0])
         times = self.vars['time']
         dtime = [parse_date(str(t.data)) for t in times]

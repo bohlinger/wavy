@@ -11,7 +11,7 @@ def test_ww3_4km_reader():
     mco = mc(nID='ww3_4km', sd="2023-6-1", ed="2023-6-1 01")
     assert mco.__class__.__name__ == 'model_class'
     mco.populate()
-    print(mco.vars)
+    #print(mco.vars)
     assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 3
 
@@ -25,7 +25,7 @@ def test_ww3_unstr_reader():
     mco = mc(nID='ww3_unstr', sd="2019-3-24 10", ed="2019-3-24 10")
     assert mco.__class__.__name__ == 'model_class'
     mco.populate(res=res, bb=bb, interp='nearest')
-    print(mco.vars)
+    #print(mco.vars)
 
     assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 3
@@ -35,7 +35,7 @@ def test_NORA3_hc_waves():
     mco = mc(nID='NORA3_hc_waves', sd="2019-1-1", ed="2019-1-1")
     assert mco.__class__.__name__ == 'model_class'
     mco.populate()
-    print(mco.vars)
+    #print(mco.vars)
     assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 3
 
@@ -44,7 +44,7 @@ def test_mco_multivar():
     mco = mc(nID='ww3_4km', sd="2023-6-1", ed="2023-6-1 00", varalias=['Hs', 'U'])
     assert mco.__class__.__name__ == 'model_class'
     mco.populate()
-    print(mco.vars)
+    #print(mco.vars)
     assert len(vars(mco).keys()) == 18
     assert len(mco.vars.keys()) == 4
 

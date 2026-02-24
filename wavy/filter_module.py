@@ -91,10 +91,12 @@ class filter_class:
         else:
             no_chunks = 0
             for start_idx, stop_idx in indices:
-                logger.info(' start_idx:', start_idx, 'stop_idx:', stop_idx)
+                logger.info(' start_idx: ' +
+                            str(start_idx) +
+                            'stop_idx: ' + str(stop_idx))
                 no_chunks += 1
                 lenofchunk = len(list(range(start_idx, stop_idx)))
-                logger.info(' -> Length of chunk:', lenofchunk)
+                logger.info(' -> Length of chunk: ' + str(lenofchunk))
         # add chunks to object for further use
         new.land_sea_chunks = indices
         # Assign back to class object
@@ -400,7 +402,7 @@ class filter_class:
         tgc_idx_lst = []
         for i, j in indices:
             tmp_idx = range(i, j)
-            logger.info('tmp_idx', tmp_idx)
+            logger.info('tmp_idx ' + str(tmp_idx))
             # create tmp dataset reduced to i:j
             tmp_ds = new.vars.isel(time=tmp_idx)
             # apply gap chunks if needed
@@ -408,12 +410,12 @@ class filter_class:
             tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
             for k, l in tgc_indices:
                 tmp_tgc_idx = range(k, l+1)
-                logger.info('tmp_tgc_idx', tmp_idx)
+                logger.info('tmp_tgc_idx ' + str(tmp_idx))
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[varalias].values[tmp_tgc_idx]
                     idx = new.cleaner_blockStd(y, **kwargs)
-                    logger.info('idx', idx)
+                    logger.info('idx ' + str(idx))
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
                     logger.warning(
@@ -468,7 +470,7 @@ class filter_class:
         tgc_idx_lst = []
         for i, j in indices:
             tmp_idx = range(i, j+1)
-            logger.info('tmp_idx', tmp_idx)
+            logger.info('tmp_idx ' + str(tmp_idx))
             # create tmp dataset reduced to i:j
             tmp_ds = new.vars.isel(time=tmp_idx)
             # apply gap chunks if needed
@@ -476,12 +478,12 @@ class filter_class:
             tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
             for k, l in tgc_indices:
                 tmp_tgc_idx = range(k, l+1)
-                logger.info('tmp_tgc_idx', tmp_idx)
+                logger.info('tmp_tgc_idx ' + str(tmp_idx))
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[varalias].values[tmp_tgc_idx]
                     idx = new.cleaner_blockQ(y, **kwargs)
-                    logger.info('idx', idx)
+                    logger.info('idx ' + str(idx))
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
                     logger.warning(
@@ -745,7 +747,7 @@ class filter_class:
                     sea_mask = apply_land_mask(lons_perp, lats_perp)
                     if False in sea_mask:
                         logger.info(
-                            'Polution by land is detected for index', i)
+                            'Polution by land is detected for index ' + str(i))
                         logger.info(' -> Footprint not included!')
                         ls_idx.append(False)
                     else:

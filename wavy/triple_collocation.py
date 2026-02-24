@@ -592,69 +592,69 @@ def least_squares_merging(data, tc_results=None, return_var=False, **kwargs):
         return least_squares_merge, least_squares_var
    
 
-def get_mean_spectra(ds, varname, fs, nsample, 
-                     median_step=None, mode='average', 
+def get_mean_spectra(ds, varname, fs, nsample,
+                     median_step=None, mode='average',
                      window='hamming'):
     """
-    Divides a given time series into sample of given size, applies a window to 
+    Divides a given time series into sample of given size, applies a window to
     each sample and calculates the power spectra for each sample, using a Fast
-    Fourier transform. Returns the frequencies and either the list of the 
-    spectra for each sample or the average spectra over all samples. 
-    
+    Fourier transform. Returns the frequencies and either the list of the
+    spectra for each sample or the average spectra over all samples.
+
     ds (xarray dataset): xarray dataset with dimension time
     varname (str): name of the variable for which the spectra is
                    to be computed, present in ds and indexed by time
     fs (float): sampling frequency
     nsample (int): number of points of each sample
     median_step (np.timedelta64): time to consider between each point of the
-                                  time series 
-    mode (str): either 'average' to return the mean power spectra or 
+                                  time series
+    mode (str): either 'average' to return the mean power spectra or
                'list' to return the list of the power spectra
-    window (str): window to apply to the samples before applying the 
+    window (str): window to apply to the samples before applying the
                   FFT. See scipy.singal.periodogram for options.
-    
-    
+
+
     return:
     df_spectra (pandas DataFrame): dataframe containing the mean power spectra
-                                  or the power spectra for each sample and the 
+                                  or the power spectra for each sample and the
                                   corresponding frequencies.
     """
     from scipy.signal import periodogram
 
     ds = ds.dropna(dim='time')
-    
+
     diff_time = ds.time.diff(dim='time').values
     if median_step == None:
         median_step = np.timedelta64(np.nanmedian(diff_time),'ns')
     else:
         median_step = np.timedelta64(median_step, 'ns')
-    
-    sample_period = nsample * median_step
-    
+
+    # sample_period = nsample * median_step
+
     run_sum_period = [np.sum(diff_time[i:i+nsample]) for\
                       i in range(len(diff_time)-nsample)]
-    
+
     up_condition = (nsample*median_step + 0.5*median_step > run_sum_period)
     low_condition = (nsample*median_step - 0.5*median_step <= run_sum_period)
-    condition = up_condition & low_condition
-    
+    # condition = up_condition & low_condition
+
     idx_right_length = np.argwhere(up_condition & low_condition).flatten()
-    
+
     list_PS = []
-    
+
     i = idx_right_length[0]
-    
-    while i < idx_right_length[-1] - nsample: 
-    
-        
+
+    while i < idx_right_length[-1] - nsample:
+
+
         ds_tmp = ds.isel(time=range(i,i+nsample))
-    
+
         sample_tmp = ds_tmp[varname].values
-            
+
         f, PS_tmp = periodogram(sample_tmp, fs=fs, window=window)
-            
+
         list_PS.append(PS_tmp[1:])
-    
+
         i = idx_right_length[np.argwhere(idx_right_length >= i + nsample).\
                              flatten()[0]]
 
@@ -671,17 +671,17 @@ def get_mean_spectra(ds, varname, fs, nsample,
 def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq'):
     """
     Estimates the representativeness error r2 by integrating the difference
-    between the average power spectra of the model and the observations. 
-    Integrates up to a given threshold resolution (inverse of the frequency), 
-    or from a given threshold frequency. 
+    between the average power spectra of the model and the observations.
+    Integrates up to a given threshold resolution (inverse of the frequency),
+    or from a given threshold frequency.
     s
     PS_mod (numpy array): power spectra for the model
     PS_obs (numpy array): power spectra for the observations
     f (numpy array): frequencies of the power spectra
-    threshold (float): either upper resolution to integrate to, or minimum 
+    threshold (float): either upper resolution to integrate to, or minimum
                        frequency to integrate from
-    threshold_type (str): indicate whether the threshold corresponds to a minimum 
-                          frequency ('freq') or to a maximum resolution ('inv_freq') 
+    threshold_type (str): indicate whether the threshold corresponds to a minimum
+                          frequency ('freq') or to a maximum resolution ('inv_freq')
 
     return:
     r2 (float): representativeness error estimate
@@ -694,10 +694,10 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
         if threshold==0:
             threshold=np.inf
         else:
-            threshold = 1/threshold    
-    
-    f_1 = [1/f[i] if f[i] != 0 else np.inf for i in range(len(f)) ]
+            threshold = 1/threshold
+
+    f_1 = [1/f[i] if f[i] != 0 else np.inf for i in range(len(f))]
     idx_threshold = np.argwhere(np.array(f_1) <= threshold)[0][0]
     r2 = np.sum(weighted_diff_PS[idx_threshold:])
-    
+
     return r2

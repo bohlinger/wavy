@@ -55,7 +55,7 @@ def check_if_ncfile_accessible(fstr, **kwargs):
 
     fstr_repl = fstr.replace('\\', '')
     try:
-        ds = xr.open_dataset(fstr_repl, engine='netcdf4')
+        xr.open_dataset(fstr_repl, engine='netcdf4')
         return True
     except (OSError, FileNotFoundError) as e:
         logger.warning("Desired file not accessible")
@@ -302,19 +302,19 @@ def get_swim_var_coords(varalias):
     timeidx = satellite_dict['cfo_swim_L2P']['vardef']['time_idx']
 
     varnamedict = {
-            'varname':varname,
-            'varidx':varidx,
-            'lonname':lonname,
-            'lonidx':lonidx,
-            'latname':latname,
-            'latidx':latidx,
-            'timename':timename,
-            'timeidx':timeidx
+            'varname': varname,
+            'varidx': varidx,
+            'lonname': lonname,
+            'lonidx': lonidx,
+            'latname': latname,
+            'latidx': latidx,
+            'timename': timename,
+            'timeidx': timeidx
             }
 
     return varnamedict
 
-def read_swim_nc(path,varnamedict):
+def read_swim_nc(path, varnamedict):
     ds = xr.open_dataset(path, engine='netcdf4')
     var = eval("ds[varnamedict['varname']].values"+varnamedict['varidx'])
     time = eval("ds[varnamedict['timename']].values"+varnamedict['timeidx'])
@@ -322,7 +322,7 @@ def read_swim_nc(path,varnamedict):
     lats = eval("ds[varnamedict['latname']].values"+varnamedict['latidx'])
     return var, time, lons, lats
 
-def read_swim_netcdfs(pathlst,varalias):
+def read_swim_netcdfs(pathlst, varalias):
     varnamedict = get_swim_var_coords(varalias)
 
     varlst = []
@@ -331,8 +331,8 @@ def read_swim_netcdfs(pathlst,varalias):
     latslst = []
 
     for f in pathlst:
-        var,time,lon,lat = \
-            read_swim_nc(f,varnamedict) 
+        var, time, lon, lat = \
+            read_swim_nc(f, varnamedict)
         varlst.append(var)
         timelst.append(time)
         lonslst.append(lon)
@@ -417,16 +417,17 @@ def get_filevarname(varalias, variable_info, srcdict, ncdict, **kwargs):
         filevarname = get_varname_for_cf_stdname_in_ncfile(
             ncdict, variable_info[varalias]['alias'])
     if (filevarname is not None and len(filevarname) > 1):
-        logger.debug(' !!! standard_name: ', stdname, ' is not unique !!!',
-                    '\nThe following variables have the same standard_name:\n',
-                    filevarname)
+        logger.debug(' !!! standard_name: ' +
+                     str(stdname) + ' is not unique !!!' +
+                    '\nThe following variables have the same standard_name:\n' +
+                    str(filevarname))
         logger.debug(' Searching *_cfg.yaml config file for definition')
         filevarname = None
     if filevarname is not None:
         return filevarname[0]
     tmpdict = finditem(srcdict, 'vardef')
-    if len(tmpdict)==0:
-        tmpdict = [{'None':None}]
+    if len(tmpdict) == 0:
+        tmpdict = [{'None': None}]
     vardefdict = tmpdict[0]
     if (filevarname is None and varalias in vardefdict.keys()):
         filevarname = vardefdict[varalias]
@@ -451,9 +452,9 @@ def get_filevarname_list(varalias, variable_info, srcdict, ncdict, **kwargs):
         filevarname = get_varname_for_cf_stdname_in_ncfile(
             ncdict, variable_info[varalias]['alias'])
     if (filevarname is not None and len(filevarname) > 1):
-        logging.info(' !!! standard_name: ', stdname, ' is not unique !!!',
-                     '\nThe following variables have the same standard_name:\n',
-                     filevarname)
+        logging.info(' !!! standard_name: ' + stdname + ' is not unique !!!' +
+                '\nThe following variables have the same standard_name:\n' +
+                filevarname)
         logging.info(' Searching *_cfg.yaml config file for definition')
         filevarname = None
     if filevarname is not None:
@@ -465,7 +466,7 @@ def get_filevarname_list(varalias, variable_info, srcdict, ncdict, **kwargs):
     if (filevarname is None and varalias in vardefdict.keys()):
         filevarname = vardefdict[varalias]
         logging.info(' Variable defined in *_cfg.yaml is:')
-        logging.ingo(varalias, '=', filevarname)
+        logging.ingo(varalias + ' = ' + filevarname)
         return filevarname
     else:
         logging.warning(' !!! variable not defined nor ' +

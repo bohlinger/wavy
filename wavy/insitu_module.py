@@ -138,7 +138,7 @@ class insitu_class(qls, fc):
         # pick reader
         collector = getattr(collector_tmp, collector_str)
         self.collector = collector
-        logger.info('Chosen collector:', spec.name)
+        logger.info('Chosen collector: ' + spec.name)
         logger.info('')
 
         logger.info("Downloading files ...")
@@ -454,7 +454,7 @@ class insitu_class(qls, fc):
         # pick reader
         reader = getattr(reader, reader_str)
         self.reader = reader
-        logger.info('Chosen reader:', spec.name)
+        logger.info('Chosen reader: ' + spec.name)
         logger.info('')
 
         #if len(lst) > 0:

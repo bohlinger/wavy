@@ -36,32 +36,36 @@ satellite_dict = load_or_default('satellite_cfg.yaml')
 def tmploop_get_remote_files(i: int, matching: str,
                              user: str, pw: str,
                              server: str, remote_path: str,
-                             path_local: str):
+                             path_local: str, **kwargs):
     """
     Function to download files using ftp. Tries 10 times before failing.
     """
-    print("File: ", matching[i])
-    print("src path: ", remote_path)
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info("File: " + str(matching[i]))
+    logger.info("src path: " + str(remote_path))
     pw = quote(pw)  # to escape special characters
     dlstr = ('ftp://' + user + ':' + pw + '@'
              + server + remote_path + matching[i])
     for attempt in range(10):
-        print(attempt, "Attempt to download data: ")
+        logger.info(str(attempt) + "Attempt to download data: ")
         try:
-            print("Downloading file")
+            logger.info("Downloading file")
             urlretrieve(dlstr, os.path.join(path_local, matching[i]))
             urlcleanup()
         except Exception as e:
-            print(e.__doc__)
-            print(e.message)
-            print("Waiting for 10 sec and retry")
+            logger.warning("Exception in tmploop_get_remote_files:")
+            logger.warning(e)
+            logger.warning("Waiting for 10 sec and retry")
             time.sleep(10)
         else:
             break
     else:
-        print('An error was raised and I ' +
-              'failed to fix problem myself :(')
-        print('Exit program')
+        logger.critical('An error was raised and I ' +
+                        'failed to fix problem myself :(')
+        logger.critical('Exit program')
         sys.exit()
 
 def get_remote_files_ftp(**kwargs):
@@ -161,7 +165,7 @@ def get_remote_files_ftp(**kwargs):
             Parallel(n_jobs=nproc)(
                             delayed(tmploop_get_remote_files)(
                                 i, matching, user, pw, server,
-                                path_remote, path_local
+                                path_remote, path_local, **kwargs
                                 ) for i in range(len(matching))
                             )
         except Exception as e:

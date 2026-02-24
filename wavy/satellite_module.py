@@ -163,7 +163,8 @@ class satellite_class(qls, fc):
         # pick collector
         collector = getattr(collector_tmp, collector_str)
         self.collector = collector
-        logger.info('Chosen collector:', spec.name)
+        logger.info('Chosen collector:')
+        logger.info(spec.name)
         logger.info('')
 
         logger.info("Downloading files ...")
@@ -193,7 +194,6 @@ class satellite_class(qls, fc):
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get('logging', 'WARNING').upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
-
 
         filelst = []
         pathlst = []
@@ -301,8 +301,8 @@ class satellite_class(qls, fc):
         pathlst = list(filter(lambda item: item is not None, pathlst))
         print(str(int(len(pathlst))) + " valid files found")
 
-        logger.info('source template:',
-                    self.cfg.wavy_input['src_tmplt'])
+        logger.info('source template:')
+        logger.info(self.cfg.wavy_input['src_tmplt'])
         if show is True:
             print(" ")
             print("pathlst: ")
@@ -326,8 +326,9 @@ class satellite_class(qls, fc):
         idx = new._match_poi(self.poi)
         new.vars = new.vars.sel(time=new.vars.time[idx])
         logger.info('Region mask applied based on poi')
-        logger.info('For chosen poi region: ', len(new.vars['time']),
-                    'footprints found')
+        logger.info('For chosen poi region: ')
+        logger.info(len(new.vars['time']))
+        logger.info('footprints found')
         return new
 
     def crop_to_region(self, region, **kwargs):
@@ -336,7 +337,7 @@ class satellite_class(qls, fc):
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         new = deepcopy(self)
-        logger.info('Crop to region:', region)
+        logger.info('Crop to region: ' + str(region))
 
         idx = new._match_region(new.vars['lats'].values,
                                 new.vars['lons'].values,
@@ -344,8 +345,9 @@ class satellite_class(qls, fc):
                                 grid_date=new.sd)
         new.vars = new.vars.isel(time=idx)
         logger.info('Region mask applied')
-        logger.info('For chosen region: ', len(new.vars['time']),
-                    'footprints found')
+        logger.info('For chosen region: ')
+        logger.info(len(new.vars['time']))
+        logger.info('footprints found')
         return new
 
     def _get_sat_ts_blunt(self, **kwargs):
@@ -392,9 +394,11 @@ class satellite_class(qls, fc):
 
         ds_lst = []
         count = 0
-        logger.info('Reading', int((len(pathlst)+chunk_size)/chunk_size)+1,
-                    'chunks of files with chunk size', chunk_size)
-        logger.info('Total of', len(pathlst), 'files')
+        logger.info('Reading '
+                    + str(int((len(pathlst)+chunk_size)/chunk_size)+1)
+                    + ' chunks of files with chunk size '
+                    + str(chunk_size))
+        logger.info('Total of ' + str(len(pathlst)) + ' files')
 
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count <= len(pathlst)-1:
@@ -493,10 +497,10 @@ class satellite_class(qls, fc):
                                     satellite_dict[new.nID], new.meta,
                                     **kwargs)
             if v in list(new.vars.keys()):
-                logger.debug('  ',
-                            ncvar,
-                            'is alreade named correctly and'
-                          + ' therefore not adjusted')
+                logger.debug('  ' + 
+                            ncvar +
+                            ' is alreade named correctly and' +
+                            ' therefore not adjusted')
             else:
                 new.vars = new.vars.rename({ncvar: v})
         # coords
@@ -507,15 +511,15 @@ class satellite_class(qls, fc):
                                         satellite_dict[new.nID], new.meta,
                                         **kwargs)
                 if c in list(new.vars.keys()):
-                    logger.debug('  ',
-                                 c,
-                                 'is alreade named correctly and'
-                                 + ' therefore not adjusted')
+                    logger.debug('  ' +
+                                 c +
+                                 ' is alreade named correctly and' +
+                                 ' therefore not adjusted')
                 else:
                     new.vars = new.vars.rename({ncvar: c})#\
                                             #.set_index(time='time')
             except Exception as e:
-                logger.debug(' ', ncvar, 'is not renamed')
+                logger.debug(' ' + ncvar + 'is not renamed')
                 logger.exception(e)
 
         return new
@@ -581,7 +585,7 @@ class satellite_class(qls, fc):
         # pick reader
         reader = getattr(reader_tmp, reader_str)
         self.reader = reader
-        logger.info('Chosen reader:', spec.name)
+        logger.info('Chosen reader: ' + spec.name)
         logger.info('')
 
         # possible to select list of variables

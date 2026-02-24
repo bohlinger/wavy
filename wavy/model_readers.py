@@ -21,6 +21,7 @@ from wavy.wconfig import load_or_default
 from wavy.utils import build_xr_ds
 from wavy.grid_readers import get_gridded_dataset
 from wavy.grid_readers import build_xr_ds_grid, build_xr_ds_grid_2D
+from wavy.grid_readers import build_xr_ds_grid_multivar
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs_with_credentials_aggregated
 from wavy.utils import parse_date
