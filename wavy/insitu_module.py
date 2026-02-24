@@ -32,7 +32,7 @@ from wavy.utils import convert_meteorologic_oceanographic
 from wavy.utils import date_dispatcher
 from wavy.utils import flatten
 from wavy.wconfig import load_or_default, load_dir
-from wavy.filtermod import filter_class as fc
+from wavy.filter_module import filter_class as fc
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.init_class_insitu import init_class
 # ---------------------------------------------------------------------#
