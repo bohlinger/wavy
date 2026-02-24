@@ -17,7 +17,7 @@ import xarray as xr
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs
 from wavy.ncmod import read_netcdfs_with_credentials_aggregated
-from wavy.ncmod import read_swim_netcdfs	
+from wavy.ncmod import read_swim_netcdfs
 from wavy.wconfig import load_or_default
 from wavy.utils import parse_date, calc_deep_water_T
 from wavy.utils import find_included_times, find_included_times_pd

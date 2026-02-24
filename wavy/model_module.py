@@ -528,6 +528,9 @@ class model_class(qls):
         return pathtotals, filelst
 
     def list_input_files(self, show=False, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         if (kwargs.get('path') is None and kwargs.get('wavy_path') is None):
             fc_dates = make_fc_dates(self.sd, self.ed,
@@ -538,7 +541,7 @@ class model_class(qls):
                     fc_dates, self.leadtime, **kwargs)
         else:
             # if defined path local
-            print(" ## Find and list files ...")
+            logger.info(" ## Find and list files ...")
             path = kwargs.get('path', None)
             wavy_path = kwargs.get('wavy_path', None)
             pathlst, _ = self._get_files(vars(self),
@@ -548,6 +551,7 @@ class model_class(qls):
 
         if show is True:
             print(" ")
+            print("Found files:")
             print(pathlst)
             print(" ")
         return pathlst

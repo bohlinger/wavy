@@ -11,6 +11,7 @@ import cartopy.io.shapereader as shpreader
 from sklearn.neighbors import BallTree
 from pyproj import Proj, Geod
 from math import *
+import logging
 
 import pyresample as pr
 from roaring_landmask import Shapes, LandmaskProvider
@@ -29,18 +30,22 @@ variable_def = load_or_default('variable_def.yaml')
 class filter_class:
 
     def apply_limits(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply limits (crude cleaning using valid range)')
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
-        else: 
+                logger.warning(msg)
+        else:
             varalias = kwargs.get('varalias', new.varalias)
         llim = kwargs.get('llim',
                           variable_def[varalias]['valid_range'][0])
@@ -59,6 +64,10 @@ class filter_class:
         return new
 
     def filter_landMask(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply land mask')
         new = deepcopy(self)
         longitudes = np.array(new.vars['lons'])
@@ -82,17 +91,17 @@ class filter_class:
         else:
             no_chunks = 0
             for start_idx, stop_idx in indices:
-                print(' start_idx:', start_idx, 'stop_idx:', stop_idx)
+                logger.info(' start_idx:', start_idx, 'stop_idx:', stop_idx)
                 no_chunks += 1
                 lenofchunk = len(list(range(start_idx, stop_idx)))
-                print(' -> Length of chunk:', lenofchunk)
+                logger.info(' -> Length of chunk:', lenofchunk)
         # add chunks to object for further use
         new.land_sea_chunks = indices
         # Assign back to class object
         new.vars = ds
         print(' Number of registered intersections with land:', no_chunks)
         print(' Number of disregarded values due to land intersections:',
-              len(sea_mask[sea_mask == False]))
+              len(sea_mask[sea_mask is False]))
         print(' Number of remaining values:', len(new.vars['time']))
         print(' land_sea_chunks added to self')
         return new
@@ -134,6 +143,10 @@ class filter_class:
     #    return self
 
     def filter_lanczos(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply lanczos filter')
         from wavy.utils import runmean
         new = deepcopy(self)
@@ -142,10 +155,10 @@ class filter_class:
             
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
+                logger.warning(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
@@ -176,7 +189,8 @@ class filter_class:
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -184,22 +198,27 @@ class filter_class:
         return new
 
     def filter_runmean(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply running mean filter')
         from wavy.utils import runmean
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
                 msg="Variable {} selected by default. ".format(varalias)\
                 + "If you wish to apply the filter to another variable, "+\
                       "please specify it using varalias."
-                print(msg)
+                logger.warning(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
-        
+
         print("Applying filter to {}".format(varalias))
+
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -226,7 +245,8 @@ class filter_class:
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -234,17 +254,21 @@ class filter_class:
         return new
 
     def filter_GP(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply GPR filter')
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
+                logger.warning(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
@@ -272,7 +296,8 @@ class filter_class:
                     ts_lst.append(ts)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -284,18 +309,22 @@ class filter_class:
     #    return self
 
     def filter_linearGAM(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply LinearGAM filter')
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
-        else: 
+                logger.warning(msg)
+        else:
             varalias = kwargs.get('varalias', new.varalias)
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
@@ -342,6 +371,10 @@ class filter_class:
         return idx
 
     def despike_blockStd(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply blockStd despiking')
         """
         Uses slider blocks as basis
@@ -349,13 +382,13 @@ class filter_class:
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
+                logger.warning(msg)
         else: 
             varalias = kwargs.get('varalias', new.varalias)
 
@@ -367,7 +400,7 @@ class filter_class:
         tgc_idx_lst = []
         for i, j in indices:
             tmp_idx = range(i, j)
-            print('tmp_idx', tmp_idx)
+            logger.info('tmp_idx', tmp_idx)
             # create tmp dataset reduced to i:j
             tmp_ds = new.vars.isel(time=tmp_idx)
             # apply gap chunks if needed
@@ -375,15 +408,16 @@ class filter_class:
             tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
             for k, l in tgc_indices:
                 tmp_tgc_idx = range(k, l+1)
-                print('tmp_tgc_idx', tmp_idx)
+                logger.info('tmp_tgc_idx', tmp_idx)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[varalias].values[tmp_tgc_idx]
                     idx = new.cleaner_blockStd(y, **kwargs)
-                    print('idx', idx)
+                    logger.info('idx', idx)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -409,19 +443,23 @@ class filter_class:
         """
         Uses slider blocks as basis
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                    + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
-        else: 
+                logger.warning(msg)
+        else:
             varalias = kwargs.get('varalias', new.varalias)
-        
+
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -430,7 +468,7 @@ class filter_class:
         tgc_idx_lst = []
         for i, j in indices:
             tmp_idx = range(i, j+1)
-            print('tmp_idx', tmp_idx)
+            logger.info('tmp_idx', tmp_idx)
             # create tmp dataset reduced to i:j
             tmp_ds = new.vars.isel(time=tmp_idx)
             # apply gap chunks if needed
@@ -438,15 +476,16 @@ class filter_class:
             tgc_indices = new.time_gap_chunks(pdtimes, **kwargs)
             for k, l in tgc_indices:
                 tmp_tgc_idx = range(k, l+1)
-                print('tmp_tgc_idx', tmp_idx)
+                logger.info('tmp_tgc_idx', tmp_idx)
                 # apply min chunk size
                 if len(tmp_tgc_idx) > kwargs.get("chunk_min", 5):
                     y = tmp_ds[varalias].values[tmp_tgc_idx]
                     idx = new.cleaner_blockQ(y, **kwargs)
-                    print('idx', idx)
+                    logger.info('idx', idx)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -458,20 +497,24 @@ class filter_class:
         return new
 
     def despike_GP(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply GPR despiking')
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                    + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
-        else: 
+                logger.warning(msg)
+        else:
             varalias = kwargs.get('varalias', new.varalias)
-        
+
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -494,7 +537,8 @@ class filter_class:
                     idx = cleaner_GP(x, y, **kwargs)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -509,20 +553,24 @@ class filter_class:
         return self
 
     def despike_linearGAM(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print('Apply GAM despiking')
         new = deepcopy(self)
         if isinstance(new.varalias, list):
             varalias = kwargs.get('varalias', new.varalias[0])
-            
+
             if (len(new.varalias) > 1) and\
              (kwargs.get('varalias', None) is None):
-                msg="Variable {} selected by default. ".format(varalias)\
-                + "If you wish to apply the filter to another variable, "+\
+                msg = "Variable {} selected by default. ".format(varalias)\
+                    + "If you wish to apply the filter to another variable, " +\
                       "please specify it using varalias."
-                print(msg)
-        else: 
+                logger.warning(msg)
+        else:
             varalias = kwargs.get('varalias', new.varalias)
-        
+
         # apply slider if needed
         win = kwargs.get('slider', len(new.vars.time))
         ol = kwargs.get('overlap', 0)
@@ -546,7 +594,8 @@ class filter_class:
                     idx = cleaner_linearGAM(X, y, **kwargs)
                     tgc_idx_lst.append(np.array(tmp_idx)[tmp_tgc_idx][idx])
                 else:
-                    print("Chunk size to small -> not filtered and rejected")
+                    logger.warning(
+                        "Chunk size to small -> not filtered and rejected")
                     pass
 
         new.vars = new.vars.isel(time=flatten(tgc_idx_lst))
@@ -651,6 +700,10 @@ class filter_class:
         return new
 
     def _generate_xtrack_footprints(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         domain = kwargs.get('domain', 'lonlat')
         n = kwargs.get('number_of_seeds', 250) + 1
         new = deepcopy(self)
@@ -691,8 +744,9 @@ class filter_class:
                     # check if footprints intersect with land
                     sea_mask = apply_land_mask(lons_perp, lats_perp)
                     if False in sea_mask:
-                        # print('Polution by land is detected for index', i)
-                        # print(' -> Footprint not included!')
+                        logger.info(
+                            'Polution by land is detected for index', i)
+                        logger.info(' -> Footprint not included!')
                         ls_idx.append(False)
                     else:
                         ls_idx.append(True)

@@ -20,9 +20,6 @@ from copy import deepcopy
 import glob
 import traceback
 import logging
-#logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=30)
-logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -112,16 +109,20 @@ class insitu_class(qls, fc):
         print('# ----- ')
 
     def download(self, path=None, nproc=1, **kwargs):
-        print('')
-        print('Choosing collector..')
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info('')
+        logger.info('Choosing collector..')
         # define reader
         dotenv.load_dotenv()
         WAVY_DIR = os.getenv('WAVY_DIR', None)
         if WAVY_DIR is None:
-            print('#')
-            print('Environmental variable for WAVY_DIR not defined')
-            print('Defaults are chosen')
-            print('#')
+            logger.debug('#')
+            logger.debug('Environmental variable for WAVY_DIR not defined')
+            logger.debug('Defaults are chosen')
+            logger.debug('#')
             collector_mod_str = load_dir('insitu_collectors').name
         else:
             collector_mod_str = WAVY_DIR + '/wavy/insitu_collectors.py'
@@ -137,10 +138,10 @@ class insitu_class(qls, fc):
         # pick reader
         collector = getattr(collector_tmp, collector_str)
         self.collector = collector
-        print('Chosen collector:', spec.name)
-        print('')
+        logger.info('Chosen collector:', spec.name)
+        logger.info('')
 
-        print("Downloading files ...")
+        logger.info("Downloading files ...")
         nproc = kwargs.get('nproc', 1)
         self.collector(nproc=nproc, path=path, **(vars(self)))
 
@@ -170,12 +171,16 @@ class insitu_class(qls, fc):
         return pathlst
 
     def list_input_files(self, show=False, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         try:
             if (kwargs.get('path') is None and kwargs.get('wavy_path') is None):
                 pathlst = self._create_pathlst(**kwargs)
             else:
                 # if defined path local
-                print(" ## Find and list files based on given path...")
+                logger.info(" ## Find and list files based on given path...")
                 path = kwargs.get('path', None)
                 wavy_path = kwargs.get('wavy_path', None)
                 pathlst = self._get_files(vars(self),
@@ -189,7 +194,8 @@ class insitu_class(qls, fc):
         except Exception as e:
             logger.exception(e)
             pathlst = None
-            print(' no netcdf meta data retrieved')
+            logger.warning(' no netcdf meta data retrieved')
+            logger.warning(' source possibly not netcdf')
 
         if show is True:
             print(" ")
@@ -198,7 +204,8 @@ class insitu_class(qls, fc):
             print(" ")
         return pathlst
 
-    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
+    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None,
+    **kwargs):
         """
         Function to retrieve list of files/paths for available
         locally stored data. This list is used for other functions
@@ -214,6 +221,10 @@ class insitu_class(qls, fc):
         return:
             pathtotals - list of paths
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         filelst = []
         pathlst = []
         tmpdate = self.sd
@@ -221,7 +232,7 @@ class insitu_class(qls, fc):
             pathtotals = [wavy_path]
             filelst = [wavy_path]
         elif path is None:
-            print('path is None -> checking config file')
+            logger.info('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
             self.cfg.misc['date_incr_unit'],
             self.cfg.misc['date_incr'])):
@@ -260,7 +271,7 @@ class insitu_class(qls, fc):
             except TypeError:
                 pathtotals = [pathlst]
             else:
-                print("Object is iterable")
+                logger.info("Object is iterable")
 
             # limit to sd and ed based on file naming, see check_date
             idx_start, tmp = check_date(filelst, self.sd)
@@ -326,28 +337,38 @@ class insitu_class(qls, fc):
         ds.lons.values = ((ds.lons.values-180) % 360)-180
         return ds
 
-    def _enforce_meteorologic_convention(self):
+    def _enforce_meteorologic_convention(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         ncvars = list(self.vars.variables)
         for ncvar in ncvars:
             if ('convention' in self.cfg.misc.keys() and
             self.cfg.misc['convention'] == 'oceanographic'):
-                print('Convert from oceanographic to meteorologic convention')
+                logger.info(
+                    'Convert from oceanographic to meteorologic convention')
                 self.vars[ncvar] =\
                     convert_meteorologic_oceanographic(self.vars[ncvar])
             elif 'to_direction' in self.vars[ncvar].attrs['standard_name']:
-                print('Convert from oceanographic to meteorologic convention')
+                logger.info(
+                    'Convert from oceanographic to meteorologic convention')
                 self.vars[ncvar] =\
                     convert_meteorologic_oceanographic(self.vars[ncvar])
 
         return self
 
-    def _change_varname_to_aliases(self):
+    def _change_varname_to_aliases(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         # variables
         for v in self.varalias:
             ncvar = get_filevarname(v, variable_def,
                                     vars(self.cfg), self.meta)
             self.vars = self.vars.rename({ncvar: v})
-       
+
         # coords
         coords = ['time', 'lons', 'lats']
         for c in coords:
@@ -357,6 +378,8 @@ class insitu_class(qls, fc):
                 self.vars = self.vars.rename({ncvar: c})\
                             .set_index(time='time')
             except Exception as e:
+                logger.warning("Exception occurred in")
+                logger.warning("_change_varname_to_aliases")
                 logger.exception(e)
         return self
 
@@ -383,6 +406,10 @@ class insitu_class(qls, fc):
         return Path(fstr).suffix
 
     def populate(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print(" ### Read files and populate insitu_class object")
 
         try:
@@ -395,12 +422,15 @@ class insitu_class(qls, fc):
             else:
                 self.meta = None
         except Exception as e:
+            logger.warning("Exception occurred in")
+            logger.warning("_return_extension")
             logger.exception(e)
             self.meta = None
-            print(' no netcdf meta data retrieved')
+            logger.warning(' no netcdf meta data retrieved')
+            logger.warning(' source may not be a netcdf')
 
-        print('')
-        print('Choosing reader..')
+        logger.info('')
+        logger.info('Choosing reader..')
         # define reader
         dotenv.load_dotenv()
         WAVY_DIR = os.getenv('WAVY_DIR', None)
@@ -424,8 +454,8 @@ class insitu_class(qls, fc):
         # pick reader
         reader = getattr(reader, reader_str)
         self.reader = reader
-        print('Chosen reader:', spec.name)
-        print('')
+        logger.info('Chosen reader:', spec.name)
+        logger.info('')
 
         #if len(lst) > 0:
         if True:
@@ -435,9 +465,9 @@ class insitu_class(qls, fc):
                 self = self._get_insitu_ts(**kwargs)
 
                 if self.meta is not None:
-                    self = self._change_varname_to_aliases()
+                    self = self._change_varname_to_aliases(**kwargs)
                 self = self._change_stdvarname_to_cfname()
-                self = self._enforce_meteorologic_convention()
+                self = self._enforce_meteorologic_convention(**kwargs)
 
                 # convert longitude
                 ds = self.vars
@@ -468,14 +498,12 @@ class insitu_class(qls, fc):
                 print('# ----- ')
             except Exception as e:
                 logger.exception(e)
-                #logger.debug(traceback.format_exc())
-                print(e)
-                print('Error encountered')
-                print('insitu_class object not populated')
+                logger.warning('Error encountered')
+                logger.warning('insitu_class object not populated')
         else:
-            print('No data found')
-            print('insitu_class object not populated')
-            print('# ----- ')
+            logger.warning('No data found')
+            logger.warning('insitu_class object not populated')
+            logger.warning('# ----- ')
         return self
 
     def get_item_parent(self, item, attr):

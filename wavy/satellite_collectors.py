@@ -19,9 +19,6 @@ from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 import logging
 import copernicusmarine as cmc
-#logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=30)
-logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import sort_files
@@ -74,6 +71,10 @@ def get_remote_files_ftp(**kwargs):
 
     from, to, creation
     '''
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     product = kwargs.get('nID')
     sdate = kwargs.get('sd')
     edate = kwargs.get('ed')
@@ -164,7 +165,10 @@ def get_remote_files_ftp(**kwargs):
                                 ) for i in range(len(matching))
                             )
         except Exception as e:
+            logger.warning("Exception was raised during downloading in")
+            logger.warning("get_remote_files_ftp")
             logger.exception(e)
+
         # update time
         path_date_incr_unit = satellite_dict[product]['download']['ftp']\
             .get('path_date_incr_unit', 'm')
@@ -186,6 +190,10 @@ def get_remote_files_copernicusmarine(**kwargs):
 
     from, to, creation
     '''
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     product = kwargs.get('nID')
     sdate = kwargs.get('sd')
     edate = kwargs.get('ed')
@@ -292,8 +300,10 @@ def get_remote_files_copernicusmarine(**kwargs):
                     #force_download=True,
                     #overwrite_output_data=True,
                     #no_metadata_cache=no_metadata_cache
-            except Exception as error:
-                print(error)
+            except Exception as e:
+                logger.warning("Exception was raised during downloading in")
+                logger.warning("get_remote_files_copernicusmarine")
+                logger.exception(e)
                 pass
 
             if time_incr == 'h':

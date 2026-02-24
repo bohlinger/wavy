@@ -299,14 +299,15 @@ class satellite_class(qls, fc):
 
         # remove None values from pathlst
         pathlst = list(filter(lambda item: item is not None, pathlst))
-        logger.info(str(int(len(pathlst))) + " valid files found")
+        print(str(int(len(pathlst))) + " valid files found")
 
         logger.info('source template:',
                     self.cfg.wavy_input['src_tmplt'])
         if show is True:
-            logger.info(" ")
-            logger.info(pathlst)
-            logger.info(" ")
+            print(" ")
+            print("pathlst: ")
+            print(pathlst)
+            print(" ")
         return pathlst
 
     def crop_to_poi(self, **kwargs):

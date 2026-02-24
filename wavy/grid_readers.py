@@ -10,6 +10,7 @@ import numpy as np
 import netCDF4
 import pandas as pd
 import xarray as xr
+import logging
 
 # own imports
 from wavy.ncmod import get_filevarname
@@ -36,7 +37,11 @@ def read_ww3_unstructured_to_grid(**kwargs):
     return:
         dictionary of variables for the satellite_class object
     """
-    print(" Reading unstructured grid...")
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info(" Reading unstructured grid...")
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     varalias = kwargs.get('varalias')
@@ -87,19 +92,23 @@ def read_ww3_unstructured_to_grid(**kwargs):
                 new = get_gridded_dataset(var, t, **kwargs)
                 ds_lst.append(new)
 
-    print(" Concatenate ...")
+    logger.info(" Concatenate ...")
     combined = xr.concat(ds_lst, 'time',
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logger.info(" ... done concatenating")
 
     return combined
 
 
 def get_gridded_dataset(var, t, **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     varstr = kwargs.get('varalias')
     if isinstance(varstr, str):
         varstr = [varstr]
@@ -107,18 +116,18 @@ def get_gridded_dataset(var, t, **kwargs):
 
     var_means_list = []
 
-    print(var)
+    logger.info(var)
 
     if kwargs.get('interp') is None:
-        print(" Apply gridding, no interpolation")
+        logger.info(" Apply gridding, no interpolation")
         # grid data
-        
-        for i in range(len_varstr): 
+
+        for i in range(len_varstr):
             gridvar, lon_grid, lat_grid = \
-                grid_point_cloud_ds(var[i], 
-                                    var[len_varstr], 
-                                    var[len_varstr+1], 
-                                    t, 
+                grid_point_cloud_ds(var[i],
+                                    var[len_varstr],
+                                    var[len_varstr+1],
+                                    t,
                                     **kwargs)
 
             var_means = gridvar['mor']
@@ -130,22 +139,22 @@ def get_gridded_dataset(var, t, **kwargs):
             var_means_list.append(var_means)
 
     else:
-        print(" Apply gridding with interpolation")
+        logger.info(" Apply gridding with interpolation")
         for i in range(len_varstr):
 
             var_means, lon_grid, lat_grid = \
                     grid_point_cloud_interp_ds(
-                        var[i], 
-                        var[len_varstr], 
-                        var[len_varstr+1], 
+                        var[i],
+                        var[len_varstr],
+                        var[len_varstr+1],
                         **kwargs)
-            
+
             # transpose dims
             field_shape = (list(var_means.shape[::-1]) + [1])[::-1]
             var_means = var_means.reshape(field_shape)
-            
+
             var_means_list.append(var_means)
-            
+
     # create xr.dataset
     ds = build_xr_ds_grid_multivar(
             var_means_list,
@@ -156,7 +165,11 @@ def get_gridded_dataset(var, t, **kwargs):
 
 
 def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, **kwargs):
-    print(" building xarray dataset from grid")
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info(" building xarray dataset from grid")
     varstr = kwargs.get('varstr')
 
     ds = xr.Dataset({
@@ -187,7 +200,11 @@ def build_xr_ds_grid(var_means, lon_grid, lat_grid, t, **kwargs):
 
 
 def build_xr_ds_grid_multivar(var_means_list, lon_grid, lat_grid, t, **kwargs):
-    print(" building xarray dataset from grid")
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info(" building xarray dataset from grid")
     varstr = kwargs.get('varstr')
     if isinstance(varstr, str):
         varstr = [varstr]
@@ -221,7 +238,11 @@ def build_xr_ds_grid_multivar(var_means_list, lon_grid, lat_grid, t, **kwargs):
 
 
 def build_xr_ds_grid_2D(var_means, lon_grid, lat_grid, t, **kwargs):
-    print(" building xarray dataset from grid")
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info(" building xarray dataset from grid")
     varstr = kwargs.get('varstr')
     lon_grid_coord = kwargs.get('lon_grid_coord')
     lat_grid_coord = kwargs.get('lat_grid_coord')
@@ -254,7 +275,11 @@ def build_xr_ds_grid_2D(var_means, lon_grid, lat_grid, t, **kwargs):
 
 
 def grid_point_cloud_ds(values, lons, lats, t, **kwargs):
-    print(' gridding point cloud')
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info(' gridding point cloud')
     from wavy.gridder_module import gridder_class as gc
     from wavy.grid_stats import apply_metric
 
@@ -269,7 +294,11 @@ def grid_point_cloud_ds(values, lons, lats, t, **kwargs):
     return gridvar, lon_grid, lat_grid
 
 def grid_point_cloud_interp_ds(values, lons, lats, **kwargs):
-    print(' gridding point cloud with interpolation')
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info(' gridding point cloud with interpolation')
     from scipy.interpolate import griddata
 
     res = kwargs.get('res')
