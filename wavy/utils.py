@@ -14,6 +14,7 @@ from dateutil.parser import parse
 import math
 from wavy.wconfig import load_or_default
 import pandas as pd
+import logging
 
 # ---------------------------------------------------------------------#
 variable_def = load_or_default('variable_def.yaml')
@@ -560,7 +561,11 @@ def finditem(search_dict, field):
                         fields_found.append(another_result)
     return fields_found
 
-def make_pathtofile(tmppath, strsublst, subdict, date=None):
+def make_pathtofile(tmppath, strsublst, subdict, date=None, **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     '''
     Creates a path given templates and keywords and date.
     '''
@@ -574,8 +579,8 @@ def make_pathtofile(tmppath, strsublst, subdict, date=None):
             if strsub in subdict:
                 pathtofile = pathtofile.replace(strsub, subdict[strsub])
             else:
-                print(strsub,
-                      'in substitutables not needed for destination path')
+                logger.debug(strsub, 
+                        'in substitutables not needed for destination path')
     return pathtofile
 
 def find_direction_convention(filevarname, ncdict):

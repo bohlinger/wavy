@@ -23,9 +23,6 @@ import xarray as xr
 from tqdm import tqdm
 #import traceback
 import logging
-#logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=30)
-logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -48,7 +45,7 @@ from wavy.insitu_module import poi_class as pc
 
 from wavy.wconfig import load_or_default, load_dir
 
-from wavy.filtermod import filter_class as fc
+from wavy.filter_module import filter_class as fc
 
 from wavy.quicklookmod import quicklook_class_sat as qls
 
@@ -60,7 +57,6 @@ from wavy.utils import footprint_pulse_limited_radius
 # read yaml config files:
 region_dict = load_or_default('region_cfg.yaml')
 model_dict = load_or_default('model_cfg.yaml')
-#satellite_dict = load_or_default('satellite_cfg.yaml')
 variable_def = load_or_default('variable_def.yaml')
 
 # --- global functions ------------------------------------------------#
@@ -138,16 +134,20 @@ class satellite_class(qls, fc):
         print('# ----- ')
 
     def download(self, path=None, nproc=1, **kwargs):
-        print('')
-        print('Choosing collector..')
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info("")
+        logger.info("Choosing collector..")
         # define reader
         dotenv.load_dotenv()
         WAVY_DIR = os.getenv('WAVY_DIR', None)
         if WAVY_DIR is None:
-            print('#')
-            print('Environmental variable for WAVY_DIR not defined')
-            print('Defaults are chosen')
-            print('#')
+            logger.debug('#')
+            logger.debug('Environmental variable for WAVY_DIR not defined')
+            logger.debug('Defaults are chosen')
+            logger.debug('#')
             collector_mod_str = load_dir('satellite_collectors').name
         else:
             collector_mod_str = WAVY_DIR + '/wavy/satellite_collectors.py'
@@ -163,16 +163,18 @@ class satellite_class(qls, fc):
         # pick collector
         collector = getattr(collector_tmp, collector_str)
         self.collector = collector
-        print('Chosen collector:', spec.name)
-        print('')
+        logger.info('Chosen collector:')
+        logger.info(spec.name)
+        logger.info('')
 
-        print("Downloading files ...")
+        logger.info("Downloading files ...")
         #kwargs_in = vars(self)
         #kwargs_in['path'] = path
         self.collector(nproc=nproc, path=path, **vars(self))
 
 
-    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None):
+    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None,
+    **kwargs):
         """
         Function to retrieve list of files/paths for available
         locally stored satellite data. This list is used for
@@ -189,6 +191,10 @@ class satellite_class(qls, fc):
         return:
             pathlst - list of paths
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         filelst = []
         pathlst = []
         tmpdate = self.sd-timedelta(minutes=self.twin)
@@ -196,7 +202,7 @@ class satellite_class(qls, fc):
             pathtotals = [wavy_path]
             filelst = [wavy_path]
         elif path is None:
-            print('path is None -> checking config file')
+            logger.debug('path is None -> checking config file')
             while (tmpdate <= date_dispatcher(self.ed,
             self.cfg.wavy_input['path_date_incr_unit'],
             self.cfg.wavy_input['path_date_incr'])):
@@ -235,7 +241,7 @@ class satellite_class(qls, fc):
             except TypeError:
                 pathtotals = [pathlst]
             else:
-                print("Object is iterable")
+                logger.debug("Object is iterable")
 
             # limit to sd and ed based on file naming, see check_date
             idx_start, tmp = check_date(filelst,
@@ -280,7 +286,11 @@ class satellite_class(qls, fc):
         return pathtotals
 
     def list_input_files(self, show=False, **kwargs):
-        print(" ## Find and list files ...")
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info(" ## Find and list files ...")
         path = kwargs.get('path', None)
         wavy_path = kwargs.get('wavy_path', None)
         pathlst = self._get_files(vars(self),
@@ -291,16 +301,20 @@ class satellite_class(qls, fc):
         pathlst = list(filter(lambda item: item is not None, pathlst))
         print(str(int(len(pathlst))) + " valid files found")
 
-        print('source template:',
-              #satellite_dict[self.nID]['wavy_input']['src_tmplt'])
-              self.cfg.wavy_input['src_tmplt'])
+        logger.info('source template:')
+        logger.info(self.cfg.wavy_input['src_tmplt'])
         if show is True:
             print(" ")
+            print("pathlst: ")
             print(pathlst)
             print(" ")
         return pathlst
 
     def crop_to_poi(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         if kwargs.get('poi') is not None:
             self.poi = kwargs.get('poi')
         if kwargs.get('distlim') is not None:
@@ -308,26 +322,32 @@ class satellite_class(qls, fc):
         if kwargs.get('twin') is not None:
             self.twin = kwargs.get('twin')
         new = deepcopy(self)
-        print('Crop to poi region')
+        logger.info('Crop to poi region')
         idx = new._match_poi(self.poi)
         new.vars = new.vars.sel(time=new.vars.time[idx])
-        print('Region mask applied based on poi')
-        print('For chosen poi region: ', len(new.vars['time']),
-              'footprints found')
+        logger.info('Region mask applied based on poi')
+        logger.info('For chosen poi region: ')
+        logger.info(len(new.vars['time']))
+        logger.info('footprints found')
         return new
 
-    def crop_to_region(self, region):
+    def crop_to_region(self, region, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
-        print('Crop to region:', region)
+        logger.info('Crop to region: ' + str(region))
 
         idx = new._match_region(new.vars['lats'].values,
                                 new.vars['lons'].values,
                                 region=region,
                                 grid_date=new.sd)
         new.vars = new.vars.isel(time=idx)
-        print('Region mask applied')
-        print('For chosen region: ', len(new.vars['time']),
-              'footprints found')
+        logger.info('Region mask applied')
+        logger.info('For chosen region: ')
+        logger.info(len(new.vars['time']))
+        logger.info('footprints found')
         return new
 
     def _get_sat_ts_blunt(self, **kwargs):
@@ -359,20 +379,26 @@ class satellite_class(qls, fc):
         return: adjusted dictionary according to spatial and
                 temporal constraints
         """
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
 
         pathlst = self.pathlst
         chunk_size = kwargs.get('chunk_size', 1)
         region = kwargs.get('region', new.region)
-       
+
         if isinstance(region, dict):
             new.region = region['name']
 
         ds_lst = []
         count = 0
-        print('Reading', int((len(pathlst)+chunk_size)/chunk_size)+1,
-              'chunks of files with chunk size', chunk_size)
-        print('Total of', len(pathlst), 'files')
+        logger.info('Reading '
+                    + str(int((len(pathlst)+chunk_size)/chunk_size)+1)
+                    + ' chunks of files with chunk size '
+                    + str(chunk_size))
+        logger.info('Total of ' + str(len(pathlst)) + ' files')
 
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count <= len(pathlst)-1:
@@ -401,7 +427,7 @@ class satellite_class(qls, fc):
                                           .crop_to_poi().vars)
                     except Exception as e:
                         logger.exception(e)
-                    
+
         if len(ds_lst) > 1:
             combined = xr.concat(ds_lst, 'time',
                                  coords='minimal',
@@ -418,46 +444,63 @@ class satellite_class(qls, fc):
         return new
 
 
-    def _enforce_longitude_format(self):
+    def _enforce_longitude_format(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
         # adjust longitude -180/180
         attrs = new.vars.lons.attrs
-        print(' enforcing lon max min = -180/180')
+        logger.info(' enforcing lon max min = -180/180')
         attrs['valid_max'] = 180
         attrs['valid_min'] = -180
         attrs['comments'] = 'forced to range: -180 to 180'
         new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
         return new
 
-    def _enforce_meteorologic_convention(self):
+    def _enforce_meteorologic_convention(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         new = deepcopy(self)
         ncvars = list(new.vars.variables)
         for ncvar in ncvars:
             if (vars(new.cfg)['misc'] is not None and
             'convention' in vars(new.cfg)['misc'].keys() and
             vars(new.cfg)['misc']['convention'] == 'oceanographic'):
-                print('Convert from oceanographic to meteorologic convention')
+                logger.info(
+                    'Convert from oceanographic to meteorologic convention')
                 new.vars[ncvar] =\
                     convert_meteorologic_oceanographic(new.vars[ncvar])
             elif 'to_direction' in new.vars[ncvar].attrs['standard_name']:
-                print('Convert from oceanographic to meteorologic convention')
+                logger.info(
+                    'Convert from oceanographic to meteorologic convention')
                 new.vars[ncvar] =\
                     convert_meteorologic_oceanographic(new.vars[ncvar])
 
         return new
 
 
-    def _change_varname_to_aliases(self):
+    def _change_varname_to_aliases(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         satellite_dict = load_or_default('satellite_cfg.yaml')
-        print(' changing variables to aliases')
+        logger.info(' changing variables to aliases')
         new = deepcopy(self)
         # variables
         for v in new.varalias:
             ncvar = get_filevarname(v, variable_def,
-                                    satellite_dict[new.nID], new.meta)
+                                    satellite_dict[new.nID], new.meta,
+                                    **kwargs)
             if v in list(new.vars.keys()):
-                print('  ', ncvar, 'is alreade named correctly and'
-                    + ' therefore not adjusted')
+                logger.debug('  ' + 
+                            ncvar +
+                            ' is alreade named correctly and' +
+                            ' therefore not adjusted')
             else:
                 new.vars = new.vars.rename({ncvar: v})
         # coords
@@ -465,23 +508,24 @@ class satellite_class(qls, fc):
         for c in coords:
             try:
                 ncvar = get_filevarname(c, variable_def,
-                                        satellite_dict[new.nID], new.meta)
+                                        satellite_dict[new.nID], new.meta,
+                                        **kwargs)
                 if c in list(new.vars.keys()):
-                    print('  ', c, 'is alreade named correctly and'
-                        + ' therefore not adjusted')
+                    logger.debug('  ' +
+                                 c +
+                                 ' is alreade named correctly and' +
+                                 ' therefore not adjusted')
                 else:
                     new.vars = new.vars.rename({ncvar: c})#\
                                             #.set_index(time='time')
             except Exception as e:
-                print(' ', ncvar, 'is not renamed')
-                #logger.exception(e)
-                #logger.debug(traceback.format_exc())
-                print(e)
+                logger.debug(' ' + ncvar + 'is not renamed')
+                logger.exception(e)
 
         return new
 
 
-    def _change_stdvarname_to_cfname(self):
+    def _change_stdvarname_to_cfname(self, **kwargs):
         # enforce standard_name for coordinate aliases
         new = deepcopy(self)
         new.vars['lons'].attrs['standard_name'] = \
@@ -498,6 +542,10 @@ class satellite_class(qls, fc):
         
 
     def populate(self, **kwargs):
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
         print(" ### Read files and populate satellite_class object")
 
         satellite_dict = load_or_default('satellite_cfg.yaml')
@@ -505,22 +553,23 @@ class satellite_class(qls, fc):
         lst = self.list_input_files(**kwargs)
         self.pathlst = kwargs.get('pathlst', lst)
 
-        print('')
-        print('Checking variables..')
+        logger.info('')
+        logger.info('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
         ncvar = [get_filevarname(v, variable_def,
-                 satellite_dict[self.nID], self.meta)\
+                 satellite_dict[self.nID], self.meta,
+                 **kwargs)\
                  for v in self.varalias]
-        print('')
-        print('Choosing reader..')
+        logger.info('')
+        logger.info('Choosing reader..')
         # define reader
         dotenv.load_dotenv()
         WAVY_DIR = os.getenv('WAVY_DIR', None)
         if WAVY_DIR is None:
-            print('#')
-            print('Environmental variable for WAVY_DIR not defined')
-            print('Defaults are chosen')
-            print('#')
+            logger.debug('#')
+            logger.debug('Environmental variable for WAVY_DIR not defined')
+            logger.debug('Defaults are chosen')
+            logger.debug('#')
             reader_mod_str = load_dir('satellite_readers').name
         else:
             reader_mod_str = WAVY_DIR + '/wavy/satellite_readers.py'
@@ -536,8 +585,8 @@ class satellite_class(qls, fc):
         # pick reader
         reader = getattr(reader_tmp, reader_str)
         self.reader = reader
-        print('Chosen reader:', spec.name)
-        print('')
+        logger.info('Chosen reader: ' + spec.name)
+        logger.info('')
 
         # possible to select list of variables
         self.varname = ncvar
@@ -545,16 +594,16 @@ class satellite_class(qls, fc):
         if len(lst) > 0:
             try:
                 t0 = time.time()
-                print('Reading..')
-                
+                logger.info('Reading..')
+
                 self = self._get_sat_ts(**kwargs)
-                self = self._change_varname_to_aliases()
-                self = self._change_stdvarname_to_cfname()
-                
-                self = self._enforce_meteorologic_convention()
+                self = self._change_varname_to_aliases(**kwargs)
+                self = self._change_stdvarname_to_cfname(**kwargs)
+
+                self = self._enforce_meteorologic_convention(**kwargs)
 
                 # convert longitude
-                self = self._enforce_longitude_format()
+                self = self._enforce_longitude_format(**kwargs)
 
                 # adjust varalias if other return_var
                 if kwargs.get('return_var') is not None:
@@ -572,7 +621,8 @@ class satellite_class(qls, fc):
                 t1 = time.time()
                 print(" ")
                 print(' ## Summary:')
-                print(str(len(self.vars['time'])) + " footprints retrieved.")
+                print(
+                    str(len(self.vars['time'])) + " footprints retrieved.")
                 print("Time used for retrieving data:")
                 print(round(t1-t0, 2), "seconds")
                 print(" ")
@@ -581,14 +631,12 @@ class satellite_class(qls, fc):
 
             except Exception as e:
                 logger.exception(e)
-                #logger.debug(traceback.format_exc())
-                print(e)
-                print('Error encountered')
-                print('satellite_class object not populated')
+                logger.warning('Error encountered')
+                logger.warning('satellite_class object not populated')
         else:
-            print('No data data found')
-            print('satellite_class object not populated')
-            print('# ----- ')
+            logger.warning('No data data found')
+            logger.warning('satellite_class object not populated')
+            logger.warning('# ----- ')
         return self
 
     def drop_duplicates(self, dim='time', keep='first'):
@@ -823,7 +871,7 @@ def match_region_geojson(LATS, LONS, region):
     return ridx
 
 
-def match_region_poly(LATS, LONS, region, grid_date):
+def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
     """
     Takes care of region defined as polygon
     """
@@ -845,11 +893,14 @@ def match_region_poly(LATS, LONS, region, grid_date):
             filestr = mco._make_model_filename_wrapper(grid_date, 'best')
             meta = ncdumpMeta(filestr)
             flon = get_filevarname('lons', variable_def,
-                                   model_dict[region], meta)
+                                   model_dict[region], meta,
+                                   **kwargs)
             flat = get_filevarname('lats', variable_def,
-                                   model_dict[region], meta)
+                                   model_dict[region], meta,
+                                   **kwargs)
             time = get_filevarname('time', variable_def,
-                                   model_dict[region], meta)
+                                   model_dict[region], meta,
+                                   **kwargs)
             model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr, flon, flat, time)
         except (KeyError, IOError, ValueError) as e:
@@ -866,11 +917,14 @@ def match_region_poly(LATS, LONS, region, grid_date):
             filestr = mco._make_model_filename_wrapper(grid_date, 'best')
             meta = ncdumpMeta(filestr)
             flon = get_filevarname('lons', variable_def,
-                                   model_dict[region], meta)
+                                   model_dict[region], meta,
+                                   **kwargs)
             flat = get_filevarname('lats', variable_def,
-                                   model_dict[region], meta)
+                                   model_dict[region], meta,
+                                   **kwargs)
             time = get_filevarname('time', variable_def,
-                                   model_dict[region], meta)
+                                   model_dict[region], meta,
+                                   **kwargs)
             model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr, flon, flat, time)
         if (len(model_lons.shape) == 1):

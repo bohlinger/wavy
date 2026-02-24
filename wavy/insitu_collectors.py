@@ -19,9 +19,6 @@ from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 import logging
 import copernicusmarine as cmc
-#logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=30)
-logger = logging.getLogger(__name__)
 
 # own imports
 from wavy.utils import sort_files
@@ -39,32 +36,38 @@ insitu_dict = load_or_default('insitu_cfg.yaml')
 def tmploop_get_remote_files(i: int, matching: str,
                              user: str, pw: str,
                              server: str, remote_path: str,
-                             path_local: str):
+                             path_local: str, **kwargs):
     """
     Function to download files using ftp. Tries 10 times before failing.
     """
-    print("File: ", matching[i])
-    print("src path: ", remote_path)
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    logger.info("File: ")
+    logger.info(matching[i])
+    logger.info("src path: ")
+    logger.info(remote_path)
     pw = quote(pw)  # to escape special characters
     dlstr = ('ftp://' + user + ':' + pw + '@'
              + server + remote_path + matching[i])
     for attempt in range(10):
-        print(attempt, "attempt to download data: ")
+        logger.info(str(attempt) + "attempt to download data: ")
         try:
-            print("Downloading file")
+            logger.info("Downloading file")
             urlretrieve(dlstr, os.path.join(path_local, matching[i]))
             urlcleanup()
         except Exception as e:
-            print(e.__doc__)
-            print(e.message)
-            print("Waiting for 10 sec and retry")
+            logger.warning("Exception in tmploop_get_remote_files:")
+            logger.warning(e)
+            logger.warning("Waiting for 10 sec and retry")
             time.sleep(10)
         else:
             break
     else:
-        print('An error was raised and I ' +
-              'failed to fix problem myself :(')
-        print('Exit program')
+        logger.critical('An error was raised and I ' +
+                        'failed to fix problem myself :(')
+        logger.critical('Exit program')
         sys.exit()
 
 def get_remote_files_ftp(**kwargs):
@@ -74,6 +77,10 @@ def get_remote_files_ftp(**kwargs):
 
     from, to, creation
     '''
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     cfg = kwargs.get('cfg')
     product = kwargs.get('nID')
     sdate = kwargs.get('sd')
@@ -157,7 +164,7 @@ def get_remote_files_ftp(**kwargs):
             Parallel(n_jobs=nproc)(
                             delayed(tmploop_get_remote_files)(
                                 i, matching, user, pw, server,
-                                path_remote, path_local
+                                path_remote, path_local, **kwargs
                                 ) for i in range(len(matching))
                             )
         except Exception as e:
@@ -174,8 +181,8 @@ def get_remote_files_ftp(**kwargs):
         print('####################################')
 
     print('Files downloaded to: \n', path_local)
-    
-    
+
+
 def get_remote_files_copernicusmarine(**kwargs):
     '''
     Download swath files from CMEMS using copernicusmarine parckage
@@ -183,10 +190,13 @@ def get_remote_files_copernicusmarine(**kwargs):
 
     from, to, creation
     '''
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     product = kwargs.get('nID')
     sdate = kwargs.get('sd')
     edate = kwargs.get('ed')
-    nproc = kwargs.get('nproc', 1)
     name = kwargs.get('name', 'Draugen')
     dict_for_sub = kwargs
     # define path
@@ -194,11 +204,10 @@ def get_remote_files_copernicusmarine(**kwargs):
     # Get time increment
     time_incr = insitu_dict[product]['download']['copernicus']\
                 .get('time_incr','h')
-    
+
     # Chose search template for time given time_incr
     if time_incr=='m':
         file_search_template = '%Y%m'
-        dataset_part = 'monthly'
     print('Date search format:', file_search_template)
 
     # Get dataset_id
@@ -212,9 +221,9 @@ def get_remote_files_copernicusmarine(**kwargs):
 
     # replace name of the mission in dataset_id
     dataset_id = make_pathtofile(dataset_id,
-                                  strsublst_src, 
+                                  strsublst_src,
                                   subdict_src)
-    
+
     # Initialize start date to match original files time increment
     tmpdate = deepcopy(sdate)
     tmpdate_end = deepcopy(edate)
@@ -223,14 +232,14 @@ def get_remote_files_copernicusmarine(**kwargs):
     # tmpdate = tmpdate - timedelta(hours=1)
 
     # tmpdate_end = tmpdate_end + timedelta(hours=1)
- 
+
     try:
-        
+
         print('# ----- ')
         print('Chosen source: ')
         print(name + ' values from ' + product + ': ' + 'copernicusmarine')
         print('# ----- ')
-        
+
         while (tmpdate <= tmpdate_end):
 
             if path is None:
@@ -254,11 +263,11 @@ def get_remote_files_copernicusmarine(**kwargs):
             # check if download path_local exists if not create
             if not os.path.exists(path_local):
                 os.makedirs(path_local, exist_ok=True)
-    
+
             # Create regexp filter
             tmpdate_str = tmpdate.strftime(file_search_template)
             regexp_tmp = "*MO_{}_{}*.nc".format(name, tmpdate_str)
-            # Fetch data corresponding to tmp date 
+            # Fetch data corresponding to tmp date
             print(regexp_tmp)
             try:
                 cmc.get(
@@ -270,15 +279,15 @@ def get_remote_files_copernicusmarine(**kwargs):
                         force_download=True,
                         overwrite_output_data=True)
             except Exception as e:
-                print(e)
+                logger.exception(e)
                 pass
-            
+
             if time_incr=='m':
-                tmpdate = tmpdate + relativedelta(months=+1)    
-     
+                tmpdate = tmpdate + relativedelta(months=+1)
+
     except Exception as e:
         logger.exception(e)
-   
+
     print('# -----------------------------------')
     print('Files downloaded to: \n', path_local)        
 

@@ -373,7 +373,6 @@ def get_cmems(**kwargs):
 
     # check if dimensions are fixed
     fixed_dim_str = list(cfg['misc']['fixed_dim'].keys())[0]
-    fixed_dim_idx = cfg['misc']['fixed_dim'][fixed_dim_str]
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
@@ -398,7 +397,7 @@ def get_cmems(**kwargs):
 
             # builds the dictionary given as an argument to
             dict_var = {coord: ds.coords[coord].values
-                        for coord in list(ds.coords) if coord 
+                        for coord in list(ds.coords) if coord
                         in [lonstr, latstr, timestr]}
 
             len_timestr = len(dict_var[timestr])
@@ -408,7 +407,7 @@ def get_cmems(**kwargs):
                     dict_var[coord] = np.array([dict_var[coord]]*len_timestr)
 
             list_vars_tmp = list(ds.data_vars)
-            
+
             if depth_lvls is not None:
 
                 dict_var.update({var: ds.sel(DEPTH=depth_lvls[var])[var]\
@@ -418,16 +417,16 @@ def get_cmems(**kwargs):
                                  not in list(depth_lvls.keys())]
 
             dict_var.update({var: rebuild_split_variable(ds,
-                                          fixed_dim_str, var) 
+                                          fixed_dim_str, var)
                              for var in list_vars_tmp})
 
             # build an xr.dataset with timestr as the only coordinate
             # using build_xr_ds function
             ds_list.append(build_xr_ds_cmems(dict_var, timestr))
-            
+
         except Exception as e:
             logger.exception(e)
-    
+
     ds_combined = xr.concat(ds_list, timestr,
                          coords='minimal',
                          data_vars='minimal',
@@ -443,22 +442,22 @@ def get_cmems(**kwargs):
 
 def rebuild_split_variable(ds, fixed_dim_str, var):
     '''
-    Gather values of a given variable, for which 
+    Gather values of a given variable, for which
     values are split between several levels of
     a given dimension of a dataset.
-    
+
     Args:
         ds (xarray dataset): dataset
         fixed_dim_str (string): name of the dimension
         var (string): name of the variable
-    
+
     Returns:
         1D numpy array, returns the complete variable
-        serie of values on a single dimension  
+        serie of values on a single dimension
     '''
     lvl_nb = len(ds[fixed_dim_str].data)
 
-    if lvl_nb==1:
+    if lvl_nb == 1:
         ts = list(ds.isel({fixed_dim_str: 0})[var].data)
 
     elif lvl_nb > 1:
@@ -467,10 +466,10 @@ def rebuild_split_variable(ds, fixed_dim_str, var):
         for i in range(lvl_nb):
 
             if not np.isnan(ds.isel({fixed_dim_str: i})[var].data).all():
-                lvl_not_nan.append(i) 
+                lvl_not_nan.append(i)
 
-        if len(lvl_not_nan)==1:
-            ts= list(ds.isel({fixed_dim_str: lvl_not_nan[0]})[var].data)
+        if len(lvl_not_nan) == 1:
+            ts = list(ds.isel({fixed_dim_str: lvl_not_nan[0]})[var].data)
 
         else:
 
@@ -479,7 +478,7 @@ def rebuild_split_variable(ds, fixed_dim_str, var):
             for i in range(1, lvl_nb):
 
                 nan_val_tmp = np.isnan(ds.isel({fixed_dim_str: i})[var].data)
-                not_nan_idx = [j for j in range(len(nan_val_tmp)) 
+                not_nan_idx = [j for j in range(len(nan_val_tmp))
                                if not nan_val_tmp[j]]
                 ts[not_nan_idx] = ds.isel({fixed_dim_str: i})[var].data[not_nan_idx]
 

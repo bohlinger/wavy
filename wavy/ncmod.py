@@ -25,6 +25,8 @@ from tqdm import tqdm
 import zipfile
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
+import logging
+
 #from hidefix import xarray
 
 # own imports
@@ -44,19 +46,28 @@ definition of some global functions
 # currently None
 # ---------------------------------------------------------------------#
 
-def check_if_ncfile_accessible(fstr):
+def check_if_ncfile_accessible(fstr, **kwargs):
     # remove escape character because xarray handles white spaces
     # but cannot handle escape characters (apparently)
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     fstr_repl = fstr.replace('\\', '')
     try:
-        ds = xr.open_dataset(fstr_repl, engine='netcdf4')
+        xr.open_dataset(fstr_repl, engine='netcdf4')
         return True
     except (OSError, FileNotFoundError) as e:
-        print("Desired file not accessible")
-        print(e)
+        logger.warning("Desired file not accessible")
+        logger.warning(e)
         return False
 
-def read_netcdfs(paths, dim='time', decode_times=None, use_cftime=None):
+def read_netcdfs(paths, dim='time', decode_times=None,
+                 use_cftime=None, **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     @lru_cache(maxsize=128)
     def process_one_path(path):
         # use a context manager, to ensure the file gets closed after use
@@ -68,14 +79,14 @@ def read_netcdfs(paths, dim='time', decode_times=None, use_cftime=None):
             ds.load()
             return ds
     datasets = [process_one_path(p) for p in tqdm(paths)]
-    print("Concatenate ...")
+    logger.info("Concatenate ...")
     combined = xr.concat(datasets, dim,
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print("... done concatenating")
+    logger.info("... done concatenating")
     return combined
 
 def build_usr_pw_path(path, remoteHostName, usr, pw):
@@ -93,16 +104,20 @@ path, remoteHostName, usr, pw, decode_times=None, use_cftime=None):
                          engine='netcdf4')
     return ds
 
-def read_netcdfs_naive(paths, varnames, varalias):
+def read_netcdfs_naive(paths, varnames, varalias, **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     # read all paths
-    print('read all data files')
+    logger.info('read all data files')
     darrays = [process_one_path_netCDF4(p, varnames, varalias)\
                for p in tqdm(paths)]
     # consolidate all data
-    print('consolidate data')
+    logger.info('consolidate data')
     darray = consolidate_darrays(darrays)
     # create xr dataset
-    print('build xr dataset')
+    logger.info('build xr dataset')
     ds = build_xr_ds(darray, varnames, varalias)
     return ds
 
@@ -244,28 +259,36 @@ def process_one_path(path,t,varname):
         da.load()
         return da
 
-def read_netcdfs_sel_lru(paths,dlst,varname,dim='time'):
+def read_netcdfs_sel_lru(paths,dlst,varname,dim='time', **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     dataarr = [process_one_path_lru(paths[i],dlst[i],varname)\
                 for i in tqdm(range(len(paths)))]
-    print("Concatenate ...")
+    logger.info("Concatenate ...")
     combined = xr.concat(dataarr,dim,
                          coords='minimal',
                          compat='override',
                          combine_attrs='override')
     combined = combined.to_dataset()
-    print("... done concatenating")
+    logger.info("... done concatenating")
     return combined
 
-def read_netcdfs_sel(paths,dlst,varname,dim='time'):
+def read_netcdfs_sel(paths,dlst,varname,dim='time', **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     dataarr = [process_one_path(paths[i],dlst[i],varname)\
                 for i in tqdm(range(len(paths)))]
-    print("Concatenate ...")
+    logging.info("Concatenate ...")
     combined = xr.concat(dataarr, dim,
                          coords='minimal',
                          compat='override',
                          combine_attrs='override')
     combined = combined.to_dataset()
-    print("... done concatenating")
+    logging.info("... done concatenating")
     return combined
 
 def get_swim_var_coords(varalias):
@@ -279,19 +302,19 @@ def get_swim_var_coords(varalias):
     timeidx = satellite_dict['cfo_swim_L2P']['vardef']['time_idx']
 
     varnamedict = {
-            'varname':varname,
-            'varidx':varidx,
-            'lonname':lonname,
-            'lonidx':lonidx,
-            'latname':latname,
-            'latidx':latidx,
-            'timename':timename,
-            'timeidx':timeidx
+            'varname': varname,
+            'varidx': varidx,
+            'lonname': lonname,
+            'lonidx': lonidx,
+            'latname': latname,
+            'latidx': latidx,
+            'timename': timename,
+            'timeidx': timeidx
             }
 
     return varnamedict
 
-def read_swim_nc(path,varnamedict):
+def read_swim_nc(path, varnamedict):
     ds = xr.open_dataset(path, engine='netcdf4')
     var = eval("ds[varnamedict['varname']].values"+varnamedict['varidx'])
     time = eval("ds[varnamedict['timename']].values"+varnamedict['timeidx'])
@@ -299,7 +322,7 @@ def read_swim_nc(path,varnamedict):
     lats = eval("ds[varnamedict['latname']].values"+varnamedict['latidx'])
     return var, time, lons, lats
 
-def read_swim_netcdfs(pathlst,varalias):
+def read_swim_netcdfs(pathlst, varalias):
     varnamedict = get_swim_var_coords(varalias)
 
     varlst = []
@@ -308,8 +331,8 @@ def read_swim_netcdfs(pathlst,varalias):
     latslst = []
 
     for f in pathlst:
-        var,time,lon,lat = \
-            read_swim_nc(f,varnamedict) 
+        var, time, lon, lat = \
+            read_swim_nc(f, varnamedict)
         varlst.append(var)
         timelst.append(time)
         lonslst.append(lon)
@@ -381,19 +404,58 @@ def get_arcmfc_stats(pathtofile):
             'SI': SI}
         return valid_dict, dtime
 
-def get_filevarname(varalias, variable_info, srcdict, ncdict):
+def get_filevarname(varalias, variable_info, srcdict, ncdict, **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     stdname = variable_info[varalias]['standard_name']
-    print(' Get filevarname for \n' + 'stdvarname:', stdname,
-          '\n' + 'varalias:', varalias)
+    logger.info(' Get filevarname for \n' + 'stdvarname:', stdname,
+                '\n' + 'varalias:', varalias)
     filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
     if (filevarname is None and 'alias' in variable_info[varalias]):
         filevarname = get_varname_for_cf_stdname_in_ncfile(
             ncdict, variable_info[varalias]['alias'])
     if (filevarname is not None and len(filevarname) > 1):
-        print(' !!! standard_name: ', stdname, ' is not unique !!!',
-              '\nThe following variables have the same standard_name:\n',
-              filevarname)
-        print(' Searching *_cfg.yaml config file for definition')
+        logger.debug(' !!! standard_name: ' +
+                     str(stdname) + ' is not unique !!!' +
+                    '\nThe following variables have the same standard_name:\n' +
+                    str(filevarname))
+        logger.debug(' Searching *_cfg.yaml config file for definition')
+        filevarname = None
+    if filevarname is not None:
+        return filevarname[0]
+    tmpdict = finditem(srcdict, 'vardef')
+    if len(tmpdict) == 0:
+        tmpdict = [{'None': None}]
+    vardefdict = tmpdict[0]
+    if (filevarname is None and varalias in vardefdict.keys()):
+        filevarname = vardefdict[varalias]
+        logger.info(' Variable defined in *_cfg.yaml is:')
+        logger.info(varalias, '=', filevarname)
+        return filevarname
+    else:
+        logger.warning(' !!! variable not defined nor ' +
+                       'available in nc-file !!!')
+
+
+def get_filevarname_list(varalias, variable_info, srcdict, ncdict, **kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    stdname = variable_info[varalias]['standard_name']
+    logging.info(' Get filevarname for \n' + 'stdvarname:', stdname,
+                 '\n' + 'varalias:', varalias, ncdict)   
+    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
+    if (filevarname is None and 'alias' in variable_info[varalias]):
+        filevarname = get_varname_for_cf_stdname_in_ncfile(
+            ncdict, variable_info[varalias]['alias'])
+    if (filevarname is not None and len(filevarname) > 1):
+        logging.info(' !!! standard_name: ' + stdname + ' is not unique !!!' +
+                '\nThe following variables have the same standard_name:\n' +
+                filevarname)
+        logging.info(' Searching *_cfg.yaml config file for definition')
         filevarname = None
     if filevarname is not None:
         return filevarname[0]
@@ -403,66 +465,24 @@ def get_filevarname(varalias, variable_info, srcdict, ncdict):
     vardefdict = tmpdict[0]
     if (filevarname is None and varalias in vardefdict.keys()):
         filevarname = vardefdict[varalias]
-        print(' Variable defined in *_cfg.yaml is:')
-        print(varalias, '=', filevarname)
-        return filevarname
-    elif (filevarname is None
-          and varalias not in vardefdict.keys()
-          and 'aliases_of_vector_components' in variable_info[varalias]):
-        print(
-          'Checking variable_info if variable can be ' +
-          'computed from vector components')
-        filevarname = variable_info[varalias]['aliases_of_vector_components']
+        logging.info(' Variable defined in *_cfg.yaml is:')
+        logging.ingo(varalias + ' = ' + filevarname)
         return filevarname
     else:
-        print(' !!! variable not defined nor ' +
-              'available in nc-file !!!')
+        logging.warning(' !!! variable not defined nor ' +
+                        'available in nc-file !!!')
 
 
-def get_filevarname_list(varalias, variable_info, srcdict, ncdict):
-    stdname = variable_info[varalias]['standard_name']
-    print(' Get filevarname for \n' + 'stdvarname:', stdname,
-          '\n' + 'varalias:', varalias, ncdict)   
-    filevarname = get_varname_for_cf_stdname_in_ncfile(ncdict, stdname)
-    if (filevarname is None and 'alias' in variable_info[varalias]):
-        filevarname = get_varname_for_cf_stdname_in_ncfile(
-            ncdict, variable_info[varalias]['alias'])
-    if (filevarname is not None and len(filevarname) > 1):
-        print(' !!! standard_name: ', stdname, ' is not unique !!!',
-              '\nThe following variables have the same standard_name:\n',
-              filevarname)
-        print(' Searching *_cfg.yaml config file for definition')
-        filevarname = None
-    if filevarname is not None:
-        return filevarname[0]
-    tmpdict = finditem(srcdict, 'vardef')
-    if len(tmpdict)==0:
-        tmpdict = [{'None':None}]
-    vardefdict = tmpdict[0]
-    if (filevarname is None and varalias in vardefdict.keys()):
-        filevarname = vardefdict[varalias]
-        print(' Variable defined in *_cfg.yaml is:')
-        print(varalias, '=', filevarname)
-        return filevarname
-    elif (filevarname is None
-          and varalias not in vardefdict.keys()
-          and 'aliases_of_vector_components' in variable_info[varalias]):
-        print(
-          'Checking variable_info if variable can be ' +
-          'computed from vector components')
-        filevarname = variable_info[varalias]['aliases_of_vector_components']
-        return filevarname
-    else:
-        print(' !!! variable not defined nor ' +
-              'available in nc-file !!!')
-
-
-def get_nc_ts(pathtofile, varlst):
+def get_nc_ts(pathtofile, varlst, **kwargs):
     import os.path
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     indicator = os.path.isfile(pathtofile)
     if indicator is False:
         dtime = False
-        sys.exit('File does not exist')
+        logging.warning('File does not exist')
     else:
         vardict = {}
         for name in varlst:

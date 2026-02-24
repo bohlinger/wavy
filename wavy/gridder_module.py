@@ -5,6 +5,7 @@ import numpy as np
 import tqdm
 from wavy.grid_stats import apply_metric
 from wavy.wconfig import load_or_default
+import logging
 
 validation_metric_abbreviations = load_or_default('validation_metrics.yaml')
 variable_def = load_or_default('variable_def.yaml')
@@ -21,19 +22,26 @@ class gridder_class():
         res: resolution, tupel e.g. (.5,.5)
              in degree where tupel is (lon,lat) dimension
         """
-        print('# ----- ')
-        print(" ### Initializing gridder_class object ###")
-        print(" ")
+        logger = logging.getLogger(__name__)
+        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+        logger.info('# ----- ')
+        logger.info(" ### Initializing gridder_class object ###")
+        logger.info(" ")
         self.mvals = None
         if oco is not None:
             self.varalias = kwargs.get('varalias', oco.varalias)
             if isinstance(self.varalias, list):
-                if len(self.varalias) > 1: 
-                    print("Warning: gridder only expects one varalias.")
-                    print("First varalias selected as default: {}".format(
+                if len(self.varalias) > 1:
+                    logger.warning(
+                        "Warning: gridder only expects one varalias.")
+                    logger.warning(
+                        "First varalias selected as default: {}".format(
                            self.varalias[0]))
-                    print("If you want to select another variable, please "\
-                          +"specify with varalias argument.") 
+                    logger.warning(
+                        "If you want to select another variable, please "\
+                          +"specify with varalias argument.")
                 self.varalias=self.varalias[0]
             self.units = variable_def[self.varalias].get('units')
             self.stdvarname = variable_def[self.varalias].get('standard_name')
@@ -45,26 +53,30 @@ class gridder_class():
         elif cco is not None:
             self.varalias = kwargs.get('varalias', cco.varalias)
             if isinstance(self.varalias, list):
-                if len(self.varalias) > 1: 
-                    print("Warning: gridder only expects one varalias.")
-                    print("First varalias selected as default: {}".format(
+                if len(self.varalias) > 1:
+                    logger.warning(
+                        "Warning: gridder only expects one varalias.")
+                    logger.warning(
+                        "First varalias selected as default: {}".format(
                            self.varalias[0]))
-                    print("If you want to select another variable, please "\
-                          +"specify with varalias argument.") 
+                    logger.warning(
+                        "If you want to select another variable, please " +\
+                          "specify with varalias argument.")
                 self.varalias=self.varalias[0]
-            
+
             list_vars = list(cco.vars.variables)
-            assert 'model_'+self.varalias in list_vars, "model_{}".format(self.varalias) +\
-                                      " is missing in "+\
-                                      "the dataset, if you would like to "+\
-                                      "validate another variable, please "+\
+            assert 'model_' + self.varalias in list_vars,\
+                            "model_{}".format(self.varalias) +\
+                                      " is missing in " +\
+                                      "the dataset, if you would like to " +\
+                                      "validate another variable, please " +\
                                       "specify with varalias."
-            assert 'obs_'+self.varalias in list_vars, "obs_{}".format(self.varalias) +\
-                                      " is missing in "+\
-                                      "the dataset, if you would like to "+\
-                                      "validate another variable, please "+\
-                                      "specify with varalias."    
-            
+            assert 'obs_' + self.varalias in list_vars,\
+                          "obs_{}".format(self.varalias) +\
+                                      " is missing in " +\
+                                      "the dataset, if you would like to " +\
+                                      "validate another variable, please " +\
+                                      "specify with varalias."
             self.olons = np.array(cco.vars['obs_lons'])
             self.olats = np.array(cco.vars['obs_lats'])
             self.ovals = np.array(cco.vars['obs_'+self.varalias])
@@ -76,12 +88,15 @@ class gridder_class():
         elif mco is not None:
             self.varalias = kwargs.get('varalias', mco.varalias)
             if isinstance(self.varalias, list):
-                if len(self.varalias) > 1: 
-                    print("Warning: gridder only expects one varalias.")
-                    print("First varalias selected as default: {}".format(
+                if len(self.varalias) > 1:
+                    logger.warning(
+                        "Warning: gridder only expects one varalias.")
+                    logger.warning(
+                        "First varalias selected as default: {}".format(
                            self.varalias[0]))
-                    print("If you want to select another variable, please "\
-                          +"specify with varalias argument.") 
+                    logger.warning(
+                        "If you want to select another variable, please "\
+                          +"specify with varalias argument.")
                 self.varalias=self.varalias[0]
             self.olons = np.array(mco.vars.lons.squeeze().values.flatten())
             self.olats = np.array(mco.vars.lats.squeeze().values.flatten())
@@ -110,9 +125,9 @@ class gridder_class():
         self.ovals_clean = ovals
         self.mvals_clean = mvals
         self.Midx_clean = Midx
-        print(" ")
-        print(" ### gridder_class object initialized ###")
-        print('# ----- ')
+        logger.info(" ")
+        logger.info(" ### gridder_class object initialized ###")
+        logger.info('# ----- ')
 
     def create_grid_coords(self):
         """

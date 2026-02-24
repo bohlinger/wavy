@@ -14,12 +14,14 @@ import netCDF4
 from functools import lru_cache
 import pandas as pd
 import gc
+import logging
 
 # own imports
 from wavy.wconfig import load_or_default
 from wavy.utils import build_xr_ds
 from wavy.grid_readers import get_gridded_dataset
 from wavy.grid_readers import build_xr_ds_grid, build_xr_ds_grid_2D
+from wavy.grid_readers import build_xr_ds_grid_multivar
 from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.ncmod import read_netcdfs_with_credentials_aggregated
 from wavy.utils import parse_date
@@ -34,6 +36,10 @@ variable_def = load_or_default('variable_def.yaml')
 
 
 def read_ww3_4km(**kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -52,21 +58,24 @@ def read_ww3_4km(**kwargs):
 
         ds_lst.append(ds_sliced)
 
-    print(" Concatenate ...")
+    logging.info(" Concatenate ...")
     combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logging.info(" ... done concatenating")
 
-    print(' Build dataset')
-    print(' dataset ready!')
+    logging.info(' dataset ready!')
 
     return combined
 
 def read_meps(**kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -85,17 +94,16 @@ def read_meps(**kwargs):
 
         ds_lst.append(ds_sliced)
 
-    print(" Concatenate ...")
+    logging.info(" Concatenate ...")
     combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logging.info(" ... done concatenating")
 
-    print(' Build dataset')
-    print(' dataset ready!')
+    logging.info(' dataset ready!')
 
     return combined
 
@@ -209,6 +217,10 @@ filestr, varname, lonsname, latsname, timename):
     return var, lons, lats, timedt
 
 def read_field(**kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -228,14 +240,14 @@ def read_field(**kwargs):
         ds_lst.append(build_xr_ds(var_tuple, varnames)
                       .sel({timename: fc_dates[i]}))
 
-    print(" Concatenate ...")
+    logging.info(" Concatenate ...")
     combined = xr.concat(ds_lst, timename,
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logging.info(" ... done concatenating")
 
     return combined
 
@@ -257,6 +269,10 @@ filestr, varname, lonsname, latsname, timename):
     return var, lons, lats, timedt
 
 def read_ecwam(**kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -285,14 +301,14 @@ def read_ecwam(**kwargs):
                               varstr=varalias)
         ds_lst.append(ds)
 
-    print(" Concatenate ...")
+    logging.info(" Concatenate ...")
     combined = xr.concat(ds_lst, timename,
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logging.info(" ... done concatenating")
 
     return combined
 
@@ -303,6 +319,10 @@ def read_ww3_unstructured_to_grid(**kwargs):
 
 
 def read_era(**kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -324,17 +344,16 @@ def read_era(**kwargs):
 
         ds_lst.append(ds_sliced)
 
-    print(" Concatenate ...")
+    logging.info(" Concatenate ...")
     combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logging.info(" ... done concatenating")
 
-    print(' Build dataset')
-    print(' dataset ready!')
+    logging.info(' dataset ready!')
 
     return combined
 
@@ -351,6 +370,10 @@ def read_era5(**kwargs):
     Returns:
         xarray.Dataset: Concatenated dataset containing the selected variables and slices.
     """
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -368,7 +391,7 @@ def read_era5(**kwargs):
 
         try:
             # Debug: Inspect the dataset
-            print(f"Opening dataset: {p}")
+            logging.info(f"Opening dataset: {p}")
             with xr.open_dataset(p, engine='netcdf4') as ds:
 
                 time_coord = ds[model_dict[nID]['vardef']['time']]
@@ -391,13 +414,13 @@ def read_era5(**kwargs):
                 ]]
                 ds_lst.append(ds_sliced)
         except Exception as e:
-            print(f"Error processing file {p}: {e}")
+            logging.error(f"Error processing file {p}: {e}")
             continue
 
         gc.collect()
 
     # Concatenate all datasets
-    print("Concatenating datasets...")
+    logging.info("Concatenating datasets...")
     combined = xr.concat(
         ds_lst,
         dim=model_dict[nID]['vardef']['time'],
@@ -407,11 +430,15 @@ def read_era5(**kwargs):
         combine_attrs='override',
         join='override'
     )
-    print("Concatenation complete.")
+    logging.info("Concatenation complete.")
 
     return combined
 
 def read_NORA3_wind(**kwargs):
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get('logging', 'WARNING').upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
     pathlst = kwargs.get('pathlst')
     nID = kwargs.get('nID')
     fc_dates = kwargs.get('fc_dates')
@@ -433,17 +460,16 @@ def read_NORA3_wind(**kwargs):
 
         ds_lst.append(ds_sliced)
 
-    print(" Concatenate ...")
+    logging.info(" Concatenate ...")
     combined = xr.concat(ds_lst, model_dict[nID]['vardef']['time'],
                          coords='minimal',
                          data_vars='minimal',
                          compat='override',
                          combine_attrs='override',
                          join='override')
-    print(" ... done concatenating")
+    logging.info(" ... done concatenating")
 
-    print(' Build dataset')
-    print(' dataset ready!')
+    logging.info(' dataset ready!')
 
     return combined
 
