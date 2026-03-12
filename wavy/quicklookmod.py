@@ -240,7 +240,7 @@ class quicklook_class_sat:
                 cbar.ax.set_ylabel(units_to_plot, size=fs)
                 cbar.ax.tick_params(labelsize=fs)
 
-            # - add extend
+            # - add extent
             if kwargs.get("map_extent_llon") is None:
                 lon_range = (lonmax - lonmin)
                 lat_range = (latmax - latmin)
@@ -255,7 +255,7 @@ class quicklook_class_sat:
                                latmin-lat_range*map_extent_multiplicator_lat,
                                latmax+lat_range*map_extent_multiplicator_lat],
                               crs=projection)
-            elif kwargs.get('map_extend') is False:
+            elif kwargs.get('map_extent_llon') is False:
                 pass
             else:
                 ax.set_extent([kwargs.get("map_extent_llon"),
