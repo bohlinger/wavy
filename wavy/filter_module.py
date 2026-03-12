@@ -641,7 +641,8 @@ class filter_class:
         print("Using time_gap_chunks")
 
         sr = kwargs.get('sampling_rate_Hz', 20)
-        mask = (pdtime.diff() > pd.to_timedelta((1./sr)*2, 'seconds')).values
+        mask = (pdtime.diff() > pd.to_timedelta((1./sr)*2,
+                'seconds')).to_numpy().copy()
 
         start_idx_lst = []
         stop_idx_lst = []
@@ -717,6 +718,7 @@ class filter_class:
             lats_perp_lst = []
             lons_perp_lst = []
             ls_idx_lst = []
+            mask = []
             for i in range(len(lons)):
                 ls_idx = []
                 if i < (len(lons)-1):
@@ -756,11 +758,28 @@ class filter_class:
                     lons_perp_lst_tmp.append(lons_perp)
                     lats_perp_lst_tmp.append(lats_perp)
                 if False in ls_idx:
-                    pass
+                    #ls_idx_lst.append(False)
+                    ls_idx_lst.append(i)
+                    mask.append(False)
                 else:
                     ls_idx_lst.append(i)
+                    mask.append(True)
                 lons_perp_lst.append(lons_perp_lst_tmp)
                 lats_perp_lst.append(lats_perp_lst_tmp)
+
+            # mask bad neighbours if desired
+            if (kwargs.get('rm_bad_neighbours', False) is True):
+                print("removing bad neighbours")
+                k = kwargs.get('kneigh', 1)
+
+                invalid = np.array(ls_idx_lst)[~np.array(mask)]
+                expanded = np.any(
+                        np.abs(
+                        np.array(ls_idx_lst)[:, None] - invalid)\
+                        <= k, axis=1)
+                mask = mask & ~expanded
+
+            ls_idx_lst = np.array(ls_idx_lst)[mask]
             lons_perp = flatten([lons_perp_lst[i] for i in ls_idx_lst])
             lats_perp = flatten([lats_perp_lst[i] for i in ls_idx_lst])
         return lons_perp, lats_perp, lons_perp_lst, lats_perp_lst, ls_idx_lst
