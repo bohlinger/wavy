@@ -256,20 +256,12 @@ class satellite_class(qls, fc):
 
         else:
             if os.path.isdir(path):
-                pathlst = glob.glob(path+'/*')
+                pathlst = glob.glob(os.path.join(path, '*'))
             else:
-                pathlst = glob.glob(path+'*')
-            #
-            # interesting other approach using pathlibs glob
-            # https://stackoverflow.com/questions/3348753/\
-            #        search-for-a-file-using-a-wildcard
-            # from pathlib import Path
-            # filelst = [p.name for p in Path(path).glob("*")]
-            # pathlst = [str(p.parent) for p in Path(path).glob("*")]
-            #
+                pathlst = glob.glob(path + '*')
             # separate files from path
-            filelst = [p.split('/')[-1] for p in pathlst]
-            pathlst = [p[0:-len(f)] for p, f in zip(pathlst, filelst)]
+            filelst = [os.path.basename(p) for p in pathlst]
+            pathlst = [os.path.dirname(p) for p in pathlst]
             pathtotals = [os.path.join(p, f) for p, f in zip(pathlst, filelst)]
 
             # limit to sd and ed based on file naming, see check_date
