@@ -15,6 +15,7 @@ Workshops and show cases
    vietnam22
    vietnam22_2
    vietnam25
+   vietnam26
    mozambique23
    mozambique24
    mozambique25
