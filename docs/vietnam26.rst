@@ -114,7 +114,24 @@ Now, you can start preparing python scripts reading, processing, and plotting yo
             region="NorthSea").populate()
 
    # plot results
+   # map
+   sco.quicklook(m=True)
+   # time series
+   sco.quicklook(ts=True)
+   # all
    sco.quicklook(a=True)
+
+   # multiple variables at once (significant wave height and 10m wind speed)
+   sco = sc(nID='cmems_L3_NRT',
+            name='s3a',
+            sd='2025-05-01', ed='2025-05-03',
+            region="NorthSea",
+            varalias=['Hs','U']).populate()
+
+   # plot results
+   sco.quicklook(a=True, varalias='Hs')
+   sco.quicklook(a=True, varalias='U')
+
 
    # satellite data from multiple sources
    mso = ms(nID=['cmems_L3_NRT'],
