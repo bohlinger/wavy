@@ -22,12 +22,12 @@ Scientific papers that used **wavy**
 
 PhD thesis with wavy
 ********************
-Fabien Collas, since 2023: Working with triple collocation, calibration, and extremes.
+* Fabien Collas, since 2023: Working with triple collocation, calibration, and extremes.
 
 Master thesis using wavy
 ************************
-Judith Thu Ølberg, 2023: Wave Measurements Using Ship Mounted Sensors as part of the One Ocean Expedition, University of Bergen, https://hdl.handle.net/11250/3071001.
-Fritjof Terland Biørn, ongoing: Spectral wave model validation using remote sensing measurements, University of Bergen
+* Judith Thu Ølberg, 2023: Wave Measurements Using Ship Mounted Sensors as part of the One Ocean Expedition, University of Bergen, https://hdl.handle.net/11250/3071001.
+* Fritjof Terland Biørn, ongoing: Spectral wave model validation using remote sensing measurements, University of Bergen
 
 Copernicus CMEMS Product Quality Documents QuID
 ***********************************************
