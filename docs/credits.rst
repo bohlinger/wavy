@@ -68,4 +68,4 @@ Selected external entities that have used or use wavy
 *****************************************************
 * EQUINOR
 * MERCATOR OCEAN INTERNATIONAL
-* CLS - Collecte Localisation Satellites
+* CLS: Collecte Localisation Satellites
