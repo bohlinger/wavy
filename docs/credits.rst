@@ -63,6 +63,8 @@ Projects **wavy** is/was contributing to
 * B-WAVES - National Project [NFR]
 * SAREPTA - Large capacity building project (https://bistand.met.no/) [NORAD - The Norwegian Agency for Development Cooperation]
 * One Ocean Expedition - UN Decade of Ocean Science for Sustainable Development
+* EU-Interchange - [EU]
+* DestinE - [EU]
 
 Selected external entities that have used or use wavy
 *****************************************************
