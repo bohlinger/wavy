@@ -42,16 +42,17 @@ from wavy.model_module import read_model_nc_output_lru
 from wavy.model_module import model_class as mc
 
 from wavy.insitu_module import poi_class as pc
-
 from wavy.wconfig import load_or_default, load_dir
-
 from wavy.filter_module import filter_class as fc
-
 from wavy.quicklookmod import quicklook_class_sat as qls
-
 from wavy.init_class_sat import init_class
-
 from wavy.utils import footprint_pulse_limited_radius
+
+from wavy.wave_parameters import pseudo_wave_age
+from wavy.wave_parameters import altimeter_Tz
+from wavy.wave_parameters import mean_wave_energy_density
+from wavy.wave_parameters import group_velocity_deep_water
+from wavy.wave_parameters import wave_power
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
@@ -802,6 +803,41 @@ class satellite_class(qls, fc):
 
         parent = finditem(self.meta, item)
         return parent
+
+    def add_pseudo_wave_parameters(self):
+
+        new = deepcopy(self)
+
+        ds = new.vars
+        wa = pseudo_wave_age(new.vars.Hs, new.vars.U)
+        Tz = altimeter_Tz(new.vars.Hs, new.vars.U, wa)
+        E = mean_wave_energy_density(new.vars.Hs)
+        cg = group_velocity_deep_water(Tz)
+        P = wave_power(E, cg)
+
+        newvarlst = ['Pw', 'Ew', 'Tm02', 'pwa', 'cg']
+
+        ds['Pw'] = P
+        ds['Pw'].attrs.update(variable_def['Pw'])
+        ds['Ew'] = E
+        ds['Ew'].attrs.update(variable_def['Ew'])
+        ds['Tm02'] = Tz
+        ds['Tm02'].attrs.update(variable_def['Tm02'])
+        ds['pwa'] = wa
+        ds['pwa'].attrs.update(variable_def['pwa'])
+        ds['cg'] = cg
+        ds['cg'].attrs.update(variable_def['cg'])
+
+        new.vars = ds
+        new.varalias = new.varalias + newvarlst
+        new.stdvarname = new.stdvarname + \
+                             [variable_def[n].get('standard_name')
+                                 for n in newvarlst]
+        new.units = new.units + \
+                        [variable_def[n].get('units')
+                            for n in newvarlst]
+        return new
+
 
 
 def match_region_rect(LATS, LONS, region):

@@ -375,3 +375,23 @@ PdirTo:
     _FillValue: -999.9
     type: cyclic
 
+Pw:
+    standard_name: "wave_power"
+    units: kW/m
+    _FillValue: -999.9
+
+Ew:
+    standard_name: "wave_energy_density"
+    units: J/m**2
+    _FillValue: -999.9
+
+pwa:
+    standard_name: "pseudo_wave_age"
+    units: NA
+    _FillValue: -999.9
+
+cg:
+    standard_name: "group_velocity"
+    units: m/s
+    _FillValue: -999.9
+
