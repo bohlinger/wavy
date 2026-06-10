@@ -804,7 +804,6 @@ class filter_class:
         # produce footprints to either side
         n = n*0.1
 
-        print(coef_dist_latlon)
         P_perp_minus = (P1[0] - n*Vrot[0], P1[1] - n*Vrot[1]*coef_dist_latlon)
         P_perp_plus = (P1[0] + n*Vrot[0], P1[1] + n*Vrot[1]*coef_dist_latlon)
         return P_perp_minus, P_perp_plus
