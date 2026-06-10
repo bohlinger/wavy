@@ -790,8 +790,12 @@ class filter_class:
         """
         Input are tuples (lon, lat) for points P1, P2
         """
+        # coefficient of the length of longitude compared to latitude,
+        # at the mean latitude between the two points
+        coef_dist_latlon = np.cos(np.deg2rad((P1[1]+P2[1])/2.))
+        
         # create vector
-        V = np.array([P1[0]-P2[0], P1[1]-P2[1]])
+        V = np.array([coef_dist_latlon*(P1[0]-P2[0]), P1[1]-P2[1]])
         # rotate 90 degree
         theta = np.deg2rad(90)
         R = np.array([[np.cos(theta), -np.sin(theta)],
@@ -799,8 +803,10 @@ class filter_class:
         Vrot = np.dot(R, V)
         # produce footprints to either side
         n = n*0.1
-        P_perp_minus = (P1[0] - n*Vrot[0], P1[1] - n*Vrot[1])
-        P_perp_plus = (P1[0] + n*Vrot[0], P1[1] + n*Vrot[1])
+
+        print(coef_dist_latlon)
+        P_perp_minus = (P1[0] - n*Vrot[0], P1[1] - n*Vrot[1]*coef_dist_latlon)
+        P_perp_plus = (P1[0] + n*Vrot[0], P1[1] + n*Vrot[1]*coef_dist_latlon)
         return P_perp_minus, P_perp_plus
 
     @staticmethod
