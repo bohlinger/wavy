@@ -524,7 +524,7 @@ def calibration_triplets_tc(data, ref, r2=0, return_cal_cst=False):
     c_RB = np.cov(R, B)[0, 1]
 
     a_A = c_AB/c_RB
-    a_B = c_AB/(c_RA - a_A*r2)
+    a_B = c_AB/(c_RA - r2)
     a_R = 1.0
 
     A_R = (a_R/a_A)*(A - np.mean(A)) + np.mean(R)
