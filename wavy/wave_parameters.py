@@ -12,13 +12,29 @@ def pseudo_wave_age(Hs, U10):
     """
     dimensionless
     """
-    return 3.25*(Hs**2*9.81**2/U10**4)
+    return 3.25*(Hs*9.81/U10**2)**2
 
-def altimeter_Tz(Hs, U10, wa):
+def altimeter_Tz(Hs, U10, GA=2, wa=None):
+    if GA == 1:
+        Tz = GA1(Hs, U10)
+    elif GA == 2:
+        Tz = GA2(Hs, U10, wa)
+    return Tz
+
+def GA2(Hs, U10, wa):
     # GA-2 algorithm from Remya G., Kumar, R., Basu, S. & Sarkar, A.
     # Altimeter-derived ocean wave period using genetic algorithm.
     # IEEE Geoscience and Remote Sensing Letters, 8(2), 354–358, 2010.
-    return (((wa-5.78) / (wa+(U10/(Hs*((U10/Hs)+Hs)))))+(Hs+5.7))
+    # Tz = (((wa-5.78) / (wa+(U10/(Hs*((U10/Hs)+Hs)))))+(Hs+5.7))
+
+    # GA-2 algorithm (re-factored)
+    Tz = (wa - 5.78) / (wa + U10 / (U10 + Hs**2)) + Hs + 5.70
+    return Tz
+
+def GA1(Hs, U10):
+    # GA-1 algorithm (re-factored)
+    Tz = Hs + (8.01 * Hs / U10) - (U10 / 4.38) + 5.09
+    return Tz
 
 def mean_wave_energy_density(Hs):
     rho_water = 1027  # kg/m3

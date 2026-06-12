@@ -810,7 +810,7 @@ class satellite_class(qls, fc):
 
         ds = new.vars
         wa = pseudo_wave_age(new.vars.Hs, new.vars.U)
-        Tz = altimeter_Tz(new.vars.Hs, new.vars.U, wa)
+        Tz = altimeter_Tz(new.vars.Hs, new.vars.U, GA=2, wa=wa)
         E = mean_wave_energy_density(new.vars.Hs)
         cg = group_velocity_deep_water(Tz)
         P = wave_power(E, cg)
