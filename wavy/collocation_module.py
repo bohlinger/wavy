@@ -193,19 +193,43 @@ def find_valid_fc_dates_for_model_and_leadtime(
     return fc_dates_new
 
 
-def _get_logger(**kwargs):
-    """Return a configured module-level logger, respecting the 'logging' kwarg."""
-    logger = logging.getLogger(__name__)
-    log_level = str(kwargs.get("logging", "WARNING").upper())
-    logger.setLevel(getattr(logging, log_level, logging.WARNING))
-    return logger
+# Module-level logger — INFO by default so progress messages are visible without extra setup.
+# Adjust verbosity with configure_logging() or the standard library directly.
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
+    logger.addHandler(_handler)
+    logger.setLevel(logging.INFO)
+
+
+def configure_logging(level="DEBUG"):
+    """Configure logging verbosity for this module.
+
+    By default the module logs at INFO so progress messages are visible
+    without any extra setup.  Call this to increase or reduce verbosity.
+
+    Args:
+        level (str): one of ``"DEBUG"``, ``"INFO"``, ``"WARNING"``, ``"ERROR"``.
+
+    Example::
+
+        from wavy.collocation_module import configure_logging
+        configure_logging("DEBUG")   # show all diagnostic messages
+        configure_logging("WARNING") # suppress info messages
+
+    Alternatively, use the standard library directly::
+
+        import logging
+        logging.getLogger("wavy.collocation_module").setLevel(logging.DEBUG)
+    """
+    logger.setLevel(getattr(logging, level.upper(), logging.DEBUG))
+    logger.info("Logging for '%s' set to %s", __name__, level.upper())
 
 
 def check_if_file_is_valid(fc_date, model, leadtime, **kwargs):
-    logger = _get_logger(**kwargs)
-
     fname = get_model_filename(model, fc_date, leadtime, **kwargs)
-    logger.info("Check if requested file:\n" + str(fname) + "\nis available and valid")
+    logger.info("Check if requested file:\n%s\nis available and valid", fname)
     try:
         nc = netCDF4.Dataset(fname, mode="r")
         time = nc.variables["time"]
@@ -214,7 +238,7 @@ def check_if_file_is_valid(fc_date, model, leadtime, **kwargs):
             logger.info("File is available and contains requested date")
             return True
         else:
-            logger.warning("Desired date " + str(fc_date) + " is not in", fname)
+            logger.warning("Desired date %s is not in %s", fc_date, fname)
             return False
     except (FileNotFoundError, OSError) as e:
         logger.error("File is not available or does not contain requested date")
@@ -252,9 +276,7 @@ class collocation_class(qls):
     def __init__(
         self, oco=None, model=None, poi=None, leadtime=None, varalias=None, **kwargs
     ):
-        print("# ----- ")
-        print(" ### Initializing collocation_class object ###")
-        print(" ")
+        logger.info("Initializing collocation_class object")
         # make clones to prevent overwriting
         if varalias == None:
             if isinstance(oco.varalias, str):
@@ -285,16 +307,24 @@ class collocation_class(qls):
         self.colloc_time_method = kwargs.get("colloc_time_method", "nearest")
         self.nproc = kwargs.get("nproc", 16)
         self.res = kwargs.get("res", (0.5, 0.5))
-        print(" ")
-        print(" ### Collocation_class object initialized ###")
-        print(f"nID: {self.nID}, model: {self.model}, name: {self.name}")
+        logger.info(
+            "collocation_class initialized (nID=%s, model=%s, name=%s)",
+            self.nID,
+            self.model,
+            self.name,
+        )
+        logger.debug(
+            "varalias=%s, leadtime=%s, twin=%s, distlim=%s, method=%s",
+            self.varalias,
+            self.leadtime,
+            self.twin,
+            self.distlim,
+            self.method,
+        )
 
     def populate(self, **kwargs):
-        logger = _get_logger(**kwargs)
-
         new = deepcopy(self)
-        print(" ")
-        print(" ## Collocate ... ")
+        logger.info("Collocating ...")
         try:
             t0 = time.time()
             results_dict = new.collocate(**kwargs)
@@ -317,26 +347,21 @@ class collocation_class(qls):
 
             new = new._drop_duplicates(**kwargs)
             t1 = time.time()
-            print(" ")
-            print(" ## Summary:")
-            print(len(new.vars["time"]), " values collocated.")
-            print("Time used for collocation:", round(t1 - t0, 2), "seconds")
-            print(" ")
+            logger.info(
+                "%d values collocated in %.2f seconds",
+                len(new.vars["time"]),
+                t1 - t0,
+            )
 
         except Exception as e:
-            logger.warning("Exception occurred in collocation")
-            logger.warning(e)
+            logger.warning("Exception occurred in collocation: %s", e)
             new.error = e
             new.vars = None
-            print("! collocation_class object may be empty !")
-        # add class variables
-        print("# ----- ")
+            logger.warning("collocation_class object may be empty")
 
         return new
 
     def _build_xr_dataset(self, results_dict, **kwargs):
-        logger = _get_logger(**kwargs)
-
         try:
             ds = xr.Dataset(
                 {
@@ -427,20 +452,21 @@ class collocation_class(qls):
 
         dim = kwargs.get("dim_duplicates", "time")
         keep = kwargs.get("keep_duplicates", "first")
-        print("Removing duplicates according to", dim)
-        print("Keeping", keep, "value for the duplicates")
+        logger.debug("Removing duplicates on dim='%s', keeping='%s'", dim, keep)
         new = deepcopy(self)
         new.vars = self.vars.drop_duplicates(dim=dim, keep=keep)
-        print(str(int(abs(len(self.vars[dim]) - len(new.vars[dim])))), "values removed")
-        print("New number of footprints is:", str(int(len(new.vars[dim]))))
+        n_removed = int(abs(len(self.vars[dim]) - len(new.vars[dim])))
+        logger.info(
+            "%d duplicates removed, %d footprints remaining",
+            n_removed,
+            len(new.vars[dim]),
+        )
         return new
 
     def _collocate_field(self, mco, tmp_dict, **kwargs):
         """
         Some info
         """
-        logger = _get_logger(**kwargs)
-
         Mlons = mco.vars.lons.data
         Mlats = mco.vars.lats.data
         Mvars = {v: mco.vars[v].data for v in self.varalias_mod}
@@ -464,11 +490,7 @@ class collocation_class(qls):
         obs_lats = tmp_dict["lats"]
         # Compare wave heights of satellite with model with
         # constraint on distance and time frame
-        logger.info(
-            "Perform collocation with distance limit\n"
-            + "distlim: "
-            + str(self.distlim)
-        )
+        logger.debug("Perform collocation with distlim=%s km", self.distlim)
         index_array_2d, distance_array, _ = collocation_fct(
             obs_lons, obs_lats, Mlons, Mlats
         )
@@ -484,6 +506,7 @@ class collocation_class(qls):
         )[0]
         idx_x = index_array_2d[0][dist_idx]
         idx_y = index_array_2d[1][dist_idx]
+        logger.debug("%d footprints within distlim=%s km", len(dist_idx), self.distlim)
         results_dict = {
             "dist": list(distance_array[dist_idx]),
             "model_lons": list(Mlons[idx_x, idx_y]),
@@ -502,9 +525,7 @@ class collocation_class(qls):
         """
         Some info
         """
-        logger = _get_logger(**kwargs)
-
-        logger.info("run: _collocate_track")
+        logger.debug("run: _collocate_track")
 
         # use only dates with a model time step closeby
         # given the time constrains
@@ -524,11 +545,16 @@ class collocation_class(qls):
         )
 
         ndt_valid = np.unique(ndt_valid)
+        logger.debug("%d valid forecast dates found", len(ndt_valid))
 
         fc_date = ndt_valid
         t2 = time.time()
 
-        logger.info(f"... done, used {t2-t1:.2f} seconds")
+        logger.info(
+            "... done in %.2f seconds, %d valid timestep(s) found",
+            t2 - t1,
+            len(fc_date),
+        )
 
         logger.info("Start collocation ...")
 
@@ -547,7 +573,7 @@ class collocation_class(qls):
         }
 
         for i in tqdm(range(len(fc_date))):
-            logger.info(fc_date[i])
+            logger.debug("Processing fc_date: %s", fc_date[i])
             try:
                 for j in range(1):
                     # filter needed obs within time period
@@ -584,7 +610,7 @@ class collocation_class(qls):
                             twin=0,
                         )
 
-                    logger.info(len(idx), "footprints to be collocated")
+                    logger.debug("%d footprints to be collocated", len(idx))
                     # make tmp obs_obj with filtered data
                     tmp_dict = {}
                     tmp_dict["time"] = self.oco.vars["time"].values[idx]
@@ -593,8 +619,7 @@ class collocation_class(qls):
 
                     for v in self.varalias_obs:
                         tmp_dict[v] = self.oco.vars[v].values[idx]
-                    logger.info("#########################")
-                    logger.info(self.varalias_mod)
+                    logger.debug("varalias_mod: %s", self.varalias_mod)
                     mco = mc(
                         sd=fc_date[i],
                         ed=fc_date[i],
@@ -671,7 +696,7 @@ class collocation_class(qls):
         res = self.res
         colloc_time_method = self.colloc_time_method
 
-        print("Using resolution {}".format(res))
+        logger.debug("Using resolution %s", res)
         # ADD CHECK LIMITS FOR LAT AND LON
         res_dict = {}
 
@@ -825,7 +850,7 @@ class collocation_class(qls):
             + "validate another variable, please "
             + "specify with varalias."
         )
-        print("Validating model_{} against obs_{}".format(varalias, varalias))
+        logger.info("Validating model_%s against obs_%s", varalias, varalias)
         mods = self.vars["model_" + varalias]
         obs = self.vars["obs_" + varalias]
         sdate = dtime[0]
