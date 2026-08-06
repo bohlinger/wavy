@@ -18,22 +18,17 @@ from tqdm import tqdm
 from copy import deepcopy
 import xarray as xr
 import pandas as pd
-import copy
 
 # import traceback
 import logging
 
 # own imports
 from wavy.utils import collocate_times
-from wavy.utils import make_fc_dates
 from wavy.utils import hour_rounder_pd, hour_rounder
-from wavy.utils import NoStdStreams
 from wavy.utils import parse_date
 from wavy.utils import flatten
-from wavy.utils import compute_quantiles
 from wavy.utils import haversineA
 from wavy.wconfig import load_or_default
-from wavy.ncmod import ncdumpMeta, get_filevarname
 from wavy.model_module import model_class as mc
 from wavy.gridder_module import gridder_class as gc
 from wavy.grid_stats import apply_metric
@@ -136,8 +131,8 @@ def collocate_observations(co1, co2, twin=5, dist_max=200):
                 list_dist_min.append(min_dist_tmp)
                 list_time_co1.append(ds_tmp["time_co1"].data)
 
-    co1_filter = copy.deepcopy(co1)
-    co2_filter = copy.deepcopy(co2)
+    co1_filter = deepcopy(co1)
+    co2_filter = deepcopy(co2)
 
     # Original co1 and co2 object vars are filtered using
     # lists of times corresponding to minimum distance
@@ -198,10 +193,16 @@ def find_valid_fc_dates_for_model_and_leadtime(
     return fc_dates_new
 
 
-def check_if_file_is_valid(fc_date, model, leadtime, **kwargs):
+def _get_logger(**kwargs):
+    """Return a configured module-level logger, respecting the 'logging' kwarg."""
     logger = logging.getLogger(__name__)
     log_level = str(kwargs.get("logging", "WARNING").upper())
     logger.setLevel(getattr(logging, log_level, logging.WARNING))
+    return logger
+
+
+def check_if_file_is_valid(fc_date, model, leadtime, **kwargs):
+    logger = _get_logger(**kwargs)
 
     fname = get_model_filename(model, fc_date, leadtime, **kwargs)
     logger.info("Check if requested file:\n" + str(fname) + "\nis available and valid")
@@ -289,9 +290,7 @@ class collocation_class(qls):
         print(f"nID: {self.nID}, model: {self.model}, name: {self.name}")
 
     def populate(self, **kwargs):
-        logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get("logging", "WARNING").upper())
-        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+        logger = _get_logger(**kwargs)
 
         new = deepcopy(self)
         print(" ")
@@ -336,9 +335,7 @@ class collocation_class(qls):
         return new
 
     def _build_xr_dataset(self, results_dict, **kwargs):
-        logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get("logging", "WARNING").upper())
-        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+        logger = _get_logger(**kwargs)
 
         try:
             ds = xr.Dataset(
@@ -442,9 +439,7 @@ class collocation_class(qls):
         """
         Some info
         """
-        logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get("logging", "WARNING").upper())
-        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+        logger = _get_logger(**kwargs)
 
         Mlons = mco.vars.lons.data
         Mlats = mco.vars.lats.data
@@ -507,9 +502,7 @@ class collocation_class(qls):
         """
         Some info
         """
-        logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get("logging", "WARNING").upper())
-        logger.setLevel(getattr(logging, log_level, logging.WARNING))
+        logger = _get_logger(**kwargs)
 
         logger.info("run: _collocate_track")
 
