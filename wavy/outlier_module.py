@@ -2276,11 +2276,16 @@ class outlier_class:
         if mco is not None:
             try:
                 fig, ax = mco.quicklook(
-                    m=True, projection=projection,
-                    vmin=vmin_hs, vmax=vmax_hs,
-                    levels_incr=levels_incr, show=False,
-                    map_extent_llon=lonmin, map_extent_ulon=lonmax,
-                    map_extent_llat=latmin, map_extent_ulat=latmax,
+                    m=True,
+                    projection=projection,
+                    vmin=vmin_hs,
+                    vmax=vmax_hs,
+                    levels_incr=levels_incr,
+                    show=False,
+                    map_extent_llon=lonmin,
+                    map_extent_ulon=lonmax,
+                    map_extent_llat=latmin,
+                    map_extent_ulat=latmax,
                     transform_first=True,
                 )
             except Exception as exc:
@@ -2292,11 +2297,10 @@ class outlier_class:
             if projection is None:
                 projection = ccrs.PlateCarree()
             fig = plt.figure(figsize=(10, 9))
-            ax  = fig.add_subplot(1, 1, 1, projection=projection)
+            ax = fig.add_subplot(1, 1, 1, projection=projection)
             ax.add_feature(cfeature.COASTLINE, linewidth=0.6)
             try:
-                ax.set_extent([lonmin, lonmax, latmin, latmax],
-                               crs=ccrs.PlateCarree())
+                ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
             except Exception as exc:
                 logger.warning("set_extent failed: %s", exc)
 
@@ -2309,22 +2313,32 @@ class outlier_class:
             track_cmap = cmocean.cm.amp
 
         ax.scatter(
-            track_lons, track_lats, c=color_vals,
-            cmap=track_cmap, s=15,
-            transform=ccrs.PlateCarree(), zorder=12,
+            track_lons,
+            track_lats,
+            c=color_vals,
+            cmap=track_cmap,
+            s=15,
+            transform=ccrs.PlateCarree(),
+            zorder=12,
         )
 
         # ---- outlier highlights -------------------------------------------
         ax.scatter(
-            out_lons, out_lats, c="red", s=120, marker="*",
-            edgecolors="black", transform=ccrs.PlateCarree(), zorder=15,
+            out_lons,
+            out_lats,
+            c="red",
+            s=120,
+            marker="*",
+            edgecolors="black",
+            transform=ccrs.PlateCarree(),
+            zorder=15,
         )
 
         label = f"event #{event_id}" if event_id is not None else f"point #{idx}"
         ax.set_title(
-            f"Track over model — {model_nID}  [{label}]\n"
+            f"Track over model \u2014 {model_nID}  [{label}]\n"
             f"{center_time.strftime('%Y-%m-%d %H:%M UTC')}  "
-            f"±{track_window_min} min  |  {out_lons.size} outlier(s) in window",
+            f"\u00b1{track_window_min} min  |  {out_lons.size} outlier(s) in window",
             fontsize=9,
         )
         fig.tight_layout()
