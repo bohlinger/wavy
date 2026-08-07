@@ -890,8 +890,22 @@ def plot_all_outliers(
 
     if make_overview and df_outliers is not None:
         sp = os.path.join(save_dir, f"outlier_overview_{key}.png") if save_dir else None
-        fig_o = plot_outlier_overview(
-            cco, df_outliers=df_outliers, stats=stats,
+        _tmp = outlier_class.__new__(outlier_class)
+        _tmp.cco     = cco
+        _tmp.stats   = stats
+        _tmp.n_std   = n_std
+        _tmp.method  = method
+        _tmp.obs_var = stats.get("obs_var", "obs_Hs")
+        _tmp.mod_var = stats.get("mod_var", "model_Hs")
+        _tmp.vars = xr.Dataset(
+            {
+                "obs_lons": (["time"], df_outliers["obs_lons"].values),
+                "obs_lats": (["time"], df_outliers["obs_lats"].values),
+                "bias":     (["time"], df_outliers["bias"].values),
+            },
+            coords={"time": df_outliers["time"].values},
+        )
+        fig_o = _tmp.plot_overview(
             projection=projection, bb=bb, margin_deg=margin_deg,
             save_path=sp,
         )
@@ -1092,6 +1106,8 @@ class outlier_class:
         ds_attrs["title"] = "outlier_class dataset"
 
         new.vars = xr.Dataset(ds_dict, coords=coords, attrs=ds_attrs)
+        new.sd = str(pd.Timestamp(new.vars.time.values.min()))
+        new.ed = str(pd.Timestamp(new.vars.time.values.max()))
 
         logger.info(
             "%d outlier(s) detected (%.2f %% of %d valid points).",
@@ -1923,35 +1939,99 @@ class outlier_class:
         except Exception as exc:
             logger.warning("Could not load model field: %s", exc)
 
-        # 2. model layer
-        fig, ax = mco.quicklook(
-            m=True, projection=projection,
-            vmin=vmin_hs, vmax=vmax_hs,
-            levels_incr=levels_incr, show=False,
-            map_extent_llon=lonmin, map_extent_ulon=lonmax,
-            map_extent_llat=latmin, map_extent_ulat=latmax,
-            transform_first=True
+        # ---- build figure with the requested projection -----------------
+        if projection is None:
+            projection = ccrs.PlateCarree()
+
+        levels_hs = np.arange(vmin_hs, vmax_hs + levels_incr, levels_incr)
+        cmap_hs   = cmocean.cm.amp
+        norm_hs   = mpl.colors.BoundaryNorm(levels_hs, cmap_hs.N)
+
+        fig = plt.figure(figsize=(10, 9))
+        ax  = fig.add_subplot(1, 1, 1, projection=projection)
+
+        land = cfeature.GSHHSFeature(
+            scale="i", levels=[1], facecolor=cfeature.COLORS["land"]
         )
+        ax.add_feature(land, facecolor="burlywood", alpha=0.5, zorder=5)
+        ax.add_feature(cfeature.COASTLINE, linewidth=0.6, zorder=6)
+        try:
+            ax.set_extent([lonmin, lonmax, latmin, latmax],
+                           crs=ccrs.PlateCarree())
+        except Exception as exc:
+            logger.warning(f"set_extent failed: {exc}")
 
-        # 3. satellite track layer (overlaid on the same axes)
-        ds_track = self.cco.vars.sel(time=slice(t_lo, t_hi))
-        # build a thin cco-like proxy or just scatter directly:
-        ax.scatter(np.asarray(ds_track["obs_lons"]),
-                np.asarray(ds_track["obs_lats"]),
-                c=np.asarray(ds_track[self.obs_var]),
-                cmap=cmocean.cm.amp, s=15,
-                transform=ccrs.PlateCarree(), zorder=12)
+        _draw_labels = isinstance(projection, ccrs.PlateCarree)
+        gl = ax.gridlines(draw_labels=_draw_labels, linewidth=0.4,
+                           color="gray", alpha=0.5, linestyle="--")
+        if _draw_labels:
+            gl.top_labels   = False
+            gl.right_labels = False
 
-        # 4. outlier highlight
-        ax.scatter(out_lons, out_lats, c="red", s=120, marker="*",
-                edgecolors="black", transform=ccrs.PlateCarree(), zorder=15)
+        # ---- model 2D Hs contourf -----------------------------------------
+        if mco is not None:
+            try:
+                Mlons = mco.vars["lons"].values
+                Mlats = mco.vars["lats"].values
+                if Mlons.ndim == 1:
+                    Mlons, Mlats = np.meshgrid(Mlons, Mlats)
+                Mhs_da = mco.vars["Hs"]
+                if "time" in Mhs_da.dims:
+                    Mhs = Mhs_da.sel(time=model_time_h, method="nearest")
+                else:
+                    Mhs = Mhs_da
+                cf = ax.contourf(
+                    Mlons, Mlats, Mhs.values,
+                    levels=levels_hs, cmap=cmap_hs, norm=norm_hs,
+                    transform=ccrs.PlateCarree(), extend="max",
+                )
+                fig.colorbar(cf, ax=ax, label="Hs model [m]",
+                             fraction=0.033, pad=0.04,
+                             ticks=levels_hs[::4])
+            except Exception as exc:
+                logger.warning("Could not plot model field: %s", exc)
+
+        # ---- satellite track (coloured by track_color_by) -----------------
+        if track_color_by == "bias":
+            color_vals   = track_bias
+            track_cmap   = mpl.cm.RdBu_r
+            bias_abs_max = max(float(np.abs(track_bias).max()), 0.5)
+            track_norm   = mpl.colors.TwoSlopeNorm(
+                vmin=-bias_abs_max, vcenter=0.0, vmax=bias_abs_max
+            )
+            track_label = "Bias model\u2212obs [m]"
+        else:  # "obs"
+            color_vals  = track_obs
+            track_cmap  = cmocean.cm.amp
+            track_norm  = norm_hs
+            track_label = self.obs_var.replace("obs_", "Sat obs ") + " [m]"
+
+        lc = _draw_colored_track(
+            ax, track_lons, track_lats, color_vals,
+            cmap=track_cmap, norm=track_norm,
+            projection=projection,
+            linewidth=2.0, zorder=12,
+        )
+        if lc is not None:
+            fig.colorbar(lc, ax=ax, label=track_label,
+                         fraction=0.033, pad=0.09, shrink=0.8)
+
+        # ---- outlier highlights -------------------------------------------
+        if out_lons.size > 0:
+            ax.scatter(
+                out_lons, out_lats, c="red", s=120, marker="*",
+                edgecolors="black", linewidths=0.8,
+                transform=ccrs.PlateCarree(), zorder=15,
+                label=f"outlier ({out_lons.size})",
+            )
+            ax.legend(loc="lower right", fontsize=9, framealpha=0.85)
 
         label = (f"event #{event_id}" if event_id is not None
-                else f"point #{idx}")
+                 else f"point #{idx}")
         ax.set_title(
-            f"Track over model — {model_nID}  [{label}]\n"
+            f"Track over model \u2014 {model_nID}  [{label}]\n"
             f"{center_time.strftime('%Y-%m-%d %H:%M UTC')}  "
-            f"±{track_window_min} min  |  {out_lons.size} outlier(s) in window",
+            f"\u00b1{track_window_min} min  |  {out_lons.size} outlier(s) in window",
             fontsize=9,
         )
         fig.tight_layout()

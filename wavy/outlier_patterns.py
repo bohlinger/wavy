@@ -152,25 +152,44 @@ def _detect_checkerboard(outo, *, checkerboard_threshold=0.70):
         grid_idx = np.asarray(outo.vars["colidx_y"], dtype=int)
     elif "colidx_x" in outo.vars:
         grid_idx = np.asarray(outo.vars["colidx_x"], dtype=int)
-    else:
-        _src = (
-            "cco.vars"
-            if outo.cco is not None
-            and ("colidx_y" in outo.cco.vars or "colidx_x" in outo.cco.vars)
-            else None
+    elif outo.cco is not None and (
+        "colidx_y" in outo.cco.vars or "colidx_x" in outo.cco.vars
+    ):
+        # outo was saved before colidx_* was carried through populate().
+        # Fall back to time-matching outo to cco to extract grid indices.
+        logger.info(
+            "colidx_* not in outo.vars; extracting from cco.vars by "
+            "time-matching (legacy fallback)."
         )
-        if _src:
-            logger.warning(
-                "colidx_y / colidx_x found only in %s (not outo.vars); "
-                "ensure colidx_* is carried through populate() for "
-                "checkerboard detection. Skipping.",
-                _src,
+        try:
+            outo_ts = outo.vars.time.values.astype("datetime64[s]")
+            cco_ts = pd.DatetimeIndex(outo.cco.vars.time.values).values.astype(
+                "datetime64[s]"
             )
-        else:
+            cco_map = {t: i for i, t in enumerate(cco_ts)}
+            cco_idx = np.array([cco_map.get(t, -1) for t in outo_ts])
+            n_miss = int((cco_idx < 0).sum())
+            if n_miss:
+                logger.warning(
+                    "%d outo timestamps unmatched in cco; "
+                    "those will use index 0 (may affect checkerboard score).",
+                    n_miss,
+                )
+            col_key = "colidx_y" if "colidx_y" in outo.cco.vars else "colidx_x"
+            all_cols = np.asarray(outo.cco.vars[col_key])
+            grid_idx = all_cols[np.clip(cco_idx, 0, len(all_cols) - 1)].astype(int)
+        except Exception as exc:
             logger.warning(
-                "colidx_x / colidx_y not found in outo.vars or cco.vars; "
+                "colidx fallback from cco.vars failed (%s); "
                 "skipping checkerboard detection.",
+                exc,
             )
+            return _empty
+    else:
+        logger.warning(
+            "colidx_x / colidx_y not found in outo.vars or cco.vars; "
+            "skipping checkerboard detection.",
+        )
         return _empty
 
     if len(grid_idx) < 2:
