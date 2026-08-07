@@ -40,6 +40,16 @@ from wavy.model_module import model_class as mc
 from wavy.utils import hour_rounder
 from wavy.gridder_module import gridder_class as gc
 from wavy.grid_stats import apply_metric
+from wavy.outlier_patterns import (
+    PATTERN_REGISTRY,
+    register_pattern,
+    required_spinup_hours,
+    _detect_checkerboard,
+    _detect_garden_sprinkler,
+    _detect_source_term_ringing,
+    _detect_hs_collapse,
+    _detect_spinup_insufficient,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -293,521 +303,12 @@ def _save_figure(fig, save_path, dpi=200):
                 except Exception:
                     pass
         fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
-    print(f"  Saved → {save_path}")
+    logger.info("Saved → %s", save_path)
 
 def load_from_dill(path):
     """Load any dill-serialized object (e.g. a cco) from disk."""
     with open(path, "rb") as fh:
         return dill.load(fh)
-
-
-# ---------------------------------------------------------------------------
-# Pattern Registry — open for user contributions
-# ---------------------------------------------------------------------------
-
-PATTERN_REGISTRY: dict = {}
-
-
-def register_pattern(
-    key: str,
-    *,
-    name: str,
-    instability_id: str,
-    description: str,
-    detect_fn,
-    solutions: list,
-    references: list,
-    default_params: dict | None = None,
-) -> None:
-    """
-    Register a numerical-pattern detector with the global registry.
-
-    Registered patterns are automatically picked up by
-    ``outlier_class.detect_numerical_patterns()`` and
-    ``outlier_class.suggest_fixes()``.
-
-    Parameters
-    ----------
-    key            : str      – unique registry key (e.g. ``"checkerboard"``).
-    name           : str      – human-readable pattern name.
-    instability_id : str      – doc section reference (e.g. ``"1"``, ``"7"``).
-    description    : str      – one-line description.
-    detect_fn      : callable – ``fn(outo, **params) → dict`` with at minimum
-                                keys ``detected`` (bool),
-                                ``contribution_pct`` (float),
-                                ``affected_idx`` (list[int]).
-    solutions      : list[str] – known WW3 / model configuration fixes.
-    references     : list[str] – key literature references.
-    default_params : dict     – default keyword arguments forwarded to
-                                ``detect_fn``.
-
-    Example
-    -------
-    >>> def my_detector(outo, *, my_threshold=0.5):
-    ...     affected = []      # fill with matching indices
-    ...     return {"detected": bool(affected),
-    ...             "contribution_pct": 0.0, "affected_idx": affected}
-    >>> register_pattern(
-    ...     "my_pattern",
-    ...     name="My custom pattern",
-    ...     instability_id="custom",
-    ...     description="Detects my custom artifact.",
-    ...     detect_fn=my_detector,
-    ...     solutions=["Reduce time step."],
-    ...     references=["Smith et al. (2000)."],
-    ...     default_params={"my_threshold": 0.5},
-    ... )
-    """
-    if key in PATTERN_REGISTRY:
-        logger.warning("Pattern key '%s' is already registered; overwriting.", key)
-    PATTERN_REGISTRY[key] = {
-        "name":           name,
-        "instability_id": instability_id,
-        "description":    description,
-        "detect_fn":      detect_fn,
-        "solutions":      list(solutions),
-        "references":     list(references),
-        "default_params": dict(default_params or {}),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Pattern detection functions  (operate on an outlier_class instance)
-# ---------------------------------------------------------------------------
-
-
-def _detect_checkerboard(outo, *, checkerboard_threshold=0.70):
-    """
-    Detect checkerboard / 2Δx spatial instability.
-
-    A checkerboard arises when model Hs at even and odd ``colidx_y``
-    (or ``colidx_x``) colocation-grid indices systematically differ —
-    the spatial signature of a geographic CFL violation (instability #1).
-
-    Parameters
-    ----------
-    outo                   : outlier_class
-    checkerboard_threshold : float – minimum alternation fraction to flag
-                                     (default 0.70).
-
-    Returns
-    -------
-    dict : detected, parity_fraction, amplitude_m,
-           contribution_pct, affected_idx.
-    """
-    n_total = int(outo.vars.sizes["time"])
-    mod_hs  = np.asarray(outo.vars[outo.mod_var])
-    obs_hs  = np.asarray(outo.vars[outo.obs_var])
-
-    _empty = {
-        "detected": False, "parity_fraction": 0.0,
-        "amplitude_m": 0.0, "contribution_pct": 0.0,
-        "affected_idx": [],
-    }
-
-    # Resolve grid index from outo.vars (preferred) or warn
-    grid_idx = None
-    if "colidx_y" in outo.vars:
-        grid_idx = np.asarray(outo.vars["colidx_y"], dtype=int)
-    elif "colidx_x" in outo.vars:
-        grid_idx = np.asarray(outo.vars["colidx_x"], dtype=int)
-    else:
-        _src = "cco.vars" if outo.cco is not None and (
-            "colidx_y" in outo.cco.vars or "colidx_x" in outo.cco.vars
-        ) else None
-        if _src:
-            logger.warning(
-                "colidx_y / colidx_x found only in %s (not outo.vars); "
-                "ensure colidx_* is carried through populate() for "
-                "checkerboard detection. Skipping.", _src,
-            )
-        else:
-            logger.warning(
-                "colidx_x / colidx_y not found in outo.vars or cco.vars; "
-                "skipping checkerboard detection.",
-            )
-        return _empty
-
-    if len(grid_idx) < 2:
-        return _empty
-
-    bias_vals         = mod_hs - obs_hs
-    parity            = grid_idx % 2
-    diffs             = np.diff(grid_idx)
-    sign_changes      = np.diff(np.sign(bias_vals))
-    consecutive_step1 = np.abs(diffs) == 1
-    alternating       = (sign_changes != 0) & consecutive_step1
-
-    n_transitions   = int(consecutive_step1.sum())
-    n_alternating   = int(alternating.sum())
-    parity_fraction = n_alternating / n_transitions if n_transitions > 0 else 0.0
-    detected        = parity_fraction >= checkerboard_threshold
-
-    even_mask = parity == 0
-    odd_mask  = parity == 1
-    mean_even = float(np.mean(mod_hs[even_mask])) if even_mask.any() else float("nan")
-    mean_odd  = float(np.mean(mod_hs[odd_mask]))  if odd_mask.any()  else float("nan")
-    amplitude = (
-        abs(mean_even - mean_odd)
-        if np.isfinite(mean_even) and np.isfinite(mean_odd) else 0.0
-    )
-
-    if detected:
-        affected_set = set()
-        for k in range(len(diffs)):
-            if consecutive_step1[k] and alternating[k]:
-                affected_set.add(k)
-                affected_set.add(k + 1)
-        affected_idx = sorted(affected_set)
-    else:
-        affected_idx = []
-
-    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
-
-    return {
-        "detected":         detected,
-        "parity_fraction":  float(parity_fraction),
-        "amplitude_m":      float(amplitude),
-        "contribution_pct": float(contribution_pct),
-        "affected_idx":     affected_idx,
-    }
-
-
-def _detect_garden_sprinkler(outo, *, window_min=30, bimodal_score_threshold=2.0):
-    """
-    Detect the Garden Sprinkler Effect (instability #7).
-
-    Within a ±window_min-minute time window that contains ≥ 4 outlier
-    points, compute the bimodal score on model_Hs:
-    ``bimodal_score = (mean_high − mean_low) / std_all``.
-    Flag windows where ``bimodal_score > bimodal_score_threshold``.
-
-    Note: for a perfectly equal 50/50 bimodal split the score equals
-    exactly 2.0.  Windows with an odd point count (e.g. 4 LOW + 5 HIGH)
-    yield ~2.01 and satisfy the strict ``>`` criterion.
-
-    Parameters
-    ----------
-    outo                    : outlier_class
-    window_min              : int   – half-window in minutes (default 30).
-    bimodal_score_threshold : float – minimum score to flag (default 2.0).
-
-    Returns
-    -------
-    dict : detected, windows, contribution_pct, affected_idx.
-    """
-    n_total    = int(outo.vars.sizes["time"])
-    mod_hs     = np.asarray(outo.vars[outo.mod_var])
-    times      = pd.DatetimeIndex(outo.vars["time"].values)
-    times_sec  = np.array([t.timestamp() for t in times])
-    window_sec = window_min * 60.0
-
-    flagged_windows = []
-    affected_set    = set()
-
-    for i in range(n_total):
-        dt     = np.abs(times_sec - times_sec[i])
-        in_win = np.where(dt <= window_sec)[0]
-        if len(in_win) < 4:
-            continue
-        if i != int(in_win[0]):
-            continue
-
-        hs_win  = mod_hs[in_win]
-        std_all = float(np.std(hs_win))
-        if std_all < 1e-12:
-            continue
-
-        sorted_hs     = np.sort(hs_win)
-        half          = len(sorted_hs) // 2
-        mean_low      = float(np.mean(sorted_hs[:half]))
-        mean_high     = float(np.mean(sorted_hs[half:]))
-        bimodal_score = (mean_high - mean_low) / std_all
-
-        if bimodal_score > bimodal_score_threshold:
-            center_time = times[in_win[len(in_win) // 2]]
-            flagged_windows.append({
-                "center_time":   center_time,
-                "bimodal_score": float(bimodal_score),
-                "level_low_m":   float(mean_low),
-                "level_high_m":  float(mean_high),
-                "n_points":      int(len(in_win)),
-                "indices":       in_win.tolist(),
-            })
-            affected_set.update(in_win.tolist())
-
-    affected_idx     = sorted(affected_set)
-    detected         = len(flagged_windows) > 0
-    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
-
-    return {
-        "detected":         detected,
-        "windows":          flagged_windows,
-        "contribution_pct": float(contribution_pct),
-        "affected_idx":     affected_idx,
-    }
-
-
-def _detect_source_term_ringing(
-    outo,
-    *,
-    ringing_window_min: int = 5,
-    ringing_threshold: float = 0.60,
-    ringing_amplitude_m: float = 0.5,
-):
-    """
-    Detect source-term stiffness / temporal ringing (instability #4).
-
-    In short time windows, high-frequency oscillation of model_Hs
-    (alternating sign of first differences) with non-trivial amplitude is
-    the signature of stiff source-term integration under strong wind forcing
-    or in very shallow water.
-
-    Parameters
-    ----------
-    outo                 : outlier_class
-    ringing_window_min   : int   – window length in minutes (default 5).
-    ringing_threshold    : float – minimum fraction of alternating first
-                                   differences to flag (default 0.60).
-    ringing_amplitude_m  : float – minimum model_Hs range in the window [m]
-                                   (default 0.5 m).
-
-    Returns
-    -------
-    dict : detected, n_flagged_windows, mean_amplitude_m,
-           contribution_pct, affected_idx.
-    """
-    n_total    = int(outo.vars.sizes["time"])
-    mod_hs     = np.asarray(outo.vars[outo.mod_var])
-    times      = pd.DatetimeIndex(outo.vars["time"].values)
-    times_sec  = np.array([t.timestamp() for t in times])
-    window_sec = ringing_window_min * 60.0
-
-    flagged_windows = []
-    affected_set    = set()
-
-    for i in range(n_total):
-        dt     = np.abs(times_sec - times_sec[i])
-        in_win = np.where(dt <= window_sec)[0]
-        if len(in_win) < 4:
-            continue
-        if i != int(in_win[0]):
-            continue
-
-        hs_win    = mod_hs[in_win]
-        amplitude = float(np.max(hs_win) - np.min(hs_win))
-        if amplitude < ringing_amplitude_m:
-            continue
-
-        diffs    = np.diff(hs_win)
-        signs_nz = np.sign(diffs)
-        signs_nz = signs_nz[signs_nz != 0]
-        if len(signs_nz) < 2:
-            continue
-
-        n_alternations   = int(np.sum(np.diff(signs_nz) != 0))
-        ringing_fraction = n_alternations / (len(signs_nz) - 1)
-
-        if ringing_fraction >= ringing_threshold:
-            center_time = times[in_win[len(in_win) // 2]]
-            flagged_windows.append({
-                "center_time":      center_time,
-                "ringing_fraction": float(ringing_fraction),
-                "amplitude_m":      float(amplitude),
-                "n_points":         int(len(in_win)),
-                "indices":          in_win.tolist(),
-            })
-            affected_set.update(in_win.tolist())
-
-    affected_idx     = sorted(affected_set)
-    detected         = len(flagged_windows) > 0
-    amplitudes       = [w["amplitude_m"] for w in flagged_windows]
-    mean_amplitude   = float(np.mean(amplitudes)) if amplitudes else 0.0
-    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
-
-    return {
-        "detected":          detected,
-        "n_flagged_windows": len(flagged_windows),
-        "mean_amplitude_m":  mean_amplitude,
-        "contribution_pct":  float(contribution_pct),
-        "affected_idx":      affected_idx,
-    }
-
-
-def _detect_hs_collapse(
-    outo,
-    *,
-    hs_collapse_max_model: float = 0.05,
-    hs_collapse_min_obs: float = 0.5,
-):
-    """
-    Detect near-zero / collapsed model Hs (instability #10).
-
-    Negative spectral energy densities are clipped to zero by WW3's
-    non-negativity limiter, producing unrealistically low (near-zero)
-    model Hs values where the satellite observes non-trivial wave heights.
-
-    Parameters
-    ----------
-    outo                  : outlier_class
-    hs_collapse_max_model : float – model_Hs threshold below which the field
-                                    is considered collapsed [m] (default 0.05).
-    hs_collapse_min_obs   : float – minimum obs_Hs to rule out genuinely calm
-                                    conditions [m] (default 0.5).
-
-    Returns
-    -------
-    dict : detected, n_collapsed, mean_obs_hs_m, contribution_pct, affected_idx.
-    """
-    n_total = int(outo.vars.sizes["time"])
-    mod_hs  = np.asarray(outo.vars[outo.mod_var])
-    obs_hs  = np.asarray(outo.vars[outo.obs_var])
-
-    mask         = (mod_hs < hs_collapse_max_model) & (obs_hs > hs_collapse_min_obs)
-    affected_idx = np.where(mask)[0].tolist()
-    detected     = len(affected_idx) > 0
-
-    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
-    mean_obs         = float(np.mean(obs_hs[mask])) if detected else 0.0
-
-    return {
-        "detected":         detected,
-        "n_collapsed":      len(affected_idx),
-        "mean_obs_hs_m":    mean_obs,
-        "contribution_pct": float(contribution_pct),
-        "affected_idx":     affected_idx,
-    }
-
-
-# ---------------------------------------------------------------------------
-# Built-in pattern registrations
-# ---------------------------------------------------------------------------
-
-register_pattern(
-    "checkerboard",
-    name="Checkerboard / 2Δx spatial instability",
-    instability_id="1",
-    description=(
-        "Alternating high/low model Hs on consecutive colocation-grid cells — "
-        "signature of a geographic CFL violation."
-    ),
-    detect_fn=_detect_checkerboard,
-    solutions=[
-        "Reduce the propagation time step DTXY (or DTMAX) in ww3_grid.inp so "
-        "the Courant number C_g * Δt / Δx < 1 everywhere.",
-        "Use the implicit PDLIB solver for unstructured grids — removes the "
-        "CFL restriction on Δx at the cost of a sparse linear solve.",
-        "Smooth very small grid cells near the poles or in narrow straits, or "
-        "increase Δx locally to relax the CFL constraint.",
-    ],
-    references=[
-        "Tolman, H.L. (1992). Effects of numerics on the physics in a "
-        "third-generation wind-wave model. J. Phys. Oceanogr. 22, 1770–1786.",
-        "WW3 Development Group. WAVEWATCH III User Manual (NOAA/NCEP), "
-        "section on time stepping and CFL.",
-    ],
-    default_params={"checkerboard_threshold": 0.70},
-)
-
-register_pattern(
-    "garden_sprinkler",
-    name="Garden Sprinkler Effect (GSE)",
-    instability_id="7",
-    description=(
-        "Discretely banded Hs patterns downstream of distant storms — caused "
-        "by finite directional/frequency resolution spreading swell as "
-        "discrete 'jets' rather than a continuous field."
-    ),
-    detect_fn=_detect_garden_sprinkler,
-    solutions=[
-        "Increase directional spectral resolution (NDIR in ww3_grid.inp); "
-        "doubling NDIR is the most robust fix but roughly doubles cost.",
-        "Activate the GSE divergence alleviation scheme (Tolman 2002b): "
-        "set FLAGTR > 0 in the propagation input.",
-        "Apply a diffusion tensor in spectral space (Booij & Holthuijsen 1987): "
-        "non-zero SDMAX / DDMAX in the propagation input.",
-        "Use directional averaging (Lavrenov & Onvlee 1995) as a cheaper "
-        "alternative on structured grids.",
-        "Note: GSE alleviation is currently unavailable for unstructured grids.",
-    ],
-    references=[
-        "Booij, N. and Holthuijsen, L.H. (1987). Propagation of ocean waves in "
-        "discrete spectral wave models. J. Comput. Phys. 68, 307–326.",
-        "Lavrenov, I.V. and Onvlee, J. (1995). On the directional spreading in "
-        "discrete spectral wave models. J. Phys. Oceanogr. 25, 62–71.",
-        "Tolman, H.L. (2002b). Alleviating the Garden Sprinkler Effect in wind "
-        "wave models. Ocean Modelling 4, 269–289.",
-    ],
-    default_params={"window_min": 30, "bimodal_score_threshold": 2.0},
-)
-
-register_pattern(
-    "source_term_ringing",
-    name="Source-term stiffness / temporal ringing",
-    instability_id="4",
-    description=(
-        "High-frequency oscillation of model Hs in time at isolated points — "
-        "signature of stiff source-term integration under strong wind forcing "
-        "or in very shallow water."
-    ),
-    detect_fn=_detect_source_term_ringing,
-    solutions=[
-        "Reduce DTMIN (minimum source-term sub-step) so the adaptive algorithm "
-        "can shrink the step more aggressively in high-forcing cells.",
-        "Ensure the fully implicit source-term integration scheme "
-        "(Hargreaves & Annan 2000) is active — this is the WW3 default but "
-        "can be disabled by the IMPLCT switch.",
-        "Reduce the overall model time step in domains with hurricane-force "
-        "winds or very shallow nested grids.",
-        "Apply the spectral change limiter (Tolman 2002a) to cap growth per "
-        "time step — this can introduce bias in rapidly evolving spectra.",
-    ],
-    references=[
-        "Hargreaves, J.C. and Annan, J.D. (2000). Comments on 'Improvement of "
-        "the short-fetch behaviour in the WAM model'. "
-        "J. Atmos. Ocean. Technol. 17, 498–503.",
-        "Tolman, H.L. (2002a). Testing of WAVEWATCH III version 2.22 in "
-        "NCEP's NWW3 ocean wave forecasting system (NOAA/NCEP Tech Note 214).",
-        "WW3 Development Group. WAVEWATCH III User Manual (NOAA/NCEP), "
-        "section on source term time stepping and DTMIN.",
-    ],
-    default_params={
-        "ringing_window_min": 5,
-        "ringing_threshold": 0.60,
-        "ringing_amplitude_m": 0.5,
-    },
-)
-
-register_pattern(
-    "hs_collapse",
-    name="Near-zero Hs collapse (negative-energy clipping)",
-    instability_id="10",
-    description=(
-        "Model Hs near zero where the satellite observes non-trivial waves — "
-        "caused by negative spectral energy densities clipped to zero "
-        "after an over-dissipating source-term update."
-    ),
-    detect_fn=_detect_hs_collapse,
-    solutions=[
-        "Reduce the source-term time step (DTMIN) so individual spectral bins "
-        "are not over-dissipated in a single update.",
-        "Verify the non-negativity clipping switch is active (it is the "
-        "default; check that no custom build flag disabled it).",
-        "Inspect the whitecapping / dissipation parameterisation coefficients "
-        "(BETAMAX, SDSBR, etc.) — over-tuned dissipation often drives this.",
-        "Increase source-term time step resolution in very fine coastal nests.",
-    ],
-    references=[
-        "WW3 Development Group. WAVEWATCH III User Manual (NOAA/NCEP), "
-        "section on non-negativity of spectral densities.",
-        "Tolman, H.L. (1992). Effects of numerics on the physics in a "
-        "third-generation wind-wave model. J. Phys. Oceanogr. 22, 1770–1786.",
-    ],
-    default_params={
-        "hs_collapse_max_model": 0.05,
-        "hs_collapse_min_obs": 0.5,
-    },
-)
 
 
 # ---------------------------------------------------------------------------
@@ -864,7 +365,7 @@ def find_outliers(cco, n_std=3, method="zscore", obs_var=None, mod_var=None):
     stats["obs_var"] = obs_var
     stats["mod_var"] = mod_var
 
-    print(_format_threshold_message(stats, n_std))
+    logger.info("%s", _format_threshold_message(stats, n_std))
 
     if stats["n_outliers"] == 0:
         return None, stats
@@ -958,8 +459,10 @@ def plot_outlier_map(
     ds_track = cco.vars.sel(time=slice(t_lo, t_hi))
 
     if len(ds_track.time) == 0:
-        print(f"[plot_outlier_map] No collocated points in "
-              f"±{track_window_min} min around {outlier_time}")
+        logger.info(
+            "[plot_outlier_map] No collocated points in "
+            "±%d min around %s", track_window_min, outlier_time
+        )
         return None
 
     track_lons = np.asarray(ds_track["obs_lons"])
@@ -1003,14 +506,18 @@ def plot_outlier_map(
     if _mc_name is not None:
         _mc_kwargs["name"] = _mc_name
 
-    print(f"[plot_outlier_map] Loading model '{model_nID}'"
-          + (f" name='{_mc_name}'" if _mc_name else "")
-          + f" at {model_time_h} "
-          f"(rounded from {outlier_time.strftime('%H:%M:%S')}) …")
+    logger.info(
+        "[plot_outlier_map] Loading model '%s'%s at %s "
+        "(rounded from %s) …",
+        model_nID,
+        f" name='{_mc_name}'" if _mc_name else "",
+        model_time_h,
+        outlier_time.strftime("%H:%M:%S"),
+    )
     try:
         mco = mc(**_mc_kwargs).populate()
     except Exception as exc:
-        print(f"  WARNING: could not load model field: {exc}")
+        logger.warning("Could not load model field: %s", exc)
 
     # ---- 5. single-panel figure -------------------------------------------
     if projection is None:
@@ -1065,7 +572,7 @@ def plot_outlier_map(
                          fraction=0.033, pad=0.04,
                          ticks=levels_hs[::4])
         except Exception as exc:
-            print(f"  WARNING: could not plot model field: {exc}")
+            logger.warning("Could not plot model field: %s", exc)
 
     # ---- satellite track (continuous coloured line) -----------------------
     if track_color_by == "obs":
@@ -1157,7 +664,7 @@ def plot_bias_distribution(
     bias_all = mod - obs
 
     outlier_mask, stats = _detect_outliers(bias_all, n_std=n_std, method=method)
-    print(_format_threshold_message(stats, n_std))
+    logger.info("%s", _format_threshold_message(stats, n_std))
 
     finite_bias = bias_all[np.isfinite(bias_all)]
 
@@ -1264,7 +771,7 @@ def plot_bias_timeseries(
     bias_all = mod - obs
 
     outlier_mask, stats = _detect_outliers(bias_all, n_std=n_std, method=method)
-    print(_format_threshold_message(stats, n_std))
+    logger.info("%s", _format_threshold_message(stats, n_std))
 
     fig, (ax1, ax2) = plt.subplots(
         2, 1, figsize=(12, 7), sharex=True,
@@ -1393,7 +900,7 @@ def plot_all_outliers(
             plt.close(fig_o)
 
     if df_outliers is None:
-        print("[plot_all_outliers] No outliers found.")
+        logger.info("[plot_all_outliers] No outliers found.")
         return figs, None, stats
 
     times = pd.DatetimeIndex(df_outliers["time"])
@@ -1420,13 +927,16 @@ def plot_all_outliers(
     top_times    = [event_times[i]  for i in order[:n_top]]
     top_scores   = [event_scores[i] for i in order[:n_top]]
 
-    print(
-        f"\n[plot_all_outliers] {len(event_times)} event(s) detected — "
-        f"plotting top {len(top_times)} by max |bias|:"
+    logger.info(
+        "[plot_all_outliers] %d event(s) detected — "
+        "plotting top %d by max |bias|:",
+        len(event_times), len(top_times),
     )
     for rank, (t, s) in enumerate(zip(top_times, top_scores), start=1):
-        print(f"  #{rank:2d}  {pd.Timestamp(t).strftime('%Y-%m-%d %H:%M')}  "
-              f"max|bias|={s:.3f} m")
+        logger.info(
+            "  #%2d  %s  max|bias|=%.3f m",
+            rank, pd.Timestamp(t).strftime("%Y-%m-%d %H:%M"), s,
+        )
 
     # ---- produce per-event maps (appended after the summary diagnostics) --
     for rank, t in enumerate(top_times, start=1):
@@ -1437,7 +947,7 @@ def plot_all_outliers(
             if save_dir is not None
             else None
         )
-        print(f"\n  --- #{rank}/{len(top_times)} at {pd.Timestamp(t)} ---")
+        logger.info("  --- #%d/%d at %s ---", rank, len(top_times), pd.Timestamp(t))
         fig = plot_outlier_map(
             cco=cco,
             outlier_time=t,
@@ -1488,8 +998,7 @@ class outlier_class:
 
     def __init__(self, cco, n_std=3, method="zscore",
                  obs_var=None, mod_var=None):
-        print("# -----")
-        print(" ### Initializing outlier_class object ###")
+        logger.debug("Initializing outlier_class")
         self.cco    = cco
         self.stats  = None
         self.vars   = None
@@ -1509,10 +1018,10 @@ class outlier_class:
         self.ed       = getattr(cco, "ed",       None)
         self.region   = getattr(cco, "region",   None)
         self.pattern_report = None
-        print(f"  nID={self.nID}, model={self.model}")
-        print(f"  detection: method='{method}', n_std={n_std}")
-        print(" ### outlier_class object initialized ###")
-        print("# -----")
+        logger.debug(
+            "outlier_class initialised: nID=%s model=%s method=%s n_std=%s",
+            self.nID, self.model, method, n_std,
+        )
 
     # ------------------------------------------------------------------
     # Core method
@@ -1532,8 +1041,7 @@ class outlier_class:
         outo : outlier_class   – new instance with .vars and .stats set.
         """
         new = deepcopy(self)
-        print(" ")
-        print(" ## Detecting outliers …")
+        logger.debug("populate(): running outlier detection")
 
         cco     = new.cco
         obs_var = new.obs_var
@@ -1553,10 +1061,10 @@ class outlier_class:
         stats["mod_var"] = mod_var
         new.stats = stats
 
-        print(_format_threshold_message(stats, new.n_std))
+        logger.info("%s", _format_threshold_message(stats, new.n_std))
 
         if stats["n_outliers"] == 0:
-            print(" ## No outliers found – outo.vars is None.")
+            logger.info("No outliers found – outo.vars is None.")
             new.vars = None
             return new
 
@@ -1585,10 +1093,10 @@ class outlier_class:
 
         new.vars = xr.Dataset(ds_dict, coords=coords, attrs=ds_attrs)
 
-        print(f" ## {stats['n_outliers']} outlier(s) detected "
-              f"({stats['pct_outliers']:.2f} % of "
-              f"{stats['n_total']} valid points).")
-        print("# -----")
+        logger.info(
+            "%d outlier(s) detected (%.2f %% of %d valid points).",
+            stats["n_outliers"], stats["pct_outliers"], stats["n_total"],
+        )
         return new
 
     # ------------------------------------------------------------------
@@ -1601,7 +1109,7 @@ class outlier_class:
                     exist_ok=True)
         with open(path, "wb") as fh:
             pickle.dump(self, fh)
-        print(f"  Saved outlier object (pickle) → {path}")
+        logger.info("Saved outlier object (pickle) → %s", path)
 
     def write_to_nc(self, path):
         """
@@ -1609,12 +1117,12 @@ class outlier_class:
         Detection stats are preserved as global attributes.
         """
         if self.vars is None:
-            print("  Nothing to save – vars is None (no outliers).")
+            logger.info("Nothing to save – vars is None (no outliers).")
             return
         os.makedirs(os.path.dirname(os.path.abspath(str(path))),
                     exist_ok=True)
         self.vars.to_netcdf(path)
-        print(f"  Saved outlier vars (NetCDF) → {path}")
+        logger.info("Saved outlier vars (NetCDF) → %s", path)
 
     @classmethod
     def read_from_pickle(cls, path):
@@ -1713,7 +1221,7 @@ class outlier_class:
         save_path    : str/Path, optional
         """
         if self.vars is None:
-            print("  No outliers to plot.")
+            logger.info("No outliers to plot.")
             return None
         if projection is None:
             projection = ccrs.PlateCarree()
@@ -2028,10 +1536,11 @@ class outlier_class:
         ]
 
         _section_labels = {
-            "checkerboard":       "A",
-            "garden_sprinkler":   "B",
-            "source_term_ringing":"C",
-            "hs_collapse":        "D",
+            "checkerboard":        "A",
+            "garden_sprinkler":    "B",
+            "source_term_ringing": "C",
+            "hs_collapse":         "D",
+            "spinup_insufficient": "E",
         }
         # Assign letters: registered order, falling back to sequential index
         letter_idx = 0
@@ -2095,12 +1604,37 @@ class outlier_class:
                     lines.append(
                         f"   mean obs_Hs      : {res['mean_obs_hs_m']:.3f} m"
                     )
+                elif key == "spinup_insufficient":
+                    lines.append(
+                        f"   energy_still_growing : {res['energy_still_growing']}"
+                    )
+                    lines.append(
+                        f"   bias_drift_detected  : {res['bias_drift_detected']}"
+                    )
+                    lines.append(
+                        f"   n_early / n_late     : {res['n_early']} / {res['n_late']}"
+                    )
+                    if np.isfinite(res["early_mean_bias_m"]):
+                        lines.append(
+                            f"   early_mean_bias      : {res['early_mean_bias_m']:+.3f} m"
+                        )
+                    if np.isfinite(res["late_mean_bias_m"]):
+                        lines.append(
+                            f"   late_mean_bias       : {res['late_mean_bias_m']:+.3f} m"
+                        )
+                    if np.isfinite(res["energy_slope_per_hr"]):
+                        lines.append(
+                            f"   energy_slope_per_hr  : {res['energy_slope_per_hr']:+.4f} /h"
+                        )
+                    lines.append(
+                        f"   run_start_used       : {res['run_start_used']}"
+                    )
             else:
                 lines.append("   Not detected.")
 
         lines.extend(impact_lines)
         summary = "\n".join(lines)
-        print(summary)
+        logger.info("%s", summary)
 
         report = {**pattern_results, "summary": summary}
         self.pattern_report = report
@@ -2129,7 +1663,7 @@ class outlier_class:
                 "No pattern report available. "
                 "Run detect_numerical_patterns() first."
             )
-            print(msg)
+            logger.info("%s", msg)
             return msg
 
         detected_keys = [
@@ -2141,7 +1675,7 @@ class outlier_class:
 
         if not detected_keys:
             msg = "No numerical patterns were detected — no fixes to suggest."
-            print(msg)
+            logger.info("%s", msg)
             return msg
 
         lines = ["=" * 70, "  Suggested fixes for detected numerical instabilities",
@@ -2174,7 +1708,7 @@ class outlier_class:
 
         lines.append(f"\n{'=' * 70}")
         text = "\n".join(lines)
-        print(text)
+        logger.info("%s", text)
         return text
 
     def sel_event(self, event_id, events_df):
@@ -2314,7 +1848,7 @@ class outlier_class:
                 "cco is None; plot_track_over_model requires the parent cco."
             )
         if self.vars is None:
-            print("  No outliers — nothing to plot.")
+            logger.info("No outliers — nothing to plot.")
             return None
 
         # ---- resolve center time ------------------------------------------
@@ -2342,8 +1876,10 @@ class outlier_class:
         ds_track = self.cco.vars.sel(time=slice(t_lo, t_hi))
 
         if len(ds_track.time) == 0:
-            print(f"[plot_track_over_model] No collocated points in "
-                f"±{track_window_min} min around {center_time}")
+            logger.info(
+                "[plot_track_over_model] No collocated points in "
+                "±%d min around %s", track_window_min, center_time
+            )
             return None
 
         track_lons = np.asarray(ds_track["obs_lons"])
@@ -2375,14 +1911,17 @@ class outlier_class:
         if _mc_name is not None:
             _mc_kwargs["name"] = _mc_name
 
-        print(f"[plot_track_over_model] Loading '{model_nID}'"
-            + (f" name='{_mc_name}'" if _mc_name else "")
-            + f" at {model_time_h} …")
+        logger.info(
+            "[plot_track_over_model] Loading '%s'%s at %s …",
+            model_nID,
+            f" name='{_mc_name}'" if _mc_name else "",
+            model_time_h,
+        )
         mco = None
         try:
             mco = mc(**_mc_kwargs).populate()
         except Exception as exc:
-            print(f"  WARNING: could not load model field: {exc}")
+            logger.warning("Could not load model field: %s", exc)
 
         # 2. model layer
         fig, ax = mco.quicklook(

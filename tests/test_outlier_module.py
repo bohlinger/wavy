@@ -26,6 +26,8 @@ from wavy.outlier_module import (
     _detect_garden_sprinkler,
     _detect_source_term_ringing,
     _detect_hs_collapse,
+    _detect_spinup_insufficient,
+    required_spinup_hours,
 )
 
 # ---------------------------------------------------------------------------
@@ -428,14 +430,18 @@ def test_pattern_report_stored(mock_cco):
 
 def test_registry_has_builtin_patterns():
     """PATTERN_REGISTRY must contain all four built-in patterns."""
-    for key in ("checkerboard", "garden_sprinkler",
-                "source_term_ringing", "hs_collapse"):
+    for key in (
+        "checkerboard",
+        "garden_sprinkler",
+        "source_term_ringing",
+        "hs_collapse",
+    ):
         assert key in PATTERN_REGISTRY, f"'{key}' missing from PATTERN_REGISTRY"
         entry = PATTERN_REGISTRY[key]
-        assert "detect_fn"   in entry
-        assert "solutions"   in entry
-        assert "references"  in entry
-        assert len(entry["solutions"])  > 0
+        assert "detect_fn" in entry
+        assert "solutions" in entry
+        assert "references" in entry
+        assert len(entry["solutions"]) > 0
         assert len(entry["references"]) > 0
 
 
@@ -450,10 +456,10 @@ def test_register_custom_pattern(mock_cco):
     def _my_detector(outo, *, my_threshold=0.5):
         """Custom stub detector — never fires."""
         return {
-            "detected":         False,
+            "detected": False,
             "contribution_pct": 0.0,
-            "affected_idx":     [],
-            "my_metric":        my_threshold,
+            "affected_idx": [],
+            "my_metric": my_threshold,
         }
 
     register_pattern(
@@ -491,40 +497,46 @@ def _make_ringing_outo(n=20, period=1, amplitude=4.0):
     Build an outo whose model_Hs oscillates every `period` index with
     `amplitude` peak-to-peak, all within a 5-min window.
     """
-    times    = _make_times(n, freq="30s")    # 30 s cadence → 10 min for 20 pts
-    obs_hs   = np.full(n, 2.0)
+    times = _make_times(n, freq="30s")  # 30 s cadence → 10 min for 20 pts
+    obs_hs = np.full(n, 2.0)
     # Ringing: alternating HIGH/LOW every `period` point
-    model_hs = np.where(np.arange(n) % (2 * period) < period,
-                        2.0 + amplitude / 2,
-                        2.0 - amplitude / 2)
+    model_hs = np.where(
+        np.arange(n) % (2 * period) < period, 2.0 + amplitude / 2, 2.0 - amplitude / 2
+    )
 
     ds = xr.Dataset(
         {
-            "obs_Hs":   ("time", obs_hs),
+            "obs_Hs": ("time", obs_hs),
             "model_Hs": ("time", model_hs),
             "obs_lons": ("time", np.linspace(0, 1, n)),
             "obs_lats": ("time", np.linspace(50, 51, n)),
-            "bias":     ("time", model_hs - obs_hs),
+            "bias": ("time", model_hs - obs_hs),
         },
         coords={"time": times},
     )
-    cco  = _build_cco(obs_hs, model_hs, times=times)
+    cco = _build_cco(obs_hs, model_hs, times=times)
     outo = outlier_class.__new__(outlier_class)
-    outo.cco      = cco
-    outo.vars     = ds
-    outo.stats    = {"lo": -100, "hi": 100, "center": 0.0,
-                     "n_outliers": n, "n_total": n,
-                     "pct_outliers": 100.0, "method": "zscore"}
-    outo.obs_var  = "obs_Hs"
-    outo.mod_var  = "model_Hs"
-    outo.n_std    = 3
-    outo.method   = "zscore"
-    outo.model    = "mock"
-    outo.nID      = None
+    outo.cco = cco
+    outo.vars = ds
+    outo.stats = {
+        "lo": -100,
+        "hi": 100,
+        "center": 0.0,
+        "n_outliers": n,
+        "n_total": n,
+        "pct_outliers": 100.0,
+        "method": "zscore",
+    }
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = "mock"
+    outo.nID = None
     outo.varalias = "Hs"
-    outo.sd       = None
-    outo.ed       = None
-    outo.region   = None
+    outo.sd = None
+    outo.ed = None
+    outo.region = None
     outo.pattern_report = None
     return outo
 
@@ -534,15 +546,16 @@ def test_detect_source_term_ringing():
     A rapidly oscillating model_Hs series (alternating every 30 s by ±2 m)
     must trigger the source-term-ringing detector.
     """
-    outo   = _make_ringing_outo(n=20, amplitude=4.0)
+    outo = _make_ringing_outo(n=20, amplitude=4.0)
     result = _detect_source_term_ringing(
         outo,
         ringing_window_min=10,
         ringing_threshold=0.60,
         ringing_amplitude_m=1.0,
     )
-    assert result["detected"] is True, \
-        f"Source-term ringing should be detected; got {result}"
+    assert (
+        result["detected"] is True
+    ), f"Source-term ringing should be detected; got {result}"
     assert result["mean_amplitude_m"] > 1.0
 
 
@@ -553,39 +566,45 @@ def test_detect_source_term_ringing():
 
 def _make_collapse_outo(n=20, n_collapsed=5):
     """Build an outo with n_collapsed points where model_Hs ≈ 0 but obs is large."""
-    times    = _make_times(n)
-    obs_hs   = np.full(n, 3.0)
+    times = _make_times(n)
+    obs_hs = np.full(n, 3.0)
     model_hs = np.full(n, 3.0)
     # inject collapsed points
     model_hs[:n_collapsed] = 0.01
 
     ds = xr.Dataset(
         {
-            "obs_Hs":   ("time", obs_hs),
+            "obs_Hs": ("time", obs_hs),
             "model_Hs": ("time", model_hs),
             "obs_lons": ("time", np.linspace(0, 5, n)),
             "obs_lats": ("time", np.linspace(50, 55, n)),
-            "bias":     ("time", model_hs - obs_hs),
+            "bias": ("time", model_hs - obs_hs),
         },
         coords={"time": times},
     )
-    cco  = _build_cco(obs_hs, model_hs, times=times)
+    cco = _build_cco(obs_hs, model_hs, times=times)
     outo = outlier_class.__new__(outlier_class)
-    outo.cco      = cco
-    outo.vars     = ds
-    outo.stats    = {"lo": -100, "hi": 100, "center": 0.0,
-                     "n_outliers": n, "n_total": n,
-                     "pct_outliers": 100.0, "method": "zscore"}
-    outo.obs_var  = "obs_Hs"
-    outo.mod_var  = "model_Hs"
-    outo.n_std    = 3
-    outo.method   = "zscore"
-    outo.model    = "mock"
-    outo.nID      = None
+    outo.cco = cco
+    outo.vars = ds
+    outo.stats = {
+        "lo": -100,
+        "hi": 100,
+        "center": 0.0,
+        "n_outliers": n,
+        "n_total": n,
+        "pct_outliers": 100.0,
+        "method": "zscore",
+    }
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = "mock"
+    outo.nID = None
     outo.varalias = "Hs"
-    outo.sd       = None
-    outo.ed       = None
-    outo.region   = None
+    outo.sd = None
+    outo.ed = None
+    outo.region = None
     outo.pattern_report = None
     return outo, n_collapsed
 
@@ -598,35 +617,48 @@ def test_detect_hs_collapse():
         hs_collapse_max_model=0.05,
         hs_collapse_min_obs=0.5,
     )
-    assert result["detected"] is True, \
-        f"Hs collapse should be detected; got {result}"
+    assert result["detected"] is True, f"Hs collapse should be detected; got {result}"
     assert result["n_collapsed"] == n_collapsed
     assert result["mean_obs_hs_m"] == pytest.approx(3.0)
 
 
 def test_hs_collapse_not_detected_for_calm():
     """Near-zero model_Hs that matches calm obs must NOT be flagged."""
-    n        = 10
-    times    = _make_times(n)
-    obs_hs   = np.full(n, 0.1)    # genuinely calm
+    n = 10
+    times = _make_times(n)
+    obs_hs = np.full(n, 0.1)  # genuinely calm
     model_hs = np.full(n, 0.02)
 
     ds = xr.Dataset(
-        {"obs_Hs": ("time", obs_hs), "model_Hs": ("time", model_hs),
-         "obs_lons": ("time", np.zeros(n)), "obs_lats": ("time", np.zeros(n)),
-         "bias": ("time", model_hs - obs_hs)},
+        {
+            "obs_Hs": ("time", obs_hs),
+            "model_Hs": ("time", model_hs),
+            "obs_lons": ("time", np.zeros(n)),
+            "obs_lats": ("time", np.zeros(n)),
+            "bias": ("time", model_hs - obs_hs),
+        },
         coords={"time": times},
     )
-    cco  = _build_cco(obs_hs, model_hs, times=times)
+    cco = _build_cco(obs_hs, model_hs, times=times)
     outo = outlier_class.__new__(outlier_class)
-    outo.cco = cco; outo.vars = ds
-    outo.stats    = {}; outo.obs_var = "obs_Hs"; outo.mod_var = "model_Hs"
-    outo.n_std    = 3; outo.method   = "zscore"; outo.model   = None
-    outo.nID      = None; outo.varalias = None; outo.sd = None
-    outo.ed       = None; outo.region = None; outo.pattern_report = None
+    outo.cco = cco
+    outo.vars = ds
+    outo.stats = {}
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = None
+    outo.nID = None
+    outo.varalias = None
+    outo.sd = None
+    outo.ed = None
+    outo.region = None
+    outo.pattern_report = None
 
-    result = _detect_hs_collapse(outo, hs_collapse_max_model=0.05,
-                                  hs_collapse_min_obs=0.5)
+    result = _detect_hs_collapse(
+        outo, hs_collapse_max_model=0.05, hs_collapse_min_obs=0.5
+    )
     assert result["detected"] is False
 
 
@@ -637,33 +669,50 @@ def test_hs_collapse_not_detected_for_calm():
 
 def test_suggest_fixes_checkerboard():
     """suggest_fixes() on a detected checkerboard must mention key solutions."""
-    n        = 20
+    n = 20
     colidx_y = np.arange(800, 800 + n)
     model_hs = np.where(colidx_y % 2 == 0, 13.0, 1.5)
-    obs_hs   = np.full(n, 5.0)
-    times    = _make_times(n)
+    obs_hs = np.full(n, 5.0)
+    times = _make_times(n)
 
     ds = xr.Dataset(
-        {"obs_Hs": ("time", obs_hs), "model_Hs": ("time", model_hs),
-         "obs_lons": ("time", np.linspace(0, 5, n)),
-         "obs_lats": ("time", np.linspace(50, 55, n)),
-         "bias": ("time", model_hs - obs_hs),
-         "colidx_y": ("time", colidx_y)},
+        {
+            "obs_Hs": ("time", obs_hs),
+            "model_Hs": ("time", model_hs),
+            "obs_lons": ("time", np.linspace(0, 5, n)),
+            "obs_lats": ("time", np.linspace(50, 55, n)),
+            "bias": ("time", model_hs - obs_hs),
+            "colidx_y": ("time", colidx_y),
+        },
         coords={"time": times},
     )
-    cco  = _build_cco(obs_hs, model_hs, times=times, extra_vars={"colidx_y": colidx_y})
+    cco = _build_cco(obs_hs, model_hs, times=times, extra_vars={"colidx_y": colidx_y})
     outo = outlier_class.__new__(outlier_class)
-    outo.cco = cco; outo.vars = ds
-    outo.stats    = {"lo": -100, "hi": 100, "center": 0.0,
-                     "n_outliers": n, "n_total": n,
-                     "pct_outliers": 100.0, "method": "zscore"}
-    outo.obs_var  = "obs_Hs"; outo.mod_var = "model_Hs"
-    outo.n_std    = 3; outo.method = "zscore"; outo.model = "mock"
-    outo.nID      = None; outo.varalias = "Hs"; outo.sd = None
-    outo.ed       = None; outo.region = None; outo.pattern_report = None
+    outo.cco = cco
+    outo.vars = ds
+    outo.stats = {
+        "lo": -100,
+        "hi": 100,
+        "center": 0.0,
+        "n_outliers": n,
+        "n_total": n,
+        "pct_outliers": 100.0,
+        "method": "zscore",
+    }
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = "mock"
+    outo.nID = None
+    outo.varalias = "Hs"
+    outo.sd = None
+    outo.ed = None
+    outo.region = None
+    outo.pattern_report = None
 
     report = outo.detect_numerical_patterns(checkerboard_threshold=0.70)
-    text   = outo.suggest_fixes()
+    text = outo.suggest_fixes()
 
     assert isinstance(text, str)
     assert len(text) > 0
@@ -676,11 +725,20 @@ def test_suggest_fixes_checkerboard():
 def test_suggest_fixes_no_report(mock_cco):
     """suggest_fixes() with no pattern_report must print an informational message."""
     outo = outlier_class.__new__(outlier_class)
-    outo.cco = mock_cco; outo.vars = None; outo.stats = {}
-    outo.obs_var = "obs_Hs"; outo.mod_var = "model_Hs"; outo.n_std = 3
-    outo.method = "zscore"; outo.model = None; outo.nID = None
-    outo.varalias = None; outo.sd = None; outo.ed = None
-    outo.region = None; outo.pattern_report = None
+    outo.cco = mock_cco
+    outo.vars = None
+    outo.stats = {}
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = None
+    outo.nID = None
+    outo.varalias = None
+    outo.sd = None
+    outo.ed = None
+    outo.region = None
+    outo.pattern_report = None
 
     text = outo.suggest_fixes()
     assert "No pattern report" in text
@@ -694,12 +752,220 @@ def test_suggest_fixes_no_report(mock_cco):
 def test_detect_patterns_filter(mock_cco):
     """passing patterns=['checkerboard'] must skip all other detectors."""
     outo = outlier_class(mock_cco, n_std=3, method="zscore").populate()
-    n    = len(outo.vars["time"])
+    n = len(outo.vars["time"])
     outo.vars["colidx_y"] = ("time", np.arange(100, 100 + n))
 
     report = outo.detect_numerical_patterns(patterns=["checkerboard"])
 
     assert "checkerboard" in report
     # Other patterns must NOT appear
-    for key in ("garden_sprinkler", "source_term_ringing", "hs_collapse"):
+    for key in (
+        "garden_sprinkler",
+        "source_term_ringing",
+        "hs_collapse",
+        "spinup_insufficient",
+    ):
         assert key not in report, f"'{key}' should not be in report when filtered"
+
+
+# ---------------------------------------------------------------------------
+# 17. required_spinup_hours — physics formula
+# ---------------------------------------------------------------------------
+
+
+def test_required_spinup_hours_formula():
+    """
+    Verify deep-water group velocity formula: c_g = g/(4π·f).
+    For f = 0.1 Hz and 1 000 km domain: T ≈ 35.6 h.
+    """
+    g = 9.81
+    f = 0.1
+    c_g = g / (4 * np.pi * f)  # ≈ 7.806 m/s
+    expected = 1000e3 / c_g / 3600.0  # ≈ 35.6 h
+
+    h = required_spinup_hours(1000.0, f_low_hz=f)
+    assert h == pytest.approx(expected, rel=1e-6)
+
+
+def test_required_spinup_hours_scaling():
+    """Larger domain → longer time; higher frequency → longer time."""
+    h_base = required_spinup_hours(1000.0, f_low_hz=0.1)
+    h_2x = required_spinup_hours(2000.0, f_low_hz=0.1)
+    h_highf = required_spinup_hours(1000.0, f_low_hz=0.2)  # higher f → slower c_g
+
+    assert h_2x == pytest.approx(2 * h_base, rel=1e-6)
+    assert h_highf > h_base  # slower group velocity → more time needed
+
+
+# ---------------------------------------------------------------------------
+# 18. _detect_spinup_insufficient — detected
+# ---------------------------------------------------------------------------
+
+
+def _make_spinup_outo(n_early=15, n_late=15, run_start_str="2023-01-01 00:00"):
+    """
+    Synthetic outo where the early period shows:
+    - model_Hs growing from 0.5 m to 2.5 m (energy slope > thresh)
+    - mean early bias ≈ −1.5 m vs mean late bias ≈ 0 m (ratio >> 2)
+    """
+    run_start = pd.Timestamp(run_start_str)
+    t_early = [run_start + pd.Timedelta(hours=h) for h in np.linspace(1, 47, n_early)]
+    t_late = [run_start + pd.Timedelta(hours=h) for h in np.linspace(49, 96, n_late)]
+    times = pd.DatetimeIndex(t_early + t_late)
+    n = n_early + n_late
+
+    obs_hs = np.full(n, 3.0)
+    # Growing model Hs in early period; stable at obs level in late period
+    mod_hs_early = np.linspace(0.5, 2.5, n_early)
+    mod_hs_late = np.full(n_late, 3.0)
+    model_hs = np.concatenate([mod_hs_early, mod_hs_late])
+    bias_arr = model_hs - obs_hs
+
+    ds = xr.Dataset(
+        {
+            "obs_Hs": ("time", obs_hs),
+            "model_Hs": ("time", model_hs),
+            "obs_lons": ("time", np.linspace(0, 5, n)),
+            "obs_lats": ("time", np.linspace(50, 55, n)),
+            "bias": ("time", bias_arr),
+        },
+        coords={"time": times},
+    )
+    cco = _build_cco(obs_hs, model_hs, times=times)
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco = cco
+    outo.vars = ds
+    outo.stats = {
+        "lo": -100,
+        "hi": 100,
+        "center": 0.0,
+        "n_outliers": n,
+        "n_total": n,
+        "pct_outliers": 100.0,
+        "method": "zscore",
+    }
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = "mock"
+    outo.nID = None
+    outo.varalias = "Hs"
+    outo.sd = run_start_str
+    outo.ed = None
+    outo.region = None
+    outo.pattern_report = None
+    return outo, run_start_str
+
+
+def test_detect_spinup_insufficient_detected():
+    """
+    Growing model_Hs and strongly negative early bias must trigger detection.
+    """
+    outo, run_start_str = _make_spinup_outo(n_early=15, n_late=15)
+    result = _detect_spinup_insufficient(
+        outo,
+        spinup_end_hours=48.0,
+        rel_slope_thresh=0.02,
+        early_bias_factor=2.0,
+        min_points=4,
+        run_start=run_start_str,
+    )
+    assert result["detected"] is True, f"Spin-up should be detected; got {result}"
+    # At least one sub-test must fire
+    assert result["energy_still_growing"] or result["bias_drift_detected"]
+    # All early points (15) are affected
+    assert len(result["affected_idx"]) == 15
+    # early bias more negative than late
+    assert result["early_mean_bias_m"] < result["late_mean_bias_m"]
+
+
+# ---------------------------------------------------------------------------
+# 19. _detect_spinup_insufficient — not detected (flat bias)
+# ---------------------------------------------------------------------------
+
+
+def test_detect_spinup_not_detected_flat():
+    """
+    Flat model_Hs and flat bias over the full period → not detected.
+    """
+    n = 30
+    run_start = pd.Timestamp("2023-01-01 00:00")
+    times = pd.DatetimeIndex(
+        [run_start + pd.Timedelta(hours=h) for h in np.linspace(1, 96, n)]
+    )
+    obs_hs = np.full(n, 2.0)
+    model_hs = np.full(n, 2.5)  # constant +0.5 m bias — no trend
+    bias_arr = model_hs - obs_hs
+
+    ds = xr.Dataset(
+        {
+            "obs_Hs": ("time", obs_hs),
+            "model_Hs": ("time", model_hs),
+            "obs_lons": ("time", np.linspace(0, 5, n)),
+            "obs_lats": ("time", np.linspace(50, 55, n)),
+            "bias": ("time", bias_arr),
+        },
+        coords={"time": times},
+    )
+    cco = _build_cco(obs_hs, model_hs, times=times)
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco = cco
+    outo.vars = ds
+    outo.stats = {}
+    outo.obs_var = "obs_Hs"
+    outo.mod_var = "model_Hs"
+    outo.n_std = 3
+    outo.method = "zscore"
+    outo.model = None
+    outo.nID = None
+    outo.varalias = None
+    outo.sd = str(run_start)
+    outo.ed = None
+    outo.region = None
+    outo.pattern_report = None
+
+    result = _detect_spinup_insufficient(
+        outo,
+        spinup_end_hours=48.0,
+        rel_slope_thresh=0.02,
+        early_bias_factor=2.0,
+        min_points=4,
+        run_start=str(run_start),
+    )
+    assert (
+        result["detected"] is False
+    ), f"Should NOT detect spin-up on flat data; got {result}"
+    assert result["affected_idx"] == []
+
+
+# ---------------------------------------------------------------------------
+# 20. detect_numerical_patterns includes spinup_insufficient in registry
+# ---------------------------------------------------------------------------
+
+
+def test_registry_includes_spinup():
+    """PATTERN_REGISTRY must now include spinup_insufficient with 5 built-ins."""
+    assert "spinup_insufficient" in PATTERN_REGISTRY
+    entry = PATTERN_REGISTRY["spinup_insufficient"]
+    assert "run_start" in entry["default_params"]
+    assert len(entry["solutions"]) >= 3
+    assert len(entry["references"]) >= 2
+
+
+def test_detect_spinup_via_registry(mock_cco):
+    """
+    detect_numerical_patterns() must include spinup_insufficient in output
+    (not-detected for mock_cco which has no temporal trend).
+    """
+    outo = outlier_class(mock_cco, n_std=3, method="zscore").populate()
+    n = len(outo.vars["time"])
+    outo.vars["colidx_y"] = ("time", np.arange(100, 100 + n))
+
+    report = outo.detect_numerical_patterns(
+        patterns=["spinup_insufficient"],
+        run_start="2023-01-01",
+    )
+    assert "spinup_insufficient" in report
+    # mock_cco has no temporal structure → should not fire
+    assert report["spinup_insufficient"]["detected"] is False
