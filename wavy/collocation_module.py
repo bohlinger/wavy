@@ -158,6 +158,25 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
             neighbours=1,
         )
     )
+    # valid_output_index is a boolean mask of length n_obs; index_array and
+    # distance_array only contain entries for *valid* obs (those with a
+    # neighbour inside the radius of influence).  Re-expand to the full obs
+    # length so that subsequent per-obs indexing (obs_lons[dist_idx], …) stays
+    # in sync with the model-value arrays.  Invalid entries get distance=inf
+    # and are therefore automatically excluded by the distlim filter later.
+    n_obs = len(obs_lons)
+    if len(index_array) < n_obs:
+        _full_index = np.zeros(n_obs, dtype=index_array.dtype)
+        _full_dist = np.full(n_obs, np.inf)
+        _full_index[valid_output_index] = index_array
+        _full_dist[valid_output_index] = distance_array
+        index_array = _full_index
+        distance_array = _full_dist
+        logger.debug(
+            "%d obs had no valid model neighbour (outside radius of influence) "
+            "and will be excluded",
+            n_obs - int(np.sum(valid_output_index)),
+        )
     # get_neighbour_info() returns indices in the
     # flattened lat/lon grid. Compute the 2D grid indices:
     index_array_2d = np.unravel_index(index_array, grid.shape)
@@ -465,7 +484,7 @@ class collocation_class(qls):
 
     def _collocate_field(self, mco, tmp_dict, **kwargs):
         """
-        Some info
+        Collocates a model field with a set of observations
         """
         Mlons = mco.vars.lons.data
         Mlats = mco.vars.lats.data
@@ -507,6 +526,20 @@ class collocation_class(qls):
         idx_x = index_array_2d[0][dist_idx]
         idx_y = index_array_2d[1][dist_idx]
         logger.debug("%d footprints within distlim=%s km", len(dist_idx), self.distlim)
+        if logger.isEnabledFor(logging.DEBUG) and len(idx_x) > 1:
+            v0 = self.varalias_mod[0]
+            model_vals = Mvars[v0][idx_x, idx_y]
+            unique_idx_x = np.unique(idx_x)
+            unique_idx_y = np.unique(idx_y)
+            logger.debug(
+                "Model %s stats: min=%.3f max=%.3f mean=%.3f — "
+                "idx_x range [%d,%d] (%d unique), idx_y range [%d,%d] (%d unique)",
+                v0,
+                float(np.nanmin(model_vals)), float(np.nanmax(model_vals)),
+                float(np.nanmean(model_vals)),
+                int(idx_x.min()), int(idx_x.max()), len(unique_idx_x),
+                int(idx_y.min()), int(idx_y.max()), len(unique_idx_y),
+            )
         results_dict = {
             "dist": list(distance_array[dist_idx]),
             "model_lons": list(Mlons[idx_x, idx_y]),
