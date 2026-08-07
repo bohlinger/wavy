@@ -2336,9 +2336,9 @@ class outlier_class:
 
         label = f"event #{event_id}" if event_id is not None else f"point #{idx}"
         ax.set_title(
-            f"Track over model \u2014 {model_nID}  [{label}]\n"
+            f"Track over model — {model_nID}  [{label}]\n"
             f"{center_time.strftime('%Y-%m-%d %H:%M UTC')}  "
-            f"\u00b1{track_window_min} min  |  {out_lons.size} outlier(s) in window",
+            f"±{track_window_min} min  |  {out_lons.size} outlier(s) in window",
             fontsize=9,
         )
         fig.tight_layout()
