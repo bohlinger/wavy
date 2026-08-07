@@ -302,6 +302,515 @@ def load_from_dill(path):
 
 
 # ---------------------------------------------------------------------------
+# Pattern Registry — open for user contributions
+# ---------------------------------------------------------------------------
+
+PATTERN_REGISTRY: dict = {}
+
+
+def register_pattern(
+    key: str,
+    *,
+    name: str,
+    instability_id: str,
+    description: str,
+    detect_fn,
+    solutions: list,
+    references: list,
+    default_params: dict | None = None,
+) -> None:
+    """
+    Register a numerical-pattern detector with the global registry.
+
+    Registered patterns are automatically picked up by
+    ``outlier_class.detect_numerical_patterns()`` and
+    ``outlier_class.suggest_fixes()``.
+
+    Parameters
+    ----------
+    key            : str      – unique registry key (e.g. ``"checkerboard"``).
+    name           : str      – human-readable pattern name.
+    instability_id : str      – doc section reference (e.g. ``"1"``, ``"7"``).
+    description    : str      – one-line description.
+    detect_fn      : callable – ``fn(outo, **params) → dict`` with at minimum
+                                keys ``detected`` (bool),
+                                ``contribution_pct`` (float),
+                                ``affected_idx`` (list[int]).
+    solutions      : list[str] – known WW3 / model configuration fixes.
+    references     : list[str] – key literature references.
+    default_params : dict     – default keyword arguments forwarded to
+                                ``detect_fn``.
+
+    Example
+    -------
+    >>> def my_detector(outo, *, my_threshold=0.5):
+    ...     affected = []      # fill with matching indices
+    ...     return {"detected": bool(affected),
+    ...             "contribution_pct": 0.0, "affected_idx": affected}
+    >>> register_pattern(
+    ...     "my_pattern",
+    ...     name="My custom pattern",
+    ...     instability_id="custom",
+    ...     description="Detects my custom artifact.",
+    ...     detect_fn=my_detector,
+    ...     solutions=["Reduce time step."],
+    ...     references=["Smith et al. (2000)."],
+    ...     default_params={"my_threshold": 0.5},
+    ... )
+    """
+    if key in PATTERN_REGISTRY:
+        logger.warning("Pattern key '%s' is already registered; overwriting.", key)
+    PATTERN_REGISTRY[key] = {
+        "name":           name,
+        "instability_id": instability_id,
+        "description":    description,
+        "detect_fn":      detect_fn,
+        "solutions":      list(solutions),
+        "references":     list(references),
+        "default_params": dict(default_params or {}),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Pattern detection functions  (operate on an outlier_class instance)
+# ---------------------------------------------------------------------------
+
+
+def _detect_checkerboard(outo, *, checkerboard_threshold=0.70):
+    """
+    Detect checkerboard / 2Δx spatial instability.
+
+    A checkerboard arises when model Hs at even and odd ``colidx_y``
+    (or ``colidx_x``) colocation-grid indices systematically differ —
+    the spatial signature of a geographic CFL violation (instability #1).
+
+    Parameters
+    ----------
+    outo                   : outlier_class
+    checkerboard_threshold : float – minimum alternation fraction to flag
+                                     (default 0.70).
+
+    Returns
+    -------
+    dict : detected, parity_fraction, amplitude_m,
+           contribution_pct, affected_idx.
+    """
+    n_total = int(outo.vars.sizes["time"])
+    mod_hs  = np.asarray(outo.vars[outo.mod_var])
+    obs_hs  = np.asarray(outo.vars[outo.obs_var])
+
+    _empty = {
+        "detected": False, "parity_fraction": 0.0,
+        "amplitude_m": 0.0, "contribution_pct": 0.0,
+        "affected_idx": [],
+    }
+
+    # Resolve grid index from outo.vars (preferred) or warn
+    grid_idx = None
+    if "colidx_y" in outo.vars:
+        grid_idx = np.asarray(outo.vars["colidx_y"], dtype=int)
+    elif "colidx_x" in outo.vars:
+        grid_idx = np.asarray(outo.vars["colidx_x"], dtype=int)
+    else:
+        _src = "cco.vars" if outo.cco is not None and (
+            "colidx_y" in outo.cco.vars or "colidx_x" in outo.cco.vars
+        ) else None
+        if _src:
+            logger.warning(
+                "colidx_y / colidx_x found only in %s (not outo.vars); "
+                "ensure colidx_* is carried through populate() for "
+                "checkerboard detection. Skipping.", _src,
+            )
+        else:
+            logger.warning(
+                "colidx_x / colidx_y not found in outo.vars or cco.vars; "
+                "skipping checkerboard detection.",
+            )
+        return _empty
+
+    if len(grid_idx) < 2:
+        return _empty
+
+    bias_vals         = mod_hs - obs_hs
+    parity            = grid_idx % 2
+    diffs             = np.diff(grid_idx)
+    sign_changes      = np.diff(np.sign(bias_vals))
+    consecutive_step1 = np.abs(diffs) == 1
+    alternating       = (sign_changes != 0) & consecutive_step1
+
+    n_transitions   = int(consecutive_step1.sum())
+    n_alternating   = int(alternating.sum())
+    parity_fraction = n_alternating / n_transitions if n_transitions > 0 else 0.0
+    detected        = parity_fraction >= checkerboard_threshold
+
+    even_mask = parity == 0
+    odd_mask  = parity == 1
+    mean_even = float(np.mean(mod_hs[even_mask])) if even_mask.any() else float("nan")
+    mean_odd  = float(np.mean(mod_hs[odd_mask]))  if odd_mask.any()  else float("nan")
+    amplitude = (
+        abs(mean_even - mean_odd)
+        if np.isfinite(mean_even) and np.isfinite(mean_odd) else 0.0
+    )
+
+    if detected:
+        affected_set = set()
+        for k in range(len(diffs)):
+            if consecutive_step1[k] and alternating[k]:
+                affected_set.add(k)
+                affected_set.add(k + 1)
+        affected_idx = sorted(affected_set)
+    else:
+        affected_idx = []
+
+    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
+
+    return {
+        "detected":         detected,
+        "parity_fraction":  float(parity_fraction),
+        "amplitude_m":      float(amplitude),
+        "contribution_pct": float(contribution_pct),
+        "affected_idx":     affected_idx,
+    }
+
+
+def _detect_garden_sprinkler(outo, *, window_min=30, bimodal_score_threshold=2.0):
+    """
+    Detect the Garden Sprinkler Effect (instability #7).
+
+    Within a ±window_min-minute time window that contains ≥ 4 outlier
+    points, compute the bimodal score on model_Hs:
+    ``bimodal_score = (mean_high − mean_low) / std_all``.
+    Flag windows where ``bimodal_score > bimodal_score_threshold``.
+
+    Note: for a perfectly equal 50/50 bimodal split the score equals
+    exactly 2.0.  Windows with an odd point count (e.g. 4 LOW + 5 HIGH)
+    yield ~2.01 and satisfy the strict ``>`` criterion.
+
+    Parameters
+    ----------
+    outo                    : outlier_class
+    window_min              : int   – half-window in minutes (default 30).
+    bimodal_score_threshold : float – minimum score to flag (default 2.0).
+
+    Returns
+    -------
+    dict : detected, windows, contribution_pct, affected_idx.
+    """
+    n_total    = int(outo.vars.sizes["time"])
+    mod_hs     = np.asarray(outo.vars[outo.mod_var])
+    times      = pd.DatetimeIndex(outo.vars["time"].values)
+    times_sec  = np.array([t.timestamp() for t in times])
+    window_sec = window_min * 60.0
+
+    flagged_windows = []
+    affected_set    = set()
+
+    for i in range(n_total):
+        dt     = np.abs(times_sec - times_sec[i])
+        in_win = np.where(dt <= window_sec)[0]
+        if len(in_win) < 4:
+            continue
+        if i != int(in_win[0]):
+            continue
+
+        hs_win  = mod_hs[in_win]
+        std_all = float(np.std(hs_win))
+        if std_all < 1e-12:
+            continue
+
+        sorted_hs     = np.sort(hs_win)
+        half          = len(sorted_hs) // 2
+        mean_low      = float(np.mean(sorted_hs[:half]))
+        mean_high     = float(np.mean(sorted_hs[half:]))
+        bimodal_score = (mean_high - mean_low) / std_all
+
+        if bimodal_score > bimodal_score_threshold:
+            center_time = times[in_win[len(in_win) // 2]]
+            flagged_windows.append({
+                "center_time":   center_time,
+                "bimodal_score": float(bimodal_score),
+                "level_low_m":   float(mean_low),
+                "level_high_m":  float(mean_high),
+                "n_points":      int(len(in_win)),
+                "indices":       in_win.tolist(),
+            })
+            affected_set.update(in_win.tolist())
+
+    affected_idx     = sorted(affected_set)
+    detected         = len(flagged_windows) > 0
+    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
+
+    return {
+        "detected":         detected,
+        "windows":          flagged_windows,
+        "contribution_pct": float(contribution_pct),
+        "affected_idx":     affected_idx,
+    }
+
+
+def _detect_source_term_ringing(
+    outo,
+    *,
+    ringing_window_min: int = 5,
+    ringing_threshold: float = 0.60,
+    ringing_amplitude_m: float = 0.5,
+):
+    """
+    Detect source-term stiffness / temporal ringing (instability #4).
+
+    In short time windows, high-frequency oscillation of model_Hs
+    (alternating sign of first differences) with non-trivial amplitude is
+    the signature of stiff source-term integration under strong wind forcing
+    or in very shallow water.
+
+    Parameters
+    ----------
+    outo                 : outlier_class
+    ringing_window_min   : int   – window length in minutes (default 5).
+    ringing_threshold    : float – minimum fraction of alternating first
+                                   differences to flag (default 0.60).
+    ringing_amplitude_m  : float – minimum model_Hs range in the window [m]
+                                   (default 0.5 m).
+
+    Returns
+    -------
+    dict : detected, n_flagged_windows, mean_amplitude_m,
+           contribution_pct, affected_idx.
+    """
+    n_total    = int(outo.vars.sizes["time"])
+    mod_hs     = np.asarray(outo.vars[outo.mod_var])
+    times      = pd.DatetimeIndex(outo.vars["time"].values)
+    times_sec  = np.array([t.timestamp() for t in times])
+    window_sec = ringing_window_min * 60.0
+
+    flagged_windows = []
+    affected_set    = set()
+
+    for i in range(n_total):
+        dt     = np.abs(times_sec - times_sec[i])
+        in_win = np.where(dt <= window_sec)[0]
+        if len(in_win) < 4:
+            continue
+        if i != int(in_win[0]):
+            continue
+
+        hs_win    = mod_hs[in_win]
+        amplitude = float(np.max(hs_win) - np.min(hs_win))
+        if amplitude < ringing_amplitude_m:
+            continue
+
+        diffs    = np.diff(hs_win)
+        signs_nz = np.sign(diffs)
+        signs_nz = signs_nz[signs_nz != 0]
+        if len(signs_nz) < 2:
+            continue
+
+        n_alternations   = int(np.sum(np.diff(signs_nz) != 0))
+        ringing_fraction = n_alternations / (len(signs_nz) - 1)
+
+        if ringing_fraction >= ringing_threshold:
+            center_time = times[in_win[len(in_win) // 2]]
+            flagged_windows.append({
+                "center_time":      center_time,
+                "ringing_fraction": float(ringing_fraction),
+                "amplitude_m":      float(amplitude),
+                "n_points":         int(len(in_win)),
+                "indices":          in_win.tolist(),
+            })
+            affected_set.update(in_win.tolist())
+
+    affected_idx     = sorted(affected_set)
+    detected         = len(flagged_windows) > 0
+    amplitudes       = [w["amplitude_m"] for w in flagged_windows]
+    mean_amplitude   = float(np.mean(amplitudes)) if amplitudes else 0.0
+    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
+
+    return {
+        "detected":          detected,
+        "n_flagged_windows": len(flagged_windows),
+        "mean_amplitude_m":  mean_amplitude,
+        "contribution_pct":  float(contribution_pct),
+        "affected_idx":      affected_idx,
+    }
+
+
+def _detect_hs_collapse(
+    outo,
+    *,
+    hs_collapse_max_model: float = 0.05,
+    hs_collapse_min_obs: float = 0.5,
+):
+    """
+    Detect near-zero / collapsed model Hs (instability #10).
+
+    Negative spectral energy densities are clipped to zero by WW3's
+    non-negativity limiter, producing unrealistically low (near-zero)
+    model Hs values where the satellite observes non-trivial wave heights.
+
+    Parameters
+    ----------
+    outo                  : outlier_class
+    hs_collapse_max_model : float – model_Hs threshold below which the field
+                                    is considered collapsed [m] (default 0.05).
+    hs_collapse_min_obs   : float – minimum obs_Hs to rule out genuinely calm
+                                    conditions [m] (default 0.5).
+
+    Returns
+    -------
+    dict : detected, n_collapsed, mean_obs_hs_m, contribution_pct, affected_idx.
+    """
+    n_total = int(outo.vars.sizes["time"])
+    mod_hs  = np.asarray(outo.vars[outo.mod_var])
+    obs_hs  = np.asarray(outo.vars[outo.obs_var])
+
+    mask         = (mod_hs < hs_collapse_max_model) & (obs_hs > hs_collapse_min_obs)
+    affected_idx = np.where(mask)[0].tolist()
+    detected     = len(affected_idx) > 0
+
+    contribution_pct = 100.0 * len(affected_idx) / n_total if n_total > 0 else 0.0
+    mean_obs         = float(np.mean(obs_hs[mask])) if detected else 0.0
+
+    return {
+        "detected":         detected,
+        "n_collapsed":      len(affected_idx),
+        "mean_obs_hs_m":    mean_obs,
+        "contribution_pct": float(contribution_pct),
+        "affected_idx":     affected_idx,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Built-in pattern registrations
+# ---------------------------------------------------------------------------
+
+register_pattern(
+    "checkerboard",
+    name="Checkerboard / 2Δx spatial instability",
+    instability_id="1",
+    description=(
+        "Alternating high/low model Hs on consecutive colocation-grid cells — "
+        "signature of a geographic CFL violation."
+    ),
+    detect_fn=_detect_checkerboard,
+    solutions=[
+        "Reduce the propagation time step DTXY (or DTMAX) in ww3_grid.inp so "
+        "the Courant number C_g * Δt / Δx < 1 everywhere.",
+        "Use the implicit PDLIB solver for unstructured grids — removes the "
+        "CFL restriction on Δx at the cost of a sparse linear solve.",
+        "Smooth very small grid cells near the poles or in narrow straits, or "
+        "increase Δx locally to relax the CFL constraint.",
+    ],
+    references=[
+        "Tolman, H.L. (1992). Effects of numerics on the physics in a "
+        "third-generation wind-wave model. J. Phys. Oceanogr. 22, 1770–1786.",
+        "WW3 Development Group. WAVEWATCH III User Manual (NOAA/NCEP), "
+        "section on time stepping and CFL.",
+    ],
+    default_params={"checkerboard_threshold": 0.70},
+)
+
+register_pattern(
+    "garden_sprinkler",
+    name="Garden Sprinkler Effect (GSE)",
+    instability_id="7",
+    description=(
+        "Discretely banded Hs patterns downstream of distant storms — caused "
+        "by finite directional/frequency resolution spreading swell as "
+        "discrete 'jets' rather than a continuous field."
+    ),
+    detect_fn=_detect_garden_sprinkler,
+    solutions=[
+        "Increase directional spectral resolution (NDIR in ww3_grid.inp); "
+        "doubling NDIR is the most robust fix but roughly doubles cost.",
+        "Activate the GSE divergence alleviation scheme (Tolman 2002b): "
+        "set FLAGTR > 0 in the propagation input.",
+        "Apply a diffusion tensor in spectral space (Booij & Holthuijsen 1987): "
+        "non-zero SDMAX / DDMAX in the propagation input.",
+        "Use directional averaging (Lavrenov & Onvlee 1995) as a cheaper "
+        "alternative on structured grids.",
+        "Note: GSE alleviation is currently unavailable for unstructured grids.",
+    ],
+    references=[
+        "Booij, N. and Holthuijsen, L.H. (1987). Propagation of ocean waves in "
+        "discrete spectral wave models. J. Comput. Phys. 68, 307–326.",
+        "Lavrenov, I.V. and Onvlee, J. (1995). On the directional spreading in "
+        "discrete spectral wave models. J. Phys. Oceanogr. 25, 62–71.",
+        "Tolman, H.L. (2002b). Alleviating the Garden Sprinkler Effect in wind "
+        "wave models. Ocean Modelling 4, 269–289.",
+    ],
+    default_params={"window_min": 30, "bimodal_score_threshold": 2.0},
+)
+
+register_pattern(
+    "source_term_ringing",
+    name="Source-term stiffness / temporal ringing",
+    instability_id="4",
+    description=(
+        "High-frequency oscillation of model Hs in time at isolated points — "
+        "signature of stiff source-term integration under strong wind forcing "
+        "or in very shallow water."
+    ),
+    detect_fn=_detect_source_term_ringing,
+    solutions=[
+        "Reduce DTMIN (minimum source-term sub-step) so the adaptive algorithm "
+        "can shrink the step more aggressively in high-forcing cells.",
+        "Ensure the fully implicit source-term integration scheme "
+        "(Hargreaves & Annan 2000) is active — this is the WW3 default but "
+        "can be disabled by the IMPLCT switch.",
+        "Reduce the overall model time step in domains with hurricane-force "
+        "winds or very shallow nested grids.",
+        "Apply the spectral change limiter (Tolman 2002a) to cap growth per "
+        "time step — this can introduce bias in rapidly evolving spectra.",
+    ],
+    references=[
+        "Hargreaves, J.C. and Annan, J.D. (2000). Comments on 'Improvement of "
+        "the short-fetch behaviour in the WAM model'. "
+        "J. Atmos. Ocean. Technol. 17, 498–503.",
+        "Tolman, H.L. (2002a). Testing of WAVEWATCH III version 2.22 in "
+        "NCEP's NWW3 ocean wave forecasting system (NOAA/NCEP Tech Note 214).",
+        "WW3 Development Group. WAVEWATCH III User Manual (NOAA/NCEP), "
+        "section on source term time stepping and DTMIN.",
+    ],
+    default_params={
+        "ringing_window_min": 5,
+        "ringing_threshold": 0.60,
+        "ringing_amplitude_m": 0.5,
+    },
+)
+
+register_pattern(
+    "hs_collapse",
+    name="Near-zero Hs collapse (negative-energy clipping)",
+    instability_id="10",
+    description=(
+        "Model Hs near zero where the satellite observes non-trivial waves — "
+        "caused by negative spectral energy densities clipped to zero "
+        "after an over-dissipating source-term update."
+    ),
+    detect_fn=_detect_hs_collapse,
+    solutions=[
+        "Reduce the source-term time step (DTMIN) so individual spectral bins "
+        "are not over-dissipated in a single update.",
+        "Verify the non-negativity clipping switch is active (it is the "
+        "default; check that no custom build flag disabled it).",
+        "Inspect the whitecapping / dissipation parameterisation coefficients "
+        "(BETAMAX, SDSBR, etc.) — over-tuned dissipation often drives this.",
+        "Increase source-term time step resolution in very fine coastal nests.",
+    ],
+    references=[
+        "WW3 Development Group. WAVEWATCH III User Manual (NOAA/NCEP), "
+        "section on non-negativity of spectral densities.",
+        "Tolman, H.L. (1992). Effects of numerics on the physics in a "
+        "third-generation wind-wave model. J. Phys. Oceanogr. 22, 1770–1786.",
+    ],
+    default_params={
+        "hs_collapse_max_model": 0.05,
+        "hs_collapse_min_obs": 0.5,
+    },
+)
+
+
+# ---------------------------------------------------------------------------
 # 1.  Outlier detection
 # ---------------------------------------------------------------------------
 
@@ -1373,34 +1882,38 @@ class outlier_class:
         window_min: int = 30,
         checkerboard_threshold: float = 0.70,
         bimodal_score_threshold: float = 2.0,
+        patterns: list | None = None,
+        **pattern_kwargs,
     ) -> dict:
         """
-        Scan the outlier set for known numerical model artifacts.
+        Scan the outlier set for registered numerical model artifacts.
+
+        Iterates over every entry in the module-level ``PATTERN_REGISTRY``
+        (or a user-selected subset via ``patterns``), calls each detector,
+        collects results, computes RMSE/bias impact, and prints a summary.
+
+        New patterns can be added without touching this method: call
+        ``register_pattern()`` at module level and they will automatically
+        appear here.
 
         Parameters
         ----------
-        window_min               : half-window for garden-sprinkler grouping [min].
-        checkerboard_threshold   : minimum alternation fraction for checkerboard flag.
-        bimodal_score_threshold  : minimum bimodal score for garden-sprinkler flag.
+        window_min               : half-window for garden-sprinkler (and
+                                   source-term-ringing) grouping [min].
+        checkerboard_threshold   : minimum alternation fraction for checkerboard.
+        bimodal_score_threshold  : minimum bimodal score for garden-sprinkler.
+        patterns                 : list of registry keys to run, or None for all.
+        **pattern_kwargs         : any additional keyword args forwarded to the
+                                   relevant detector (override default_params).
 
         Returns
         -------
-        report : dict with keys
-            "checkerboard"   : dict or None
-                "detected"        : bool
-                "parity_fraction" : float
-                "amplitude_m"     : float   # |mean_even_Hs – mean_odd_Hs|
-                "contribution_pct": float   # % of total outliers
-                "affected_idx"    : list[int]
-            "garden_sprinkler" : dict or None
-                "detected"        : bool
-                "windows"         : list[dict]  # one entry per flagged window
-                    each window: {"center_time", "bimodal_score",
-                                  "level_low_m", "level_high_m",
-                                  "n_points", "indices": list[int]}
-                "contribution_pct": float
-                "affected_idx"    : list[int]
-            "summary" : str   # human-readable multi-line text
+        report : dict
+            One key per registered pattern (e.g. ``"checkerboard"``,
+            ``"garden_sprinkler"``, ``"source_term_ringing"``,
+            ``"hs_collapse"``), plus ``"summary"`` (str).
+            Each pattern value is the dict returned by its ``detect_fn``.
+            ``self.pattern_report`` is set to the returned dict.
         """
         if self.vars is None:
             raise ValueError(
@@ -1408,194 +1921,73 @@ class outlier_class:
                 "detect_numerical_patterns()."
             )
 
-        n_total_outliers = int(self.vars.sizes["time"])
-        mod_hs = np.asarray(self.vars[self.mod_var])
-        obs_hs = np.asarray(self.vars[self.obs_var])
-        times  = pd.DatetimeIndex(self.vars["time"].values)
+        n_total = int(self.vars.sizes["time"])
+        times   = pd.DatetimeIndex(self.vars["time"].values)
 
-        # ------------------------------------------------------------------
-        # A. Checkerboard / 2Δx instability
-        # ------------------------------------------------------------------
-        cb_result = None
-        has_colidx = ("colidx_y" in self.vars or "colidx_x" in self.vars)
-
-        # Also check cco.vars as a fallback source for grid indices
-        if not has_colidx and self.cco is not None:
-            has_colidx = (
-                "colidx_y" in self.cco.vars or "colidx_x" in self.cco.vars
-            )
-
-        if not has_colidx:
-            logger.warning(
-                "colidx_x / colidx_y not found in outo.vars or cco.vars; "
-                "skipping checkerboard detection."
-            )
-            cb_result = {"detected": False, "parity_fraction": 0.0,
-                         "amplitude_m": 0.0, "contribution_pct": 0.0,
-                         "affected_idx": []}
-        else:
-            # Prefer grid indices from outo.vars; fall back to cco.vars
-            if "colidx_y" in self.vars:
-                grid_idx = np.asarray(self.vars["colidx_y"], dtype=int)
-            elif "colidx_x" in self.vars:
-                grid_idx = np.asarray(self.vars["colidx_x"], dtype=int)
-            elif self.cco is not None and "colidx_y" in self.cco.vars:
-                # Need to map cco indices to the outlier subset – not available
-                # without re-indexing; warn and skip rather than crash.
-                logger.warning(
-                    "colidx_y found only in cco.vars (not in outo.vars); "
-                    "carry colidx_y through populate() to enable checkerboard "
-                    "detection. Skipping."
-                )
-                grid_idx = None
-            else:
-                grid_idx = None
-
-            if grid_idx is not None and len(grid_idx) >= 2:
-                # Compute sign of bias at each outlier point
-                bias_vals = mod_hs - obs_hs
-                parity    = grid_idx % 2           # 0 = even, 1 = odd
-
-                # Count sign alternations between consecutive points where
-                # the grid index changes by exactly 1.
-                diffs = np.diff(grid_idx)
-                sign_changes = np.diff(np.sign(bias_vals))
-                consecutive_step1 = np.abs(diffs) == 1
-                alternating       = (sign_changes != 0) & consecutive_step1
-
-                n_transitions = int(consecutive_step1.sum())
-                n_alternating = int(alternating.sum())
-                parity_fraction = (
-                    n_alternating / n_transitions if n_transitions > 0 else 0.0
-                )
-
-                detected = parity_fraction >= checkerboard_threshold
-
-                # Amplitude: difference between mean model_Hs at even / odd cells
-                even_mask = parity == 0
-                odd_mask  = parity == 1
-                mean_even = float(np.mean(mod_hs[even_mask])) if even_mask.any() else float("nan")
-                mean_odd  = float(np.mean(mod_hs[odd_mask]))  if odd_mask.any()  else float("nan")
-                amplitude = abs(mean_even - mean_odd) if np.isfinite(mean_even) and np.isfinite(mean_odd) else 0.0
-
-                # Affected indices: all outlier points that follow the even/odd
-                # pattern (i.e. are part of the alternating sequence).
-                if detected:
-                    # Mark all points that participate in an alternating transition
-                    affected_set = set()
-                    for k in range(len(diffs)):
-                        if consecutive_step1[k] and alternating[k]:
-                            affected_set.add(k)
-                            affected_set.add(k + 1)
-                    affected_idx = sorted(affected_set)
-                else:
-                    affected_idx = []
-
-                contribution_pct = (
-                    100.0 * len(affected_idx) / n_total_outliers
-                    if n_total_outliers > 0 else 0.0
-                )
-
-                cb_result = {
-                    "detected":         detected,
-                    "parity_fraction":  float(parity_fraction),
-                    "amplitude_m":      float(amplitude),
-                    "contribution_pct": float(contribution_pct),
-                    "affected_idx":     affected_idx,
-                }
-            else:
-                cb_result = {
-                    "detected": False, "parity_fraction": 0.0,
-                    "amplitude_m": 0.0, "contribution_pct": 0.0,
-                    "affected_idx": [],
-                }
-
-        # ------------------------------------------------------------------
-        # B. Garden-sprinkler effect
-        # ------------------------------------------------------------------
-        flagged_windows  = []
-        gs_affected_set  = set()
-        times_sec = np.array([t.timestamp() for t in times])
-        window_sec = window_min * 60.0
-
-        for i in range(n_total_outliers):
-            dt = np.abs(times_sec - times_sec[i])
-            in_win = np.where(dt <= window_sec)[0]
-            if len(in_win) < 4:
-                continue
-            # only process windows seeded by their earliest point
-            if i != int(in_win[0]):
-                continue
-
-            hs_win   = mod_hs[in_win]
-            std_all  = float(np.std(hs_win))
-            if std_all < 1e-12:
-                continue
-
-            sorted_hs = np.sort(hs_win)
-            half      = len(sorted_hs) // 2
-            mean_low  = float(np.mean(sorted_hs[:half]))
-            mean_high = float(np.mean(sorted_hs[half:]))
-            bimodal_score = (mean_high - mean_low) / std_all
-
-            if bimodal_score > bimodal_score_threshold:
-                center_time = times[in_win[len(in_win) // 2]]
-                flagged_windows.append({
-                    "center_time":   center_time,
-                    "bimodal_score": float(bimodal_score),
-                    "level_low_m":   float(mean_low),
-                    "level_high_m":  float(mean_high),
-                    "n_points":      int(len(in_win)),
-                    "indices":       in_win.tolist(),
-                })
-                gs_affected_set.update(in_win.tolist())
-
-        gs_affected_idx  = sorted(gs_affected_set)
-        gs_detected      = len(flagged_windows) > 0
-        gs_contribution  = (
-            100.0 * len(gs_affected_idx) / n_total_outliers
-            if n_total_outliers > 0 else 0.0
-        )
-
-        gs_result = {
-            "detected":         gs_detected,
-            "windows":          flagged_windows,
-            "contribution_pct": float(gs_contribution),
-            "affected_idx":     gs_affected_idx,
+        # Consolidate all caller-supplied kwargs (explicit + **pattern_kwargs)
+        all_kwargs: dict = {
+            "window_min":               window_min,
+            "checkerboard_threshold":   checkerboard_threshold,
+            "bimodal_score_threshold":  bimodal_score_threshold,
+            **pattern_kwargs,
         }
 
+        # Determine which patterns to run
+        keys_to_run = (
+            [k for k in PATTERN_REGISTRY if k in patterns]
+            if patterns is not None
+            else list(PATTERN_REGISTRY)
+        )
+
+        pattern_results: dict = {}
+        for key in keys_to_run:
+            entry = PATTERN_REGISTRY[key]
+            # Merge: start from registered defaults, override with caller kwargs
+            params = dict(entry["default_params"])
+            for p in list(params):
+                if p in all_kwargs:
+                    params[p] = all_kwargs[p]
+            try:
+                pattern_results[key] = entry["detect_fn"](self, **params)
+            except Exception as exc:
+                logger.warning(
+                    "Pattern detector '%s' raised %s: %s — skipping.",
+                    key, exc.__class__.__name__, exc,
+                )
+                pattern_results[key] = {
+                    "detected": False,
+                    "contribution_pct": 0.0,
+                    "affected_idx": [],
+                    "error": str(exc),
+                }
+
         # ------------------------------------------------------------------
-        # Impact on model statistics (RMSE / bias for full collocated dataset)
+        # Impact on model statistics (RMSE / bias, full collocated dataset)
         # ------------------------------------------------------------------
-        impact_lines = []
+        impact_lines: list = []
         if self.cco is not None:
             try:
-                full_obs = np.asarray(self.cco.vars[self.obs_var])
-                full_mod = np.asarray(self.cco.vars[self.mod_var])
+                full_obs      = np.asarray(self.cco.vars[self.obs_var])
+                full_mod      = np.asarray(self.cco.vars[self.mod_var])
                 full_bias_arr = full_mod - full_obs
-                valid = np.isfinite(full_bias_arr)
+                valid         = np.isfinite(full_bias_arr)
 
-                # Indices of outliers in the cco array are not directly
-                # available after populate(), so we derive them from the
-                # time coordinate, matching outo.vars times to cco.vars times.
-                cco_times_s = np.array(
+                cco_times_s  = np.array(
                     pd.DatetimeIndex(self.cco.vars["time"].values)
                     .astype("int64") // 10**9
                 )
-                outo_times_s = np.array(
-                    times.astype("int64") // 10**9
-                )
+                outo_times_s = np.array(times.astype("int64") // 10**9)
 
                 def _rmse(arr):
                     a = arr[np.isfinite(arr)]
                     return float(np.sqrt(np.mean(a ** 2))) if len(a) else float("nan")
 
-                def _bias(arr):
+                def _bias_stat(arr):
                     a = arr[np.isfinite(arr)]
                     return float(np.mean(a)) if len(a) else float("nan")
 
-                rmse_all = _rmse(full_bias_arr[valid])
-                bias_all_val = _bias(full_bias_arr[valid])
+                rmse_all     = _rmse(full_bias_arr[valid])
+                bias_all_val = _bias_stat(full_bias_arr[valid])
 
                 impact_lines.append("\n## Impact on model statistics")
                 impact_lines.append(
@@ -1605,87 +1997,185 @@ class outlier_class:
                     f"Bias (all outliers)       = {bias_all_val:+.3f} m"
                 )
 
-                # Map outo indices → cco indices for each pattern
-                def _map_to_cco(outo_local_idx):
-                    """Return a boolean mask over cco.vars for the given outo indices."""
-                    target_ts = outo_times_s[outo_local_idx]
-                    mask = np.isin(cco_times_s, target_ts)
-                    return mask
+                def _map_to_cco(local_idx):
+                    target_ts = outo_times_s[np.asarray(local_idx)]
+                    return np.isin(cco_times_s, target_ts)
 
-                for pattern_name, pat_res in (
-                    ("checkerboard", cb_result),
-                    ("garden_sprinkler", gs_result),
-                ):
-                    if pat_res is None or not pat_res["detected"]:
+                for key, res in pattern_results.items():
+                    if not res.get("detected") or not res.get("affected_idx"):
                         continue
-                    if not pat_res["affected_idx"]:
-                        continue
-                    excl_mask = _map_to_cco(np.array(pat_res["affected_idx"]))
-                    keep = valid & ~excl_mask
-                    rmse_excl = _rmse(full_bias_arr[keep])
-                    bias_excl = _bias(full_bias_arr[keep])
-                    label = pattern_name.replace("_", " ").title()
+                    excl  = _map_to_cco(res["affected_idx"])
+                    keep  = valid & ~excl
+                    label = PATTERN_REGISTRY[key]["name"][:18].rstrip()
                     impact_lines.append(
-                        f"RMSE (excl. {label:<14}) = {rmse_excl:.3f} m  "
-                        f"(Δ = {rmse_excl - rmse_all:+.3f} m)"
+                        f"RMSE (excl. {label:<18}) = {_rmse(full_bias_arr[keep]):.3f} m  "
+                        f"(Δ = {_rmse(full_bias_arr[keep]) - rmse_all:+.3f} m)"
                     )
                     impact_lines.append(
-                        f"Bias (excl. {label:<14}) = {bias_excl:+.3f} m  "
-                        f"(Δ = {bias_excl - bias_all_val:+.3f} m)"
+                        f"Bias (excl. {label:<18}) = {_bias_stat(full_bias_arr[keep]):+.3f} m  "
+                        f"(Δ = {_bias_stat(full_bias_arr[keep]) - bias_all_val:+.3f} m)"
                     )
             except Exception as exc:
-                logger.warning(f"Impact statistics computation failed: {exc}")
+                logger.warning("Impact statistics computation failed: %s", exc)
 
         # ------------------------------------------------------------------
         # Build human-readable summary
         # ------------------------------------------------------------------
-        lines = ["## Numerical Pattern Detection Report",
-                 f"   Total outliers analysed: {n_total_outliers}"]
+        lines = [
+            "## Numerical Pattern Detection Report",
+            f"   Total outliers analysed : {n_total}",
+            f"   Patterns checked        : {', '.join(keys_to_run)}",
+        ]
 
-        # Checkerboard
-        lines.append("\n### A. Checkerboard / 2Δx instability")
-        if cb_result is not None:
-            if cb_result["detected"]:
-                lines.append(f"   DETECTED")
-                lines.append(f"   parity_fraction  : {cb_result['parity_fraction']:.3f} "
-                             f"(threshold {checkerboard_threshold})")
-                lines.append(f"   amplitude_m      : {cb_result['amplitude_m']:.3f} m")
-                lines.append(f"   contribution_pct : {cb_result['contribution_pct']:.1f} %")
-                lines.append(f"   affected points  : {len(cb_result['affected_idx'])}")
+        _section_labels = {
+            "checkerboard":       "A",
+            "garden_sprinkler":   "B",
+            "source_term_ringing":"C",
+            "hs_collapse":        "D",
+        }
+        # Assign letters: registered order, falling back to sequential index
+        letter_idx = 0
+        used_letters = set()
+
+        for key in keys_to_run:
+            if key in _section_labels:
+                letter = _section_labels[key]
             else:
-                lines.append(f"   Not detected "
-                             f"(parity_fraction={cb_result['parity_fraction']:.3f})")
-        else:
-            lines.append("   Skipped (no grid index data).")
+                while chr(ord("A") + letter_idx) in used_letters:
+                    letter_idx += 1
+                letter = chr(ord("A") + letter_idx)
+                letter_idx += 1
+            used_letters.add(letter)
 
-        # Garden sprinkler
-        lines.append("\n### B. Garden-sprinkler effect")
-        if gs_result["detected"]:
-            lines.append(f"   DETECTED — {len(flagged_windows)} flagged window(s)")
-            for w in flagged_windows:
+            entry = PATTERN_REGISTRY[key]
+            res   = pattern_results[key]
+            lines.append(f"\n### {letter}. {entry['name']} (instability #{entry['instability_id']})")
+
+            if "error" in res:
+                lines.append(f"   ERROR: {res['error']}")
+                continue
+
+            if res["detected"]:
+                lines.append("   DETECTED")
                 lines.append(
-                    f"   [{pd.Timestamp(w['center_time']).strftime('%Y-%m-%d %H:%M')}]"
-                    f"  score={w['bimodal_score']:.2f}"
-                    f"  low={w['level_low_m']:.2f} m"
-                    f"  high={w['level_high_m']:.2f} m"
-                    f"  n={w['n_points']}"
+                    f"   contribution_pct : {res['contribution_pct']:.1f} %  "
+                    f"({len(res['affected_idx'])} affected point(s))"
                 )
-            lines.append(f"   contribution_pct : {gs_result['contribution_pct']:.1f} %")
-            lines.append(f"   affected points  : {len(gs_affected_idx)}")
-        else:
-            lines.append("   Not detected.")
+                # Pattern-specific extra lines
+                if key == "checkerboard":
+                    lines.append(
+                        f"   parity_fraction  : {res['parity_fraction']:.3f}"
+                    )
+                    lines.append(
+                        f"   amplitude_m      : {res['amplitude_m']:.3f} m"
+                    )
+                elif key == "garden_sprinkler":
+                    lines.append(
+                        f"   flagged windows  : {len(res['windows'])}"
+                    )
+                    for w in res["windows"]:
+                        lines.append(
+                            f"     [{pd.Timestamp(w['center_time']).strftime('%Y-%m-%d %H:%M')}]"
+                            f"  score={w['bimodal_score']:.2f}"
+                            f"  low={w['level_low_m']:.2f} m"
+                            f"  high={w['level_high_m']:.2f} m"
+                            f"  n={w['n_points']}"
+                        )
+                elif key == "source_term_ringing":
+                    lines.append(
+                        f"   flagged windows  : {res['n_flagged_windows']}"
+                    )
+                    lines.append(
+                        f"   mean amplitude   : {res['mean_amplitude_m']:.3f} m"
+                    )
+                elif key == "hs_collapse":
+                    lines.append(
+                        f"   collapsed points : {res['n_collapsed']}"
+                    )
+                    lines.append(
+                        f"   mean obs_Hs      : {res['mean_obs_hs_m']:.3f} m"
+                    )
+            else:
+                lines.append("   Not detected.")
 
         lines.extend(impact_lines)
         summary = "\n".join(lines)
         print(summary)
 
-        report = {
-            "checkerboard":    cb_result,
-            "garden_sprinkler": gs_result,
-            "summary":         summary,
-        }
+        report = {**pattern_results, "summary": summary}
         self.pattern_report = report
         return report
+
+    # ------------------------------------------------------------------
+    # Fix suggestions
+    # ------------------------------------------------------------------
+
+    def suggest_fixes(self, pattern_report: dict | None = None) -> str:
+        """
+        Print known solutions and key references for every detected pattern.
+
+        Parameters
+        ----------
+        pattern_report : dict, optional – output of ``detect_numerical_patterns()``.
+                          Defaults to ``self.pattern_report``.
+
+        Returns
+        -------
+        text : str  – the full formatted message (also printed to stdout).
+        """
+        report = pattern_report if pattern_report is not None else self.pattern_report
+        if report is None:
+            msg = (
+                "No pattern report available. "
+                "Run detect_numerical_patterns() first."
+            )
+            print(msg)
+            return msg
+
+        detected_keys = [
+            k for k in report
+            if k != "summary"
+            and isinstance(report[k], dict)
+            and report[k].get("detected")
+        ]
+
+        if not detected_keys:
+            msg = "No numerical patterns were detected — no fixes to suggest."
+            print(msg)
+            return msg
+
+        lines = ["=" * 70, "  Suggested fixes for detected numerical instabilities",
+                 "=" * 70]
+
+        for key in detected_keys:
+            if key not in PATTERN_REGISTRY:
+                continue
+            entry   = PATTERN_REGISTRY[key]
+            res     = report[key]
+            pct     = res.get("contribution_pct", 0.0)
+            n_aff   = len(res.get("affected_idx", []))
+
+            lines.append(f"\n{'─' * 70}")
+            lines.append(
+                f"  Pattern : {entry['name']}"
+                f"  (instability #{entry['instability_id']})"
+            )
+            lines.append(f"  Impact  : {pct:.1f} % of outliers ({n_aff} point(s))")
+            lines.append(f"  What    : {entry['description']}")
+            lines.append("")
+            lines.append("  SOLUTIONS")
+            for i, sol in enumerate(entry["solutions"], start=1):
+                wrapped = f"    {i}. {sol}"
+                lines.append(wrapped)
+            lines.append("")
+            lines.append("  REFERENCES")
+            for ref in entry["references"]:
+                lines.append(f"    • {ref}")
+
+        lines.append(f"\n{'=' * 70}")
+        text = "\n".join(lines)
+        print(text)
+        return text
 
     def sel_event(self, event_id, events_df):
         """

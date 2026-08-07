@@ -20,6 +20,12 @@ from wavy.outlier_module import (
     find_outliers,
     _detect_outliers,
     outlier_class,
+    PATTERN_REGISTRY,
+    register_pattern,
+    _detect_checkerboard,
+    _detect_garden_sprinkler,
+    _detect_source_term_ringing,
+    _detect_hs_collapse,
 )
 
 # ---------------------------------------------------------------------------
@@ -413,3 +419,287 @@ def test_pattern_report_stored(mock_cco):
     assert "checkerboard" in report
     assert "garden_sprinkler" in report
     assert "summary" in report
+
+
+# ---------------------------------------------------------------------------
+# 9. Pattern registry — built-in patterns present
+# ---------------------------------------------------------------------------
+
+
+def test_registry_has_builtin_patterns():
+    """PATTERN_REGISTRY must contain all four built-in patterns."""
+    for key in ("checkerboard", "garden_sprinkler",
+                "source_term_ringing", "hs_collapse"):
+        assert key in PATTERN_REGISTRY, f"'{key}' missing from PATTERN_REGISTRY"
+        entry = PATTERN_REGISTRY[key]
+        assert "detect_fn"   in entry
+        assert "solutions"   in entry
+        assert "references"  in entry
+        assert len(entry["solutions"])  > 0
+        assert len(entry["references"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# 10. Register a custom pattern and verify it runs
+# ---------------------------------------------------------------------------
+
+
+def test_register_custom_pattern(mock_cco):
+    """A user-registered pattern must appear in detect_numerical_patterns output."""
+
+    def _my_detector(outo, *, my_threshold=0.5):
+        """Custom stub detector — never fires."""
+        return {
+            "detected":         False,
+            "contribution_pct": 0.0,
+            "affected_idx":     [],
+            "my_metric":        my_threshold,
+        }
+
+    register_pattern(
+        "test_custom",
+        name="Test custom pattern",
+        instability_id="test",
+        description="Always returns not-detected.",
+        detect_fn=_my_detector,
+        solutions=["No fix needed."],
+        references=["Test reference."],
+        default_params={"my_threshold": 0.42},
+    )
+
+    outo = outlier_class(mock_cco, n_std=3, method="zscore").populate()
+    n = len(outo.vars["time"])
+    outo.vars["colidx_y"] = ("time", np.arange(100, 100 + n))
+
+    report = outo.detect_numerical_patterns()
+
+    assert "test_custom" in report, "Custom pattern not in report"
+    assert report["test_custom"]["detected"] is False
+    assert report["test_custom"]["my_metric"] == 0.42
+
+    # Clean up so other tests are not affected
+    del PATTERN_REGISTRY["test_custom"]
+
+
+# ---------------------------------------------------------------------------
+# 11. detect_numerical_patterns – source-term ringing
+# ---------------------------------------------------------------------------
+
+
+def _make_ringing_outo(n=20, period=1, amplitude=4.0):
+    """
+    Build an outo whose model_Hs oscillates every `period` index with
+    `amplitude` peak-to-peak, all within a 5-min window.
+    """
+    times    = _make_times(n, freq="30s")    # 30 s cadence → 10 min for 20 pts
+    obs_hs   = np.full(n, 2.0)
+    # Ringing: alternating HIGH/LOW every `period` point
+    model_hs = np.where(np.arange(n) % (2 * period) < period,
+                        2.0 + amplitude / 2,
+                        2.0 - amplitude / 2)
+
+    ds = xr.Dataset(
+        {
+            "obs_Hs":   ("time", obs_hs),
+            "model_Hs": ("time", model_hs),
+            "obs_lons": ("time", np.linspace(0, 1, n)),
+            "obs_lats": ("time", np.linspace(50, 51, n)),
+            "bias":     ("time", model_hs - obs_hs),
+        },
+        coords={"time": times},
+    )
+    cco  = _build_cco(obs_hs, model_hs, times=times)
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco      = cco
+    outo.vars     = ds
+    outo.stats    = {"lo": -100, "hi": 100, "center": 0.0,
+                     "n_outliers": n, "n_total": n,
+                     "pct_outliers": 100.0, "method": "zscore"}
+    outo.obs_var  = "obs_Hs"
+    outo.mod_var  = "model_Hs"
+    outo.n_std    = 3
+    outo.method   = "zscore"
+    outo.model    = "mock"
+    outo.nID      = None
+    outo.varalias = "Hs"
+    outo.sd       = None
+    outo.ed       = None
+    outo.region   = None
+    outo.pattern_report = None
+    return outo
+
+
+def test_detect_source_term_ringing():
+    """
+    A rapidly oscillating model_Hs series (alternating every 30 s by ±2 m)
+    must trigger the source-term-ringing detector.
+    """
+    outo   = _make_ringing_outo(n=20, amplitude=4.0)
+    result = _detect_source_term_ringing(
+        outo,
+        ringing_window_min=10,
+        ringing_threshold=0.60,
+        ringing_amplitude_m=1.0,
+    )
+    assert result["detected"] is True, \
+        f"Source-term ringing should be detected; got {result}"
+    assert result["mean_amplitude_m"] > 1.0
+
+
+# ---------------------------------------------------------------------------
+# 12. detect_numerical_patterns – Hs collapse
+# ---------------------------------------------------------------------------
+
+
+def _make_collapse_outo(n=20, n_collapsed=5):
+    """Build an outo with n_collapsed points where model_Hs ≈ 0 but obs is large."""
+    times    = _make_times(n)
+    obs_hs   = np.full(n, 3.0)
+    model_hs = np.full(n, 3.0)
+    # inject collapsed points
+    model_hs[:n_collapsed] = 0.01
+
+    ds = xr.Dataset(
+        {
+            "obs_Hs":   ("time", obs_hs),
+            "model_Hs": ("time", model_hs),
+            "obs_lons": ("time", np.linspace(0, 5, n)),
+            "obs_lats": ("time", np.linspace(50, 55, n)),
+            "bias":     ("time", model_hs - obs_hs),
+        },
+        coords={"time": times},
+    )
+    cco  = _build_cco(obs_hs, model_hs, times=times)
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco      = cco
+    outo.vars     = ds
+    outo.stats    = {"lo": -100, "hi": 100, "center": 0.0,
+                     "n_outliers": n, "n_total": n,
+                     "pct_outliers": 100.0, "method": "zscore"}
+    outo.obs_var  = "obs_Hs"
+    outo.mod_var  = "model_Hs"
+    outo.n_std    = 3
+    outo.method   = "zscore"
+    outo.model    = "mock"
+    outo.nID      = None
+    outo.varalias = "Hs"
+    outo.sd       = None
+    outo.ed       = None
+    outo.region   = None
+    outo.pattern_report = None
+    return outo, n_collapsed
+
+
+def test_detect_hs_collapse():
+    """Points with model_Hs ≈ 0 and obs_Hs > 0.5 m must be flagged."""
+    outo, n_collapsed = _make_collapse_outo(n=20, n_collapsed=5)
+    result = _detect_hs_collapse(
+        outo,
+        hs_collapse_max_model=0.05,
+        hs_collapse_min_obs=0.5,
+    )
+    assert result["detected"] is True, \
+        f"Hs collapse should be detected; got {result}"
+    assert result["n_collapsed"] == n_collapsed
+    assert result["mean_obs_hs_m"] == pytest.approx(3.0)
+
+
+def test_hs_collapse_not_detected_for_calm():
+    """Near-zero model_Hs that matches calm obs must NOT be flagged."""
+    n        = 10
+    times    = _make_times(n)
+    obs_hs   = np.full(n, 0.1)    # genuinely calm
+    model_hs = np.full(n, 0.02)
+
+    ds = xr.Dataset(
+        {"obs_Hs": ("time", obs_hs), "model_Hs": ("time", model_hs),
+         "obs_lons": ("time", np.zeros(n)), "obs_lats": ("time", np.zeros(n)),
+         "bias": ("time", model_hs - obs_hs)},
+        coords={"time": times},
+    )
+    cco  = _build_cco(obs_hs, model_hs, times=times)
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco = cco; outo.vars = ds
+    outo.stats    = {}; outo.obs_var = "obs_Hs"; outo.mod_var = "model_Hs"
+    outo.n_std    = 3; outo.method   = "zscore"; outo.model   = None
+    outo.nID      = None; outo.varalias = None; outo.sd = None
+    outo.ed       = None; outo.region = None; outo.pattern_report = None
+
+    result = _detect_hs_collapse(outo, hs_collapse_max_model=0.05,
+                                  hs_collapse_min_obs=0.5)
+    assert result["detected"] is False
+
+
+# ---------------------------------------------------------------------------
+# 13. suggest_fixes — output contains solutions and references
+# ---------------------------------------------------------------------------
+
+
+def test_suggest_fixes_checkerboard():
+    """suggest_fixes() on a detected checkerboard must mention key solutions."""
+    n        = 20
+    colidx_y = np.arange(800, 800 + n)
+    model_hs = np.where(colidx_y % 2 == 0, 13.0, 1.5)
+    obs_hs   = np.full(n, 5.0)
+    times    = _make_times(n)
+
+    ds = xr.Dataset(
+        {"obs_Hs": ("time", obs_hs), "model_Hs": ("time", model_hs),
+         "obs_lons": ("time", np.linspace(0, 5, n)),
+         "obs_lats": ("time", np.linspace(50, 55, n)),
+         "bias": ("time", model_hs - obs_hs),
+         "colidx_y": ("time", colidx_y)},
+        coords={"time": times},
+    )
+    cco  = _build_cco(obs_hs, model_hs, times=times, extra_vars={"colidx_y": colidx_y})
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco = cco; outo.vars = ds
+    outo.stats    = {"lo": -100, "hi": 100, "center": 0.0,
+                     "n_outliers": n, "n_total": n,
+                     "pct_outliers": 100.0, "method": "zscore"}
+    outo.obs_var  = "obs_Hs"; outo.mod_var = "model_Hs"
+    outo.n_std    = 3; outo.method = "zscore"; outo.model = "mock"
+    outo.nID      = None; outo.varalias = "Hs"; outo.sd = None
+    outo.ed       = None; outo.region = None; outo.pattern_report = None
+
+    report = outo.detect_numerical_patterns(checkerboard_threshold=0.70)
+    text   = outo.suggest_fixes()
+
+    assert isinstance(text, str)
+    assert len(text) > 0
+    # Should mention the CFL / DTXY fix
+    assert "DTXY" in text or "DTMAX" in text or "CFL" in text
+    # Should cite Tolman (1992)
+    assert "Tolman" in text and "1992" in text
+
+
+def test_suggest_fixes_no_report(mock_cco):
+    """suggest_fixes() with no pattern_report must print an informational message."""
+    outo = outlier_class.__new__(outlier_class)
+    outo.cco = mock_cco; outo.vars = None; outo.stats = {}
+    outo.obs_var = "obs_Hs"; outo.mod_var = "model_Hs"; outo.n_std = 3
+    outo.method = "zscore"; outo.model = None; outo.nID = None
+    outo.varalias = None; outo.sd = None; outo.ed = None
+    outo.region = None; outo.pattern_report = None
+
+    text = outo.suggest_fixes()
+    assert "No pattern report" in text
+
+
+# ---------------------------------------------------------------------------
+# 14. patterns kwarg filters the registry
+# ---------------------------------------------------------------------------
+
+
+def test_detect_patterns_filter(mock_cco):
+    """passing patterns=['checkerboard'] must skip all other detectors."""
+    outo = outlier_class(mock_cco, n_std=3, method="zscore").populate()
+    n    = len(outo.vars["time"])
+    outo.vars["colidx_y"] = ("time", np.arange(100, 100 + n))
+
+    report = outo.detect_numerical_patterns(patterns=["checkerboard"])
+
+    assert "checkerboard" in report
+    # Other patterns must NOT appear
+    for key in ("garden_sprinkler", "source_term_ringing", "hs_collapse"):
+        assert key not in report, f"'{key}' should not be in report when filtered"
