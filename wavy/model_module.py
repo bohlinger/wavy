@@ -42,6 +42,8 @@ from wavy.quicklookmod import quicklook_class_sat as qls
 
 from wavy.init_class_mod import init_class
 
+from wavy.errors import ModelFileSearchError
+
 # ---------------------------------------------------------------------#
 
 def crop_to_period(ds, sd, ed):
@@ -408,16 +410,30 @@ class model_class(qls):
                             str(filename) +
                             " not accessible")
                         logger.warning(
-                            "Continue to look for date" +
-                            " with extended leadtime")
-                        leadtime = (leadtime
-                                    + vars(self.cfg)['misc']['init_step'])
-                    if (kwargs.get('max_lt') is not None
-                        and leadtime > kwargs.get('max_lt')):
-                        logger.warning("Leadtime: " + str(leadtime) +
-                              " is greater as maximum allowed leadtime: " +
-                              str(kwargs.get('max_lt')))
+                            "Continue to look for date" + " with extended leadtime"
+                        )
+                        leadtime = leadtime + vars(self.cfg)["misc"]["init_step"]
+                    if kwargs.get("max_lt") is not None and leadtime > kwargs.get(
+                        "max_lt"
+                    ):
+                        logger.warning(
+                            "Leadtime: "
+                            + str(leadtime)
+                            + " is greater as maximum allowed leadtime: "
+                            + str(kwargs.get("max_lt"))
+                        )
                         break
+                    if n_iter >= max_iter:
+                        msg = (
+                            "Reached maximum number of attempts ("
+                            + str(max_iter)
+                            + ") while searching for an accessible model file for "
+                            "fc_date=" + str(fc_date) + ". Check that 'src_tmplt' "
+                            "and 'fl_tmplt' in the model config point to a valid, "
+                            "existing path."
+                        )
+                        logger.error(msg)
+                        raise ModelFileSearchError(msg)
             else:
                 filename = None
         elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
