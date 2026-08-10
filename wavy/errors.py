@@ -32,6 +32,8 @@ class MissingConfigKeyError(ConfigError):
 
     pass
 
+
+<<<<<<< HEAD
 class ModelPathTemplateError(ConfigError):
     """
     Raised when building a filesystem path from a model's
@@ -50,6 +52,10 @@ class RegionNotDefinedError(ConfigError):
     """
 
     pass
+
+
+=======
+>>>>>>> 13f3198 (fixup! feat(error module): error classes wavy specific - each class targets one aspect of wavy to filter specifically the errors from one module.)
 # --- model data ------------------------------------------------------- #
 
 
@@ -110,7 +116,7 @@ class SatelliteError(WavyError):
     pass
 
 
-
+<<<<<<< HEAD
 class SatellitePathTemplateError(ConfigError):
     """
     Raised when building a filesystem path from a satellite's
