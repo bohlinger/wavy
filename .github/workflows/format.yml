@@ -30,5 +30,6 @@ jobs:
 
       - name: Check with black
         run: |
+          mamba install black
           black . --check
 
