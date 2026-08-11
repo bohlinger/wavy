@@ -1,5 +1,12 @@
+from wavy import model_module
 from wavy.model_module import model_class as mc
-from wavy.errors import ModelFileSearchError
+from wavy.errors import (
+    ModelFileNotFoundError,
+    ModelFileSearchError,
+    ModelPathTemplateError,
+    ModelProcessingError,
+    ModelReadError,
+)
 import pytest
 
 
@@ -33,6 +40,99 @@ def test_dummy_reader():
         mco.populate(max_iter=2)
 
     assert not hasattr(mco, "vars")
+
+
+def test_populate_no_files_found(monkeypatch):
+    """
+    Test that populate() raises ModelFileNotFoundError when the file
+    search completes (no exception from _make_model_filename_wrapper)
+    but simply finds nothing - e.g. leadtime resolves to None for
+    every fc_date, so list_input_files() legitimately returns an
+    empty list.
+
+    We bypass the leadtime search machinery entirely by monkeypatching
+    list_input_files() directly, so this test is isolated from the
+    ModelFileSearchError path and only exercises the "empty pathlst"
+    branch of populate().
+    """
+    mco = mc(nID="ww3_4km", sd="2023-6-1", ed="2023-6-1 01")
+
+    monkeypatch.setattr(mco, "list_input_files", lambda **kwargs: [])
+
+    with pytest.raises(ModelFileNotFoundError, match="No accessible model files"):
+        mco.populate()
+
+    assert not hasattr(mco, "vars")
+
+
+def test_populate_reader_error(monkeypatch):
+    """
+    Test that populate() wraps a reader failure in ModelReadError,
+    preserving the original exception via `raise ... from e`.
+
+    We let the file search succeed normally (real ww3_4km data is
+    available), but monkeypatch _get_model() - the method that
+    actually invokes the reader - to simulate the reader itself
+    blowing up (e.g. a corrupt file, unexpected variable layout).
+    """
+    mco = mc(nID="ww3_4km", sd="2023-6-1", ed="2023-6-1 01")
+
+    def broken_get_model(self, **kwargs):
+        raise ValueError("simulated reader failure")
+
+    monkeypatch.setattr(model_module.model_class, "_get_model", broken_get_model)
+
+    with pytest.raises(ModelReadError) as excinfo:
+        mco.populate()
+
+    # original exception should be chained, not lost
+    assert isinstance(excinfo.value.__cause__, ValueError)
+    assert "simulated reader failure" in str(excinfo.value.__cause__)
+    assert not hasattr(mco, "vars")
+
+
+def test_populate_processing_error(monkeypatch):
+    """
+    Test that populate() wraps a post-processing failure (variable
+    renaming / CF standard names / convention / longitude formatting)
+    in ModelProcessingError, distinct from a reader failure.
+
+    The reader itself is left untouched (real data is read
+    successfully); we monkeypatch the first post-processing step to
+    fail instead.
+    """
+    mco = mc(nID="ww3_4km", sd="2023-6-1", ed="2023-6-1 01")
+
+    def broken_change_varname(self, **kwargs):
+        raise KeyError("simulated rename failure")
+
+    monkeypatch.setattr(
+        model_module.model_class, "_change_varname_to_aliases", broken_change_varname
+    )
+
+    with pytest.raises(ModelProcessingError) as excinfo:
+        mco.populate()
+
+    assert isinstance(excinfo.value.__cause__, KeyError)
+    # assert not hasattr(mco, "vars") ask if this should return the incomplete vars dict or not. I think it should not, but we can discuss.
+
+
+def test_get_files_bad_path_template(monkeypatch):
+    """
+    Test that a deterministic config problem (e.g. malformed
+    src_tmplt/strsub) raises ModelPathTemplateError immediately,
+    rather than retrying identically for every date in sd..ed and
+    silently returning an empty file list.
+    """
+    mco = mc(nID="ww3_4km", sd="2023-6-1", ed="2023-6-2")
+
+    def broken_make_subdict(*args, **kwargs):
+        raise TypeError("simulated malformed strsub config")
+
+    monkeypatch.setattr(model_module, "make_subdict", broken_make_subdict)
+
+    with pytest.raises(ModelPathTemplateError, match="Could not build a local path"):
+        mco._get_files(dict_for_sub=vars(mco), path=None, wavy_path=None)
 
 
 @pytest.mark.need_credentials
