@@ -8,110 +8,111 @@ from wavy.insitu_module import poi_class as pc
 # include possibility for collocating different variable
 # varalias = 'Hs', 'U', aso...
 
+
 def test_sat_collocation_and_validation(test_data, tmpdir):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = 'Hs'
+    name = "s3a"
+    varalias = "Hs"
     twin = 30
-    nID = 'cmems_L3_NRT'
-    model = 'ww3_4km'
+    nID = "cmems_L3_NRT"
+    model = "ww3_4km"
     # init satellite_object and check for polygon region
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias, twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(reader='read_local_ncfiles',
-                       path=str(test_data/"L3/s3a"))
+    sco = sco.populate(reader="read_local_ncfiles", path=str(test_data / "L3/s3a"))
     # crop to region
     sco = sco.crop_to_region(model)
 
     # collocate
-    cco = cc(oco=sco, model=model, leadtime='best', distlim=6).populate()
-    assert len(vars(cco).keys()) == 21
+    cco = cc(oco=sco, model=model, leadtime="best", distlim=6).populate()
+    assert len(vars(cco).keys()) == 22
     assert len(cco.vars.keys()) == 10
 
     # validate
+
 
 def test_cco_multivar(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = 'Hs'
+    name = "s3a"
+    varalias = "Hs"
     twin = 30
-    nID = 'cmems_L3_NRT'
-    model = 'ww3_4km'
+    nID = "cmems_L3_NRT"
+    model = "ww3_4km"
     # init satellite_object and check for polygon region
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias, twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(reader='read_local_ncfiles',
-                       path=str(test_data/"L3/s3a"))
+    sco = sco.populate(reader="read_local_ncfiles", path=str(test_data / "L3/s3a"))
     # crop to region
     sco = sco.crop_to_region(model)
-    
+
     # collocate
-    cco = cc(oco=sco, model=model, leadtime='best', distlim=6, varalias=['Hs','Tm01']).populate()
-    assert len(vars(cco).keys()) == 21
+    cco = cc(
+        oco=sco, model=model, leadtime="best", distlim=6, varalias=["Hs", "Tm01"]
+    ).populate()
+    assert len(vars(cco).keys()) == 22
     assert len(cco.vars.keys()) == 11
+
 
 def test_insitu_collocation_and_validation(test_data, tmpdir):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    varalias = 'Hs'
+    varalias = "Hs"
     twin = 30
-    model = 'ww3_4km'
-    nID = 'D_Breisundet_wave'
-    name = 'wavescan'
+    model = "ww3_4km"
+    nID = "D_Breisundet_wave"
+    name = "wavescan"
 
     # init insitu_object and check for polygon region
-    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias,
-             name=name, twin=twin)
+    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name, twin=twin)
 
     # read data
     ico = ico.populate()
-
+    print(ico.vars)
     # collocate
-    cco = cc(oco=ico, model=model, leadtime='best', distlim=6).populate()
-    assert len(vars(cco).keys()) == 21
+    cco = cc(oco=ico, model=model, leadtime="best", distlim=6).populate()
+    assert len(vars(cco).keys()) == 22
     assert len(cco.vars.keys()) == 10
 
     # validate
 
+
 def test_insitu_collocation_leadtime(test_data, tmpdir):
     sd = "2024-01-01 10"
     ed = "2024-01-01 19"
-    varalias = 'Hs'
+    varalias = "Hs"
     twin = 30
-    model = 'ww3_4km'
-    nID = 'D_Breisundet_wave'
-    name = 'wavescan'
+    model = "ww3_4km"
+    nID = "D_Breisundet_wave"
+    name = "wavescan"
 
     # init insitu_object and check for polygon region
-    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias,
-             name=name, twin=twin)
+    ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name, twin=twin)
 
     # read data
     ico = ico.populate()
 
     # collocate
     cco = cc(oco=ico, model=model, leadtime=10, twin=9).populate()
-    assert len(vars(cco).keys()) == 21
+    assert len(vars(cco).keys()) == 22
     assert len(cco.vars.keys()) == 10
     assert len(cco.vars.time) == 2
+
 
 def test_poi_collocation():
     # define poi dictionary for track
     dt = ["2023-7-1", "2023-7-2", "2023-7-3"]
     lats = [56.5, 59.3, 64.3]
     lons = [3.5, 1.8, 4.2]
-    poi_dict = {'time': dt, 'lons': lons, 'lats': lats}
+    poi_dict = {"time": dt, "lons": lons, "lats": lats}
 
     # init poi_class
     pco = pc(poi_dict)
 
     # collocate
-    cco = cc(oco=pco, model='ww3_4km', leadtime='best').populate()
-    assert len(vars(cco).keys()) == 21
+    cco = cc(oco=pco, model="ww3_4km", leadtime="best").populate()
+    assert len(vars(cco).keys()) == 22
     assert len(cco.vars.keys()) == 10
 
 
@@ -120,7 +121,7 @@ def test_poi_collocation():
 #    # test validation
 #    cco.validate_collocated_values()
 #
-#def test_insitu_collocation_and_validation():
+# def test_insitu_collocation_and_validation():
 #    sd = "2021-8-2 01"
 #    ed = "2021-8-2 03"
 #    nID = 'D_Breisundet_wave'
@@ -135,12 +136,15 @@ def test_poi_collocation():
 
 def test_collocate_observations(test_data):
     from wavy.collocation_module import collocate_observations
-    sd = '2023-07-04'
-    ed = '2023-07-05'
-    ico = ic(sd=sd, ed=ed, nID='MO_Draugen_monthly', name = 'Draugen').\
-             populate(path=str(test_data/"insitu/monthly/Draugen/"))
-    sco = sc(sd=sd, ed=ed, nID='cmems_L3_NRT', name='s3a').\
-             populate(path=str(test_data/"L3/s3a"))
+
+    sd = "2023-07-04"
+    ed = "2023-07-05"
+    ico = ic(sd=sd, ed=ed, nID="MO_Draugen_monthly", name="Draugen").populate(
+        path=str(test_data / "insitu/monthly/Draugen/")
+    )
+    sco = sc(sd=sd, ed=ed, nID="cmems_L3_NRT", name="s3a").populate(
+        path=str(test_data / "L3/s3a")
+    )
 
     ico_colloc, sco_colloc = collocate_observations(ico, sco)
     print(ico_colloc)

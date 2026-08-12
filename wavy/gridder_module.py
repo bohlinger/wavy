@@ -10,7 +10,7 @@ import logging
 validation_metric_abbreviations = load_or_default('validation_metrics.yaml')
 variable_def = load_or_default('variable_def.yaml')
 
-class gridder_class():
+class gridder_class(): # why not make a subclass of quicklook_class?
 
     def __init__(
     self, oco=None, mco=None, cco=None, bb=None, grid='lonlat', res=(1, 1),
@@ -133,8 +133,12 @@ class gridder_class():
         """
         returns grid coordinates
         """
-        lons = np.arange(self.bb[0], self.bb[1]+self.res[0]/2, self.res[0])
-        lats = np.arange(self.bb[2], self.bb[3]+self.res[1]/2, self.res[1])
+        lon_min = max(-180, self.bb[0])
+        lon_max = min(180, np.floor(self.bb[1]+self.res[0]/2))
+        lons = np.arange(lon_min, lon_max, self.res[0])
+        lat_min = max(-90, self.bb[2])
+        lat_max = min(90, np.floor(self.bb[3]+self.res[1]/2))
+        lats = np.arange(lat_min, lat_max, self.res[1])
         return np.array(lons), np.array(lats)
 
     def get_obs_grid_idx(self):
@@ -216,6 +220,7 @@ class gridder_class():
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         import math
         from copy import deepcopy
+        from matplotlib.colors import BoundaryNorm
 
         # shift coords for plotting
         lon_grid = kwargs.get('lon_grid') + self.res[0]/2.
@@ -230,17 +235,28 @@ class gridder_class():
         mask_llim_idx = np.where(mask_grid < mask_metric_llim)
         val_grid[mask_llim_idx[0], mask_llim_idx[1]] = np.nan
 
-        if kwargs.get('projection') is None:
-            projection = ccrs.PlateCarree()
+        projection = kwargs.get('projection', ccrs.PlateCarree())
+
         # parse kwargs
-        if kwargs.get('cmap') is None:
-            cmap = cmocean.cm.amp
-        else:
-            cmap = kwargs.get('cmap')
+        cmap = kwargs.get('cmap',cmocean.cm.amp)
 
         # max/min for colorbar
-        vmax = kwargs.get('vmax')
-        vmin = kwargs.get('vmin')
+        vmax = kwargs.get('vmax',None)
+        vmin = kwargs.get('vmin',None)
+        norm = None
+        levels = None
+
+        if metric in ['bias', 'nbias']:
+            # default levels for bias and nbias
+            levels = np.asarray(kwargs.get(
+                'bias_levels',
+                [-1.5, -1, -0.5, -0.25, 0, 0.25, 0.5, 1, 1.5]
+            ))
+            cmap = kwargs.get('bias_cmap', cmocean.cm.balance)
+            norm = kwargs.get('bias_norm', BoundaryNorm(levels, cmap.N, clip=True))
+            vmin = levels[0]
+            vmax = levels[-1]
+            
 
         # plot track if applicable
         if kwargs.get('lonmax') is not None:
@@ -275,11 +291,17 @@ class gridder_class():
                     facecolor=cfeature.COLORS['land'],
                     edgecolor='black', linewidth=1)
 
-        ax.set_extent([lonmin, lonmax, latmin, latmax], crs=projection)
+        ax.set_extent([lonmin, lonmax, latmin, latmax], crs=ccrs.PlateCarree())
         pc = ax.pcolormesh(
-                lon_grid, lat_grid, val_grid,
-                transform=projection, cmap=cmap,
-                vmax=vmax, vmin=vmin)
+            lon_grid,
+            lat_grid,
+            val_grid,
+            transform=ccrs.PlateCarree(),
+            cmap=cmap,
+            norm=norm,
+            vmin=None if norm is not None else vmin,
+            vmax=None if norm is not None else vmax,
+        )
 
         axins = inset_axes(ax,
                    width="5%",  # width = 5% of parent_bbox width
@@ -293,15 +315,17 @@ class gridder_class():
         metric_name = validation_metric_abbreviations[metric].get('name')
         metric_units =\
             validation_metric_abbreviations[metric].get('units', self.units)
-        if metric_units is None:
-            cbar = fig.colorbar(pc, cax=axins, label=metric_name)
-        else:
-            cbar = fig.colorbar(pc, cax=axins,
-                                label=metric_name
-                                + ' [' + metric_units + ']')
+        cbar = fig.colorbar(
+            pc,
+            cax=axins,
+            label=metric_name if metric_units is None
+                else f"{metric_name} [{metric_units}]",
+            ticks=levels,
+        )
+
 
         # ax.coastlines()
-        gl = ax.gridlines(draw_labels=True, crs=projection,
+        gl = ax.gridlines(draw_labels=True, crs=ccrs.PlateCarree(),
                           linewidth=1, color='grey', alpha=0.4,
                           linestyle='-')
         gl.top_labels = False

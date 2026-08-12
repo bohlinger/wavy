@@ -169,6 +169,11 @@ class model_class(qls):
         self.region = kwargs.get('region', 'global')
         self.leadtime = kwargs.get('leadtime', 'best')
         self.cfg = dc
+        _name = kwargs.get('name')
+        if _name is not None and dc.name is not None:
+            self.name = dc.name.get(_name, _name)
+        else:
+            self.name = _name
 
         logger.info(" ")
         logger.info(" ### model_class object initialized ### ")
@@ -329,10 +334,18 @@ class model_class(qls):
                 if filedate is None:
                     filename = None
                 else:
-                    filename = (filedate.strftime(vars(self.cfg)
-                                    ['wavy_input']['src_tmplt'])
+                    path_template = vars(self.cfg)['wavy_input']['src_tmplt']
+                    strsublst = vars(self.cfg)['wavy_input'].get('strsub')
+                    if strsublst:
+                        subdict = make_subdict(strsublst,
+                                               class_object_dict=vars(self))
+                        path_template = make_pathtofile(path_template,
+                                                        strsublst, subdict,
+                                                        **kwargs)
+                    filename = (filedate.strftime(path_template)
                               + filedate.strftime(vars(self.cfg)
                                     ['wavy_input']['fl_tmplt']))
+
         else:
             raise ValueError("Chosen model is not specified in model_cfg.yaml")
         # replace/escape special characters
@@ -378,6 +391,7 @@ class model_class(qls):
             switch = False
             leadtime = generate_bestguess_leadtime(self.nID, fc_date,
                                                    **kwargs)
+            
             if leadtime is not None:
                 while switch is False:
                     filename = self._make_model_filename(
@@ -545,12 +559,14 @@ class model_class(qls):
         else:
             # if defined path local
             logger.info(" ## Find and list files ...")
-            path = kwargs.get('path', None)
-            wavy_path = kwargs.get('wavy_path', None)
+            path = kwargs.pop('path', None) #this causes an error : double path argument LH
+            wavy_path = kwargs.pop('wavy_path', None)
+        
+
             pathlst, _ = self._get_files(vars(self),
-                                         path=path,
-                                         wavy_path=wavy_path,
-                                         **kwargs)
+                                          path=path,
+                                          wavy_path=wavy_path,
+                                          **kwargs)
 
         if show is True:
             print(" ")

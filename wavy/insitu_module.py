@@ -148,7 +148,7 @@ class insitu_class(qls, fc):
     def _create_pathlst(self, **kwargs):
         src_tmplt = self.cfg.wavy_input['src_tmplt']
         fl_tmplt = self.cfg.wavy_input['fl_tmplt']
-        pth_tmplt = src_tmplt + '/' + fl_tmplt
+        pth_tmplt = src_tmplt.rstrip('/') + '/' + fl_tmplt
         strsub = self.cfg.wavy_input['strsub']
         #dict_for_sub = vars(self.cfg)
         dict_for_sub = vars(self)

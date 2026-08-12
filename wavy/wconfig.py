@@ -46,9 +46,7 @@ def load_or_default(name):
 
     """
     logging.debug('attempting to load: %s..' % name)
-
     confdir = __get_confdir__()
-
     try:
         if confdir is not None:
             filestr = os.path.join(confdir, name)

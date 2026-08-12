@@ -569,6 +569,10 @@ def make_pathtofile(tmppath, strsublst, subdict, date=None, **kwargs):
     '''
     Creates a path given templates and keywords and date.
     '''
+    logger.debug('tmppath: ' + tmppath)
+    logger.debug('strsublst: ' + str(strsublst))
+    logger.debug('subdict: ' + str(subdict))
+    logger.debug('date: ' + str(date))
     if date is not None:
         pathtofile = date.strftime(tmppath)
     else: pathtofile = tmppath

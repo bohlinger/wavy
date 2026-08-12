@@ -23,6 +23,7 @@ import xarray as xr
 from tqdm import tqdm
 #import traceback
 import logging
+import sys
 
 # own imports
 from wavy.ncmod import ncdumpMeta
@@ -218,13 +219,19 @@ class satellite_class(qls, fc):
                                      class_object_dict=dict_for_sub)
                     path = make_pathtofile(path_template,
                                            strsublst, subdict)
+                    logger.debug('path template: ' + path_template)
+                    logger.debug('strsub: ' + str(strsublst))
+                    logger.debug('subdict: ' + str(subdict))
+                    logger.debug('path: ' + path)
                     path = tmpdate.strftime(path)
                     if os.path.isdir(path):
                         tmplst = np.sort(os.listdir(path))
+                        logger.debug('tmplst: ' + str(tmplst))
                         filelst.append(tmplst)
                         pathlst.append([os.path.join(path, e)
                                         for e in tmplst])
                     path = None
+                    logger.debug('path is None ')
                 except Exception as e:
                     logger.exception(e)
 
@@ -284,15 +291,16 @@ class satellite_class(qls, fc):
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         logger.info(" ## Find and list files ...")
-        path = kwargs.get('path', None)
-        wavy_path = kwargs.get('wavy_path', None)
+        path = kwargs.pop('path', None)
+        wavy_path = kwargs.pop('wavy_path', None)
         pathlst = self._get_files(vars(self),
                                      path=path,
-                                     wavy_path=wavy_path)
+                                     wavy_path=wavy_path,
+                                     **kwargs)
 
         # remove None values from pathlst
         pathlst = list(filter(lambda item: item is not None, pathlst))
-        print(str(int(len(pathlst))) + " valid files found")
+        logger.info(str(int(len(pathlst))) + " valid files found")
 
         logger.info('source template:')
         logger.info(self.cfg.wavy_input['src_tmplt'])
@@ -331,11 +339,12 @@ class satellite_class(qls, fc):
 
         new = deepcopy(self)
         logger.info('Crop to region: ' + str(region))
-
+        print(f"DEBUG crop_to_region entered: region={region}", file=sys.stderr, flush=True)
         idx = new._match_region(new.vars['lats'].values,
                                 new.vars['lons'].values,
                                 region=region,
                                 grid_date=new.sd)
+        print(f"DEBUG crop_to_region idx_len={len(idx)}", file=sys.stderr, flush=True)
         new.vars = new.vars.isel(time=idx)
         logger.info('Region mask applied')
         logger.info('For chosen region: ')
@@ -375,7 +384,7 @@ class satellite_class(qls, fc):
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get('logging', 'WARNING').upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
-
+        suppress_output = kwargs.get('suppress_output', log_level not in ('INFO', 'DEBUG'))
         new = deepcopy(self)
 
         pathlst = self.pathlst
@@ -396,30 +405,44 @@ class satellite_class(qls, fc):
         for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
             if count <= len(pathlst)-1:
                 new.pathlst = pathlst[count:count+chunk_size]
-                with NoStdStreams():
-                    try:
-                        # retrieve dataset
+                try:
+                    if suppress_output:
+                        with NoStdStreams():
+                            ds = new.reader(**(vars(new)))
+                            new.vars = ds
+                            new.coords = new.vars.coords
+                            if (new.poi is None and isinstance(region, str)):
+                                ds_lst.append(new._change_varname_to_aliases()
+                                              ._enforce_longitude_format()
+                                              .crop_to_region(new.region).vars)
+                            elif (new.poi is None and isinstance(region, dict)):
+                                ds_lst.append(new._change_varname_to_aliases()
+                                              ._enforce_longitude_format()
+                                              .crop_to_region(region['region']).vars)
+                            else:
+                                ds_lst.append(new._change_varname_to_aliases()
+                                              ._enforce_longitude_format()
+                                              .crop_to_region(region)
+                                              .crop_to_poi().vars)
+                    else:
                         ds = new.reader(**(vars(new)))
                         new.vars = ds
                         new.coords = new.vars.coords
-                        if (new.poi is None and
-                        isinstance(region, str)):
+                        if (new.poi is None and isinstance(region, str)):
                             ds_lst.append(new._change_varname_to_aliases()
                                           ._enforce_longitude_format()
                                           .crop_to_region(new.region).vars)
-                        elif (new.poi is None and
-                        isinstance(region, dict)):
+                        elif (new.poi is None and isinstance(region, dict)):
                             ds_lst.append(new._change_varname_to_aliases()
                                           ._enforce_longitude_format()
-                                          .crop_to_region(
-                                              region['region']).vars)
+                                          .crop_to_region(region['region']).vars)
                         else:
                             ds_lst.append(new._change_varname_to_aliases()
                                           ._enforce_longitude_format()
                                           .crop_to_region(region)
                                           .crop_to_poi().vars)
-                    except Exception as e:
-                        logger.exception(e)
+                except Exception as e:
+                    logger.exception(e)
 
         if len(ds_lst) > 1:
             combined = xr.concat(ds_lst, 'time',
@@ -545,7 +568,7 @@ class satellite_class(qls, fc):
 
         lst = self.list_input_files(**kwargs)
         self.pathlst = kwargs.get('pathlst', lst)
-
+        logger.debug('pathlst: ' + str(self.pathlst))
         logger.info('')
         logger.info('Checking variables..')
         self.meta = ncdumpMeta(self.pathlst[0])
@@ -559,14 +582,13 @@ class satellite_class(qls, fc):
         dotenv.load_dotenv()
         WAVY_DIR = os.getenv('WAVY_DIR', None)
         if WAVY_DIR is None:
-            logger.debug('#')
             logger.debug('Environmental variable for WAVY_DIR not defined')
             logger.debug('Defaults are chosen')
-            logger.debug('#')
             reader_mod_str = load_dir('satellite_readers').name
+            logger.debug(f'reader_mod_str: {reader_mod_str}')
         else:
             reader_mod_str = WAVY_DIR + '/wavy/satellite_readers.py'
-
+            logger.debug(f'reader_mod_str: {reader_mod_str}')
         reader_str = kwargs.get('reader', self.cfg.reader)
         spec = importlib.util.spec_from_file_location(
                 'satellite_readers.' + reader_str, reader_mod_str)
@@ -612,15 +634,14 @@ class satellite_class(qls, fc):
                     self.units = variable_def[newvaralias].get('units')
                 # create label for plotting
                 t1 = time.time()
-                print(" ")
-                print(' ## Summary:')
-                print(
+                
+                logger.info('\n## Summary:')
+                logger.info(
                     str(len(self.vars['time'])) + " footprints retrieved.")
-                print("Time used for retrieving data:")
-                print(round(t1-t0, 2), "seconds")
-                print(" ")
-                print(" ### satellite_class object populated ###")
-                print('# ----- ')
+                logger.info("Time used for retrieving data:")
+                logger.info(f"{round(t1-t0, 2)} seconds")
+                logger.info(" ")
+                logger.info(" ### satellite_class object populated ### \n# ----- ")
 
             except Exception as e:
                 logger.exception(e)
@@ -693,6 +714,7 @@ class satellite_class(qls, fc):
         return:
             indices that match the region
         """
+        print(f"DEBUG _match_region entered: region={region}", file=sys.stderr, flush=True)
         # region in region_dict[poly]:
         # find values for given region
         if isinstance(region, dict) is True:
@@ -717,12 +739,15 @@ class satellite_class(qls, fc):
                     region = region_dict['rect'][region]
             ridx = match_region_rect(LATS, LONS, region=region)
         elif region in region_dict['geojson']:
+            print("DEBUG _match_region -> geojson", file=sys.stderr, flush=True)
             print("Region is defined as geojson")
             ridx = match_region_geojson(LATS, LONS, region=region)
         elif region in region_dict['poly']:
+            print("DEBUG _match_region -> poly", file=sys.stderr, flush=True)
             ridx = match_region_poly(LATS, LONS, region=region,
                                      grid_date=grid_date)
         else:
+            print("DEBUG _match_region -> model/poly fallback", file=sys.stderr, flush=True)
             ridx = match_region_poly(LATS, LONS, region=region,
                                      grid_date=grid_date)
         return ridx
@@ -906,6 +931,8 @@ def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
     from matplotlib.patches import Polygon
     from matplotlib.path import Path
     import numpy as np
+    logger = logging.getLogger(__name__)
+    print(f"DEBUG match_region_poly entered: region={region}", file=sys.stderr, flush=True)
     if (region not in region_dict['poly'] and region not in model_dict):
         sys.exit("Region polygone is not defined")
     elif isinstance(region, dict) is True:
@@ -913,16 +940,64 @@ def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
               + " --> Bounds: " + str(region))
         poly = Polygon(list(zip(region['lons'],
                        region['lats'])), closed=True)
+    elif (isinstance(region, str)  and region in region_dict['poly']):
+        print("DEBUG match_region_poly using named polygon", file=sys.stderr, flush=True)
+        logger.info("Specified region: %s", region)
+        logger.info("Polygon lons: %s", region_dict['poly'][region]['lons'])
+        logger.info("Polygon lats: %s", region_dict['poly'][region]['lats'])
+        poly_lons = np.asarray(region_dict['poly'][region]['lons'])
+        poly_lats = np.asarray(region_dict['poly'][region]['lats'])
+
+        # Raw lon/lat polygons break for regions spanning the pole or
+        # antimeridian. In that case, do point-in-polygon in a polar
+        # stereographic projection instead.
+        lon_span = np.max(poly_lons) - np.min(poly_lons)
+        use_polar_proj = np.max(np.abs(poly_lats)) > 75 or lon_span > 180
+        print(f"DEBUG lon_span={lon_span}", file=sys.stderr, flush=True)
+        print(f"DEBUG max_abs_lat={np.max(np.abs(poly_lats))}", file=sys.stderr, flush=True)
+        print(f"DEBUG use_polar_proj={use_polar_proj}", file=sys.stderr, flush=True)
+        if use_polar_proj:
+            pole = 90 if np.mean(poly_lats) >= 0 else -90
+            print(f"DEBUG pole={pole}", file=sys.stderr, flush=True)
+            proj = pyproj.Proj(proj='stere', lat_0=pole, lon_0=0, lat_ts=pole)
+            poly_x, poly_y = proj(poly_lons, poly_lats)
+            pts_x, pts_y = proj(LONS, LATS)
+            poly = Polygon(list(zip(poly_x, poly_y)), closed=True)
+            points = np.c_[pts_x, pts_y]
+            path = Path(poly.xy)
+            hits = path.contains_points(points, radius=1e-9)
+            print(f"DEBUG hits_before={int(np.sum(hits))}", file=sys.stderr, flush=True)
+
+            pole_x, pole_y = proj(0.0, float(pole))
+            pole_is_inside = path.contains_point((pole_x, pole_y), radius=1e-9)
+            print(f"DEBUG pole_is_inside={pole_is_inside}", file=sys.stderr, flush=True)
+            if pole_is_inside:
+                # The boundary ring encircles the pole but does not fill it.
+                # Insert the pole as an explicit vertex to form a filled cap
+                # whose interior is exactly the poleward side of the boundary.
+                augmented_x = np.concatenate([[pole_x], poly_x, [pole_x]])
+                augmented_y = np.concatenate([[pole_y], poly_y, [pole_y]])
+                cap_path = Path(np.c_[augmented_x, augmented_y])
+                hits = cap_path.contains_points(points, radius=1e-9)
+            # else: direct contains_points is already correct (pole outside ring)
+        else:
+            poly = Polygon(list(zip(poly_lons, poly_lats)), closed=True)
+            points = np.c_[LONS, LATS]
+            hits = Path(poly.xy).contains_points(points, radius=1e-9)
+            print(f"DEBUG hits_nonpolar={int(np.sum(hits))}", file=sys.stderr, flush=True)
+        ridx = list(np.array(range(len(LONS)))[hits])
+        print(f"DEBUG ridx_len={len(ridx)}", file=sys.stderr, flush=True)
     elif (isinstance(region, str) is True and region in model_dict):
         # init model_class object
         mco = mc(nID=region)
         try:
-            print('Use date for retrieving grid: ', grid_date)
+            grid_date = model_dict[region].get('misc', {}).get('grid_date', grid_date)
+            logger.info('Use date for retrieving grid: %s', grid_date)
             filestr = mco._make_model_filename_wrapper(grid_date, 'best')
             meta = ncdumpMeta(filestr)
             flon = get_filevarname('lons', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
+                                    model_dict[region], meta,
+                                    **kwargs)
             flat = get_filevarname('lats', variable_def,
                                    model_dict[region], meta,
                                    **kwargs)
@@ -932,10 +1007,10 @@ def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
             model_lons, model_lats, _ = \
                 read_model_nc_output_lru(filestr, flon, flat, time)
         except (KeyError, IOError, ValueError) as e:
-            print(e)
+            logger.error(e)
             if 'grid_date' in model_dict[region]:
                 grid_date = model_dict[region]['grid_date']
-                print('Trying default date ', grid_date)
+                logger.info('Trying default date %s', grid_date)
             else:
                 grid_date = datetime(
                                     datetime.now().year,
@@ -960,14 +1035,14 @@ def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
                                     model_lons,
                                     model_lats
                                     )
-        print('Check if footprints fall within the chosen domain')
+        logger.info('Check if footprints fall within the chosen domain')
         ncdict = ncdumpMeta(filestr)
         try:
             proj4 = find_attr_in_nc('proj', ncdict=ncdict,
                                     subattrstr='proj4')
         except IndexError:
-            print('proj4 not defined in netcdf-file')
-            print('Using proj4 from model config file')
+            logger.warning('proj4 not defined in netcdf-file')
+            logger.info('Using proj4 from model config file')
             proj4 = model_dict[region]['misc']['proj4']
         proj_model = pyproj.Proj(proj4)
         Mx, My = proj_model(model_lons, model_lats, inverse=False)
@@ -977,21 +1052,7 @@ def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
         ridx = list(np.where((Vx > xmin) & (Vx < xmax) &
                              (Vy > ymin) & (Vy < ymax))[0])
     elif isinstance(region, str) is True:
-        print("Specified region: " + region + "\n"
-              + " --> Bounded by polygon: \n"
-              + "lons: " + str(region_dict['poly'][region]['lons'])
-              + "\n"
-              + "lats: " + str(region_dict['poly'][region]['lats']))
-        poly = Polygon(list(zip(region_dict['poly'][region]['lons'],
-                       region_dict['poly'][region]['lats'])),
-                       closed=True)
-        # check if coords in region
-        points = np.c_[LONS, LATS]
-        # radius seems to be important to correctly define polygone
-        # see discussion here:
-        # https://github.com/matplotlib/matplotlib/issues/9704
-        hits = Path(poly.xy).contains_points(points, radius=1e-9)
-        ridx = list(np.array(range(len(LONS)))[hits])
+        raise KeyError(f"Region '{region}' is not defined as poly or model-backed region")
     if (not ridx or len(ridx)<1):
-        print("No values for chosen region and time frame!!!")
+        logger.info("No values for chosen region and time frame!!!")
     return ridx

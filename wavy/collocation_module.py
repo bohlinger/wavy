@@ -184,13 +184,13 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
 
 
 def get_model_filename(nID, d, leadtime, **kwargs):
-    mco = mc(nID=nID, sd=d, ed=d, leadtime=leadtime)
+    mco = mc(nID=nID,name=kwargs.get('name',None), sd=d, ed=d, leadtime=leadtime)
     return mco._make_model_filename_wrapper(parse_date(str(d)),
                                             leadtime, **kwargs)
 
 
 def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model,
-                                               leadtime, colloc_time_method,
+                                               leadtime, colloc_time_method,name=None,
                                                **kwargs):
     '''
     Finds valid dates that are close to desired dates at a precision
@@ -206,9 +206,8 @@ def find_valid_fc_dates_for_model_and_leadtime(fc_dates, model,
     #    pass
     #else:
     fc_dates_new = [d for d in fc_dates_new
-                    if get_model_filename(model, d, leadtime, **kwargs)
+                    if get_model_filename(model, d, leadtime, name=name, **kwargs)
                     is not None]
-    print(fc_dates_new)
     return fc_dates_new
 
 
@@ -282,10 +281,10 @@ class collocation_class(qls):
             self.varalias_obs = [self.varalias_obs]
         self.varalias_mod = self.varalias
         self.model = model
+        self.name = kwargs.get('name', None)
         self.leadtime = leadtime
         self.oco = oco
         self.nID = oco.nID
-        self.model = model
         self.obstype = str(type(oco))[8:-2]
         self.units = [variable_def[v].get('units') for v in self.varalias]
         self.stdvarname = [variable_def[v].get('standard_name') for v in\
@@ -301,6 +300,7 @@ class collocation_class(qls):
         self.res = kwargs.get('res',(0.5,0.5))
         print(" ")
         print(" ### Collocation_class object initialized ###")
+        print(f"nID: {self.nID}, model: {self.model}, name: {self.name}")
 
     def populate(self, **kwargs):
         logger = logging.getLogger(__name__)
@@ -521,7 +521,7 @@ class collocation_class(qls):
 
         ndt_valid = find_valid_fc_dates_for_model_and_leadtime(
                                     ndt, self.model, self.leadtime,
-                                    self.colloc_time_method, **kwargs)
+                                    self.colloc_time_method,name=self.name, **kwargs)
 
         ndt_valid = np.unique(ndt_valid)
 
@@ -549,88 +549,94 @@ class collocation_class(qls):
         for i in tqdm(range(len(fc_date))):
             logger.info(fc_date[i])
             try:
-                for j in range(1):
-                    # filter needed obs within time period
-                    target_date = [parse_date(str(fc_date[i]))]
+                
+                # filter needed obs within time period
+                target_date = [parse_date(str(fc_date[i]))]
 
-                    # if method is 'nearest', get the values that fall within
-                    # a time window of +/- 30 minutes of model time by default
-                    if self.colloc_time_method=='nearest':
-                        idx = collocate_times(ndt_datetime,
-                                              target_t=target_date,
-                                              twin=self.twin)
-                    # if method is 'floor' get the values that fall between
-                    # model time and model time + 1 hour
-                    elif self.colloc_time_method=='floor':
-                        sdate_colloc = target_date[0]
-                        edate_colloc = target_date[0] + timedelta(hours=1)
-                        idx = collocate_times(ndt_datetime,
-                                              target_t=target_date,
-                                              sdate=sdate_colloc,
-                                              edate=edate_colloc,
-                                              twin=0)
-                    # if method is 'ceil' get the values that fall between
-                    # model time - 1 hour and model time
-                    elif self.colloc_time_method=='ceil':
-                        sdate_colloc = target_date[0] - timedelta(hours=1)
-                        edate_colloc = target_date[0] 
-                        idx = collocate_times(ndt_datetime,
-                                              target_t=target_date,
-                                              sdate=sdate_colloc,
-                                              edate=edate_colloc,
-                                              twin=0)                                
+                # if method is 'nearest', get the values that fall within
+                # a time window of +/- 30 minutes of model time by default
+                if self.colloc_time_method=='nearest':
+                    idx = collocate_times(ndt_datetime,
+                                            target_t=target_date,
+                                            twin=self.twin)
+                # if method is 'floor' get the values that fall between
+                # model time and model time + 1 hour
+                elif self.colloc_time_method=='floor':
+                    sdate_colloc = target_date[0]
+                    edate_colloc = target_date[0] + timedelta(hours=1)
+                    idx = collocate_times(ndt_datetime,
+                                            target_t=target_date,
+                                            sdate=sdate_colloc,
+                                            edate=edate_colloc,
+                                            twin=0)
+                # if method is 'ceil' get the values that fall between
+                # model time - 1 hour and model time
+                elif self.colloc_time_method=='ceil':
+                    sdate_colloc = target_date[0] - timedelta(hours=1)
+                    edate_colloc = target_date[0] 
+                    idx = collocate_times(ndt_datetime,
+                                            target_t=target_date,
+                                            sdate=sdate_colloc,
+                                            edate=edate_colloc,
+                                            twin=0)                                
 
-                    logger.info(len(idx), "footprints to be collocated")
-                    # make tmp obs_obj with filtered data
-                    tmp_dict = {}
-                    tmp_dict['time'] = self.oco.vars['time'].values[idx]
-                    tmp_dict['lats'] = self.oco.vars['lats'].values[idx]
-                    tmp_dict['lons'] = self.oco.vars['lons'].values[idx]
+                logger.info(len(idx), "footprints to be collocated")
+                # make tmp obs_obj with filtered data
+                tmp_dict = {}
+                tmp_dict['time'] = self.oco.vars['time'].values[idx]
+                tmp_dict['lats'] = self.oco.vars['lats'].values[idx]
+                tmp_dict['lons'] = self.oco.vars['lons'].values[idx]
 
-                    for v in self.varalias_obs:
-                        tmp_dict[v] = self.oco.vars[v].values[idx]
-                    logger.info("#########################")
-                    logger.info(self.varalias_mod)
-                    mco = mc(sd=fc_date[i], ed=fc_date[i], 
-                             nID=self.model,
-                             leadtime=self.leadtime, 
-                             varalias=self.varalias_mod,
-                             **kwargs)
-                    mco = mco.populate(**kwargs)
-                    results_dict_tmp = self._collocate_field(
-                                            mco, tmp_dict, **kwargs)
-                    if (len(results_dict_tmp["model_" +\
-                                            self.varalias_mod[0]]) > 0):
-                        # append to dict
-                        results_dict['model_time'].append(\
-                                [fc_date[i]]*len(results_dict_tmp['time']))
-                        results_dict['obs_time'].append(
-                                results_dict_tmp['time'])
-                        results_dict['dist'].append(
-                                results_dict_tmp['dist'])
-                        results_dict['model_lons'].append(
-                                results_dict_tmp['model_lons'])
-                        results_dict['model_lats'].append(
-                                results_dict_tmp['model_lats'])
-                        results_dict['obs_lats'].append(
-                                results_dict_tmp['obs_lats'])
-                        results_dict['obs_lons'].append(
-                                results_dict_tmp['obs_lons'])
-                        results_dict['collocation_idx_x'].append(
-                                        results_dict_tmp['collocation_idx_x'])
-                        results_dict['collocation_idx_y'].append(
-                                        results_dict_tmp['collocation_idx_y'])
-                        for v in self.varalias_mod: 
-                            results_dict['model_'+v].append(
-                                        results_dict_tmp['model_'+v])
-                        for v in self.varalias_obs: 
-                            results_dict['obs_'+v].append(
-                                        results_dict_tmp['obs_'+v])
+                for v in self.varalias_obs:
+                    tmp_dict[v] = self.oco.vars[v].values[idx]
+                logger.info("#########################")
+                logger.info(self.varalias_mod)
+                mco = mc(sd=fc_date[i], ed=fc_date[i], 
+                            nID=self.model,
+                            name=self.name,
+                            leadtime=self.leadtime, 
+                            varalias=self.varalias_mod,
+                            **kwargs)
+                mco = mco.populate(**kwargs)
+                if not hasattr(mco, 'vars') or mco.vars is None:
+                    logger.warning(
+                        f"Model data not available/populated for {fc_date[i]}, "
+                        "skipping this timestep.")
+                    continue
+                results_dict_tmp = self._collocate_field(
+                                        mco, tmp_dict, **kwargs)
+                if (len(results_dict_tmp["model_" +\
+                                        self.varalias_mod[0]]) > 0):
+                    # append to dict
+                    results_dict['model_time'].append(\
+                            [fc_date[i]]*len(results_dict_tmp['time']))
+                    results_dict['obs_time'].append(
+                            results_dict_tmp['time'])
+                    results_dict['dist'].append(
+                            results_dict_tmp['dist'])
+                    results_dict['model_lons'].append(
+                            results_dict_tmp['model_lons'])
+                    results_dict['model_lats'].append(
+                            results_dict_tmp['model_lats'])
+                    results_dict['obs_lats'].append(
+                            results_dict_tmp['obs_lats'])
+                    results_dict['obs_lons'].append(
+                            results_dict_tmp['obs_lons'])
+                    results_dict['collocation_idx_x'].append(
+                                    results_dict_tmp['collocation_idx_x'])
+                    results_dict['collocation_idx_y'].append(
+                                    results_dict_tmp['collocation_idx_y'])
+                    for v in self.varalias_mod: 
+                        results_dict['model_'+v].append(
+                                    results_dict_tmp['model_'+v])
+                    for v in self.varalias_obs: 
+                        results_dict['obs_'+v].append(
+                                    results_dict_tmp['obs_'+v])
                     else:
                         pass
                     if 'results_dict_tmp' in locals():
                         del results_dict_tmp
-            except (ValueError, FileNotFoundError, OSError) as e:
+            except (ValueError, FileNotFoundError, OSError, AttributeError) as e:
                 # ValueError, pass if no collocation
                 # FileNotFoundError, pass if file not accessible
                 # OSError, pass if file not accessible from thredds
