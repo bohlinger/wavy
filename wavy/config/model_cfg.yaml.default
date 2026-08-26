@@ -279,3 +279,24 @@ NORA3_hc_waves:
         grid_date: 2019-01-01 00:00:00
         date_incr_unit: h
         date_incr: 1
+
+dummy_model:
+    name: dummy_model
+    download:
+    vardef:
+        Hs: hs
+        time: time
+        lons: longitude
+        lats: latitude
+    coords:
+    wavy_input:
+        src_tmplt: "../../tests/data/dummy_model/%Y/%m/"
+        fl_tmplt: "%Y%m%d_MyWam3km_hindcast.nc"
+    reader: read_ww3_4km
+    collector:
+    misc:
+        init_times: [0]
+        init_step: 24
+        grid_date: 2019-01-01 00:00:00
+        date_incr_unit: h
+        date_incr: 1
