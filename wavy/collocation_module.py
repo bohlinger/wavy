@@ -16,6 +16,7 @@ import time
 import pyresample
 from tqdm import tqdm
 from copy import deepcopy
+
 import xarray as xr
 import pandas as pd
 import copy
@@ -39,6 +40,14 @@ from wavy.gridder_module import gridder_class as gc
 from wavy.grid_stats import apply_metric
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.validationmod import validate, disp_validation
+
+from wavy.errors import (
+    CollocationBuildError,
+    CollocationError,
+    CollocationInputError,
+    CollocationRunError,
+    ModelFileSearchError,
+)
 
 # ---------------------------------------------------------------------#
 
@@ -171,7 +180,10 @@ def collocation_fct(obs_lons, obs_lats, model_lons, model_lats):
 
 def get_model_filename(nID, d, leadtime, **kwargs):
     mco = mc(nID=nID, name=kwargs.get("name", None), sd=d, ed=d, leadtime=leadtime)
-    return mco._make_model_filename_wrapper(parse_date(str(d)), leadtime, **kwargs)
+    try:
+        return mco._make_model_filename_wrapper(parse_date(str(d)), leadtime, **kwargs)
+    except ModelFileSearchError:
+        return None
 
 
 def find_valid_fc_dates_for_model_and_leadtime(
@@ -195,6 +207,12 @@ def find_valid_fc_dates_for_model_and_leadtime(
         for d in fc_dates_new
         if get_model_filename(model, d, leadtime, name=name, **kwargs) is not None
     ]
+    if len(fc_dates_new) == 0:
+        raise ModelFileSearchError(
+            f"No model files found for model {model} and leadtime {leadtime} "
+            f"for the given dates. Please check your model configuration and "
+            f"the availability of model files."
+        )
     return fc_dates_new
 
 
@@ -289,6 +307,18 @@ class collocation_class(qls):
         print(f"nID: {self.nID}, model: {self.model}, name: {self.name}")
 
     def populate(self, **kwargs):
+        """
+        raises:
+            CollocationInputError - preconditions not met (no
+                observations, no model, unknown method). Propagated
+                unchanged from collocate().
+            CollocationBuildError - the collocated dataset could not
+                be assembled from the intermediate results.
+                Propagated unchanged from _build_xr_dataset().
+            CollocationRunError - any other unexpected failure during
+                collocation.
+        """
+
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
@@ -317,25 +347,38 @@ class collocation_class(qls):
             )
 
             new = new._drop_duplicates(**kwargs)
-            t1 = time.time()
-            print(" ")
-            print(" ## Summary:")
-            print(len(new.vars["time"]), " values collocated.")
-            print("Time used for collocation:", round(t1 - t0, 2), "seconds")
-            print(" ")
 
+        except CollocationError:
+            raise
         except Exception as e:
-            logger.warning("Exception occurred in collocation")
-            logger.warning(e)
-            new.error = e
-            new.vars = None
-            print("! collocation_class object may be empty !")
+            raise CollocationRunError(
+                "Collocation failed for nID="
+                + str(self.nID)
+                + ", model="
+                + str(self.model)
+                + ", period "
+                + str(self.sd)
+                + " to "
+                + str(self.ed)
+                + "."
+            ) from e
         # add class variables
         print("# ----- ")
-
+        t1 = time.time()
+        print(" ")
+        print(" ## Summary:")
+        print(len(new.vars["time"]), " values collocated.")
+        print("Time used for collocation:", round(t1 - t0, 2), "seconds")
+        print(" ")
         return new
 
     def _build_xr_dataset(self, results_dict, **kwargs):
+        """
+        raises:
+            CollocationBuildError - if the xarray Dataset cannot be
+                assembled, e.g. a key expected in results_dict or
+                variable_def.yaml is missing.
+        """
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
@@ -420,10 +463,16 @@ class collocation_class(qls):
                 },
                 attrs={"title": str(type(self))[8:-2] + " dataset"},
             )
-        except Exception as e:
-            logger.warning("Exception occurred in _build_xr_dataset")
-            logger.warning(e)
-            logger.warning(ds)
+        except (KeyError, ValueError) as e:
+            raise CollocationBuildError(
+                "Could not assemble the collocated xarray Dataset for "
+                "nID="
+                + str(self.nID)
+                + ", model="
+                + str(self.model)
+                + " - a key expected in the collocation results or in "
+                "'variable_def.yaml' was missing or invalid."
+            ) from e
         return ds
 
     def _drop_duplicates(self, **kwargs):
@@ -505,7 +554,11 @@ class collocation_class(qls):
 
     def _collocate_track(self, **kwargs):
         """
-        Some info
+        raises:
+            CollocationRunError - if at least one candidate forecast
+                date was attempted and every single one failed to
+                collocate (a fully empty result is otherwise
+                indistinguishable from "nothing to collocate").
         """
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get("logging", "WARNING").upper())
@@ -552,6 +605,8 @@ class collocation_class(qls):
             **{"model_" + v: [] for v in self.varalias_mod},
             **{"obs_" + v: [] for v in self.varalias_obs},
         }
+
+        n_dates_failed = 0
 
         for i in tqdm(range(len(fc_date))):
             logger.info(fc_date[i])
@@ -650,8 +705,17 @@ class collocation_class(qls):
                 # ValueError, pass if no collocation
                 # FileNotFoundError, pass if file not accessible
                 # OSError, pass if file not accessible from thredds
-                logger.exception(e)
-                logger.error(e)
+                logger.warning("Skipping fc_date=" + str(fc_date[i]) + ": " + str(e))
+                logger.debug(e, exc_info=True)
+                n_dates_failed += 1
+        if len(fc_date) > 0 and n_dates_failed == len(fc_date):
+            raise CollocationRunError(
+                "None of the " + str(len(fc_date)) + " candidate "
+                "forecast dates could be collocated for model="
+                + str(self.model)
+                + " (all failed). Check model "
+                "availability/config for the requested period."
+            )
         # flatten all aggregated entries
         results_dict["model_time"] = flatten(results_dict["model_time"])
         results_dict["obs_time"] = flatten(results_dict["obs_time"])
@@ -790,26 +854,31 @@ class collocation_class(qls):
         """
         get obs value for model value for given
             temporal and spatial constraints
+
+        raises:
+        CollocationInputError - no observation data, no model
+            specified, or an unrecognized collocation method.
         """
-        if self.oco is None and len(self.oco.vars[self.oco.stdvarname]) < 1:
-            raise Exception(
-                "\n###\n"
-                + "Collocation not possible, "
-                + "no observation values for collocation!"
-                + "\n###"
+        if self.oco is None or len(self.oco.vars[self.varalias_obs]) < 1:
+            raise CollocationInputError(
+                "Collocation not possible: no observation values "
+                "available (oco is None or oco.vars is empty)."
             )
         if self.model is None:
-            raise Exception(
-                "\n###\n"
-                + "Collocation not possible, "
-                + "no model available for collocation!"
-                + "\n###"
+            raise CollocationInputError(
+                "Collocation not possible: no model specified for " "collocation."
             )
         if (self.model is not None) and (self.oco is not None):
             if self.method == "closest":
                 results_dict = self._collocate_track(**kwargs)
             elif self.method == "regridded":
                 results_dict = self._collocate_regridded_model(**kwargs)
+            else:
+                raise CollocationInputError(
+                    "Unknown collocation method '"
+                    + str(self.method)
+                    + "'. Expected 'closest' or 'regridded'."
+                )
 
         return results_dict
 

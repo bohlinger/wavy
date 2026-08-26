@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
-'''
+"""
 The main task of this module is to acquire, read, and prepare
 geophysical variables related to wave height from satellite
 altimetry files for further use.
-'''
+"""
+
 # --- import libraries ------------------------------------------------#
 # standard library igports
 import sys
@@ -19,9 +20,18 @@ import importlib.util
 import pyproj
 import dotenv
 import glob
+from wavy.errors import (
+    GridRetrievalError,
+    RegionNotDefinedError,
+    SatelliteFileNotFoundError,
+    SatellitePathTemplateError,
+    SatelliteProcessingError,
+    SatelliteVariableError,
+)
 import xarray as xr
 from tqdm import tqdm
-#import traceback
+
+# import traceback
 import logging
 
 # own imports
@@ -53,14 +63,18 @@ from wavy.wave_parameters import altimeter_Tz
 from wavy.wave_parameters import mean_wave_energy_density
 from wavy.wave_parameters import group_velocity_deep_water
 from wavy.wave_parameters import wave_power
+
+from wavy.errors import SatelliteReadError
+
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-region_dict = load_or_default('region_cfg.yaml')
-model_dict = load_or_default('model_cfg.yaml')
-variable_def = load_or_default('variable_def.yaml')
+region_dict = load_or_default("region_cfg.yaml")
+model_dict = load_or_default("model_cfg.yaml")
+variable_def = load_or_default("variable_def.yaml")
 
 # --- global functions ------------------------------------------------#
+
 
 def crop_to_period(ds, sd, ed):
     """
@@ -71,91 +85,92 @@ def crop_to_period(ds, sd, ed):
 
 
 def check_date(filelst, date):
-    '''
+    """
     Checks if str in lst according to desired date (sd, ed)
 
     return: idx for file
-    '''
+    """
     idx = []
     for i in range(len(filelst)):
         element = filelst[i]
-        tmp = element.find(date.strftime('%Y%m%d'))
+        tmp = element.find(date.strftime("%Y%m%d"))
         if tmp >= 0:
             idx.append(i)
     if len(idx) <= 0:
         idx = [0]
     return idx[0], idx[-1]
 
+
 # ---------------------------------------------------------------------#
 
 
 class satellite_class(qls, fc):
-    '''
+    """
     Class to handle netcdf files containing satellite altimeter data
     e.g.: Hs[time], lat[time], lon[time], time[time]
-    '''
+    """
 
     def __init__(self, **kwargs):
-        print('# ----- ')
+        print("# ----- ")
         print(" ### Initializing satellite_class object ###")
         print(" ")
         print(" Given kwargs:")
         print(kwargs)
         # initializing useful attributes from config file
-        dc = init_class('satellite', kwargs.get('nID'))
+        dc = init_class("satellite", kwargs.get("nID"))
         # parse and translate date input
-        self.sd = parse_date(kwargs.get('sd'))
-        self.ed = parse_date(kwargs.get('ed', self.sd))
+        self.sd = parse_date(kwargs.get("sd"))
+        self.ed = parse_date(kwargs.get("ed", self.sd))
         # add other class object variables
-        self.nID = kwargs.get('nID')
-        self.name = dc.name[kwargs.get('name', 's3a')]
-        self.varalias = kwargs.get('varalias', ['Hs'])
+        self.nID = kwargs.get("nID")
+        self.name = dc.name[kwargs.get("name", "s3a")]
+        self.varalias = kwargs.get("varalias", ["Hs"])
         if isinstance(self.varalias, str):
             self.varalias = [self.varalias]
-        self.units = [variable_def[v].get('units') for v in self.varalias]
-        self.stdvarname = [variable_def[v].get('standard_name') for v in\
-                           self.varalias]     
-        self.twin = int(kwargs.get('twin', 30))
-        self.distlim = kwargs.get('distlim', 6)
-        self.filter = kwargs.get('filter', False)
-        if isinstance(kwargs.get('region'), dict):
-            self.region = kwargs.get('region')['name']
+        self.units = [variable_def[v].get("units") for v in self.varalias]
+        self.stdvarname = [variable_def[v].get("standard_name") for v in self.varalias]
+        self.twin = int(kwargs.get("twin", 30))
+        self.distlim = kwargs.get("distlim", 6)
+        self.filter = kwargs.get("filter", False)
+        if isinstance(kwargs.get("region"), dict):
+            self.region = kwargs.get("region")["name"]
         else:
-            self.region = kwargs.get('region', 'global')
+            self.region = kwargs.get("region", "global")
         self.cfg = dc
         # poi should be poi_class
-        self.poi = kwargs.get('poi', None)
+        self.poi = kwargs.get("poi", None)
         if self.poi is not None:
-            self.sd = parse_date(str(self.poi.vars['time'].data[0]))
-            self.ed = parse_date(str(self.poi.vars['time'].data[-1]))
+            self.sd = parse_date(str(self.poi.vars["time"].data[0]))
+            self.ed = parse_date(str(self.poi.vars["time"].data[-1]))
 
         # super(config_class,self).__init__('satellite', kwargs.get('nID'))
         print(" ")
         print(" ### satellite_class object initialized ###")
-        print('# ----- ')
+        print("# ----- ")
 
     def download(self, path=None, nproc=1, **kwargs):
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         logger.info("")
         logger.info("Choosing collector..")
         # define reader
         dotenv.load_dotenv()
-        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        WAVY_DIR = os.getenv("WAVY_DIR", None)
         if WAVY_DIR is None:
-            logger.debug('#')
-            logger.debug('Environmental variable for WAVY_DIR not defined')
-            logger.debug('Defaults are chosen')
-            logger.debug('#')
-            collector_mod_str = load_dir('satellite_collectors').name
+            logger.debug("#")
+            logger.debug("Environmental variable for WAVY_DIR not defined")
+            logger.debug("Defaults are chosen")
+            logger.debug("#")
+            collector_mod_str = load_dir("satellite_collectors").name
         else:
-            collector_mod_str = WAVY_DIR + '/wavy/satellite_collectors.py'
+            collector_mod_str = WAVY_DIR + "/wavy/satellite_collectors.py"
 
-        collector_str = kwargs.get('collector', self.cfg.collector)
+        collector_str = kwargs.get("collector", self.cfg.collector)
         spec = importlib.util.spec_from_file_location(
-                'satellite_collectors.' + collector_str, collector_mod_str)
+            "satellite_collectors." + collector_str, collector_mod_str
+        )
 
         # create collector module
         collector_tmp = importlib.util.module_from_spec(spec)
@@ -164,18 +179,17 @@ class satellite_class(qls, fc):
         # pick collector
         collector = getattr(collector_tmp, collector_str)
         self.collector = collector
-        logger.info('Chosen collector:')
+        logger.info("Chosen collector:")
         logger.info(spec.name)
-        logger.info('')
+        logger.info("")
 
         logger.info("Downloading files ...")
-        #kwargs_in = vars(self)
-        #kwargs_in['path'] = path
-        #self.collector(nproc=nproc, path=path, **vars(self))
+        # kwargs_in = vars(self)
+        # kwargs_in['path'] = path
+        # self.collector(nproc=nproc, path=path, **vars(self))
         self.collector(nproc=nproc, path=path, **vars(self), **kwargs)
 
-    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None,
-    **kwargs):
+    def _get_files(self, dict_for_sub=None, path=None, wavy_path=None, **kwargs):
         """
         Function to retrieve list of files/paths for available
         locally stored satellite data. This list is used for
@@ -191,46 +205,67 @@ class satellite_class(qls, fc):
 
         return:
             pathlst - list of paths
+
+        raises:
+            SatellitePathTemplateError - if 'wavy_input.src_tmplt' /
+                'wavy_input.strsub' in the satellite config cannot be
+                turned into a valid path (deterministic misconfig,
+                would otherwise fail identically for every date in
+                sd..ed).
         """
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         filelst = []
         pathlst = []
-        tmpdate = self.sd-timedelta(minutes=self.twin)
+        tmpdate = self.sd - timedelta(minutes=self.twin)
         if wavy_path is not None:
             pathtotals = [wavy_path]
             filelst = [wavy_path]
         elif path is None:
-            logger.debug('path is None -> checking config file')
-            while (tmpdate <= date_dispatcher(self.ed,
-            self.cfg.wavy_input['path_date_incr_unit'],
-            self.cfg.wavy_input['path_date_incr'])):
+            logger.debug("path is None -> checking config file")
+            while tmpdate <= date_dispatcher(
+                self.ed,
+                self.cfg.wavy_input["path_date_incr_unit"],
+                self.cfg.wavy_input["path_date_incr"],
+            ):
                 try:
                     # create local path for each time
-                    path_template = \
-                            self.cfg.wavy_input.get('src_tmplt')
-                    strsublst = \
-                        self.cfg.wavy_input.get('strsub')
-                    subdict = \
-                        make_subdict(strsublst,
-                                     class_object_dict=dict_for_sub)
-                    path = make_pathtofile(path_template,
-                                           strsublst, subdict)
+                    path_template = self.cfg.wavy_input.get("src_tmplt")
+                    strsublst = self.cfg.wavy_input.get("strsub")
+                    subdict = make_subdict(strsublst, class_object_dict=dict_for_sub)
+                    path = make_pathtofile(path_template, strsublst, subdict)
                     path = tmpdate.strftime(path)
                     if os.path.isdir(path):
                         tmplst = np.sort(os.listdir(path))
                         filelst.append(tmplst)
-                        pathlst.append([os.path.join(path, e)
-                                        for e in tmplst])
+                        pathlst.append([os.path.join(path, e) for e in tmplst])
                     path = None
-                except Exception as e:
-                    logger.exception(e)
+                except (KeyError, TypeError, ValueError) as e:
+                    # deterministic misconfiguration - this would fail
+                    # identically for every remaining date, so fail
+                    # fast instead of silently looping through sd..ed
+                    raise SatellitePathTemplateError(
+                        "Could not build a local path for nID="
+                        + str(self.nID)
+                        + " using 'wavy_input.src_tmplt'"
+                        "/'wavy_input.strsub' from the satellite "
+                        "config. Check that these are set correctly."
+                    ) from e
+                except OSError as e:
+                    # per-directory I/O problem (permissions, transient
+                    # mount issue) - log and move on to the next date
+                    logger.warning(
+                        "Could not list files in " + str(path) + ": " + str(e)
+                    )
+                    path = None
 
-                tmpdate = date_dispatcher(tmpdate,
-                            self.cfg.wavy_input['path_date_incr_unit'],
-                            self.cfg.wavy_input['path_date_incr'])
+                tmpdate = date_dispatcher(
+                    tmpdate,
+                    self.cfg.wavy_input["path_date_incr_unit"],
+                    self.cfg.wavy_input["path_date_incr"],
+                )
 
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
@@ -245,57 +280,51 @@ class satellite_class(qls, fc):
                 logger.debug("Object is iterable")
 
             # limit to sd and ed based on file naming, see check_date
-            idx_start, tmp = check_date(filelst,
-                                        self.sd - timedelta(minutes=self.twin))
-            tmp, idx_end = check_date(filelst,
-                                      self.ed + timedelta(minutes=self.twin))
+            idx_start, tmp = check_date(filelst, self.sd - timedelta(minutes=self.twin))
+            tmp, idx_end = check_date(filelst, self.ed + timedelta(minutes=self.twin))
             if idx_end == 0:
-                idx_end = len(pathlst)-1
+                idx_end = len(pathlst) - 1
             del tmp
-            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
-            filelst = np.unique(filelst[idx_start:idx_end+1])
+            pathtotals = np.unique(pathtotals[idx_start : idx_end + 1])
+            filelst = np.unique(filelst[idx_start : idx_end + 1])
 
         else:
             if os.path.isdir(path):
-                pathlst = glob.glob(os.path.join(path, '*'))
+                pathlst = glob.glob(os.path.join(path, "*"))
             else:
-                pathlst = glob.glob(path + '*')
+                pathlst = glob.glob(path + "*")
             # separate files from path
             filelst = [os.path.basename(p) for p in pathlst]
             pathlst = [os.path.dirname(p) for p in pathlst]
             pathtotals = [os.path.join(p, f) for p, f in zip(pathlst, filelst)]
 
             # limit to sd and ed based on file naming, see check_date
-            idx_start, tmp = check_date(filelst,
-                                        self.sd - timedelta(minutes=self.twin))
-            tmp, idx_end = check_date(filelst,
-                                      self.ed + timedelta(minutes=self.twin))
+            idx_start, tmp = check_date(filelst, self.sd - timedelta(minutes=self.twin))
+            tmp, idx_end = check_date(filelst, self.ed + timedelta(minutes=self.twin))
             if idx_end == 0:
-                idx_end = len(pathlst)-1
+                idx_end = len(pathlst) - 1
             del tmp
-            pathtotals = np.unique(pathtotals[idx_start:idx_end+1])
-            filelst = np.unique(filelst[idx_start:idx_end+1])
+            pathtotals = np.unique(pathtotals[idx_start : idx_end + 1])
+            filelst = np.unique(filelst[idx_start : idx_end + 1])
 
         return pathtotals
 
     def list_input_files(self, show=False, **kwargs):
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         logger.info(" ## Find and list files ...")
-        path = kwargs.get('path', None)
-        wavy_path = kwargs.get('wavy_path', None)
-        pathlst = self._get_files(vars(self),
-                                     path=path,
-                                     wavy_path=wavy_path)
+        path = kwargs.get("path", None)
+        wavy_path = kwargs.get("wavy_path", None)
+        pathlst = self._get_files(vars(self), path=path, wavy_path=wavy_path)
 
         # remove None values from pathlst
         pathlst = list(filter(lambda item: item is not None, pathlst))
         print(str(int(len(pathlst))) + " valid files found")
 
-        logger.info('source template:')
-        logger.info(self.cfg.wavy_input['src_tmplt'])
+        logger.info("source template:")
+        logger.info(self.cfg.wavy_input["src_tmplt"])
         if show is True:
             print(" ")
             print("pathlst: ")
@@ -305,42 +334,44 @@ class satellite_class(qls, fc):
 
     def crop_to_poi(self, **kwargs):
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
-        if kwargs.get('poi') is not None:
-            self.poi = kwargs.get('poi')
-        if kwargs.get('distlim') is not None:
-            self.distlim = kwargs.get('distlim')
-        if kwargs.get('twin') is not None:
-            self.twin = kwargs.get('twin')
+        if kwargs.get("poi") is not None:
+            self.poi = kwargs.get("poi")
+        if kwargs.get("distlim") is not None:
+            self.distlim = kwargs.get("distlim")
+        if kwargs.get("twin") is not None:
+            self.twin = kwargs.get("twin")
         new = deepcopy(self)
-        logger.info('Crop to poi region')
+        logger.info("Crop to poi region")
         idx = new._match_poi(self.poi)
         new.vars = new.vars.sel(time=new.vars.time[idx])
-        logger.info('Region mask applied based on poi')
-        logger.info('For chosen poi region: ')
-        logger.info(len(new.vars['time']))
-        logger.info('footprints found')
+        logger.info("Region mask applied based on poi")
+        logger.info("For chosen poi region: ")
+        logger.info(len(new.vars["time"]))
+        logger.info("footprints found")
         return new
 
     def crop_to_region(self, region, **kwargs):
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         new = deepcopy(self)
-        logger.info('Crop to region: ' + str(region))
+        logger.info("Crop to region: " + str(region))
 
-        idx = new._match_region(new.vars['lats'].values,
-                                new.vars['lons'].values,
-                                region=region,
-                                grid_date=new.sd)
+        idx = new._match_region(
+            new.vars["lats"].values,
+            new.vars["lons"].values,
+            region=region,
+            grid_date=new.sd,
+        )
         new.vars = new.vars.isel(time=idx)
-        logger.info('Region mask applied')
-        logger.info('For chosen region: ')
-        logger.info(len(new.vars['time']))
-        logger.info('footprints found')
+        logger.info("Region mask applied")
+        logger.info("For chosen region: ")
+        logger.info(len(new.vars["time"]))
+        logger.info("footprints found")
         return new
 
     def _get_sat_ts_blunt(self, **kwargs):
@@ -360,7 +391,6 @@ class satellite_class(qls, fc):
         self.coords = list(self.vars.coords)
         return self
 
-
     def _get_sat_ts(self, **kwargs):
         """
         Main function to obtain data from satellite missions.
@@ -371,205 +401,340 @@ class satellite_class(qls, fc):
 
         return: adjusted dictionary according to spatial and
                 temporal constraints
+
+        raises:
+            SatelliteReadError - if none of the candidate files could
+                be read/processed successfully.
         """
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         new = deepcopy(self)
 
         pathlst = self.pathlst
-        chunk_size = kwargs.get('chunk_size', 1)
-        region = kwargs.get('region', new.region)
+        chunk_size = kwargs.get("chunk_size", 1)
+        region = kwargs.get("region", new.region)
 
         if isinstance(region, dict):
-            new.region = region['name']
+            new.region = region["name"]
 
         ds_lst = []
+        n_failed = 0
         count = 0
-        logger.info('Reading '
-                    + str(int((len(pathlst)+chunk_size)/chunk_size)+1)
-                    + ' chunks of files with chunk size '
-                    + str(chunk_size))
-        logger.info('Total of ' + str(len(pathlst)) + ' files')
+        logger.info(
+            "Reading "
+            + str(int((len(pathlst) + chunk_size) / chunk_size) + 1)
+            + " chunks of files with chunk size "
+            + str(chunk_size)
+        )
+        logger.info("Total of " + str(len(pathlst)) + " files")
 
-        for count in tqdm(range(0, len(pathlst)+chunk_size, chunk_size)):
-            if count <= len(pathlst)-1:
-                new.pathlst = pathlst[count:count+chunk_size]
+        for count in tqdm(range(0, len(pathlst) + chunk_size, chunk_size)):
+            if count <= len(pathlst) - 1:
+                new.pathlst = pathlst[count : count + chunk_size]
                 with NoStdStreams():
                     try:
                         # retrieve dataset
                         ds = new.reader(**(vars(new)))
                         new.vars = ds
                         new.coords = new.vars.coords
-                        if (new.poi is None and
-                        isinstance(region, str)):
-                            ds_lst.append(new._change_varname_to_aliases()
-                                          ._enforce_longitude_format()
-                                          .crop_to_region(new.region).vars)
-                        elif (new.poi is None and
-                        isinstance(region, dict)):
-                            ds_lst.append(new._change_varname_to_aliases()
-                                          ._enforce_longitude_format()
-                                          .crop_to_region(
-                                              region['region']).vars)
+                        if new.poi is None and isinstance(region, str):
+                            ds_lst.append(
+                                new._change_varname_to_aliases()
+                                ._enforce_longitude_format()
+                                .crop_to_region(new.region)
+                                .vars
+                            )
+                        elif new.poi is None and isinstance(region, dict):
+                            ds_lst.append(
+                                new._change_varname_to_aliases()
+                                ._enforce_longitude_format()
+                                .crop_to_region(region["region"])
+                                .vars
+                            )
                         else:
-                            ds_lst.append(new._change_varname_to_aliases()
-                                          ._enforce_longitude_format()
-                                          .crop_to_region(region)
-                                          .crop_to_poi().vars)
+                            ds_lst.append(
+                                new._change_varname_to_aliases()
+                                ._enforce_longitude_format()
+                                .crop_to_region(region)
+                                .crop_to_poi()
+                                .vars
+                            )
                     except Exception as e:
-                        logger.exception(e)
+                        # a single corrupt/unreadable file shouldn't
+                        # abort the whole read - log and keep going,
+                        # but track failures so we can tell the
+                        # difference between "some files bad" and
+                        # "all files bad" below
+                        n_failed += 1
+                        logger.warning(
+                            "Failed to read/process chunk "
+                            + str(new.pathlst)
+                            + ": "
+                            + str(e)
+                        )
+                        logger.debug(e, exc_info=True)
 
-        if len(ds_lst) > 1:
-            combined = xr.concat(ds_lst, 'time',
-                                 coords='minimal',
-                                 data_vars='minimal',
-                                 compat='override',
-                                 combine_attrs='override',
-                                 join='override')
+        if len(ds_lst) == 0:
+            raise SatelliteReadError(
+                "None of the " + str(len(pathlst)) + " candidate "
+                "satellite files for nID="
+                + str(self.nID)
+                + " could be read successfully ("
+                + str(n_failed)
+                + " failed). Check reader compatibility and file "
+                "integrity."
+            )
+        elif len(ds_lst) > 1:
+            combined = xr.concat(
+                ds_lst,
+                "time",
+                coords="minimal",
+                data_vars="minimal",
+                compat="override",
+                combine_attrs="override",
+                join="override",
+            )
         else:
             combined = ds_lst[0]
+
+        if n_failed > 0:
+            logger.warning(
+                str(n_failed)
+                + " of "
+                + str(len(pathlst))
+                + " candidate files failed to read and were skipped."
+            )
 
         new.vars = combined
         new.coords = list(new.vars.coords)
 
         return new
 
-
     def _enforce_longitude_format(self, **kwargs):
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         new = deepcopy(self)
         # adjust longitude -180/180
         attrs = new.vars.lons.attrs
-        logger.info(' enforcing lon max min = -180/180')
-        attrs['valid_max'] = 180
-        attrs['valid_min'] = -180
-        attrs['comments'] = 'forced to range: -180 to 180'
+        logger.info(" enforcing lon max min = -180/180")
+        attrs["valid_max"] = 180
+        attrs["valid_min"] = -180
+        attrs["comments"] = "forced to range: -180 to 180"
         new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
         return new
 
     def _enforce_meteorologic_convention(self, **kwargs):
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         new = deepcopy(self)
         ncvars = list(new.vars.variables)
         for ncvar in ncvars:
-            if (vars(new.cfg)['misc'] is not None and
-            'convention' in vars(new.cfg)['misc'].keys() and
-            vars(new.cfg)['misc']['convention'] == 'oceanographic'):
-                logger.info(
-                    'Convert from oceanographic to meteorologic convention')
-                new.vars[ncvar] =\
-                    convert_meteorologic_oceanographic(new.vars[ncvar])
-            elif 'to_direction' in new.vars[ncvar].attrs['standard_name']:
-                logger.info(
-                    'Convert from oceanographic to meteorologic convention')
-                new.vars[ncvar] =\
-                    convert_meteorologic_oceanographic(new.vars[ncvar])
+            if (
+                vars(new.cfg)["misc"] is not None
+                and "convention" in vars(new.cfg)["misc"].keys()
+                and vars(new.cfg)["misc"]["convention"] == "oceanographic"
+            ):
+                logger.info("Convert from oceanographic to meteorologic convention")
+                new.vars[ncvar] = convert_meteorologic_oceanographic(new.vars[ncvar])
+            elif "to_direction" in new.vars[ncvar].attrs["standard_name"]:
+                logger.info("Convert from oceanographic to meteorologic convention")
+                new.vars[ncvar] = convert_meteorologic_oceanographic(new.vars[ncvar])
 
         return new
-
 
     def _change_varname_to_aliases(self, **kwargs):
+        """
+        Renames satellite netCDF variable/coordinate names to wavy's
+        internal aliases.
+
+        raises:
+            SatelliteVariableError - if a required coordinate ('time',
+                'lons', 'lats') cannot be resolved to a source
+                variable name. This is treated as fatal because later
+                processing steps (CF standard-name enforcement, etc.)
+                unconditionally assume these coordinates exist.
+        """
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
-        satellite_dict = load_or_default('satellite_cfg.yaml')
-        logger.info(' changing variables to aliases')
+        satellite_dict = load_or_default("satellite_cfg.yaml")
+        logger.info(" changing variables to aliases")
         new = deepcopy(self)
         # variables
+        ## TODO: REFACTOR
         for v in new.varalias:
-            ncvar = get_filevarname(v, variable_def,
-                                    satellite_dict[new.nID], new.meta,
-                                    **kwargs)
-            if v in list(new.vars.keys()):
-                logger.debug('  ' + 
-                            ncvar +
-                            ' is alreade named correctly and' +
-                            ' therefore not adjusted')
-            else:
-                new.vars = new.vars.rename({ncvar: v})
-        # coords
-        coords = ['time', 'lons', 'lats']
-        for c in coords:
+            if v in new.vars.variables:
+                logger.debug(
+                    "  "
+                    + v
+                    + " is already named correctly and"
+                    + " therefore not adjusted"
+                )
+                continue
             try:
-                ncvar = get_filevarname(c, variable_def,
-                                        satellite_dict[new.nID], new.meta,
-                                        **kwargs)
-                if c in list(new.vars.keys()):
-                    logger.debug('  ' +
-                                 c +
-                                 ' is alreade named correctly and' +
-                                 ' therefore not adjusted')
-                else:
-                    new.vars = new.vars.rename({ncvar: c})#\
-                                            #.set_index(time='time')
-            except Exception as e:
-                logger.debug(' ' + ncvar + 'is not renamed')
-                logger.exception(e)
+                ncvar = get_filevarname(
+                    v, variable_def, satellite_dict[new.nID], new.meta, **kwargs
+                )
+            except (KeyError, ValueError) as e:
+                raise SatelliteVariableError(
+                    "Could not determine the source variable name for "
+                    "variable '"
+                    + v
+                    + "' for nID="
+                    + str(new.nID)
+                    + ". Check 'vardef' in the satellite config and "
+                    "'variable_def.yaml'."
+                ) from e
+            if ncvar not in new.vars.variables:
+                raise SatelliteVariableError(
+                    "Resolved source name '" + str(ncvar) + "' for "
+                    "variable '"
+                    + v
+                    + "' (nID="
+                    + str(new.nID)
+                    + ") does not exist in the dataset returned by the "
+                    "reader. This usually means the reader already "
+                    "normalized this variable under a different name, "
+                    "or 'vardef' in the satellite config is out of "
+                    "sync with what the reader actually produces."
+                )
+            new.vars = new.vars.rename({ncvar: v})
+        # coords
+        ## TODO: REFACTOR
+        coords = ["time", "lons", "lats"]
+        for c in coords:
+
+            if c in new.vars.variables:
+                logger.debug(
+                    "  "
+                    + c
+                    + " is already named correctly and"
+                    + " therefore not adjusted"
+                )
+                continue
+            try:
+                ncvar = get_filevarname(
+                    c, variable_def, satellite_dict[new.nID], new.meta, **kwargs
+                )
+            except (KeyError, ValueError) as e:
+                raise SatelliteVariableError(
+                    "Could not determine the source variable name for "
+                    "coordinate '"
+                    + c
+                    + "' for nID="
+                    + str(new.nID)
+                    + ". Check 'vardef' in the satellite config and "
+                    "'variable_def.yaml'."
+                ) from e
+            if ncvar not in new.vars.variables:
+                raise SatelliteVariableError(
+                    "Resolved source name '" + str(ncvar) + "' for "
+                    "coordinate '"
+                    + c
+                    + "' (nID="
+                    + str(new.nID)
+                    + ") does not exist in the dataset returned by the "
+                    "reader. This usually means the reader already "
+                    "normalized this coordinate under a different "
+                    "name, or 'vardef' in the satellite config is out "
+                    "of sync with what the reader actually produces."
+                )
+            new.vars = new.vars.rename({ncvar: c})
 
         return new
-
 
     def _change_stdvarname_to_cfname(self, **kwargs):
         # enforce standard_name for coordinate aliases
         new = deepcopy(self)
-        new.vars['lons'].attrs['standard_name'] = \
-            variable_def['lons'].get('standard_name')
-        new.vars['lats'].attrs['standard_name'] = \
-            variable_def['lats'].get('standard_name')
-        new.vars['time'].attrs['standard_name'] = \
-            variable_def['time'].get('standard_name')
+        new.vars["lons"].attrs["standard_name"] = variable_def["lons"].get(
+            "standard_name"
+        )
+        new.vars["lats"].attrs["standard_name"] = variable_def["lats"].get(
+            "standard_name"
+        )
+        new.vars["time"].attrs["standard_name"] = variable_def["time"].get(
+            "standard_name"
+        )
         # enforce standard_name for variable alias
         for i in range(len(self.varalias)):
-            new.vars[self.varalias[i]].attrs['standard_name'] = \
-                new.stdvarname[i]
+            new.vars[self.varalias[i]].attrs["standard_name"] = new.stdvarname[i]
         return new
-        
 
     def populate(self, **kwargs):
+        """
+        raises:
+            SatelliteFileNotFoundError - no candidate files found for
+                the requested period.
+            SatelliteReadError - candidate files were found but none
+                could be read successfully (raised inside
+                _get_sat_ts()).
+            SatelliteProcessingError - reading succeeded but a
+                post-processing step (renaming, CF standard names,
+                convention, longitude formatting) failed.
+        """
         logger = logging.getLogger(__name__)
-        log_level = str(kwargs.get('logging', 'WARNING').upper())
+        log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
         print(" ### Read files and populate satellite_class object")
 
-        satellite_dict = load_or_default('satellite_cfg.yaml')
+        satellite_dict = load_or_default("satellite_cfg.yaml")
 
         lst = self.list_input_files(**kwargs)
-        self.pathlst = kwargs.get('pathlst', lst)
+        self.pathlst = kwargs.get("pathlst", lst)
+        if len(self.pathlst) == 0:
+            logger.warning("No data data found")
+            logger.warning("satellite_class object not populated")
+            logger.warning("# ----- ")
+            raise SatelliteFileNotFoundError(
+                "No accessible satellite files found for nID="
+                + str(self.nID)
+                + " in the period "
+                + str(self.sd)
+                + " to "
+                + str(self.ed)
+                + " (twin="
+                + str(self.twin)
+                + " min). Check 'wavy_input.src_tmplt'/'strsub' in the "
+                "satellite config."
+            )
 
-        logger.info('')
-        logger.info('Checking variables..')
+        logger.info("")
+        logger.info("Checking variables..")
         self.meta = ncdumpMeta(self.pathlst[0])
-        ncvar = [get_filevarname(v, variable_def,
-                 satellite_dict[self.nID], self.meta,
-                 **kwargs)\
-                 for v in self.varalias]
-        logger.info('')
-        logger.info('Choosing reader..')
+        ncvar = [
+            get_filevarname(
+                v, variable_def, satellite_dict[self.nID], self.meta, **kwargs
+            )
+            for v in self.varalias
+        ]
+        logger.info("")
+        logger.info("Choosing reader..")
+
+        ## TODO: REFACTOR
         # define reader
         dotenv.load_dotenv()
-        WAVY_DIR = os.getenv('WAVY_DIR', None)
+        WAVY_DIR = os.getenv("WAVY_DIR", None)
         if WAVY_DIR is None:
-            logger.debug('#')
-            logger.debug('Environmental variable for WAVY_DIR not defined')
-            logger.debug('Defaults are chosen')
-            logger.debug('#')
-            reader_mod_str = load_dir('satellite_readers').name
+            logger.debug("#")
+            logger.debug("Environmental variable for WAVY_DIR not defined")
+            logger.debug("Defaults are chosen")
+            logger.debug("#")
+            reader_mod_str = load_dir("satellite_readers").name
         else:
-            reader_mod_str = WAVY_DIR + '/wavy/satellite_readers.py'
+            reader_mod_str = WAVY_DIR + "/wavy/satellite_readers.py"
 
-        reader_str = kwargs.get('reader', self.cfg.reader)
+        reader_str = kwargs.get("reader", self.cfg.reader)
         spec = importlib.util.spec_from_file_location(
-                'satellite_readers.' + reader_str, reader_mod_str)
+            "satellite_readers." + reader_str, reader_mod_str
+        )
 
         # create reader module
         reader_tmp = importlib.util.module_from_spec(spec)
@@ -578,68 +743,83 @@ class satellite_class(qls, fc):
         # pick reader
         reader = getattr(reader_tmp, reader_str)
         self.reader = reader
-        logger.info('Chosen reader: ' + spec.name)
-        logger.info('')
-
+        logger.info("Chosen reader: " + spec.name)
+        logger.info("")
+        ##END TODO: REFACTOR
         # possible to select list of variables
         self.varname = ncvar
 
-        if len(lst) > 0:
-            try:
-                t0 = time.time()
-                logger.info('Reading..')
+        t0 = time.time()
+        logger.info("Reading..")
+        try:
+            self = self._get_sat_ts(**kwargs)
 
-                self = self._get_sat_ts(**kwargs)
-                self = self._change_varname_to_aliases(**kwargs)
-                self = self._change_stdvarname_to_cfname(**kwargs)
+        except SatelliteReadError:
+            raise
+        except Exception as e:
+            raise SatelliteReadError(
+                "Reader '" + str(reader_str) + "' failed to read "
+                "satellite data for nID="
+                + str(self.nID)
+                + ", period "
+                + str(self.sd)
+                + " to "
+                + str(self.ed)
+                + "."
+            ) from e
 
-                self = self._enforce_meteorologic_convention(**kwargs)
+        try:
+            self = self._change_varname_to_aliases(**kwargs)
+            self = self._change_stdvarname_to_cfname(**kwargs)
 
-                # convert longitude
-                self = self._enforce_longitude_format(**kwargs)
+            self = self._enforce_meteorologic_convention(**kwargs)
 
-                # adjust varalias if other return_var
-                if kwargs.get('return_var') is not None:
-                    newvaralias = kwargs.get('return_var')
-                else:
-                    newvaralias = self.varalias
+            # convert longitude
+            self = self._enforce_longitude_format(**kwargs)
 
-                # define more class object variables
-                if kwargs.get('return_var') is not None:
-                    self.varalias = kwargs.get('return_var')
-                    self.stdvarname = \
-                        variable_def[newvaralias].get('standard_name')
-                    self.units = variable_def[newvaralias].get('units')
-                # create label for plotting
-                t1 = time.time()
-                print(" ")
-                print(' ## Summary:')
-                print(
-                    str(len(self.vars['time'])) + " footprints retrieved.")
-                print("Time used for retrieving data:")
-                print(round(t1-t0, 2), "seconds")
-                print(" ")
-                print(" ### satellite_class object populated ###")
-                print('# ----- ')
+            # adjust varalias if other return_var
+            if kwargs.get("return_var") is not None:
+                newvaralias = kwargs.get("return_var")
+            else:
+                newvaralias = self.varalias
 
-            except Exception as e:
-                logger.exception(e)
-                logger.warning('Error encountered')
-                logger.warning('satellite_class object not populated')
-        else:
-            logger.warning('No data data found')
-            logger.warning('satellite_class object not populated')
-            logger.warning('# ----- ')
+            # define more class object variables
+            if kwargs.get("return_var") is not None:
+                self.varalias = kwargs.get("return_var")
+                self.stdvarname = variable_def[newvaralias].get("standard_name")
+                self.units = variable_def[newvaralias].get("units")
+            # create label for plotting
+            t1 = time.time()
+            print(" ")
+            print(" ## Summary:")
+            print(str(len(self.vars["time"])) + " footprints retrieved.")
+            print("Time used for retrieving data:")
+            print(round(t1 - t0, 2), "seconds")
+            print(" ")
+            print(" ### satellite_class object populated ###")
+            print("# ----- ")
+
+        except SatelliteVariableError:
+            # already a clear, specific wavy error
+            raise
+        except Exception as e:
+            raise SatelliteProcessingError(
+                "Post-processing failed for nID="
+                + str(self.nID)
+                + " after a successful read (variable renaming, CF "
+                "standard names, convention, or longitude "
+                "formatting)."
+            ) from e
+
         return self
 
-    def drop_duplicates(self, dim='time', keep='first'):
-        print('Removing duplicates according to', dim)
-        print('Keeping', keep, 'value for the duplicates')
+    def drop_duplicates(self, dim="time", keep="first"):
+        print("Removing duplicates according to", dim)
+        print("Keeping", keep, "value for the duplicates")
         new = deepcopy(self)
         new.vars = self.vars.drop_duplicates(dim=dim, keep=keep)
-        print(str(int(abs(len(self.vars[dim])-len(new.vars[dim])))),
-              'values removed')
-        print('New number of footprints is:', str(int(len(new.vars[dim]))))
+        print(str(int(abs(len(self.vars[dim]) - len(new.vars[dim])))), "values removed")
+        print("New number of footprints is:", str(int(len(new.vars[dim]))))
         return new
 
     def _match_poi(self, poi):
@@ -647,21 +827,26 @@ class satellite_class(qls, fc):
         return: idx that match to region
         """
         from tqdm import tqdm
-        print('Match up poi locations')
+
+        print("Match up poi locations")
         # increase with 1 degree in all directions to ensure
         # that distlim is still the determining factor
-        region = {'llcrnrlat': poi.vars['lats'].min().data-1,
-                  'urcrnrlat': poi.vars['lats'].max().data+1,
-                  'llcrnrlon': poi.vars['lons'].min().data-1,
-                  'urcrnrlon': poi.vars['lons'].max().data+1}
+        region = {
+            "llcrnrlat": poi.vars["lats"].min().data - 1,
+            "urcrnrlat": poi.vars["lats"].max().data + 1,
+            "llcrnrlon": poi.vars["lons"].min().data - 1,
+            "urcrnrlon": poi.vars["lons"].max().data + 1,
+        }
 
-        ridx = match_region_rect(self.vars['lats'].data,
-                                 self.vars['lons'].data,
-                                 region=region)
+        ridx = match_region_rect(
+            self.vars["lats"].data, self.vars["lons"].data, region=region
+        )
 
         newdict = deepcopy(self.vars)
-        idx = [self._poi_sat(newdict, self.twin, self.distlim, poi, ridx, i)
-               for i in tqdm(range(len(poi.vars['time'])))]
+        idx = [
+            self._poi_sat(newdict, self.twin, self.distlim, poi, ridx, i)
+            for i in tqdm(range(len(poi.vars["time"])))
+        ]
         idx = list(np.array(ridx)[flatten(idx)])
         return idx
 
@@ -671,60 +856,71 @@ class satellite_class(qls, fc):
         return: indices for values matching the spatial and
                 temporal constraints
         """
-        target_t = parse_date(str(poi.vars['time'].data[i]))
-        unfiltered_t = [parse_date(str(d)) for d in ds['time'][ridx].values]
-        tidx = find_included_times(
-                    unfiltered_t,
-                    target_t=target_t,
-                    twin=twin)
-        slons = list(np.array(ds['lons'])[ridx][tidx])
-        slats = list(np.array(ds['lats'])[ridx][tidx])
-        plons = [poi.vars['lons'].data[i]]*len(slons)
-        plats = [poi.vars['lats'].data[i]]*len(slats)
+        target_t = parse_date(str(poi.vars["time"].data[i]))
+        unfiltered_t = [parse_date(str(d)) for d in ds["time"][ridx].values]
+        tidx = find_included_times(unfiltered_t, target_t=target_t, twin=twin)
+        slons = list(np.array(ds["lons"])[ridx][tidx])
+        slats = list(np.array(ds["lats"])[ridx][tidx])
+        plons = [poi.vars["lons"].data[i]] * len(slons)
+        plats = [poi.vars["lats"].data[i]] * len(slats)
         dists_tmp = haversineA(slons, slats, plons, plats)
         sidx = np.argwhere(np.array(dists_tmp) <= distlim).flatten()
-        #dists = list(np.array(dists_tmp)[sidx])
+        # dists = list(np.array(dists_tmp)[sidx])
         return list(np.array(tidx)[sidx])
 
     @staticmethod
     def _match_region(LATS, LONS, region, grid_date):
         """
-        Function to filter satellite data according to region      
+        Function to filter satellite data according to region
         return:
             indices that match the region
+
+        raises:
+            RegionNotDefinedError - if `region` is a string that
+                doesn't match any known region source.
         """
         # region in region_dict[poly]:
         # find values for given region
         if isinstance(region, dict) is True:
-            print('Region is defined in custom dict')
+            print("Region is defined in custom dict")
             print(region)
             region = region
             ridx = match_region_rect(LATS, LONS, region=region)
-        elif (region not in region_dict['poly'] and
-        region not in model_dict and
-        region not in region_dict['geojson']):
+        elif (
+            region not in region_dict["poly"]
+            and region not in model_dict
+            and region not in region_dict["geojson"]
+        ):
             if region is None:
-                region = 'global'
+                region = "global"
             else:
-                if (region not in region_dict['rect']
-                and region not in region_dict['geojson']
-                and isinstance(region, dict) is False):
-                    raise KeyError("Region is not defined")
+                if (
+                    region not in region_dict["rect"]
+                    and region not in region_dict["geojson"]
+                    and isinstance(region, dict) is False
+                ):
+                    raise RegionNotDefinedError(
+                        "Region '" + str(region) + "' is not defined "
+                        "in region_cfg.yaml (rect/poly/geojson) and "
+                        "is not a model grid in model_cfg.yaml."
+                    )
                 else:
-                    print("Specified region: " + region + "\n"
-                          + " --> Bounds: " +
-                          str(region_dict['rect'][region]))
-                    region = region_dict['rect'][region]
+                    print(
+                        "Specified region: "
+                        + region
+                        + "\n"
+                        + " --> Bounds: "
+                        + str(region_dict["rect"][region])
+                    )
+                    region = region_dict["rect"][region]
             ridx = match_region_rect(LATS, LONS, region=region)
-        elif region in region_dict['geojson']:
+        elif region in region_dict["geojson"]:
             print("Region is defined as geojson")
             ridx = match_region_geojson(LATS, LONS, region=region)
-        elif region in region_dict['poly']:
-            ridx = match_region_poly(LATS, LONS, region=region,
-                                     grid_date=grid_date)
+        elif region in region_dict["poly"]:
+            ridx = match_region_poly(LATS, LONS, region=region, grid_date=grid_date)
         else:
-            ridx = match_region_poly(LATS, LONS, region=region,
-                                     grid_date=grid_date)
+            ridx = match_region_poly(LATS, LONS, region=region, grid_date=grid_date)
         return ridx
 
     def compute_pulse_limited_footprint_radius(self):
@@ -732,9 +928,9 @@ class satellite_class(qls, fc):
         Compute pulse limited footprint size
         """
         new = deepcopy(self)
-        Hs = new.vars['Hs'].values
-        tau = new.cfg.misc['sat_specs'][new.name]['tau']*10**(-9)
-        h = new.cfg.misc['sat_specs'][new.name]['h']*10**3
+        Hs = new.vars["Hs"].values
+        tau = new.cfg.misc["sat_specs"][new.name]["tau"] * 10 ** (-9)
+        h = new.cfg.misc["sat_specs"][new.name]["h"] * 10**3
         fpr = footprint_pulse_limited_radius(Hs, h, tau)
         ds = new.vars
         ds = ds.assign({"fpr": (("time"), fpr)})
@@ -747,9 +943,9 @@ class satellite_class(qls, fc):
         Function to crop the variable dictionary to a given period
         """
         new = deepcopy(self)
-        sd = parse_date(kwargs.get('sd', str(new.sd)))
-        ed = parse_date(kwargs.get('ed', str(new.ed)))
-        print('Crop to time period:', sd, 'to', ed)
+        sd = parse_date(kwargs.get("sd", str(new.sd)))
+        ed = parse_date(kwargs.get("ed", str(new.ed)))
+        print("Crop to time period:", sd, "to", ed)
         new.vars = new.vars.sortby("time").sel(time=slice(sd, ed))
         new.sd = sd
         new.ed = ed
@@ -776,10 +972,11 @@ class satellite_class(qls, fc):
             sco.get_item_parent('m','units')
         """
 
-        lst = [i for i in self.meta.keys()
-               if (attr in self.meta[i].keys()
-               and item in self.meta[i][attr])
-               ]
+        lst = [
+            i
+            for i in self.meta.keys()
+            if (attr in self.meta[i].keys() and item in self.meta[i][attr])
+        ]
         if len(lst) >= 1:
             return lst
         else:
@@ -815,36 +1012,33 @@ class satellite_class(qls, fc):
         cg = group_velocity_deep_water(Tz)
         P = wave_power(E, cg)
 
-        newvarlst = ['Pw', 'Ew', 'Tm02', 'pwa', 'cg']
+        newvarlst = ["Pw", "Ew", "Tm02", "pwa", "cg"]
 
-        ds['Pw'] = P
-        ds['Pw'].attrs.update(variable_def['Pw'])
-        ds['Ew'] = E
-        ds['Ew'].attrs.update(variable_def['Ew'])
-        ds['Tm02'] = Tz
-        ds['Tm02'].attrs.update(variable_def['Tm02'])
-        ds['pwa'] = wa
-        ds['pwa'].attrs.update(variable_def['pwa'])
-        ds['cg'] = cg
-        ds['cg'].attrs.update(variable_def['cg'])
+        ds["Pw"] = P
+        ds["Pw"].attrs.update(variable_def["Pw"])
+        ds["Ew"] = E
+        ds["Ew"].attrs.update(variable_def["Ew"])
+        ds["Tm02"] = Tz
+        ds["Tm02"].attrs.update(variable_def["Tm02"])
+        ds["pwa"] = wa
+        ds["pwa"].attrs.update(variable_def["pwa"])
+        ds["cg"] = cg
+        ds["cg"].attrs.update(variable_def["cg"])
 
         new.vars = ds
         new.varalias = new.varalias + newvarlst
-        new.stdvarname = new.stdvarname + \
-                             [variable_def[n].get('standard_name')
-                                 for n in newvarlst]
-        new.units = new.units + \
-                        [variable_def[n].get('units')
-                            for n in newvarlst]
+        new.stdvarname = new.stdvarname + [
+            variable_def[n].get("standard_name") for n in newvarlst
+        ]
+        new.units = new.units + [variable_def[n].get("units") for n in newvarlst]
         return new
-
 
 
 def match_region_rect(LATS, LONS, region):
     """
     Takes care of regular grid regions
     """
-    if (region is None or region == "global"):
+    if region is None or region == "global":
         region = "global"
         ridx = range(len(LATS))
     else:
@@ -853,11 +1047,11 @@ def match_region_rect(LATS, LONS, region):
         llcrnrlon = region["llcrnrlon"]
         urcrnrlon = region["urcrnrlon"]
         ridx = np.where(
-                    (np.array(LATS) > llcrnrlat)
-                    & (np.array(LATS) < urcrnrlat)
-                    & (np.array(LONS) > llcrnrlon)
-                    & (np.array(LONS) < urcrnrlon)
-                    )[0]
+            (np.array(LATS) > llcrnrlat)
+            & (np.array(LATS) < urcrnrlat)
+            & (np.array(LONS) > llcrnrlon)
+            & (np.array(LONS) < urcrnrlon)
+        )[0]
     print(len(ridx), " values found for chosen region and time frame.")
     return ridx
 
@@ -869,30 +1063,29 @@ def match_region_geojson(LATS, LONS, region):
     import geojson
     from matplotlib.patches import Polygon
     from matplotlib.path import Path
+
     points = np.c_[LONS, LATS]
     ridx = []
-    fstr = region_dict['geojson'][region]['fstr']
+    fstr = region_dict["geojson"][region]["fstr"]
     with open(fstr) as f:
         gj = geojson.load(f)
-    fidx = region_dict['geojson'][region].get('fidx')
+    fidx = region_dict["geojson"][region].get("fidx")
     if fidx is not None:
-        geo = {'type': 'Polygon',
-           'coordinates':\
-                gj['features'][fidx]['geometry']['coordinates'][0]}
-        poly = Polygon([tuple(l)
-                        for l in geo['coordinates'][0]],
-                       closed=True)
+        geo = {
+            "type": "Polygon",
+            "coordinates": gj["features"][fidx]["geometry"]["coordinates"][0],
+        }
+        poly = Polygon([tuple(l) for l in geo["coordinates"][0]], closed=True)
         hits = Path(poly.xy).contains_points(points, radius=1e-9)
         ridx_tmp = list(np.array(range(len(LONS)))[hits])
         ridx += ridx_tmp
     else:
-        for i in range(len(gj['features'])):
-            geo = {'type': 'Polygon',
-               'coordinates':\
-                    gj['features'][i]['geometry']['coordinates'][0]}
-            poly = Polygon([tuple(l)
-                            for l in geo['coordinates'][0]],
-                           closed=True)
+        for i in range(len(gj["features"])):
+            geo = {
+                "type": "Polygon",
+                "coordinates": gj["features"][i]["geometry"]["coordinates"][0],
+            }
+            poly = Polygon([tuple(l) for l in geo["coordinates"][0]], closed=True)
             hits = Path(poly.xy).contains_points(points, radius=1e-9)
             ridx_tmp = list(np.array(range(len(LONS)))[hits])
             ridx += ridx_tmp
@@ -902,89 +1095,107 @@ def match_region_geojson(LATS, LONS, region):
 def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
     """
     Takes care of region defined as polygon
+
+    raises:
+        RegionNotDefinedError - if `region` doesn't match any known
+            polygon region or model grid.
+        GridRetrievalError - if model grid coordinates could not be
+            retrieved for a model-grid region, even after falling
+            back to the model's default/configured grid_date.
     """
     from matplotlib.patches import Polygon
     from matplotlib.path import Path
     import numpy as np
-    if (region not in region_dict['poly'] and region not in model_dict):
-        sys.exit("Region polygone is not defined")
+
+    if region not in region_dict["poly"] and region not in model_dict:
+        raise RegionNotDefinedError(
+            "Region '" + str(region) + "' is not defined as a "
+            "polygon region (region_dict['poly']) or as a model grid "
+            "(model_dict)."
+        )
     elif isinstance(region, dict) is True:
-        print("Manuall specified region: \n"
-              + " --> Bounds: " + str(region))
-        poly = Polygon(list(zip(region['lons'],
-                       region['lats'])), closed=True)
-    elif (isinstance(region, str) is True and region in model_dict):
+        print("Manuall specified region: \n" + " --> Bounds: " + str(region))
+        poly = Polygon(list(zip(region["lons"], region["lats"])), closed=True)
+    elif isinstance(region, str) is True and region in model_dict:
         # init model_class object
         mco = mc(nID=region)
-        try:
-            print('Use date for retrieving grid: ', grid_date)
-            filestr = mco._make_model_filename_wrapper(grid_date, 'best')
+
+        def _retrieve_grid(for_date):
+            print("Use date for retrieving grid: ", for_date)
+            filestr = mco._make_model_filename_wrapper(for_date, "best")
             meta = ncdumpMeta(filestr)
-            flon = get_filevarname('lons', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
-            flat = get_filevarname('lats', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
-            time = get_filevarname('time', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
-            model_lons, model_lats, _ = \
-                read_model_nc_output_lru(filestr, flon, flat, time)
+            flon = get_filevarname(
+                "lons", variable_def, model_dict[region], meta, **kwargs
+            )
+            flat = get_filevarname(
+                "lats", variable_def, model_dict[region], meta, **kwargs
+            )
+            time = get_filevarname(
+                "time", variable_def, model_dict[region], meta, **kwargs
+            )
+            lons, lats, _ = read_model_nc_output_lru(filestr, flon, flat, time)
+            return lons, lats, filestr
+
+        try:
+            model_lons, model_lats, filestr = _retrieve_grid(grid_date)
         except (KeyError, IOError, ValueError) as e:
             print(e)
-            if 'grid_date' in model_dict[region]:
-                grid_date = model_dict[region]['grid_date']
-                print('Trying default date ', grid_date)
+            if "grid_date" in model_dict[region]:
+                grid_date = model_dict[region]["grid_date"]
+                print("Trying default date ", grid_date)
             else:
                 grid_date = datetime(
-                                    datetime.now().year,
-                                    datetime.now().month,
-                                    datetime.now().day
-                                    )
-            filestr = mco._make_model_filename_wrapper(grid_date, 'best')
-            meta = ncdumpMeta(filestr)
-            flon = get_filevarname('lons', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
-            flat = get_filevarname('lats', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
-            time = get_filevarname('time', variable_def,
-                                   model_dict[region], meta,
-                                   **kwargs)
-            model_lons, model_lats, _ = \
-                read_model_nc_output_lru(filestr, flon, flat, time)
-        if (len(model_lons.shape) == 1):
-            model_lons, model_lats = np.meshgrid(
-                                    model_lons,
-                                    model_lats
-                                    )
-        print('Check if footprints fall within the chosen domain')
+                    datetime.now().year, datetime.now().month, datetime.now().day
+                )
+        try:
+            model_lons, model_lats, filestr = _retrieve_grid(grid_date)
+        except Exception as e2:
+            raise GridRetrievalError(
+                "Could not retrieve the model grid for region '"
+                + str(region)
+                + "' using either the requested "
+                "grid_date or the model's default/fallback "
+                "grid_date (" + str(grid_date) + "). Check "
+                "'src_tmplt'/'fl_tmplt'/'grid_date' for this "
+                "model in model_cfg.yaml."
+            ) from e2
+        if len(model_lons.shape) == 1:
+            model_lons, model_lats = np.meshgrid(model_lons, model_lats)
+        print("Check if footprints fall within the chosen domain")
         ncdict = ncdumpMeta(filestr)
         try:
-            proj4 = find_attr_in_nc('proj', ncdict=ncdict,
-                                    subattrstr='proj4')
+            proj4 = find_attr_in_nc("proj", ncdict=ncdict, subattrstr="proj4")
         except IndexError:
-            print('proj4 not defined in netcdf-file')
-            print('Using proj4 from model config file')
-            proj4 = model_dict[region]['misc']['proj4']
+            print("proj4 not defined in netcdf-file")
+            print("Using proj4 from model config file")
+            proj4 = model_dict[region]["misc"]["proj4"]
         proj_model = pyproj.Proj(proj4)
         Mx, My = proj_model(model_lons, model_lats, inverse=False)
         Vx, Vy = proj_model(LONS, LATS, inverse=False)
         xmax, xmin = np.max(Mx), np.min(Mx)
         ymax, ymin = np.max(My), np.min(My)
-        ridx = list(np.where((Vx > xmin) & (Vx < xmax) &
-                             (Vy > ymin) & (Vy < ymax))[0])
+        ridx = list(np.where((Vx > xmin) & (Vx < xmax) & (Vy > ymin) & (Vy < ymax))[0])
     elif isinstance(region, str) is True:
-        print("Specified region: " + region + "\n"
-              + " --> Bounded by polygon: \n"
-              + "lons: " + str(region_dict['poly'][region]['lons'])
-              + "\n"
-              + "lats: " + str(region_dict['poly'][region]['lats']))
-        poly = Polygon(list(zip(region_dict['poly'][region]['lons'],
-                       region_dict['poly'][region]['lats'])),
-                       closed=True)
+        print(
+            "Specified region: "
+            + region
+            + "\n"
+            + " --> Bounded by polygon: \n"
+            + "lons: "
+            + str(region_dict["poly"][region]["lons"])
+            + "\n"
+            + "lats: "
+            + str(region_dict["poly"][region]["lats"])
+        )
+        poly = Polygon(
+            list(
+                zip(
+                    region_dict["poly"][region]["lons"],
+                    region_dict["poly"][region]["lats"],
+                )
+            ),
+            closed=True,
+        )
         # check if coords in region
         points = np.c_[LONS, LATS]
         # radius seems to be important to correctly define polygone
@@ -992,6 +1203,6 @@ def match_region_poly(LATS, LONS, region, grid_date, **kwargs):
         # https://github.com/matplotlib/matplotlib/issues/9704
         hits = Path(poly.xy).contains_points(points, radius=1e-9)
         ridx = list(np.array(range(len(LONS)))[hits])
-    if (not ridx or len(ridx)<1):
+    if not ridx or len(ridx) < 1:
         print("No values for chosen region and time frame!!!")
     return ridx

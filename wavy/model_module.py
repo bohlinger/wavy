@@ -42,6 +42,14 @@ from wavy.quicklookmod import quicklook_class_sat as qls
 
 from wavy.init_class_mod import init_class
 
+from wavy.errors import (
+    ModelFileNotFoundError,
+    ModelFileSearchError,
+    ModelPathTemplateError,
+    ModelProcessingError,
+    ModelReadError,
+)
+
 # ---------------------------------------------------------------------#
 
 def crop_to_period(ds, sd, ed):
@@ -408,16 +416,30 @@ class model_class(qls):
                             str(filename) +
                             " not accessible")
                         logger.warning(
-                            "Continue to look for date" +
-                            " with extended leadtime")
-                        leadtime = (leadtime
-                                    + vars(self.cfg)['misc']['init_step'])
-                    if (kwargs.get('max_lt') is not None
-                        and leadtime > kwargs.get('max_lt')):
-                        logger.warning("Leadtime: " + str(leadtime) +
-                              " is greater as maximum allowed leadtime: " +
-                              str(kwargs.get('max_lt')))
+                            "Continue to look for date" + " with extended leadtime"
+                        )
+                        leadtime = leadtime + vars(self.cfg)["misc"]["init_step"]
+                    if kwargs.get("max_lt") is not None and leadtime > kwargs.get(
+                        "max_lt"
+                    ):
+                        logger.warning(
+                            "Leadtime: "
+                            + str(leadtime)
+                            + " is greater as maximum allowed leadtime: "
+                            + str(kwargs.get("max_lt"))
+                        )
                         break
+                    if n_iter >= max_iter:
+                        msg = (
+                            "Reached maximum number of attempts ("
+                            + str(max_iter)
+                            + ") while searching for an accessible model file for "
+                            "fc_date=" + str(fc_date) + ". Check that 'src_tmplt' "
+                            "and 'fl_tmplt' in the model config point to a valid, "
+                            "existing path."
+                        )
+                        logger.error(msg)
+                        raise ModelFileSearchError(msg)
             else:
                 filename = None
         elif (isinstance(fc_date, list) and isinstance(leadtime, int)):
@@ -497,11 +519,24 @@ class model_class(qls):
                         pathlst.append([os.path.join(path, e)
                                         for e in tmplst])
                     path = None
-                except Exception as e:
-                    logger.exception(e)
-                tmpdate = date_dispatcher(tmpdate,
-                            self.cfg.misc['date_incr_unit'],
-                            self.cfg.misc['date_incr'])
+                except (KeyError, TypeError, ValueError) as e:
+                    # deterministic misconfiguration - identical failure on every
+                    # remaining date, so fail fast instead of looping through sd..ed
+                    raise ModelPathTemplateError(
+                        "Could not build a local path for nID="
+                        + str(self.nID)
+                        + " using 'wavy_input.src_tmplt'/'wavy_input.strsub' from the "
+                        "config. Check that these are set correctly."
+                    ) from e
+                except OSError as e:
+                    # per-directory I/O problem - log and move on to the next date
+                    logger.warning(
+                        "Could not list files in " + str(path) + ": " + str(e)
+                    )
+                    path = None
+                tmpdate = date_dispatcher(
+                    tmpdate, self.cfg.misc["date_incr_unit"], self.cfg.misc["date_incr"]
+                )
             filelst = np.sort(flatten(filelst))
             pathlst = np.sort(flatten(pathlst))
             pathtotals = [pathlst]
@@ -605,8 +640,8 @@ class model_class(qls):
         attrs['comments'] = 'forced to range: -180 to 180'
         try:
             new.vars.lons.values = ((new.vars.lons.values + 180) % 360) - 180
-        except Exception as e:
-            logger.info('Exception in _enforce_longitude_format:')
+        except (AttributeError, ValueError) as e:
+            logger.info("Exception in _enforce_longitude_format:")
             logger.info(e)
             new.vars.assign_coords({"lons":
                 ((new.vars.lons.values + 180) % 360) - 180})
@@ -739,19 +774,27 @@ class model_class(qls):
             remoteHostName = kwargs.get('remoteHostName',
                                         self.cfg.misc.get('remoteHostName'))
 
-            kwargs['fc_dates'] = fc_dates
+            kwargs["fc_dates"] = fc_dates
+            t0 = time.time()
+            logger.debug("Reading..")
+            try:
+                self = self._get_model(remoteHostName=remoteHostName, **kwargs)
+            except Exception as e:
+                raise ModelReadError(
+                    "Reader '" + str(reader_str) + "' failed to read model data "
+                    "for nID="
+                    + str(self.nID)
+                    + ", period "
+                    + str(self.sd)
+                    + " to "
+                    + str(self.ed)
+                    + "."
+                ) from e
 
             try:
-                t0 = time.time()
-                logger.debug('Reading..')
-                self = self._get_model(remoteHostName=remoteHostName,
-                                       **kwargs)
-
                 self = self._change_varname_to_aliases(**kwargs)
                 self = self._change_stdvarname_to_cfname(**kwargs)
                 self = self._enforce_meteorologic_convention(**kwargs)
-
-                # convert longitude
                 self = self._enforce_longitude_format(**kwargs)
 
                 # adjust varalias if other return_var
@@ -778,12 +821,19 @@ class model_class(qls):
                 logger.info(" ### model_class object populated ###")
                 logger.info('# ----- ')
             except Exception as e:
-                logger.exception(e)
-                logger.error(e)
-                logger.error('Error encountered')
-                logger.error('model_class object not populated')
+                raise ModelProcessingError(
+                    "Post-processing failed for nID=" + str(self.nID) + " after "
+                    "a successful read (variable renaming, CF standard names, "
+                    "convention, or longitude formatting)."
+                ) from e
         else:
-            logger.warning('No data data found')
-            logger.warning('model_class object not populated')
-            logger.warning('# ----- ')
+            raise ModelFileNotFoundError(
+                "No accessible model files found for nID="
+                + str(self.nID)
+                + " in the period "
+                + str(self.sd)
+                + " to "
+                + str(self.ed)
+                + "."
+            )
         return self
