@@ -20,3 +20,4 @@ Workshops and show cases
    mozambique24
    mozambique25
    tanzania25
+   tanzania26
