@@ -9,7 +9,6 @@ import dotenv
 import xdg
 
 
-
 def __get_confdir__():
     """
     Configuration directory is specified through:
@@ -19,14 +18,14 @@ def __get_confdir__():
     XDG configuration directory (wavy)
     """
     dotenv.load_dotenv(dotenv_path=dotenv.find_dotenv(usecwd=True))
-    c = os.getenv('WAVY_CONFIG', None)
+    c = os.getenv("WAVY_CONFIG", None)
     if c is None:
-        c = os.path.join(xdg.xdg_config_home(), 'wavy')
+        c = os.path.join(xdg.xdg_config_home(), "wavy")
 
         if not os.path.exists(c):
             c = None
 
-    logger.debug('config directory: %s' % c)
+    logger.debug("config directory: %s" % c)
     return c
 
 
@@ -45,7 +44,7 @@ def load_or_default(name):
         c = load_or_default('model_cfg.yaml')
 
     """
-    logging.debug('attempting to load: %s..' % name)
+    logging.debug("attempting to load: %s.." % name)
 
     confdir = __get_confdir__()
 
@@ -54,38 +53,41 @@ def load_or_default(name):
             filestr = os.path.join(confdir, name)
         else:
             raise FileNotFoundError()
-        with open(filestr, 'r') as s:
+        with open(filestr, "r") as s:
             return yaml.safe_load(s)
 
     except FileNotFoundError:
-        logging.debug('could not load from local directory, using default.')
-        config_path = files().joinpath('config', name + '.default')
-        with config_path.open('r', encoding='utf-8') as f:
+        logging.debug("could not load from local directory, using default.")
+        config_path = files().joinpath("config", name + ".default")
+        with config_path.open("r", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
-#def load_minimal(name):
+
+# def load_minimal(name):
 #    logging.debug('attempting to load: %s..' % name)
 #
 #    from pkg_resources import resource_stream
 #    return yaml.safe_load(resource_stream(__name__,
 #                          os.path.join('config', name + '.minimal')))
 
-def load_minimal(name):
-    logging.debug('attempting to load: %s..' % name)
 
-    file_path = os.path.join(os.path.dirname(__file__), 'config', f'{name}.minimal')
+def load_minimal(name):
+    logging.debug("attempting to load: %s.." % name)
+
+    file_path = os.path.join(os.path.dirname(__file__), "config", f"{name}.minimal")
 
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
         logging.error(f"File not found: {file_path}")
-        print('try default')
+        print("try default")
         return None
     except yaml.YAMLError as e:
         logging.error(f"Error parsing YAML file: {file_path}, error: {e}")
         return None
 
+
 def load_dir(name):
     resource_path = files().joinpath(f"{name}.py")
-    return resource_path.open('rb')  # Open the file in binary mode
+    return resource_path.open("rb")  # Open the file in binary mode
