@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
-'''
+"""
 The main task of this module is to read insitu obs for further use.
-'''
+"""
+
 # --- import libraries ------------------------------------------------#
 # standard library imports
 import os
@@ -18,6 +19,7 @@ import requests
 import dotenv
 import xarray as xr
 import logging
+
 # logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=30)
 logger = logging.getLogger(__name__)
@@ -37,75 +39,72 @@ from wavy.utils import find_direction_convention
 from wavy.utils import build_xr_ds, build_xr_ds_multivar
 from wavy.utils import date_dispatcher
 from wavy.wconfig import load_or_default
+
 # ---------------------------------------------------------------------#
 # read yaml config files:
-insitu_dict = load_or_default('insitu_cfg.yaml')
-variable_def = load_or_default('variable_def.yaml')
-variables_frost = load_or_default('variables_frost.yaml')
+insitu_dict = load_or_default("insitu_cfg.yaml")
+variable_def = load_or_default("variable_def.yaml")
+variables_frost = load_or_default("variables_frost.yaml")
 # ---------------------------------------------------------------------#
 
 
 def get_typeid(insitu_dict: dict, s: str) -> str:
-    typeid = insitu_dict[s].get('typeids', 22)
+    typeid = insitu_dict[s].get("typeids", 22)
     return typeid
 
 
 def make_frost_reference_time_period(sdate, edate):
     sdate = parse_date(sdate)
     edate = parse_date(edate)
-    formatstr = '%Y-%m-%dT%H:%M:00.000Z'
-    refstr = '{}/{}'.format(sdate.strftime(formatstr),
-                            edate.strftime(formatstr))
+    formatstr = "%Y-%m-%dT%H:%M:00.000Z"
+    refstr = "{}/{}".format(sdate.strftime(formatstr), edate.strftime(formatstr))
     return refstr
 
 
 def call_frost_api(
-     sdate: datetime, edate: datetime,
-     nID: str, varstr_list: list, sensor: str) -> 'requests.models.Response':
+    sdate: datetime, edate: datetime, nID: str, varstr_list: list, sensor: str
+) -> "requests.models.Response":
     """
     make frost api call
     """
-    print('Make frost api call ...')
+    print("Make frost api call ...")
     dotenv.load_dotenv()
-    client_id = os.getenv('CLIENT_ID', None)
+    client_id = os.getenv("CLIENT_ID", None)
     frost_reference_time = make_frost_reference_time_period(sdate, edate)
     if client_id is None:
         print("No Frost CLIENT_ID given!")
-    r = call_frost_api_v1(nID, varstr_list,
-                          frost_reference_time,
-                          client_id, sensor)
+    r = call_frost_api_v1(nID, varstr_list, frost_reference_time, client_id, sensor)
     print(r.url)
-    print('\nr.status_code:', r.status_code, '\n')
+    print("\nr.status_code:", r.status_code, "\n")
     if r.status_code != 200:
-        print('Error! Returned status code %s' % r.status_code)
-        error = r.json()['error']
-        for part in ['message', 'reason', 'help']:
+        print("Error! Returned status code %s" % r.status_code)
+        error = r.json()["error"]
+        for part in ["message", "reason", "help"]:
             if part in error:
-                print(part.upper(), ': ', error[part])
+                print(part.upper(), ": ", error[part])
     else:
         return r
 
 
 def call_frost_api_v1(
-        nID: str, varstr_list: list, frost_reference_time: str,
-        client_id: str, sensor: str)\
-    -> 'requests.models.Response':
+    nID: str, varstr_list: list, frost_reference_time: str, client_id: str, sensor: str
+) -> "requests.models.Response":
     """
     frost call, retrieve data from frost v1
     """
-    ID = insitu_dict[nID]['misc']['ID']
-    endpoint = ' https://frost-rc.met.no/api/v1/obs/base/get?'
+    ID = insitu_dict[nID]["misc"]["ID"]
+    endpoint = " https://frost-rc.met.no/api/v1/obs/base/get?"
     parameters = {
-                'stationids': ID,
-                'elementids': varstr_list,
-                'time': frost_reference_time,
-                'levels': 'all',
-                'incobs': 'true',
-                # 'sensors': '0,1,2,3,4,5',
-                'sensors': sensor,  # limit to one sensor
-                'typeids': str(get_typeid(insitu_dict, nID))
-                }
-    print('parameters frost api call: ', parameters)
+        "stationids": ID,
+        "elementids": varstr_list,
+        "time": frost_reference_time,
+        "levels": "all",
+        "incobs": "true",
+        # 'sensors': '0,1,2,3,4,5',
+        "sensors": sensor,  # limit to one sensor
+        "typeids": str(get_typeid(insitu_dict, nID)),
+    }
+    print("parameters frost api call: ", parameters)
     r = requests.get(endpoint, parameters, auth=(client_id, client_id))
     # print(r.status_code, r.text)
     return r
@@ -126,107 +125,119 @@ def find_preferred(idx, sensors, refs, pref):
     return preferred_idx
 
 
-def get_frost_df_v1(r: 'requests.models.Response')\
-    -> 'pandas.core.frame.DataFrame':
+def get_frost_df_v1(r: "requests.models.Response") -> "pandas.core.frame.DataFrame":
     """
     create pandas dataframe from frost call for v1
     """
     # empty sensor id lst
     # base df
-    df = pd.json_normalize(r.json()['data']['tseries'])
+    df = pd.json_normalize(r.json()["data"]["tseries"])
     # coordinates for static station (sensor 0)
-    lon = float(df['header.extra.station.location'][0][0]['value']['longitude'])
-    lat = float(df['header.extra.station.location'][0][0]['value']['latitude'])
+    lon = float(df["header.extra.station.location"][0][0]["value"]["longitude"])
+    lat = float(df["header.extra.station.location"][0][0]["value"]["latitude"])
     # df to be concatenated initialized with time
     # select time index, some ts have less than others
     # choose the one with most values
-    no_of_ts = len(pd.json_normalize(r.json()['data']['tseries'][:]))
+    no_of_ts = len(pd.json_normalize(r.json()["data"]["tseries"][:]))
     no_of_ts = min(4, no_of_ts)
     lenlst = []
     for t in range(no_of_ts):
-        lenlst.append(len(pd.json_normalize(r.json()
-                      ['data']['tseries'][t]['observations'])['time']
-                      .to_frame()))
+        lenlst.append(
+            len(
+                pd.json_normalize(r.json()["data"]["tseries"][t]["observations"])[
+                    "time"
+                ].to_frame()
+            )
+        )
     time_idx = lenlst.index(max(lenlst))
-    dfc = pd.json_normalize(r.json()
-            ['data']['tseries'][time_idx]['observations'])['time'].to_frame()
-    dinfo = {'sensor': {}, 'level': {}, 'paramid': {},
-             'geometric height': {}, 'masl': {}}
+    dfc = pd.json_normalize(r.json()["data"]["tseries"][time_idx]["observations"])[
+        "time"
+    ].to_frame()
+    dinfo = {
+        "sensor": {},
+        "level": {},
+        "paramid": {},
+        "geometric height": {},
+        "masl": {},
+    }
     for vn in variables_frost:
-        frostvar = variables_frost[vn]['frost_name']
-        idx = np.array(df['header.extra.element.id']
-                [df['header.extra.element.id'] == frostvar].index.to_list())
-        sensors = df['header.id.sensor'][idx].values
-        paramids = df['header.id.paramid'][idx].values
-        levels = df['header.id.level'][idx].values
+        frostvar = variables_frost[vn]["frost_name"]
+        idx = np.array(
+            df["header.extra.element.id"][
+                df["header.extra.element.id"] == frostvar
+            ].index.to_list()
+        )
+        sensors = df["header.id.sensor"][idx].values
+        paramids = df["header.id.paramid"][idx].values
+        levels = df["header.id.level"][idx].values
         if len(sensors) != len(np.unique(sensors)):
-            print("-> id.sensor was not unique " 
-                    + "selecting according to variable_def.yaml")
+            print(
+                "-> id.sensor was not unique "
+                + "selecting according to variable_def.yaml"
+            )
             print("   affected variable: ", frostvar)
             # 1. prioritize according to paramid
             if len(np.unique(paramids)) > 1:
-                print('multiple paramids (',
-                        len(np.unique(paramids)), ')')
-                print('paramids:', np.unique(paramids))
+                print("multiple paramids (", len(np.unique(paramids)), ")")
+                print("paramids:", np.unique(paramids))
                 idx = find_preferred(
-                        idx, sensors, paramids,
-                        variables_frost[vn]['prime_paramid'])
-                sensors = df['header.id.sensor'][idx].values
-                paramids = df['header.id.paramid'][idx].values
-                levels = df['header.id.level'][idx].values
+                    idx, sensors, paramids, variables_frost[vn]["prime_paramid"]
+                )
+                sensors = df["header.id.sensor"][idx].values
+                paramids = df["header.id.paramid"][idx].values
+                levels = df["header.id.level"][idx].values
             # 2. prioritize according to level
             if len(np.unique(levels)) > 1:
-                print('multiple levels (', len(np.unique(levels)), ')')
-                print('unique(levels):', np.unique(levels))
+                print("multiple levels (", len(np.unique(levels)), ")")
+                print("unique(levels):", np.unique(levels))
                 idx = find_preferred(
-                        idx, sensors, levels,
-                        variables_frost[vn]['prime_level'])
-                sensors = df['header.id.sensor'][idx].values
-                paramids = df['header.id.paramid'][idx].values
-                levels = df['header.id.level'][idx].values
+                    idx, sensors, levels, variables_frost[vn]["prime_level"]
+                )
+                sensors = df["header.id.sensor"][idx].values
+                paramids = df["header.id.paramid"][idx].values
+                levels = df["header.id.level"][idx].values
         for n, i in enumerate(idx):
-            dftmp = pd.json_normalize(r.json()\
-                        ['data']['tseries'][i]['observations'])\
-                        ['body.value'].to_frame()
+            dftmp = pd.json_normalize(r.json()["data"]["tseries"][i]["observations"])[
+                "body.value"
+            ].to_frame()
             vns = vn
-            #vns = vn + '_'a \
+            # vns = vn + '_'a \
             #            + str(df['header.id.sensor'][i])
-            dftmp = dftmp.rename(columns={dftmp.columns[0]: vns}).\
-                            astype(float)
+            dftmp = dftmp.rename(columns={dftmp.columns[0]: vns}).astype(float)
             dftmp[vns] = dftmp[vns].mask(dftmp[vns] < 0, np.nan)
             dfc = pd.concat([dfc, dftmp.reindex(dfc.index)], axis=1)
             # sensor
-            dinfo['sensor'][vns] = sensors[n]
+            dinfo["sensor"][vns] = sensors[n]
             # level
             if levels[n] == 0:
-                dinfo['level'][vns] = variables_frost[vn]['default_level']
+                dinfo["level"][vns] = variables_frost[vn]["default_level"]
             else:
-                dinfo['level'][vns] = levels[n]
+                dinfo["level"][vns] = levels[n]
             # paramid
-            dinfo['paramid'][vns] = paramids[n]
+            dinfo["paramid"][vns] = paramids[n]
     return dfc, dinfo, lon, lat
 
 
 def get_frost(**kwargs):
-    sdate = kwargs.get('sd')
-    edate = kwargs.get('ed')
-    nID = kwargs.get('nID')
-    varalias = kwargs.get('varalias')
+    sdate = kwargs.get("sd")
+    edate = kwargs.get("ed")
+    nID = kwargs.get("nID")
+    varalias = kwargs.get("varalias")
     if isinstance(varalias, str):
         varalias = [varalias]
-    varstr_list = [variables_frost[v]['frost_name'] for v in varalias]
-    sensor = insitu_dict[nID]['name'][kwargs.get('name', 0)]
+    varstr_list = [variables_frost[v]["frost_name"] for v in varalias]
+    sensor = insitu_dict[nID]["name"][kwargs.get("name", 0)]
     r = call_frost_api(sdate, edate, nID, varstr_list, sensor)
     df, _, lon, lat = get_frost_df_v1(r)
     var = tuple(list(df[v].values) for v in varalias)
-    timevec = df['time'].values
+    timevec = df["time"].values
     timedt = [parse_date(str(d)) for d in timevec]
 
     # rm datetime timezone info
     timedt = [d.replace(tzinfo=None) for d in timedt]
-    lons = len(var[0])*[lon]
-    lats = len(var[0])*[lat]
-    varnames = (*tuple(varalias), 'lons', 'lats', 'time')
+    lons = len(var[0]) * [lon]
+    lats = len(var[0]) * [lat]
+    varnames = (*tuple(varalias), "lons", "lats", "time")
     var_tuple = (*var, lons, lats, timedt)
 
     # build xarray ds
@@ -235,24 +246,20 @@ def get_frost(**kwargs):
 
 
 def get_nc_thredds(**kwargs):
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    varalias = kwargs.get('varalias')
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    varalias = kwargs.get("varalias")
     if isinstance(varalias, str):
         varalias = [varalias]
-    pathlst = kwargs.get('pathlst')
-    cfg = vars(kwargs['cfg'])
+    pathlst = kwargs.get("pathlst")
+    cfg = vars(kwargs["cfg"])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = [get_filevarname(v, variable_def,
-                             cfg, meta) for v in varalias]
-    lonstr = get_filevarname('lons', variable_def,
-                             cfg, meta)
-    latstr = get_filevarname('lats', variable_def,
-                             cfg, meta)
-    timestr = get_filevarname('time', variable_def,
-                              cfg, meta)
+    ncvar = [get_filevarname(v, variable_def, cfg, meta) for v in varalias]
+    lonstr = get_filevarname("lons", variable_def, cfg, meta)
+    latstr = get_filevarname("lats", variable_def, cfg, meta)
+    timestr = get_filevarname("time", variable_def, cfg, meta)
 
     # read all paths
     ds = read_netcdfs(pathlst, dim=timestr)
@@ -263,24 +270,20 @@ def get_nc_thredds(**kwargs):
 
 
 def get_nc_thredds_static_coords(**kwargs):
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    varalias = kwargs.get('varalias')
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    varalias = kwargs.get("varalias")
     if isinstance(varalias, str):
         varalias = [varalias]
-    pathlst = kwargs.get('pathlst')
-    cfg = vars(kwargs['cfg'])
+    pathlst = kwargs.get("pathlst")
+    cfg = vars(kwargs["cfg"])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = [get_filevarname(v, variable_def,
-                             cfg, meta) for v in varalias]
-    lonstr = get_filevarname('lons', variable_def,
-                             cfg, meta)
-    latstr = get_filevarname('lats', variable_def,
-                             cfg, meta)
-    timestr = get_filevarname('time', variable_def,
-                              cfg, meta)
+    ncvar = [get_filevarname(v, variable_def, cfg, meta) for v in varalias]
+    lonstr = get_filevarname("lons", variable_def, cfg, meta)
+    latstr = get_filevarname("lats", variable_def, cfg, meta)
+    timestr = get_filevarname("time", variable_def, cfg, meta)
 
     # read all paths
     ds = read_netcdfs(pathlst, dim=timestr)
@@ -289,101 +292,117 @@ def get_nc_thredds_static_coords(**kwargs):
     ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
 
     # if lonstr is None try static from cfg
-    if (lonstr is None and latstr is None):
-        lons = np.ones(ds_sliced[timestr].shape)\
-                *cfg['misc']['coords'][kwargs.get('name')]['lon']
-        lats = np.ones(ds_sliced[timestr].shape)\
-                *cfg['misc']['coords'][kwargs.get('name')]['lat']
+    if lonstr is None and latstr is None:
+        lons = (
+            np.ones(ds_sliced[timestr].shape)
+            * cfg["misc"]["coords"][kwargs.get("name")]["lon"]
+        )
+        lats = (
+            np.ones(ds_sliced[timestr].shape)
+            * cfg["misc"]["coords"][kwargs.get("name")]["lat"]
+        )
 
     var_sliced = ds_sliced[ncvar]
 
     # combine and create dataset
-    ds_combined = xr.Dataset({
-            **{ncvar[i]:xr.DataArray(data=var_sliced[ncvar[i]].data,
-                                dims=[timestr],
-                                coords={timestr: var_sliced.time.data})},
-            "lons": xr.DataArray(data=lons, dims=[timestr],
-                                 coords={timestr: var_sliced.time.data}),
-            "lats": xr.DataArray(data=lats, dims=[timestr],
-                                 coords={timestr: var_sliced.time.data})
-            })
+    ds_combined = xr.Dataset(
+        {
+            **{
+                ncvar[i]: xr.DataArray(
+                    data=var_sliced[ncvar[i]].data,
+                    dims=[timestr],
+                    coords={timestr: var_sliced.time.data},
+                )
+            },
+            "lons": xr.DataArray(
+                data=lons, dims=[timestr], coords={timestr: var_sliced.time.data}
+            ),
+            "lats": xr.DataArray(
+                data=lats, dims=[timestr], coords={timestr: var_sliced.time.data}
+            ),
+        }
+    )
 
     return ds_combined
 
 
 def get_nc_thredds_static_coords_single_file(**kwargs):
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    varalias = kwargs.get('varalias')
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    varalias = kwargs.get("varalias")
     if isinstance(varalias, str):
         varalias = [varalias]
-    pathlst = kwargs.get('pathlst')
-    cfg = vars(kwargs['cfg'])
+    pathlst = kwargs.get("pathlst")
+    cfg = vars(kwargs["cfg"])
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = [get_filevarname(v, variable_def,
-                             cfg, meta) for v in varalias]
-    lonstr = get_filevarname('lons', variable_def,
-                             cfg, meta)
-    latstr = get_filevarname('lats', variable_def,
-                             cfg, meta)
-    timestr = get_filevarname('time', variable_def,
-                              cfg, meta)
+    ncvar = [get_filevarname(v, variable_def, cfg, meta) for v in varalias]
+    lonstr = get_filevarname("lons", variable_def, cfg, meta)
+    latstr = get_filevarname("lats", variable_def, cfg, meta)
+    timestr = get_filevarname("time", variable_def, cfg, meta)
 
     # read all paths
-    ds = xr.open_dataset(pathlst[0], engine='netcdf4')
+    ds = xr.open_dataset(pathlst[0], engine="netcdf4")
     ds_sort = ds.sortby(timestr)
 
     ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
 
     # if lonstr is None try static from cfg
-    if (lonstr is None and latstr is None):
-        lons = np.ones(ds_sliced[timestr].shape)\
-                *cfg['misc']['coords'][kwargs.get('name')]['lon']
-        lats = np.ones(ds_sliced[timestr].shape)\
-                *cfg['misc']['coords'][kwargs.get('name')]['lat']
+    if lonstr is None and latstr is None:
+        lons = (
+            np.ones(ds_sliced[timestr].shape)
+            * cfg["misc"]["coords"][kwargs.get("name")]["lon"]
+        )
+        lats = (
+            np.ones(ds_sliced[timestr].shape)
+            * cfg["misc"]["coords"][kwargs.get("name")]["lat"]
+        )
 
     var_sliced = ds_sliced[ncvar]
 
     # combine and create dataset
-    
-    ds_combined = xr.Dataset({
-            **{ncvar[i]:xr.DataArray(data=var_sliced[ncvar[i]].data,
-                                dims=[timestr],
-                                coords={timestr: var_sliced.time.data})},
-            "lons": xr.DataArray(data=lons, dims=[timestr],
-                                 coords={timestr: var_sliced.time.data}),
-            "lats": xr.DataArray(data=lats, dims=[timestr],
-                                 coords={timestr: var_sliced.time.data})
-            })
+
+    ds_combined = xr.Dataset(
+        {
+            **{
+                ncvar[i]: xr.DataArray(
+                    data=var_sliced[ncvar[i]].data,
+                    dims=[timestr],
+                    coords={timestr: var_sliced.time.data},
+                )
+            },
+            "lons": xr.DataArray(
+                data=lons, dims=[timestr], coords={timestr: var_sliced.time.data}
+            ),
+            "lats": xr.DataArray(
+                data=lats, dims=[timestr], coords={timestr: var_sliced.time.data}
+            ),
+        }
+    )
 
     return ds_combined
 
 
 def get_cmems(**kwargs):
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    varalias = kwargs.get('varalias')
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    varalias = kwargs.get("varalias")
     if isinstance(varalias, str):
         varalias = [varalias]
-    pathlst = kwargs.get('pathlst')
-    cfg = vars(kwargs['cfg'])
-    depth_lvls = kwargs.get('depth_lvls', None)
+    pathlst = kwargs.get("pathlst")
+    cfg = vars(kwargs["cfg"])
+    depth_lvls = kwargs.get("depth_lvls", None)
 
     # check if dimensions are fixed
-    fixed_dim_str = list(cfg['misc']['fixed_dim'].keys())[0]
+    fixed_dim_str = list(cfg["misc"]["fixed_dim"].keys())[0]
 
     # determine ncvarname
     meta = ncdumpMeta(pathlst[0])
-    ncvar = [get_filevarname(v, variable_def,
-                             cfg, meta) for v in varalias]
-    lonstr = get_filevarname('lons', variable_def,
-                             cfg, meta)
-    latstr = get_filevarname('lats', variable_def,
-                             cfg, meta)
-    timestr = get_filevarname('time', variable_def,
-                              cfg, meta)
+    ncvar = [get_filevarname(v, variable_def, cfg, meta) for v in varalias]
+    lonstr = get_filevarname("lons", variable_def, cfg, meta)
+    latstr = get_filevarname("lats", variable_def, cfg, meta)
+    timestr = get_filevarname("time", variable_def, cfg, meta)
 
     var_list = ncvar + [lonstr, latstr]
 
@@ -392,33 +411,43 @@ def get_cmems(**kwargs):
     # build a list of datasets using files that matches given dates
     for p in pathlst:
         try:
-            ds = xr.open_dataset(p, engine='netcdf4')
+            ds = xr.open_dataset(p, engine="netcdf4")
             ds = ds[var_list]
 
             # builds the dictionary given as an argument to
-            dict_var = {coord: ds.coords[coord].values
-                        for coord in list(ds.coords) if coord
-                        in [lonstr, latstr, timestr]}
+            dict_var = {
+                coord: ds.coords[coord].values
+                for coord in list(ds.coords)
+                if coord in [lonstr, latstr, timestr]
+            }
 
             len_timestr = len(dict_var[timestr])
 
             for coord in [lonstr, latstr]:
-                if len(dict_var[coord].shape)==0:
-                    dict_var[coord] = np.array([dict_var[coord]]*len_timestr)
+                if len(dict_var[coord].shape) == 0:
+                    dict_var[coord] = np.array([dict_var[coord]] * len_timestr)
 
             list_vars_tmp = list(ds.data_vars)
 
             if depth_lvls is not None:
 
-                dict_var.update({var: ds.sel(DEPTH=depth_lvls[var])[var]\
-                                 .values for var in depth_lvls.keys()})
+                dict_var.update(
+                    {
+                        var: ds.sel(DEPTH=depth_lvls[var])[var].values
+                        for var in depth_lvls.keys()
+                    }
+                )
 
-                list_vars_tmp = [k for k in list(ds.data_vars) if k
-                                 not in list(depth_lvls.keys())]
+                list_vars_tmp = [
+                    k for k in list(ds.data_vars) if k not in list(depth_lvls.keys())
+                ]
 
-            dict_var.update({var: rebuild_split_variable(ds,
-                                          fixed_dim_str, var)
-                             for var in list_vars_tmp})
+            dict_var.update(
+                {
+                    var: rebuild_split_variable(ds, fixed_dim_str, var)
+                    for var in list_vars_tmp
+                }
+            )
 
             # build an xr.dataset with timestr as the only coordinate
             # using build_xr_ds function
@@ -427,12 +456,15 @@ def get_cmems(**kwargs):
         except Exception as e:
             logger.exception(e)
 
-    ds_combined = xr.concat(ds_list, timestr,
-                         coords='minimal',
-                         data_vars='minimal',
-                         compat='override',
-                         combine_attrs='override',
-                         join='override')
+    ds_combined = xr.concat(
+        ds_list,
+        timestr,
+        coords="minimal",
+        data_vars="minimal",
+        compat="override",
+        combine_attrs="override",
+        join="override",
+    )
 
     ds_sort = ds_combined.sortby(timestr)
     ds_sliced = ds_sort.sel({timestr: slice(sd, ed)})
@@ -441,7 +473,7 @@ def get_cmems(**kwargs):
 
 
 def rebuild_split_variable(ds, fixed_dim_str, var):
-    '''
+    """
     Gather values of a given variable, for which
     values are split between several levels of
     a given dimension of a dataset.
@@ -454,7 +486,7 @@ def rebuild_split_variable(ds, fixed_dim_str, var):
     Returns:
         1D numpy array, returns the complete variable
         serie of values on a single dimension
-    '''
+    """
     lvl_nb = len(ds[fixed_dim_str].data)
 
     if lvl_nb == 1:
@@ -478,21 +510,24 @@ def rebuild_split_variable(ds, fixed_dim_str, var):
             for i in range(1, lvl_nb):
 
                 nan_val_tmp = np.isnan(ds.isel({fixed_dim_str: i})[var].data)
-                not_nan_idx = [j for j in range(len(nan_val_tmp))
-                               if not nan_val_tmp[j]]
+                not_nan_idx = [j for j in range(len(nan_val_tmp)) if not nan_val_tmp[j]]
                 ts[not_nan_idx] = ds.isel({fixed_dim_str: i})[var].data[not_nan_idx]
 
-    return np.array(ts, dtype='f')
+    return np.array(ts, dtype="f")
 
 
 def build_xr_ds_cmems(dict_var, var_name_ref):
 
-    ds = xr.Dataset({
-        var_name: xr.DataArray(
-            data=dict_var[var_name],
-            dims=[var_name_ref],
-            coords={var_name_ref: dict_var[var_name_ref]}
-            ) for var_name in dict_var.keys()},
-                attrs={'title': 'wavy dataset'})
+    ds = xr.Dataset(
+        {
+            var_name: xr.DataArray(
+                data=dict_var[var_name],
+                dims=[var_name_ref],
+                coords={var_name_ref: dict_var[var_name_ref]},
+            )
+            for var_name in dict_var.keys()
+        },
+        attrs={"title": "wavy dataset"},
+    )
 
     return ds

@@ -3,6 +3,7 @@
 """
 download satellite data from Copernicus
 """
+
 # --- imports -------------------------------------------------------- #
 # standard library imports
 import click
@@ -12,27 +13,55 @@ import time
 from wavy.utils import parse_date
 from pathlib import Path
 from wavy.wconfig import load_or_default
+
 # -------------------------------------------------------------------- #
 
+
 @click.command(context_settings={"ignore_unknown_options": True})
-@click.option('--sd', type=str, default=None,
-        help='starting date and time of your query e.g.: 2023-10-1T00')
-@click.option('--ed', type=str, default=None,
-        help='ending date and time of your query e.g.: 2023-10-10T00')
-@click.option('--nID', type=str, default='cmems_L3_NRT',
-        help='nID as specified in satellite_cfg.yaml')
-@click.option('--name', type=str, default=None,
-        help='name as specified in satellite_cfg.yaml, if name equals "all", all names from chosen nID are considered')
-@click.option('--nproc', type=int, default=None,
-        help='chosen number of simultaneous processes (only valid for FTP downloads)')
-@click.option('--path', type=str, default=None, help='custom specified target path')
-@click.option('--path', type=str, default=None, help='custom specified target path')
-@click.option('--mx_lt', type=float, default=None, help='maximum latitude for spatial subset')
-@click.option('--mn_lt', type=float, default=None, help='minimum latitude for spatial subset')
-@click.option('--mx_ln', type=float, default=None, help='maximum longitude for spatial subset')
-@click.option('--mn_ln', type=float, default=None, help='minimum longitude for spatial subset')
-
-
+@click.option(
+    "--sd",
+    type=str,
+    default=None,
+    help="starting date and time of your query e.g.: 2023-10-1T00",
+)
+@click.option(
+    "--ed",
+    type=str,
+    default=None,
+    help="ending date and time of your query e.g.: 2023-10-10T00",
+)
+@click.option(
+    "--nID",
+    type=str,
+    default="cmems_L3_NRT",
+    help="nID as specified in satellite_cfg.yaml",
+)
+@click.option(
+    "--name",
+    type=str,
+    default=None,
+    help='name as specified in satellite_cfg.yaml, if name equals "all", all names from chosen nID are considered',
+)
+@click.option(
+    "--nproc",
+    type=int,
+    default=None,
+    help="chosen number of simultaneous processes (only valid for FTP downloads)",
+)
+@click.option("--path", type=str, default=None, help="custom specified target path")
+@click.option("--path", type=str, default=None, help="custom specified target path")
+@click.option(
+    "--mx_lt", type=float, default=None, help="maximum latitude for spatial subset"
+)
+@click.option(
+    "--mn_lt", type=float, default=None, help="minimum latitude for spatial subset"
+)
+@click.option(
+    "--mx_ln", type=float, default=None, help="maximum longitude for spatial subset"
+)
+@click.option(
+    "--mn_ln", type=float, default=None, help="minimum longitude for spatial subset"
+)
 def main(sd, ed, nid, name, path, nproc, mx_lt, mn_lt, mx_ln, mn_ln):
     """
     Wrapper for command line use of the wavy downloading functions.\n
@@ -56,13 +85,13 @@ def main(sd, ed, nid, name, path, nproc, mx_lt, mn_lt, mx_ln, mn_ln):
     """
 
     # read yaml config files:
-    satellite_dict = load_or_default('satellite_cfg.yaml')
+    satellite_dict = load_or_default("satellite_cfg.yaml")
 
     # settings
     now = datetime.now()
 
     if sd is None:
-        sdate = now-timedelta(hours=24)
+        sdate = now - timedelta(hours=24)
     else:
         sdate = parse_date(sd)
 
@@ -72,9 +101,9 @@ def main(sd, ed, nid, name, path, nproc, mx_lt, mn_lt, mx_ln, mn_ln):
         edate = parse_date(ed)
 
     if name is None:
-        namelst = [list(satellite_dict[nid]['name'].keys())[0]]
-    elif name == 'all':
-        namelst = list(satellite_dict[nid]['name'].keys())
+        namelst = [list(satellite_dict[nid]["name"].keys())[0]]
+    elif name == "all":
+        namelst = list(satellite_dict[nid]["name"].keys())
     else:
         namelst = [name]
 
@@ -95,13 +124,15 @@ def main(sd, ed, nid, name, path, nproc, mx_lt, mn_lt, mx_ln, mn_ln):
 
         start_time = time.time()
 
-        sco = sc(sd=sdate, ed=edate,
-                 nID=nid, name=name)
-        #sco.download(path=path, nproc=nproc)
-        sco.download(path=path, nproc=nproc, mx_lt=mx_lt, mn_lt=mn_lt, mx_ln=mx_ln, mn_ln=mn_ln)
+        sco = sc(sd=sdate, ed=edate, nID=nid, name=name)
+        # sco.download(path=path, nproc=nproc)
+        sco.download(
+            path=path, nproc=nproc, mx_lt=mx_lt, mn_lt=mn_lt, mx_ln=mx_ln, mn_ln=mn_ln
+        )
 
         time1 = time.time() - start_time
         print("Time used for collecting data: ", time1, " seconds")
+
 
 if __name__ == "__main__":
     main()

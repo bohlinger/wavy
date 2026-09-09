@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
-'''
+"""
 The main task of this module is to read satellite altimetry
 files for further use.
-'''
+"""
+
 # --- import libraries ------------------------------------------------#
 # standard library igports
 import numpy as np
@@ -23,11 +24,13 @@ from wavy.utils import parse_date, calc_deep_water_T
 from wavy.utils import find_included_times, find_included_times_pd
 from wavy.ncmod import build_xr_ds, build_xr_ds_multivar
 from wavy.credentials import get_credentials
+
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-satellite_dict = load_or_default('satellite_cfg.yaml')
-variable_info = load_or_default('variable_def.yaml')
+satellite_dict = load_or_default("satellite_cfg.yaml")
+variable_info = load_or_default("variable_def.yaml")
+
 
 def read_wavy_ncfiles(**kwargs):
     """
@@ -42,17 +45,17 @@ def read_wavy_ncfiles(**kwargs):
     return:
         dictionary of variables for the satellite_class object
     """
-    pathlst = kwargs.get('pathlst')
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    twin = kwargs.get('twin')
+    pathlst = kwargs.get("pathlst")
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    twin = kwargs.get("twin")
 
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
     # retrieve sliced data
     ds = read_netcdfs(pathlst)
-    ds_sort = ds.sortby('time')
+    ds_sort = ds.sortby("time")
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     return ds_sliced
 
@@ -61,25 +64,23 @@ def read_local_ncfiles(**kwargs):
     """
     Wrapping function to read satellite netcdf files.
     """
-    pathlst = kwargs.get('pathlst')
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    twin = kwargs.get('twin')
-    varalias = kwargs.get('varalias')
+    pathlst = kwargs.get("pathlst")
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    twin = kwargs.get("twin")
+    varalias = kwargs.get("varalias")
     if isinstance(varalias, str):
         varalias = [varalias]
-    nID = kwargs.get('nID')
+    nID = kwargs.get("nID")
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
     # varnames
-    varname_list = [get_filevarname(v, variable_info,
-                              satellite_dict[nID], ncmeta) for v in varalias]
-    lonsname = get_filevarname('lons', variable_info,
-                               satellite_dict[nID], ncmeta)
-    latsname = get_filevarname('lats', variable_info,
-                               satellite_dict[nID], ncmeta)
-    timename = get_filevarname('time', variable_info,
-                               satellite_dict[nID], ncmeta)
+    varname_list = [
+        get_filevarname(v, variable_info, satellite_dict[nID], ncmeta) for v in varalias
+    ]
+    lonsname = get_filevarname("lons", variable_info, satellite_dict[nID], ncmeta)
+    latsname = get_filevarname("lats", variable_info, satellite_dict[nID], ncmeta)
+    timename = get_filevarname("time", variable_info, satellite_dict[nID], ncmeta)
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
@@ -92,43 +93,45 @@ def read_local_ncfiles(**kwargs):
     var_sliced = ds_sliced[varname_list + [lonsname, latsname]]
 
     # build xr dataset with time as only dim/coords
-    varnames = {**{varalias[i]:varname_list[i] for i in range(len(varalias))},
-                'lons': lonsname,
-                'lats': latsname, 
-                'time': timename}
-    var = (*tuple(var_sliced[v] for v in varname_list), 
-           var_sliced[lonsname],
-           var_sliced[latsname], 
-           var_sliced[timename])
+    varnames = {
+        **{varalias[i]: varname_list[i] for i in range(len(varalias))},
+        "lons": lonsname,
+        "lats": latsname,
+        "time": timename,
+    }
+    var = (
+        *tuple(var_sliced[v] for v in varname_list),
+        var_sliced[lonsname],
+        var_sliced[latsname],
+        var_sliced[timename],
+    )
 
     ds_new = build_xr_ds_multivar(var, varnames, varalias)
 
     return ds_new
-    
+
 
 def read_remote_ncfiles_aggregated(**kwargs):
     """
     Wrapping function to read remote opendap satellite netcdf files
     that use credentials
     """
-    pathlst = kwargs.get('pathlst')
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    twin = kwargs.get('twin')
-    varalias = kwargs.get('varalias')
-    nID = kwargs.get('nID')
-    remoteHostName = kwargs.get('remoteHostName')
+    pathlst = kwargs.get("pathlst")
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    twin = kwargs.get("twin")
+    varalias = kwargs.get("varalias")
+    nID = kwargs.get("nID")
+    remoteHostName = kwargs.get("remoteHostName")
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
     # varnames
-    varname_list = [get_filevarname(v, variable_info,
-                    satellite_dict[nID], ncmeta) for v in varalias]
-    lonsname = get_filevarname('lons', variable_info,
-                               satellite_dict[nID], ncmeta)
-    latsname = get_filevarname('lats', variable_info,
-                               satellite_dict[nID], ncmeta)
-    timename = get_filevarname('time', variable_info,
-                               satellite_dict[nID], ncmeta)
+    varname_list = [
+        get_filevarname(v, variable_info, satellite_dict[nID], ncmeta) for v in varalias
+    ]
+    lonsname = get_filevarname("lons", variable_info, satellite_dict[nID], ncmeta)
+    latsname = get_filevarname("lats", variable_info, satellite_dict[nID], ncmeta)
+    timename = get_filevarname("time", variable_info, satellite_dict[nID], ncmeta)
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
@@ -137,21 +140,25 @@ def read_remote_ncfiles_aggregated(**kwargs):
     usr, pw = get_credentials(remoteHostName)
 
     # retrieve sliced data
-    ds = read_netcdfs_with_credentials_aggregated(
-            pathlst, remoteHostName, usr, pw)
+    ds = read_netcdfs_with_credentials_aggregated(pathlst, remoteHostName, usr, pw)
 
     ds_sort = ds.sortby(timename)
     ds_sliced = ds_sort.sel(time=slice(sd, ed))
     var_sliced = ds_sliced[varname_list + [lonsname, latsname]]
 
     # build xr dataset with time as only dim/coords
-    varnames = {**{varalias[i]:varname_list[i] for i in range(len(varalias))}, 
-                'lons': lonsname,
-                'lats': latsname,
-                'time': timename}
-    var = (*tuple(var_sliced[v] for v in varname_list), 
-           var_sliced[lonsname],
-           var_sliced[latsname], var_sliced[timename])
+    varnames = {
+        **{varalias[i]: varname_list[i] for i in range(len(varalias))},
+        "lons": lonsname,
+        "lats": latsname,
+        "time": timename,
+    }
+    var = (
+        *tuple(var_sliced[v] for v in varname_list),
+        var_sliced[lonsname],
+        var_sliced[latsname],
+        var_sliced[timename],
+    )
 
     ds_new = build_xr_ds_multivar(var, varnames, varalias)
 
@@ -173,26 +180,24 @@ def read_local_20Hz_files(**kwargs):
     return:
         dictionary of variables for the satellite_class object
     """
-    pathlst = kwargs.get('pathlst')
-    nID = kwargs.get('nID')
-    varalias = kwargs.get('varalias')
-    sd = kwargs.get('sd')
-    ed = kwargs.get('ed')
-    twin = kwargs.get('twin')
-    nc_dim = satellite_dict[nID].get('misc',{}).get('nc_dim', 'time')
+    pathlst = kwargs.get("pathlst")
+    nID = kwargs.get("nID")
+    varalias = kwargs.get("varalias")
+    sd = kwargs.get("sd")
+    ed = kwargs.get("ed")
+    twin = kwargs.get("twin")
+    nc_dim = satellite_dict[nID].get("misc", {}).get("nc_dim", "time")
     # adjust start and end
     sd = sd - timedelta(minutes=twin)
     ed = ed + timedelta(minutes=twin)
     # get meta data
     ncmeta = ncdumpMeta(pathlst[0])
-    varname_list = [get_filevarname(v, variable_info,
-                    satellite_dict[nID], ncmeta) for v in varalias]
-    lonstr = get_filevarname('lons', variable_info,
-                              satellite_dict[nID], ncmeta)
-    latstr = get_filevarname('lats', variable_info,
-                              satellite_dict[nID], ncmeta)
-    timestr = get_filevarname('time', variable_info,
-                              satellite_dict[nID], ncmeta)
+    varname_list = [
+        get_filevarname(v, variable_info, satellite_dict[nID], ncmeta) for v in varalias
+    ]
+    lonstr = get_filevarname("lons", variable_info, satellite_dict[nID], ncmeta)
+    latstr = get_filevarname("lats", variable_info, satellite_dict[nID], ncmeta)
+    timestr = get_filevarname("time", variable_info, satellite_dict[nID], ncmeta)
 
     # retrieve sliced data
     ds = read_netcdfs(pathlst, dim=nc_dim)
@@ -205,17 +210,16 @@ def read_local_20Hz_files(**kwargs):
     lons = ds_sort[lonstr].values[idx]
     lats = ds_sort[latstr].values[idx]
     nptime = nptime[idx]
-    varnames = {**{varalias[i]:varname_list[i] for i in range(len(varalias))},
-                'lons': lonstr,
-                'lats': latstr,
-                'time': timestr}
-    var = (*var_sliced, 
-           lons,
-           lats,
-           nptime)
+    varnames = {
+        **{varalias[i]: varname_list[i] for i in range(len(varalias))},
+        "lons": lonstr,
+        "lats": latstr,
+        "time": timestr,
+    }
+    var = (*var_sliced, lons, lats, nptime)
     # build xarray ds
     ds_new = build_xr_ds_multivar(var, varnames, varalias)
-    
+
     return ds_new
 
 
@@ -234,11 +238,11 @@ def read_local_ncfiles_swim(**kwargs):
     return:
         dictionary of variables for the satellite_class object
     """
-    pathlst = kwargs.get('pathlst')
-    varalias = kwargs.get('varalias')
-    sdate = kwargs.get('sdate')
-    edate = kwargs.get('edate')
-    twin = kwargs.get('twin')
+    pathlst = kwargs.get("pathlst")
+    varalias = kwargs.get("varalias")
+    sdate = kwargs.get("sdate")
+    edate = kwargs.get("edate")
+    twin = kwargs.get("twin")
 
     # adjust start and end
     sdate = sdate - timedelta(minutes=twin)
@@ -246,31 +250,30 @@ def read_local_ncfiles_swim(**kwargs):
     # retrieve data
     vardict = read_swim_netcdfs(pathlst, varalias)
     # rm NaN from 'time'
-    tmpt = np.array(vardict['time'])
+    tmpt = np.array(vardict["time"])
     tmpt = tmpt[~np.isnan(tmpt)]
     # parse time and add to dict
     dtime = [parse_date(d) for d in np.array(tmpt).astype(str)]
-    vardict['datetime'] = dtime
-    vardict['time_unit'] = variable_info['time']['units']
-    vardict['time'] = netCDF4.date2num(vardict['datetime'],
-                                       vardict['time_unit'])
+    vardict["datetime"] = dtime
+    vardict["time_unit"] = variable_info["time"]["units"]
+    vardict["time"] = netCDF4.date2num(vardict["datetime"], vardict["time_unit"])
     # lon tranformation
-    tlons = list(((np.array(vardict['longitude']) - 180) % 360) - 180)
-    vardict['longitude'] = tlons
+    tlons = list(((np.array(vardict["longitude"]) - 180) % 360) - 180)
+    vardict["longitude"] = tlons
     # find idx for time period
     tidx = find_included_times(dtime, sdate=sdate, edate=edate)
     # adjust dict
     for key in vardict.keys():
-        if key != 'meta' and key != 'time_unit':
+        if key != "meta" and key != "time_unit":
             vardict[key] = list(np.array(vardict[key])[tidx])
     # if peak wave length transform to peak period
-    if kwargs.get('return_var', varalias) == 'Tp':
+    if kwargs.get("return_var", varalias) == "Tp":
         Tp = calc_deep_water_T(np.array(vardict[varalias]))
-        vardict[variable_info['Tp']['standard_name']] = Tp
+        vardict[variable_info["Tp"]["standard_name"]] = Tp
         # change varalias to stdvarname from variable_info
     else:
         # change varalias to stdvarname from variable_info
-        vardict[variable_info[varalias]['standard_name']] = vardict[varalias]
+        vardict[variable_info[varalias]["standard_name"]] = vardict[varalias]
     # delete varalias key from dict
     vardict.pop(varalias)
     return vardict

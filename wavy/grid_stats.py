@@ -5,6 +5,7 @@ import numpy as np
 import tqdm
 from wavy.validationmod import validate
 
+
 def grid_mean(gco, **kwargs):
     """
     purpose: computes gridded means
@@ -19,14 +20,14 @@ def grid_mean(gco, **kwargs):
         var_grid -> gridded variable
         lon_grid -> longitude grid
         lat_grid -> latitude grid
-    """ 
+    """
 
     # collect needed variables
     if gco is None:
-        Midx = kwargs.get('Midx')
-        glons = kwargs.get('glons')
-        glats = kwargs.get('glats')
-        ovals = kwargs.get('ovals')
+        Midx = kwargs.get("Midx")
+        glons = kwargs.get("glons")
+        glats = kwargs.get("glats")
+        ovals = kwargs.get("ovals")
     else:
         Midx = gco.Midx_clean
         glons = gco.glons
@@ -58,6 +59,7 @@ def grid_mean(gco, **kwargs):
 
     return var_grid, lon_grid, lat_grid
 
+
 def grid_mean_group(gco, **kwargs):
     """
     purpose: computes gridded means with group strategy
@@ -76,10 +78,10 @@ def grid_mean_group(gco, **kwargs):
 
     # collect needed variables
     if gco is None:
-        Midx = kwargs.get('Midx')
-        glons = kwargs.get('glons')
-        glats = kwargs.get('glats')
-        ovals = kwargs.get('ovals')
+        Midx = kwargs.get("Midx")
+        glons = kwargs.get("glons")
+        glats = kwargs.get("glats")
+        ovals = kwargs.get("ovals")
     else:
         Midx = gco.Midx_clean
         glons = gco.glons
@@ -116,6 +118,7 @@ def grid_mean_group(gco, **kwargs):
 
     return val_grid, lon_grid, lat_grid
 
+
 def grid_stats_group(gco, **kwargs):
     """
     purpose: computes gridded rmse with group strategy
@@ -135,11 +138,11 @@ def grid_stats_group(gco, **kwargs):
 
     # collect needed variables
     if gco is None:
-        Midx = kwargs.get('Midx')
-        glons = kwargs.get('glons')
-        glats = kwargs.get('glats')
-        ovals = kwargs.get('ovals')
-        mvals = kwargs.get('mvals')
+        Midx = kwargs.get("Midx")
+        glons = kwargs.get("glons")
+        glats = kwargs.get("glats")
+        ovals = kwargs.get("ovals")
+        mvals = kwargs.get("mvals")
     else:
         Midx = gco.Midx_clean
         glons = gco.glons
@@ -172,7 +175,7 @@ def grid_stats_group(gco, **kwargs):
     fidx = fidx[isort]
     ovals_sort = ovals[isort]
     if mvals is None:
-        mvals = np.zeros(ovals.shape)*np.nan
+        mvals = np.zeros(ovals.shape) * np.nan
     mvals_sort = mvals[isort]
 
     isplit = np.unique(fidx, return_index=True)[1]
@@ -190,42 +193,39 @@ def grid_stats_group(gco, **kwargs):
     pbar = tqdm.tqdm(total=pbarlen)
 
     for iy, ix, ov, mv in zip(iyy, ixx, g_ovals_sort, g_mvals_sort):
-        rdict = {
-                 'model_values': mv,
-                 'obs_values': ov
-                 }
+        rdict = {"model_values": mv, "obs_values": ov}
         validation_dict = validate(rdict)
-        mop_grid[iy, ix] = validation_dict['mop']
-        mor_grid[iy, ix] = validation_dict['mor']
-        mad_grid[iy, ix] = validation_dict['mad']
-        msd_grid[iy, ix] = validation_dict['msd']
-        rmsd_grid[iy, ix] = validation_dict['rmsd']
-        nrmsd_grid[iy, ix] = validation_dict['nrmsd']
-        drmsd_grid[iy, ix] = validation_dict['drmsd']
-        corr_grid[iy, ix] = validation_dict['corr']
-        bias_grid[iy, ix] = validation_dict['bias']
-        nbias_grid[iy, ix] = validation_dict['nbias']
-        SI_grid[iy, ix] = validation_dict['SI'][1]
-        mar_grid[iy, ix] = validation_dict['mar']
-        nov_grid[iy, ix] = validation_dict['nov']
+        mop_grid[iy, ix] = validation_dict["mop"]
+        mor_grid[iy, ix] = validation_dict["mor"]
+        mad_grid[iy, ix] = validation_dict["mad"]
+        msd_grid[iy, ix] = validation_dict["msd"]
+        rmsd_grid[iy, ix] = validation_dict["rmsd"]
+        nrmsd_grid[iy, ix] = validation_dict["nrmsd"]
+        drmsd_grid[iy, ix] = validation_dict["drmsd"]
+        corr_grid[iy, ix] = validation_dict["corr"]
+        bias_grid[iy, ix] = validation_dict["bias"]
+        nbias_grid[iy, ix] = validation_dict["nbias"]
+        SI_grid[iy, ix] = validation_dict["SI"][1]
+        mar_grid[iy, ix] = validation_dict["mar"]
+        nov_grid[iy, ix] = validation_dict["nov"]
 
         pbar.update(1)
 
     val_grid_dict = {
-            'mop': mop_grid,
-            'mor': mor_grid,
-            'mad': mad_grid,
-            'msd': msd_grid,
-            'rmsd': rmsd_grid,
-            'nrmsd': nrmsd_grid,
-            'drmsd': drmsd_grid,
-            'corr': corr_grid,
-            'bias': bias_grid,
-            'nbias': nbias_grid,
-            'SI': SI_grid,
-            'mar': mar_grid,
-            'nov': nov_grid
-            }
+        "mop": mop_grid,
+        "mor": mor_grid,
+        "mad": mad_grid,
+        "msd": msd_grid,
+        "rmsd": rmsd_grid,
+        "nrmsd": nrmsd_grid,
+        "drmsd": drmsd_grid,
+        "corr": corr_grid,
+        "bias": bias_grid,
+        "nbias": nbias_grid,
+        "SI": SI_grid,
+        "mar": mar_grid,
+        "nov": nov_grid,
+    }
 
     return val_grid_dict, lon_grid, lat_grid
 
@@ -249,11 +249,11 @@ def grid_rmse(gco, **kwargs):
 
     # collect needed variables
     if gco is None:
-        Midx = kwargs.get('Midx')
-        glons = kwargs.get('glons')
-        glats = kwargs.get('glats')
-        ovals = kwargs.get('ovals')
-        mvals = kwargs.get('mvals')
+        Midx = kwargs.get("Midx")
+        glons = kwargs.get("glons")
+        glats = kwargs.get("glats")
+        ovals = kwargs.get("ovals")
+        mvals = kwargs.get("mvals")
     else:
         Midx = gco.Midx_clean
         glons = gco.glons
@@ -276,7 +276,7 @@ def grid_rmse(gco, **kwargs):
         iy = idx[0]
         ix = idx[1]
 
-        var_grid[iy, ix] += (o-m)**2
+        var_grid[iy, ix] += (o - m) ** 2
         N[iy, ix] += 1
 
         pbar.update(1)
@@ -289,17 +289,17 @@ def grid_rmse(gco, **kwargs):
 
 
 def apply_metric(gco=None, **kwargs):
-    '''
+    """
     dispatch table for various validation metrics
-    '''
-    metric = kwargs.get('metric', 'all')
+    """
+    metric = kwargs.get("metric", "all")
     print("Computing gridded metric:", metric, "...")
     dispatch_reader = {
-            'mean': grid_mean,
-            'mean_group': grid_mean_group,
-            'rmse': grid_rmse,
-            'all': grid_stats_group,
-            }
+        "mean": grid_mean,
+        "mean_group": grid_mean_group,
+        "rmse": grid_rmse,
+        "all": grid_stats_group,
+    }
     var_gridded = dispatch_reader[metric](gco, **kwargs)
     print("Computing gridded metric:", metric, " -> done")
     return var_gridded

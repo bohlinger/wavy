@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------#
-'''
+"""
 This module encompasses classes and methods to read and process wave
-field related data from multiple insitu locations. 
-'''
+field related data from multiple insitu locations.
+"""
+
 # --- import libraries ------------------------------------------------#
 # standard library imports
 import numpy as np
@@ -16,27 +17,34 @@ from wavy.insitu_module import insitu_class as ic
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.consolidate import consolidate_class as cs
 from wavy.utils import find_tagged_obs, expand_nID_for_sensors
+
 # ---------------------------------------------------------------------#
 
 # read yaml config files:
-insitu_dict = load_or_default('insitu_specs.yaml')
+insitu_dict = load_or_default("insitu_specs.yaml")
 # ---------------------------------------------------------------------#
 
 
 class multiins_class(qls):
-    '''
+    """
     Class to handle insitu based time series.
-    '''
+    """
 
     def __init__(
-    self, sdate, edate,
-    nID = None, sensor = None,
-    varalias = 'Hs', filterData = False, tags = None,
-    **kwargs ):
-        print('# ----- ')
+        self,
+        sdate,
+        edate,
+        nID=None,
+        sensor=None,
+        varalias="Hs",
+        filterData=False,
+        tags=None,
+        **kwargs,
+    ):
+        print("# ----- ")
         print(" ### Initializing multiins_class object ###")
         print(" ")
-        self.obstype = 'insitu'
+        self.obstype = "insitu"
         if tags is None:
             # multiple nIDs
             nIDs = nID
@@ -45,30 +53,33 @@ class multiins_class(qls):
             # check if nIDs and sensors have same length
             assert len(nIDs) == len(sensors)
         else:
-            nID = find_tagged_obs(tags,self.obstype)
+            nID = find_tagged_obs(tags, self.obstype)
             sensors = []
             nIDs = []
             for n in nID:
-                nsensors = expand_nID_for_sensors(n,self.obstype)
+                nsensors = expand_nID_for_sensors(n, self.obstype)
                 sensors += nsensors
-                nIDs += [n]*len(nsensors)
+                nIDs += [n] * len(nsensors)
             # check if nIDs and sensors have same length
             assert len(nIDs) == len(sensors)
         # retrieve
         icos = []
-        for i,n in enumerate(nIDs):
-            ico = ic( n,
-                      sdate, edate,
-                      varalias = varalias,
-                      filterData = filterData,
-                      sensor = sensors[i],
-                      **kwargs )
+        for i, n in enumerate(nIDs):
+            ico = ic(
+                n,
+                sdate,
+                edate,
+                varalias=varalias,
+                filterData=filterData,
+                sensor=sensors[i],
+                **kwargs,
+            )
             el = list(vars(ico).keys())
-            if 'error' in el:
-                print("Insitu location",n,"is not available and not appended")
+            if "error" in el:
+                print("Insitu location", n, "is not available and not appended")
                 pass
             else:
-                icos.append( ico )
+                icos.append(ico)
         cso = cs(icos)
         # class object variables
         self.obsname = cso.obsname
@@ -86,5 +97,5 @@ class multiins_class(qls):
         self.label = "multi-insitu-observations"
 
         print(" ")
-        print (" ### multiins object initialized ###")
-        print ('# ----- ')
+        print(" ### multiins object initialized ###")
+        print("# ----- ")
