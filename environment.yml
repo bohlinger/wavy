@@ -22,6 +22,7 @@ dependencies:
   - pytest-cov
   - pylint
   - yapf
+  - black
   - fsspec
   - requests
   - aiohttp
