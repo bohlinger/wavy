@@ -1,7 +1,7 @@
 # imports
 import numpy as np
 from copy import deepcopy
-import time 
+import time
 
 # wavy imports
 from wavy.satellite_module import satellite_class as sc
@@ -12,34 +12,34 @@ from wavy.utils import parse_date
 from wavy.wconfig import load_or_default
 
 # read yaml config files:
-satellite_dict = load_or_default('satellite_cfg.yaml')
-variable_def = load_or_default('variable_def.yaml')
+satellite_dict = load_or_default("satellite_cfg.yaml")
+variable_def = load_or_default("variable_def.yaml")
+
 
 class multisat_class(qls, fc):
-    '''
+    """
     Class to combine multiple satellite datasets
-    '''
+    """
 
     def __init__(self, **kwargs):
-        print('# ----- ')
+        print("# ----- ")
         print(" ### Initializing multisat_class object ###")
         print(" ")
         # parse and translate date input
-        self.nID = kwargs.get('nID', ['cmems_L3_NRT'])
-        self.name = kwargs.get('name', ['s3a'])
-        self.varalias = kwargs.get('varalias', ['Hs'])
+        self.nID = kwargs.get("nID", ["cmems_L3_NRT"])
+        self.name = kwargs.get("name", ["s3a"])
+        self.varalias = kwargs.get("varalias", ["Hs"])
         if isinstance(self.varalias, str):
             self.varalias = [self.varalias]
-        self.stdvarname = [variable_def[v].get('standard_name') \
-                           for v in self.varalias]
-        self.units = [variable_def[v].get('units') for v in self.varalias]
-        self.sd = parse_date(kwargs.get('sd'))
-        self.ed = parse_date(kwargs.get('ed', self.sd))
-        self.twin = kwargs.get('twin', 30)
-        self.distlim = kwargs.get('distlim', 6)
-        self.region = kwargs.get('region', 'global')
-        self.path = kwargs.get('path', len(self.name)*[None])
-        self.wavy_path = kwargs.get('wavy_path', len(self.name)*[None])
+        self.stdvarname = [variable_def[v].get("standard_name") for v in self.varalias]
+        self.units = [variable_def[v].get("units") for v in self.varalias]
+        self.sd = parse_date(kwargs.get("sd"))
+        self.ed = parse_date(kwargs.get("ed", self.sd))
+        self.twin = kwargs.get("twin", 30)
+        self.distlim = kwargs.get("distlim", 6)
+        self.region = kwargs.get("region", "global")
+        self.path = kwargs.get("path", len(self.name) * [None])
+        self.wavy_path = kwargs.get("wavy_path", len(self.name) * [None])
         t0 = time.time()
 
         # products: either None, same as names, or one product
@@ -52,50 +52,55 @@ class multisat_class(qls, fc):
         scos = []
         for i, n in enumerate(self.name):
             try:
-                sco = sc(sd=self.sd, ed=self.ed,
-                         nID=self.nID[i], name=n,
-                         twin=self.twin, distlim=self.distlim,
-                         region=self.region, varalias=self.varalias)
-                sco = sco.populate(path=self.path[i], 
-                                   wavy_path=self.wavy_path[i])
-                if 'vars' in list(vars(sco)):
+                sco = sc(
+                    sd=self.sd,
+                    ed=self.ed,
+                    nID=self.nID[i],
+                    name=n,
+                    twin=self.twin,
+                    distlim=self.distlim,
+                    region=self.region,
+                    varalias=self.varalias,
+                )
+                sco = sco.populate(path=self.path[i], wavy_path=self.wavy_path[i])
+                if "vars" in list(vars(sco)):
                     scos.append(deepcopy(sco))
                 del sco
             except Exception as e:
                 print(e)
-                print('no data found for', n)
+                print("no data found for", n)
 
         # consolidate scos
         cso = cs(scos)
         self.vars = cso.vars
         self.ocos = cso.ocos
-        #cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
-        #cso.rename_consolidate_object_parameters(mission='-'.join(missions))
+        # cso.rename_consolidate_object_parameters(obstype='satellite_altimeter')
+        # cso.rename_consolidate_object_parameters(mission='-'.join(missions))
         self.name = str(self.name)
         self.nID = str(np.unique(self.nID))
-        self.obsname = 'consolidated-obs'
-        self.obstype = 'consolidated-obs'
-        self.label = 'consolidated-obs'
+        self.obsname = "consolidated-obs"
+        self.obstype = "consolidated-obs"
+        self.label = "consolidated-obs"
         t1 = time.time()
 
         print(" ")
-        print(' ## Summary:')
-        print(str(len(self.vars['time'])) + " footprints retrieved.")
+        print(" ## Summary:")
+        print(str(len(self.vars["time"])) + " footprints retrieved.")
         print("Time used for retrieving data:")
-        print(round(t1-t0, 2), "seconds")
+        print(round(t1 - t0, 2), "seconds")
 
         print(" ")
         print(" ### multisat object initialized ###")
-        print('# ----- ')
+        print("# ----- ")
 
     def crop_to_period(self, **kwargs):
         """
         Function to crop the variable dictionary to a given period
         """
         new = deepcopy(self)
-        sd = parse_date(kwargs.get('sd', str(new.sd)))
-        ed = parse_date(kwargs.get('ed', str(new.ed)))
-        print('Crop to time period:', sd, 'to', ed)
+        sd = parse_date(kwargs.get("sd", str(new.sd)))
+        ed = parse_date(kwargs.get("ed", str(new.ed)))
+        print("Crop to time period:", sd, "to", ed)
         new.vars = new.vars.sortby("time").sel(time=slice(sd, ed))
         new.sd = sd
         new.ed = ed
@@ -105,6 +110,6 @@ class multisat_class(qls, fc):
 def find_valid_names(scos):
     names = [scos[0].name]
     for i in range(1, len(scos)):
-        if len(scos[i].vars['time']) > 0:
+        if len(scos[i].vars["time"]) > 0:
             names.append(scos[i].name)
     return names
