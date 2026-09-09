@@ -6,10 +6,13 @@ from wavy.utils import find_included_times
 from wavy.validationmod import validate, disp_validation
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
+from joblib import Parallel, delayed
 import copy
 from datetime import datetime, timedelta
 import random
 import xarray as xr
+import os
 
 
 def filter_collocation_distance(data, dist_max, name):
@@ -701,3 +704,78 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
     r2 = np.sum(weighted_diff_PS[idx_threshold:])
 
     return r2
+
+
+def _spatial_variance_single_r(time, data, period_meas, time_unit, f_max, r):
+
+    if time_unit == 'min':
+        time_unit_block = 'm'
+    else:
+        time_unit_block = time_unit
+        
+    elapsed_time = time - time[0]
+    elapsed_time_num = elapsed_time / np.timedelta64(1, time_unit_block)
+    block_ids = (elapsed_time_num // (r * period_meas)).astype(int)
+    unique_blocks = np.unique(block_ids)
+    block_vars = []
+    block_counts = []
+    
+    for block in unique_blocks:
+        mask = block_ids == block
+        block_data = data[mask]
+        block_data = block_data[~np.isnan(block_data)]
+        count = len(block_data)
+        f_ratio = (r - count) / (r + 1)
+        if count >= 2 and f_ratio <= f_max:
+            block_vars.append(np.var(block_data, ddof=0))
+            block_counts.append(count)
+    
+    block_vars = np.array(block_vars)
+    block_counts = np.array(block_counts)
+    weights = block_counts / r
+    
+    if np.sum(weights) == 0.0:
+        mean_var = np.nan
+    else:
+        mean_var = np.average(block_vars, weights=weights)
+    
+    count_used = np.sum(block_counts)
+    count_tot = np.sum(~np.isnan(data))
+    count_samples = len(block_vars)
+    return (r, mean_var, count_tot, count_used, count_samples)
+
+
+def spatial_variance(ds, period_meas, varalias, n_max, time_unit, sd='1000-01-01', ed='3000-12-31', n_min=2, f_max=0.0, savepath=None, n_jobs=-1):
+
+    ds = copy.deepcopy(ds[[varalias]])
+    ds = ds.sel(time=slice(sd, ed))
+    ds = ds.assign_coords(time=('time', ds.time.dt.round(time_unit).values))
+    ds = ds.drop_duplicates('time')
+
+    time = ds['time'].values
+    data = ds[varalias].values
+
+    r_iter = range(n_min, n_max+1)
+    total_tasks = len(list(r_iter))
+    job_generator = Parallel(n_jobs=n_jobs, batch_size=1, return_as="generator")(
+        delayed(_spatial_variance_single_r)(
+            time, data, period_meas, time_unit, f_max, r
+        ) for r in r_iter
+    )
+
+    results = list(tqdm(job_generator, total=total_tasks, desc="Spatial variance"))
+   
+    # Unpack results
+    res_list, var_list, count_tot_list, count_used_list, count_samples_list = zip(*results)
+
+    df_spat_var = pd.DataFrame({'res':res_list, 
+                                'var':var_list,
+                                'nb_tot_val':count_tot_list,
+                                'nb_used_val':count_used_list,
+                                'nb_samples':count_samples_list})
+
+    if savepath is not None:
+        os.makedirs('/'.join(savepath.split('/')[:-1]), exist_ok=True)
+        df_spat_var.to_csv(savepath, index=False)
+
+    return df_spat_var
