@@ -6,40 +6,39 @@ import os
 from copy import deepcopy
 from wavy import ic, sc, ms
 
+
 def test_filter_runmean(test_data):
-    varalias = 'Hs'  # default
+    varalias = "Hs"  # default
     sd = "2023-8-20 00"
     ed = "2023-8-21 00"
-    nID = 'MO_Draugen_daily'
-    name = 'Draugen'
+    nID = "MO_Draugen_daily"
+    name = "Draugen"
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())
 
-    ico = ico.populate(path=str(test_data/"insitu/daily/Draugen"))
-    new = ico.filter_runmean(window=3,
-                             chunk_min=3,
-                             sampling_rate_Hz=1/600)
+    ico = ico.populate(path=str(test_data / "insitu/daily/Draugen"))
+    new = ico.filter_runmean(window=3, chunk_min=3, sampling_rate_Hz=1 / 600)
     print(new.vars.time)
     print(new.vars.Hs)
     assert len(new.vars.time) == 6
-    assert not all(np.isnan(v) for v in ico.vars['Hs'])
+    assert not all(np.isnan(v) for v in ico.vars["Hs"])
     print(ico.vars.Hs[1:4])
     print(np.mean(ico.vars.Hs[1:4]))
     assert new.vars.Hs[2] == np.mean(ico.vars.Hs[1:4])
 
 
 def test_filter_llim_ulim(test_data):
-    varalias = 'Hs'  # default
+    varalias = "Hs"  # default
     sd = "2023-7-2 00"
     ed = "2023-7-3 00"
-    nID = 'MO_Draugen_monthly'
-    name = 'Draugen'
+    nID = "MO_Draugen_monthly"
+    name = "Draugen"
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())
 
-    ico = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
+    ico = ico.populate(path=str(test_data / "insitu/monthly/Draugen"))
     new = ico.apply_limits(llim=1, ulim=3)
     print(new.vars.time)
     print(new.vars.Hs)
@@ -47,272 +46,266 @@ def test_filter_llim_ulim(test_data):
 
 
 def test_filter_lanczos(test_data):
-    varalias = 'Hs'  # default
+    varalias = "Hs"  # default
     sd = "2023-7-2 00"
     ed = "2023-7-3 00"
-    nID = 'MO_Draugen_monthly'
-    name = 'Draugen'
+    nID = "MO_Draugen_monthly"
+    name = "Draugen"
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())
 
-    ico = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
-    new = ico.filter_lanczos(window=5, cutoff=1/5, sampling_rate_Hz=1/1200)
-    assert not 'error' in vars(new).keys()
+    ico = ico.populate(path=str(test_data / "insitu/monthly/Draugen"))
+    new = ico.filter_lanczos(window=5, cutoff=1 / 5, sampling_rate_Hz=1 / 1200)
+    assert not "error" in vars(new).keys()
 
 
 def test_despike_blockQ(test_data):
-    varalias = 'Hs'  # default
+    varalias = "Hs"  # default
     sd = "2023-7-2 00"
     ed = "2023-7-3 00"
-    nID = 'MO_Draugen_monthly'
-    name = 'Draugen'
+    nID = "MO_Draugen_monthly"
+    name = "Draugen"
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())
 
-    ico = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
-    new = ico.despike_blockQ(slider=20, chunk_min=5,
-                             llim_pct=.05, ulim_pct=.95,
-                             sampling_rate_Hz=1/1200)
-    assert not 'error' in vars(new).keys()
+    ico = ico.populate(path=str(test_data / "insitu/monthly/Draugen"))
+    new = ico.despike_blockQ(
+        slider=20, chunk_min=5, llim_pct=0.05, ulim_pct=0.95, sampling_rate_Hz=1 / 1200
+    )
+    assert not "error" in vars(new).keys()
 
 
 def test_despike_blockStd(test_data):
-    varalias = 'Hs'  # default
+    varalias = "Hs"  # default
     sd = "2023-7-2 00"
     ed = "2023-7-3 00"
-    nID = 'MO_Draugen_monthly'
-    name = 'Draugen'
+    nID = "MO_Draugen_monthly"
+    name = "Draugen"
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
     print(ico)
     print(vars(ico).keys())
 
-    ico = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
-    new = ico.despike_blockQ(slider=12, sigma=2, chunk_min=6,
-                             sampling_rate_Hz=1/1200)
-    assert not 'error' in vars(new).keys()
+    ico = ico.populate(path=str(test_data / "insitu/monthly/Draugen"))
+    new = ico.despike_blockQ(slider=12, sigma=2, chunk_min=6, sampling_rate_Hz=1 / 1200)
+    assert not "error" in vars(new).keys()
+
 
 def test_filter_landMask(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = 'Hs'
+    name = "s3a"
+    varalias = "Hs"
     twin = 30
-    nID = 'cmems_L3_NRT'
+    nID = "cmems_L3_NRT"
     # init satellite_object
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias,
-             twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(path=str(test_data/"L3/s3a"))
+    sco = sco.populate(path=str(test_data / "L3/s3a"))
     sco = sco.filter_landMask()
-    assert sco.__class__.__name__ == 'satellite_class'
+    assert sco.__class__.__name__ == "satellite_class"
     # compare number of available variables
     vlst = list(vars(sco).keys())
     assert len(vlst) == 20
     # compare number of available functions
     dlst = dir(sco)
-    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    flst = [n for n in dlst if n not in vlst if "__" not in n]
     assert len(flst) >= 46
-    assert type(sco.vars == 'xarray.core.dataset.Dataset')
-    assert not 'error' in vars(sco).keys()
+    assert type(sco.vars == "xarray.core.dataset.Dataset")
+    assert not "error" in vars(sco).keys()
+
 
 def test_filter_landMask_Gshhg(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = 'Hs'
+    name = "s3a"
+    varalias = "Hs"
     twin = 30
-    nID = 'cmems_L3_NRT'
+    nID = "cmems_L3_NRT"
     # init satellite_object
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias,
-             twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(path=str(test_data/"L3/s3a"))
-    sco = sco.filter_landMask(provider='Gshhg')
-    assert sco.__class__.__name__ == 'satellite_class'
+    sco = sco.populate(path=str(test_data / "L3/s3a"))
+    sco = sco.filter_landMask(provider="Gshhg")
+    assert sco.__class__.__name__ == "satellite_class"
     # compare number of available variables
     vlst = list(vars(sco).keys())
     assert len(vlst) == 20
     # compare number of available functions
     dlst = dir(sco)
-    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    flst = [n for n in dlst if n not in vlst if "__" not in n]
     assert len(flst) >= 46
-    assert type(sco.vars == 'xarray.core.dataset.Dataset')
-    assert not 'error' in vars(sco).keys()
+    assert type(sco.vars == "xarray.core.dataset.Dataset")
+    assert not "error" in vars(sco).keys()
+
 
 def test_filter_landMask_Osm(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = 'Hs'
+    name = "s3a"
+    varalias = "Hs"
     twin = 30
-    nID = 'cmems_L3_NRT'
+    nID = "cmems_L3_NRT"
     # init satellite_object
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias,
-             twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(path=str(test_data/"L3/s3a"))
-    sco = sco.filter_landMask(provider='Osm')
-    assert sco.__class__.__name__ == 'satellite_class'
+    sco = sco.populate(path=str(test_data / "L3/s3a"))
+    sco = sco.filter_landMask(provider="Osm")
+    assert sco.__class__.__name__ == "satellite_class"
     # compare number of available variables
     vlst = list(vars(sco).keys())
     assert len(vlst) == 20
     # compare number of available functions
     dlst = dir(sco)
-    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    flst = [n for n in dlst if n not in vlst if "__" not in n]
     assert len(flst) >= 46
-    assert type(sco.vars == 'xarray.core.dataset.Dataset')
-    assert not 'error' in vars(sco).keys()
+    assert type(sco.vars == "xarray.core.dataset.Dataset")
+    assert not "error" in vars(sco).keys()
+
 
 def test_filter_distance_to_coast(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = 'Hs'
+    name = "s3a"
+    varalias = "Hs"
     twin = 30
-    nID = 'cmems_L3_NRT'
+    nID = "cmems_L3_NRT"
     # init satellite_object
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias,
-             twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(path=str(test_data/"L3/s3a"))
+    sco = sco.populate(path=str(test_data / "L3/s3a"))
     sco = sco.filter_distance_to_coast(llim=50000, ulim=1000000)
-    assert sco.__class__.__name__ == 'satellite_class'
+    assert sco.__class__.__name__ == "satellite_class"
     # compare number of available variables
     vlst = list(vars(sco).keys())
     assert len(vlst) == 19
     # compare number of available functions
     dlst = dir(sco)
-    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    flst = [n for n in dlst if n not in vlst if "__" not in n]
     assert len(flst) >= 46
-    assert type(sco.vars == 'xarray.core.dataset.Dataset')
-    assert not 'error' in vars(sco).keys()
+    assert type(sco.vars == "xarray.core.dataset.Dataset")
+    assert not "error" in vars(sco).keys()
 
-def test_filter_ico_multivar(test_data): 
 
-    varalias = ['Hs','U']  # default
+def test_filter_ico_multivar(test_data):
+
+    varalias = ["Hs", "U"]  # default
     sd = "2023-7-2 00"
     ed = "2023-7-3 00"
-    nID = 'MO_Draugen_monthly'
-    name = 'Draugen'
+    nID = "MO_Draugen_monthly"
+    name = "Draugen"
     ico = ic(nID=nID, sd=sd, ed=ed, varalias=varalias, name=name)
-    ico = ico.populate(path=str(test_data/"insitu/monthly/Draugen"))
-    
-    assert len(ico.vars['time']) > 0
-    assert len(ico.vars.keys()) == 4
-    assert not all(np.isnan(v) for v in ico.vars['Hs'])
-    assert not all(np.isnan(v) for v in ico.vars['U'])
-    
-    filter_1 = ico.filter_runmean(window=3,
-                             chunk_min=3,
-                             sampling_rate_Hz=1/600,
-                             varalias='Hs')
-    
-    assert len(filter_1.vars['time']) > 0
-    assert len(filter_1.vars.keys()) == 4
-    assert not all(np.isnan(v) for v in filter_1.vars['Hs'])
-    assert not all(np.isnan(v) for v in filter_1.vars['U'])
-    
-    filter_2 = filter_1.apply_limits(llim=1, ulim=3, 
-                                    varalias='Hs')
-    
-    assert len(filter_2.vars['time']) > 0
-    assert len(filter_2.vars.keys()) == 4
-    assert not all(np.isnan(v) for v in filter_2.vars['Hs'])
-    assert not all(np.isnan(v) for v in filter_2.vars['U'])
+    ico = ico.populate(path=str(test_data / "insitu/monthly/Draugen"))
 
-def test_filter_sco_multivar(test_data): 
+    assert len(ico.vars["time"]) > 0
+    assert len(ico.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in ico.vars["Hs"])
+    assert not all(np.isnan(v) for v in ico.vars["U"])
+
+    filter_1 = ico.filter_runmean(
+        window=3, chunk_min=3, sampling_rate_Hz=1 / 600, varalias="Hs"
+    )
+
+    assert len(filter_1.vars["time"]) > 0
+    assert len(filter_1.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in filter_1.vars["Hs"])
+    assert not all(np.isnan(v) for v in filter_1.vars["U"])
+
+    filter_2 = filter_1.apply_limits(llim=1, ulim=3, varalias="Hs")
+
+    assert len(filter_2.vars["time"]) > 0
+    assert len(filter_2.vars.keys()) == 4
+    assert not all(np.isnan(v) for v in filter_2.vars["Hs"])
+    assert not all(np.isnan(v) for v in filter_2.vars["U"])
+
+
+def test_filter_sco_multivar(test_data):
 
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = 's3a'
-    varalias = ['Hs','U']
+    name = "s3a"
+    varalias = ["Hs", "U"]
     twin = 30
-    nID = 'cmems_L3_NRT'
+    nID = "cmems_L3_NRT"
     # init satellite_object
-    sco = sc(sd=sd, ed=ed, nID=nID, name=name,
-             varalias=varalias,
-             twin=twin)
+    sco = sc(sd=sd, ed=ed, nID=nID, name=name, varalias=varalias, twin=twin)
     # read data
-    sco = sco.populate(path=str(test_data/"L3/s3a"))
-    
-    assert len(sco.vars['time']) > 0
+    sco = sco.populate(path=str(test_data / "L3/s3a"))
+
+    assert len(sco.vars["time"]) > 0
     assert len(sco.vars.keys()) == 4
-    assert not all(np.isnan(v) for v in sco.vars['Hs'])
-    assert not all(np.isnan(v) for v in sco.vars['U'])
-    
-    filter_1 = sco.filter_runmean(window=3,
-                             chunk_min=3,
-                             sampling_rate_Hz=1/600,
-                             varalias='Hs')
-    
-    assert len(filter_1.vars['time']) > 0
+    assert not all(np.isnan(v) for v in sco.vars["Hs"])
+    assert not all(np.isnan(v) for v in sco.vars["U"])
+
+    filter_1 = sco.filter_runmean(
+        window=3, chunk_min=3, sampling_rate_Hz=1 / 600, varalias="Hs"
+    )
+
+    assert len(filter_1.vars["time"]) > 0
     assert len(filter_1.vars.keys()) == 4
-    assert not all(np.isnan(v) for v in filter_1.vars['Hs'])
-    assert not all(np.isnan(v) for v in filter_1.vars['U'])
-    
-    filter_2 = filter_1.apply_limits(llim=1, ulim=3, 
-                                    varalias='Hs')
-    
-    assert len(filter_2.vars['time']) > 0
+    assert not all(np.isnan(v) for v in filter_1.vars["Hs"])
+    assert not all(np.isnan(v) for v in filter_1.vars["U"])
+
+    filter_2 = filter_1.apply_limits(llim=1, ulim=3, varalias="Hs")
+
+    assert len(filter_2.vars["time"]) > 0
     assert len(filter_2.vars.keys()) == 4
-    assert not all(np.isnan(v) for v in filter_2.vars['Hs'])
-    assert not all(np.isnan(v) for v in filter_2.vars['U'])
+    assert not all(np.isnan(v) for v in filter_2.vars["Hs"])
+    assert not all(np.isnan(v) for v in filter_2.vars["U"])
+
+
 def test_filter_landMask_ms(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = ['s3a','s3b']
-    varalias = 'Hs'
+    name = ["s3a", "s3b"]
+    varalias = "Hs"
 
     # init multisat_object
-    mso = ms(sd=sd,
-         ed=ed, 
-         name=name,
-         varalias = varalias, 
-         path = [str(test_data/"L3/s3a"),
-                 str(test_data/"L3/s3b")])
+    mso = ms(
+        sd=sd,
+        ed=ed,
+        name=name,
+        varalias=varalias,
+        path=[str(test_data / "L3/s3a"), str(test_data / "L3/s3b")],
+    )
     # read data
     mso = mso.filter_landMask()
-    assert mso.__class__.__name__ == 'multisat_class'
+    assert mso.__class__.__name__ == "multisat_class"
     # compare number of available variables
     vlst = list(vars(mso).keys())
     assert len(vlst) == 18
     # compare number of available functions
     dlst = dir(mso)
-    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    flst = [n for n in dlst if n not in vlst if "__" not in n]
     assert len(flst) >= 27
-    assert type(mso.vars == 'xarray.core.dataset.Dataset')
-    assert not 'error' in vars(mso).keys()
+    assert type(mso.vars == "xarray.core.dataset.Dataset")
+    assert not "error" in vars(mso).keys()
+
 
 def test_filter_distance_to_coast_ms(test_data):
     sd = "2022-2-1 12"
     ed = "2022-2-1 12"
-    name = ['s3a','s3b']
-    varalias = 'Hs'
+    name = ["s3a", "s3b"]
+    varalias = "Hs"
 
     # init multisat_object
-    mso = ms(sd=sd,
-         ed=ed, 
-         name=name,
-         varalias = varalias, 
-         path = [str(test_data/"L3/s3a"),
-                 str(test_data/"L3/s3b")])
+    mso = ms(
+        sd=sd,
+        ed=ed,
+        name=name,
+        varalias=varalias,
+        path=[str(test_data / "L3/s3a"), str(test_data / "L3/s3b")],
+    )
     # read data
     mso = mso.filter_distance_to_coast(llim=50000, ulim=1000000)
-    assert mso.__class__.__name__ == 'multisat_class'
+    assert mso.__class__.__name__ == "multisat_class"
     # compare number of available variables
     vlst = list(vars(mso).keys())
     assert len(vlst) == 17
     # compare number of available functions
     dlst = dir(mso)
-    flst = [n for n in dlst if n not in vlst if '__' not in n]
+    flst = [n for n in dlst if n not in vlst if "__" not in n]
     assert len(flst) >= 27
-    assert type(mso.vars == 'xarray.core.dataset.Dataset')
-    assert not 'error' in vars(mso).keys()
-     
-
+    assert type(mso.vars == "xarray.core.dataset.Dataset")
+    assert not "error" in vars(mso).keys()
