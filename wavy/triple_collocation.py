@@ -779,3 +779,34 @@ def spatial_variance(ds, period_meas, varalias, n_max, time_unit, sd='1000-01-01
         df_spat_var.to_csv(savepath, index=False)
 
     return df_spat_var
+
+
+def merge_variance(path, list_filenames, res_max=None, res_factor=1.0):
+    
+    df = pd.read_csv(path + list_filenames[0])
+    df['var'] = 0 
+    df['nb_tot_val'] = 0
+    df['nb_used_val'] = 0
+    df['nb_samples'] = 0
+    df['var_cum'] = 0
+
+    if res_max!=None:
+        df = df[df['res'] <= res_max]
+
+    for fn in list_filenames:
+        df_tmp = pd.read_csv(path + fn)
+        
+        if res_max!=None:
+            df_tmp = copy.deepcopy(df_tmp[df_tmp['res'] <= res_max])
+            df_tmp['var'] = df_tmp['var'].astype('float')
+        
+        df['var_cum'] = df['var_cum'] + df_tmp['var']*df_tmp['nb_samples']
+        df['nb_tot_val'] = df['nb_tot_val'] + df_tmp['nb_tot_val']
+        df['nb_used_val'] = df['nb_used_val'] + df_tmp['nb_used_val']
+        df['nb_samples'] = df['nb_samples'] + df_tmp['nb_samples']
+    
+    df['var'] = df['var_cum']/df['nb_samples']
+    df['data_used'] = round(df['nb_used_val']/df['nb_tot_val'],3)
+    df['res'] = df['res']*res_factor
+
+    return df
