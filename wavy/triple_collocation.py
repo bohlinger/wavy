@@ -810,3 +810,251 @@ def merge_variance(path, list_filenames, res_max=None, res_factor=1.0):
     df['res'] = df['res']*res_factor
 
     return df
+
+
+def poly_calculate(coefs, x, no_intercept=False):
+
+    res = 0 
+    deg = len(coefs) - 1
+    for i, a in enumerate(coefs):
+        if no_intercept==True and i == deg:
+            continue
+        res = res + a * x**(deg-i)
+
+    return res 
+
+
+def calculate_r2_spatial_variance(df_1, df_2, data_tc, ref_tc, name_1, name_2, n_iter, deg_fit=3, step_fit=0.1, print_steps=True):
+
+    r2=0
+    _, cal_cst = calibration_triplets_tc(data_tc, r2=r2, ref=ref_tc, return_cal_cst=True)
+
+    res_max=np.min([df_1['res'].values[-1], df_2['res'].values[-1]])
+    res_min=np.max([df_1['res'].values[0], df_2['res'].values[0]]) 
+    
+    x = np.arange(res_min,res_max+step_fit,step_fit)
+    
+    coefs_1 = np.polyfit(df_1['res'], df_1['var'], deg=deg_fit)
+    fit_1 = poly_calculate(coefs_1, x)
+    
+    coefs_2 = np.polyfit(df_2['res'], df_2['var'], deg=deg_fit)
+    fit_2 = poly_calculate(coefs_2, x)
+    
+    df_fit = pd.DataFrame({'res':x, 'var_1':fit_1, 'var_2':fit_2})
+    df_fit['dV/dr_1'] = df_fit['var_1'].diff()/(df_fit['res']).diff()
+    df_fit['dV/dr_2'] = df_fit['var_2'].diff()/(df_fit['res']).diff()
+    df_fit['diff_1_2'] = (1/cal_cst[name_1]**2)*df_fit['dV/dr_1'] - (1/cal_cst[name_2]**2)*df_fit['dV/dr_2']
+    df_fit['r2'] = (1/cal_cst[name_1]**2)*df_fit['var_1'] - (1/cal_cst[name_2]**2)*df_fit['var_2']
+
+    argmin_res = df_fit.iloc[np.abs(df_fit['diff_1_2']).argmin(),:][['res','r2']]
+
+    r2 = argmin_res['r2']
+    s_z = argmin_res['res']
+
+    if print_steps == True: 
+        print("--- step 0 ---")
+        print(f"s_z: {s_z:.3f}, r2: {r2:.6f}".format(argmin_res['res']))
+    
+    for i in range(n_iter):
+    
+        _, cal_cst = calibration_triplets_tc(data_tc, r2=r2, ref=ref_tc, return_cal_cst=True)
+        
+        df_fit['diff_1_2'] = (1/cal_cst[name_1]**2)*df_fit['dV/dr_1'] - (1/cal_cst[name_2]**2)*df_fit['dV/dr_2']
+        df_fit['r2'] = (1/cal_cst[name_1]**2)*df_fit['var_1'] - (1/cal_cst[name_2]**2)*df_fit['var_2']
+        argmin_res = df_fit.iloc[np.abs(df_fit['diff_1_2']).argmin(),:][['res','r2']]
+        r2 = argmin_res['r2']
+        s_z = argmin_res['res']
+        if print_steps == True: 
+            print("--- step {} ---".format(i+1))
+            print(f"s_z: {s_z:.3f}, r2: {r2:.6f}")
+            
+    return df_fit, r2, s_z, cal_cst
+
+
+def adjusted_r2(df_var_1, df_var_2, data_tc, cal_cst, s_z, name_1, name_2, df_fit, n_iter=5, step_fit=0.1, deg_fit=1):
+
+    df = pd.merge(df_var_1, df_var_2, on='res', suffixes=('_1', '_2'))
+    
+    for i in range(n_iter):
+
+        df['diff_var'] = ((1/cal_cst[name_1]**2)*df['var_1'] - (1/cal_cst[name_2]**2)*df['var_2']).values
+        print('--- step {} ---'.format(i))
+     
+        x = np.arange(np.min(df['res']),np.max(df['res'])+step_fit,step_fit)
+        coefs_s_z = np.polyfit(df['res'][df['res']>=s_z], 
+                                   df['diff_var'][df['res']>=s_z], 
+                                   deg=deg_fit)
+        
+        df['var(e_1)-var(e_2)'] = poly_calculate(coefs_s_z, df['res'], no_intercept=True)
+        
+        df['r2_adjusted'] = df['diff_var'] - df['var(e_1)-var(e_2)']
+        
+        s_z = df['res'][np.argmin(np.abs(s_z - df['res']))]
+        
+        r2 = df['r2_adjusted'][df['res']==s_z].values[0]
+        
+        _, cal_cst = calibration_triplets_tc(data_tc, r2=r2, ref='in-situ', return_cal_cst=True)
+        
+        df_fit['diff_sat_mod'] = (1/cal_cst[name_1]**2)*df_fit['dV/dr_1'] - (1/cal_cst[name_2]**2)*df_fit['dV/dr_2']
+        s_z = df_fit.iloc[np.abs(df_fit['diff_sat_mod']).argmin(),:]['res']
+
+        print(f"s_z: {s_z:.3f}, r2: {r2:.6f}")
+    
+    return df_fit, df, r2, s_z, cal_cst
+
+
+def power_spectra(ds, varalias, period_meas, 
+                     time_unit, fs, nsample, 
+                     sd='1000-01-01', ed='3000-12-31',
+                     mode='average', window='hann',
+                     savepath=None):
+    """
+    Divides a given time series into sample of given size, applies a window to
+    each sample and calculates the power spectra for each sample, using a Fast
+    Fourier transform. Returns the frequencies and either the list of the
+    spectra for each sample or the average spectra over all samples.
+
+    ds (xarray dataset): xarray dataset with dimension time
+    varname (str): name of the variable for which the spectra is
+                   to be computed, present in ds and indexed by time
+    fs (float): sampling frequency
+    nsample (int): number of points of each sample
+    median_step (np.timedelta64): time to consider between each point of the
+                                  time series
+    mode (str): either 'average' to return the mean power spectra or
+               'list' to return the list of the power spectra
+    window (str): window to apply to the samples before applying the
+                  FFT. See scipy.singal.periodogram for options.
+
+
+    return:
+    df_spectra (pandas DataFrame): dataframe containing the mean power spectra
+                                  or the power spectra for each sample and the
+                                  corresponding frequencies.
+    """
+    from scipy.signal import periodogram
+
+    ds = copy.deepcopy(ds[[varalias]])
+    ds = ds.sel(time=slice(sd, ed))
+    ds = ds.assign_coords(time=('time', ds.time.dt.round(time_unit).values))
+    ds = ds.drop_duplicates('time')
+
+    time = ds['time'].values
+    data = ds[varalias].values
+
+    if time_unit == 'min':
+        time_unit_block = 'm'
+    else:
+        time_unit_block = time_unit
+
+    r = nsample
+    
+    elapsed_time = time - time[0]
+    elapsed_time_num = elapsed_time / np.timedelta64(1, time_unit_block)
+    block_ids = (elapsed_time_num // (r * period_meas)).astype(int)
+    unique_blocks = np.unique(block_ids)
+    block_periodogram = []
+    block_counts = []
+    
+    for block in unique_blocks:
+        mask = block_ids == block
+        block_data = data[mask]
+        block_data = block_data[~np.isnan(block_data)]
+        count = len(block_data)
+        f_ratio = (r - count) / (r + 1)
+        if count >= 2 and f_ratio <= 0:
+            f, PS_tmp = periodogram(block_data, fs=fs, window=window)
+            block_periodogram.append(PS_tmp[1:])
+            block_counts.append(count)
+
+    count_used = np.sum(block_counts)
+    count_tot = np.sum(~np.isnan(data))
+    count_samples = len(block_periodogram)
+    
+    if mode == 'average':
+        mean_PS = np.mean(np.array(block_periodogram), axis=0)
+        df_spectra = pd.DataFrame({'f':f[1:], 'spectra': mean_PS})
+    else:
+        df_spectra = pd.DataFrame({'f':f[1:], 
+                   **{'spectra_'+str(i):ps for i, ps in enumerate(block_periodogram)}})
+
+    df_spectra['nb_samples'] = count_samples
+    df_spectra['nb_used_val'] = count_used
+    df_spectra['nb_tot_val'] = count_tot
+    
+    if savepath is not None: 
+        os.makedirs('/'.join(savepath.split('/')[:-1]), exist_ok=True)
+        df_spectra.to_csv(savepath, index=False)
+
+    return df_spectra
+
+
+def merge_spectra(path, list_filenames, res_max=None, res_factor=1.0):
+    
+    df = pd.read_csv(path + list_filenames[0])
+    df['res'] = 1/df['f']
+    df['spectra'] = 0 
+    df['nb_tot_val'] = 0
+    df['nb_used_val'] = 0
+    df['nb_samples'] = 0
+    df['spectra_cum'] = 0
+
+    if res_max!=None:
+        df = df[df['res'] <= res_max]
+
+    for fn in list_filenames:
+        df_tmp = pd.read_csv(path + fn)
+        
+        if res_max!=None:
+            df_tmp = copy.deepcopy(df_tmp[df_tmp['res'] <= res_max])
+            df_tmp['var'] = df_tmp['var'].astype('float')
+        
+        df['spectra_cum'] = df['spectra_cum'] + df_tmp['spectra']*df_tmp['nb_samples']
+        df['nb_tot_val'] = df['nb_tot_val'] + df_tmp['nb_tot_val']
+        df['nb_used_val'] = df['nb_used_val'] + df_tmp['nb_used_val']
+        df['nb_samples'] = df['nb_samples'] + df_tmp['nb_samples']
+    
+    df['spectra'] = df['spectra_cum']/df['nb_samples']
+    df['data_used'] = round(df['nb_used_val']/df['nb_tot_val'],3)
+    df['res'] = df['res']*res_factor
+
+    return df
+
+
+def spectra_to_variance_s(df, s):
+    """
+    Calculates the spatial variance contribution at a chosen target scale 's'
+    using the periodogram data stored in a DataFrame.
+    """
+    
+    # 1. Extract columns and handle frequency=0 to avoid division errors
+    k = df['f'].values
+    Pk = df['spectra'].values
+    
+    k_safe = np.copy(k)
+    k_safe[k_safe == 0] = 1e-12 
+    
+    # 2. Calculate dk (wavenumber spacing)
+    dk = k[1] - k[0] 
+    
+    # 3. Apply the Vogelzang filter: 1 - sinc^2(k * s)
+    # np.sinc in NumPy inherently includes the pi factor: sin(pi*x)/(pi*x)
+    transfo_filter = 1.0 - (np.sinc(k_safe * s))**2
+    transfo_filter[k == 0] = 0.0 # Force DC component to zero
+    
+    # 4. Integrate the 2-sided spectrum 
+    # Multiply by 2 because scipy's periodogram is 1-sided (positive frequencies only)
+    #variance_at_s = np.sum(2 * Pk * vogelzang_filter) * dk
+    variance_at_s = np.sum(Pk * transfo_filter) * dk
+ 
+    return variance_at_s
+
+
+def calculate_r2_spectra(df_1, df_2, cal_cst, name_1, name_2, scale_list):
+
+    var_df_1 = np.array([spectra_to_variance_s(df_1, s) for s in scale_list])
+    var_df_2 = np.array([spectra_to_variance_s(df_2, s) for s in scale_list])
+    r2 = (1/cal_cst[name_1]**2)*np.array(var_df_1) - (1/cal_cst[name_2]**2)*np.array(var_df_2)
+
+    result = pd.DataFrame({'res':scale_list, 'r2':r2})
+    return result
