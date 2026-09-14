@@ -16,7 +16,7 @@ import os
 
 
 def filter_collocation_distance(data, dist_max, name):
-    """ 
+    """
     Filters the datasets according to a maximum collocation
     distance between satellite and in-situ.
 
@@ -29,63 +29,62 @@ def filter_collocation_distance(data, dist_max, name):
                    wavy object containing the distance
 
     returns:
-    data_filtered (dict of wavy objects): dictionary of the wavy objects 
-                                 filtered using the maximum collocation 
+    data_filtered (dict of wavy objects): dictionary of the wavy objects
+                                 filtered using the maximum collocation
                                  distance given.
     """
     data_filtered = {}
 
     dist_data = data[name].vars.colloc_dist.values
-    
-    idx_dist = (dist_data <= dist_max)
+
+    idx_dist = dist_data <= dist_max
 
     for k in data.keys():
 
         wavy_obj_tmp = copy.deepcopy(data[k])
-        wavy_obj_tmp.vars = wavy_obj_tmp.vars.where(idx_dist).\
-                                              dropna(dim='time')
+        wavy_obj_tmp.vars = wavy_obj_tmp.vars.where(idx_dist).dropna(dim="time")
 
         data_filtered[k] = wavy_obj_tmp
-        
+
     return data_filtered
 
 
 def filter_values(data, ref_data, min=0.0, max=25.0, return_ref_data=False):
-    '''
-    Filters the values for each data serie given as input. 
+    """
+    Filters the values for each data serie given as input.
 
     data (dict of arrays): data to filter
     ref_data (string or array): Either a string corresponding
                     to a key in data or an array. Values for all
                     data are filtered with respect to the ref_data.
-    min (float): minimum value that ref_data should take. 
+    min (float): minimum value that ref_data should take.
     max (float): maximum value that ref_data should take.
-    '''
+    """
 
     if isinstance(ref_data, str):
         ref_data = data[ref_data]
-    
+
     idx = (ref_data >= min) & (ref_data < max)
 
     data_filtered = {}
 
     for k in data.keys():
         data_filtered[k] = data[k][idx]
-    
+
     if return_ref_data == False:
         return data_filtered
     else:
-        ref_data_filtered=ref_data[idx]
+        ref_data_filtered = ref_data[idx]
         return data_filtered, ref_data_filtered
 
 
-def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05): 
-    '''
+def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05):
+    """
     Filter data when the two given model data differ by more than a given
     percentage. Dynamical collocation filtering method for collocation
     refers to Dodet et al., 2025.
 
-    data (dict of lists): data to filter 
+    data (dict of lists): data to filter
     mod_1 (string or list): Either key from data for the first model data
                             or the list of values of the model directly
     mod_2 (string or list): Either key from data for the first model data
@@ -95,7 +94,7 @@ def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05):
 
     returns:
     data_filtered (dict of lists): filtered data
-    '''
+    """
 
     if isinstance(mod_1, str):
         mod_1 = data[mod_1]
@@ -105,8 +104,8 @@ def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05):
 
     mod_1 = np.array(mod_1)
     mod_2 = np.array(mod_2)
-    
-    idx = np.abs(mod_1 - mod_2)/mod_1 < max_rel_diff
+
+    idx = np.abs(mod_1 - mod_2) / mod_1 < max_rel_diff
 
     data_filtered = {}
 
@@ -117,10 +116,10 @@ def filter_dynamic_collocation(data, mod_1, mod_2, max_rel_diff=0.05):
 
 
 def remove_nan(A, B, C):
-    '''
+    """
     Find indexes of nan values in each of three
     lists, and returns the filtered lists
-    '''
+    """
     n = len(A)  # add test len are equal
 
     list_nan_indexes = []
@@ -136,13 +135,10 @@ def remove_nan(A, B, C):
     return A, B, C
 
 
-def triple_collocation(data,
-                       metrics=['var', 'rmse', 'si',
-                                'rho', 'mean', 'std'],
-                       r2=0, 
-                       ref=None,
-                       dec=3):
-    '''
+def triple_collocation(
+    data, metrics=["var", "rmse", "si", "rho", "mean", "std"], r2=0, ref=None, dec=3
+):
+    """
     Runs the triple collocation given a dictionary
     containing three measurements, returns results
     in a dictionary.
@@ -151,27 +147,27 @@ def triple_collocation(data,
     metrics: Str "all" or List of the metrics to return, among 'var',
     'rmse', 'si', 'rho', 'sensitivity', 'snr', 'snr_db', 'fmse', 'mean',
     'std'
-    r2: representativeness error or cross correlation error between the 
-    first two measurements in data. Default 0. 
+    r2: representativeness error or cross correlation error between the
+    first two measurements in data. Default 0.
     ref: Name of one of the measurements, must correspond
-    to one key of data. Default first key from data. 
+    to one key of data. Default first key from data.
     dec: Number of decimals to round the results to. Default 3.
 
     returns: dict of dict of the metrics for each measurement
     {'name of measurement': {'metric name':metric}}
-    '''
+    """
     measure_names = list(data.keys())
 
     if ref is None:
         ref = measure_names[0]
-    
-    if isinstance(data[measure_names[0]], (np.ndarray, list)): 
+
+    if isinstance(data[measure_names[0]], (np.ndarray, list)):
         measures = list(data.values())
         mean_ref = np.mean(data[ref])
     elif isinstance(data[measure_names[0]], (sc, ic, mc)):
         measures = [data[k].vars.Hs.values for k in measure_names]
         mean_ref = np.mean(data[ref].vars.Hs.values)
-    
+
     results = {key: {} for key in measure_names}
 
     A = measures[0]
@@ -183,319 +179,334 @@ def triple_collocation(data,
     cov_ac = np.cov(A, C)
 
     # Sensitivity
-    sens = [(cov_ac[0][1]*(cov_ab[0][1] - r2))/cov_bc[0][1],
-            ((cov_ab[0][1] - r2)*cov_bc[0][1])/cov_ac[0][1],
-            (cov_bc[0][1]*cov_ac[0][1])/(cov_ab[0][1] - r2)]
+    sens = [
+        (cov_ac[0][1] * (cov_ab[0][1] - r2)) / cov_bc[0][1],
+        ((cov_ab[0][1] - r2) * cov_bc[0][1]) / cov_ac[0][1],
+        (cov_bc[0][1] * cov_ac[0][1]) / (cov_ab[0][1] - r2),
+    ]
 
     # Estimate of the variance of random error
-    if any(m in metrics for m in ['var', 'rmse', 
-                                  'si', 'snr',
-                                  'snr_db']) or metrics == 'all':
-        var = [cov_ab[0][0] - sens[0],
-               cov_ab[1][1] - sens[1],
-               cov_bc[1][1] - sens[2]]
+    if (
+        any(m in metrics for m in ["var", "rmse", "si", "snr", "snr_db"])
+        or metrics == "all"
+    ):
+        var = [cov_ab[0][0] - sens[0], cov_ab[1][1] - sens[1], cov_bc[1][1] - sens[2]]
 
     # Root Mean Square Error
-    if any(m in metrics for m in ['rmse', 'si']) or metrics == 'all':
-        rmse = [np.sqrt(var[0]),
-                np.sqrt(var[1]),
-                np.sqrt(var[2])]
+    if any(m in metrics for m in ["rmse", "si"]) or metrics == "all":
+        rmse = [np.sqrt(var[0]), np.sqrt(var[1]), np.sqrt(var[2])]
 
     # Scatter Index
-    if 'si' in metrics or metrics == 'all':
-        si = [rmse[0]/mean_ref,
-              rmse[1]/mean_ref,
-              rmse[2]/mean_ref]
+    if "si" in metrics or metrics == "all":
+        si = [rmse[0] / mean_ref, rmse[1] / mean_ref, rmse[2] / mean_ref]
 
     # Signal to Noise Ratio
-    if any(m in metrics for m in ['snr', 'snr_db']) or metrics == 'all':
-        snr = [sens[0]/var[0],
-               sens[1]/var[1],
-               sens[2]/var[2]]
+    if any(m in metrics for m in ["snr", "snr_db"]) or metrics == "all":
+        snr = [sens[0] / var[0], sens[1] / var[1], sens[2] / var[2]]
 
     # Fractional Mean Squared Error
-    if 'fmse' in metrics or metrics == 'all':
-        fmse = [1/(1+snr[0]),
-                1/(1+snr[1]),
-                1/(1+snr[2])]
+    if "fmse" in metrics or metrics == "all":
+        fmse = [1 / (1 + snr[0]), 1 / (1 + snr[1]), 1 / (1 + snr[2])]
 
     # Signal to Noise Ratio (dB)
-    if 'snr_db' in metrics or metrics == 'all':
-        snr_db = [10*np.log10(snr[0]),
-                  10*np.log10(snr[1]),
-                  10*np.log10(snr[2])]
+    if "snr_db" in metrics or metrics == "all":
+        snr_db = [10 * np.log10(snr[0]), 10 * np.log10(snr[1]), 10 * np.log10(snr[2])]
 
     # Data truth correlation
-    if 'rho' in metrics or metrics == 'all':
-        rho = [sens[0]/cov_ab[0][0],
-               sens[1]/cov_ab[1][1],
-               sens[2]/cov_bc[1][1]]
+    if "rho" in metrics or metrics == "all":
+        rho = [sens[0] / cov_ab[0][0], sens[1] / cov_ab[1][1], sens[2] / cov_bc[1][1]]
 
     for i, k in enumerate(measure_names):
-        if 'var' in metrics or metrics == 'all':
-            results[k]['var'] = var[i]
-        if 'rmse' in metrics or metrics == 'all':
-            results[k]['rmse'] = rmse[i]
-        if 'si' in metrics or metrics == 'all':
-            results[k]['si'] = si[i]
-        if 'sensitivity' in metrics or metrics == 'all':
-            results[k]['sensitivity'] = sens[i]
-        if 'rho' in metrics or metrics == 'all':
-            results[k]['rho'] = rho[i]
-        if 'snr' in metrics or metrics == 'all':
-            results[k]['snr'] = snr[i]
-        if 'fmse' in metrics or metrics == 'all':
-            results[k]['fmse'] = fmse[i]
-        if 'snr_db' in metrics or metrics == 'all':
-            results[k]['snr_db'] = snr_db[i]
-        if 'mean' in metrics or metrics == 'all':
-            results[k]['mean'] = np.mean(measures[i])
-        if 'std' in metrics or metrics == 'all':
-            results[k]['std'] = np.std(measures[i])
+        if "var" in metrics or metrics == "all":
+            results[k]["var"] = var[i]
+        if "rmse" in metrics or metrics == "all":
+            results[k]["rmse"] = rmse[i]
+        if "si" in metrics or metrics == "all":
+            results[k]["si"] = si[i]
+        if "sensitivity" in metrics or metrics == "all":
+            results[k]["sensitivity"] = sens[i]
+        if "rho" in metrics or metrics == "all":
+            results[k]["rho"] = rho[i]
+        if "snr" in metrics or metrics == "all":
+            results[k]["snr"] = snr[i]
+        if "fmse" in metrics or metrics == "all":
+            results[k]["fmse"] = fmse[i]
+        if "snr_db" in metrics or metrics == "all":
+            results[k]["snr_db"] = snr_db[i]
+        if "mean" in metrics or metrics == "all":
+            results[k]["mean"] = np.mean(measures[i])
+        if "std" in metrics or metrics == "all":
+            results[k]["std"] = np.std(measures[i])
 
     results = pd.DataFrame(results).transpose().round(dec)
-    results.attrs['ref'] = ref
-    
+    results.attrs["ref"] = ref
+
     return results
 
 
-def get_CDF(data, step, 
-            llim=None, ulim=None, 
-            data_min=None, data_max=None, 
-            dec=3, no_empty_bins=True):
+def get_CDF(
+    data,
+    step,
+    llim=None,
+    ulim=None,
+    data_min=None,
+    data_max=None,
+    dec=3,
+    no_empty_bins=True,
+):
 
-      N = len(data)
-      if data_max == None:
-          data_max = np.ceil(np.max(data)) + 2 
-      if data_min == None:
-          data_min = np.floor(np.min(data)) - 2
+    N = len(data)
+    if data_max == None:
+        data_max = np.ceil(np.max(data)) + 2
+    if data_min == None:
+        data_min = np.floor(np.min(data)) - 2
 
-      if llim==None and ulim==None:
-          bins = np.arange(data_min,data_max+step,step)
-      elif llim==None and ulim!=None:
-          bins = np.concatenate([np.arange(data_min,ulim,step),
-                                np.array([data_max])])
-      elif llim!=None and ulim==None:
-          bins = np.concatenate([np.array([data_min]), 
-                                np.arange(llim,data_max+step,step)])
-      else:
-          bins = np.concatenate([np.array([data_min]), 
-                                 np.arange(llim,ulim,step), 
-                                 np.array([data_max])])
-   
-      count_bins = [np.sum((data > bins[i]) &\
-                           (data <= bins[i+1])) for i in range(len(bins)-1)]  
+    if llim == None and ulim == None:
+        bins = np.arange(data_min, data_max + step, step)
+    elif llim == None and ulim != None:
+        bins = np.concatenate([np.arange(data_min, ulim, step), np.array([data_max])])
+    elif llim != None and ulim == None:
+        bins = np.concatenate(
+            [np.array([data_min]), np.arange(llim, data_max + step, step)]
+        )
+    else:
+        bins = np.concatenate(
+            [np.array([data_min]), np.arange(llim, ulim, step), np.array([data_max])]
+        )
 
-      idx_null = [i for i, v in enumerate(count_bins) if v == 0]
+    count_bins = [
+        np.sum((data > bins[i]) & (data <= bins[i + 1])) for i in range(len(bins) - 1)
+    ]
 
-      if no_empty_bins==True:
-          if len(idx_null) > 0:
-              list_bins_null = ['({},{}]'.format(round(bins[i],dec), 
-                                                 round(bins[i+1],dec))\
-                                                 for i in idx_null]
-              print('Warning: bins ' + ', '.join(list_bins_null) +\
-                    ' do not have any data.') 
-    
-              if idx_null[0]!=0:
-                  print("Invalid CDF, contains empty bins!")
-                  return None
-      
-      CDF = [np.sum(count_bins[0:i])/N for i in range(1,len(count_bins)+1)]
+    idx_null = [i for i, v in enumerate(count_bins) if v == 0]
 
-      df_CDF = pd.DataFrame({'lower bound':bins[:-1], 
-                             'upper bound':bins[1:], 
-                             'CDF':CDF, 
-                             'count':count_bins})     
+    if no_empty_bins == True:
+        if len(idx_null) > 0:
+            list_bins_null = [
+                "({},{}]".format(round(bins[i], dec), round(bins[i + 1], dec))
+                for i in idx_null
+            ]
+            print(
+                "Warning: bins " + ", ".join(list_bins_null) + " do not have any data."
+            )
 
-      return df_CDF
+            if idx_null[0] != 0:
+                print("Invalid CDF, contains empty bins!")
+                return None
+
+    CDF = [np.sum(count_bins[0:i]) / N for i in range(1, len(count_bins) + 1)]
+
+    df_CDF = pd.DataFrame(
+        {
+            "lower bound": bins[:-1],
+            "upper bound": bins[1:],
+            "CDF": CDF,
+            "count": count_bins,
+        }
+    )
+
+    return df_CDF
+
 
 def CDF_matching_cal(old, CDF_old, CDF_new):
 
     new = []
-    min_bound = np.min(CDF_new['lower bound'])
-    
-    for x_tmp in old: 
+    min_bound = np.min(CDF_new["lower bound"])
 
-        row_old_tmp = CDF_old[(x_tmp > CDF_old['lower bound']) &\
-                              (x_tmp <= CDF_old['upper bound'])].iloc[0,:]
-        b_i = row_old_tmp['upper bound']
-        b_i_1 = row_old_tmp['lower bound']
-        a_x = (x_tmp - b_i_1)/(b_i - b_i_1)
-        C_b_i = row_old_tmp['CDF']        
-        C_b_i_1 = CDF_old[CDF_old['upper bound']==b_i_1]['CDF'].values[0]
+    for x_tmp in old:
+
+        row_old_tmp = CDF_old[
+            (x_tmp > CDF_old["lower bound"]) & (x_tmp <= CDF_old["upper bound"])
+        ].iloc[0, :]
+        b_i = row_old_tmp["upper bound"]
+        b_i_1 = row_old_tmp["lower bound"]
+        a_x = (x_tmp - b_i_1) / (b_i - b_i_1)
+        C_b_i = row_old_tmp["CDF"]
+        C_b_i_1 = CDF_old[CDF_old["upper bound"] == b_i_1]["CDF"].values[0]
         C_x = a_x * C_b_i_1 + (1 - a_x) * C_b_i
-                
-        row_new_tmp = CDF_new[CDF_new['CDF'] >= C_x].iloc[0,:]
-        b_k = row_new_tmp['upper bound']
-        b_k_1 = row_new_tmp['lower bound']
-        C_tild_b_k = row_new_tmp['CDF']
+
+        row_new_tmp = CDF_new[CDF_new["CDF"] >= C_x].iloc[0, :]
+        b_k = row_new_tmp["upper bound"]
+        b_k_1 = row_new_tmp["lower bound"]
+        C_tild_b_k = row_new_tmp["CDF"]
 
         if b_k_1 <= min_bound:
             x_tild = min_bound
         else:
-            C_tild_b_k_1 =\
-                     CDF_new[CDF_new['upper bound'] == b_k_1].iloc[0,:]['CDF']
-            a_C_x =  (C_x - C_tild_b_k_1)/(C_tild_b_k - C_tild_b_k_1)
-            x_tild = a_C_x * b_k_1 + (1 - a_C_x) * b_k  
+            C_tild_b_k_1 = CDF_new[CDF_new["upper bound"] == b_k_1].iloc[0, :]["CDF"]
+            a_C_x = (C_x - C_tild_b_k_1) / (C_tild_b_k - C_tild_b_k_1)
+            x_tild = a_C_x * b_k_1 + (1 - a_C_x) * b_k
 
         new.append(x_tild)
 
     return np.array(new)
-    
+
 
 def calibration_triplets_cdf_matching(data, ref, step, seed=5):
-    
+
     measure_names = list(data.keys())
 
-    size = len(data[measure_names[0]]) 
-    
-    tc_res = triple_collocation(data, metrics=['var'], ref=ref)
-    
+    size = len(data[measure_names[0]])
+
+    tc_res = triple_collocation(data, metrics=["var"], ref=ref)
+
     np.random.seed(seed)
-    
-    max_var = np.max(tc_res['var'])
-    
+
+    max_var = np.max(tc_res["var"])
+
     data_err = {}
-    
+
     for k in data.keys():
-    
-        if tc_res.loc[k,'var'] == max_var:
+
+        if tc_res.loc[k, "var"] == max_var:
             data_err[k] = copy.copy(data[k])
-        else: 
-            e_diff = np.random.normal(0,np.sqrt(max_var - tc_res.loc[k,'var']),
-                                      size)
-            data_err[k] =  copy.copy(data[k]) + e_diff
-        
+        else:
+            e_diff = np.random.normal(0, np.sqrt(max_var - tc_res.loc[k, "var"]), size)
+            data_err[k] = copy.copy(data[k]) + e_diff
+
     data_max = np.ceil(np.max([np.max(d) for d in data_err.values()])) + 1
     data_min = np.ceil(np.min([np.min(d) for d in data_err.values()])) - 1
-    
+
     CDF_dict = {}
-    
+
     max_low_idx = 0
     min_up_idx = np.inf
-    
+
     for k in data.keys():
-    
-        CDF_tmp = get_CDF(data_err[k], 
-                          data_min=data_min,
-                          data_max=data_max,
-                          step=step, 
-                          dec=3,
-                          no_empty_bins=False)
+
+        CDF_tmp = get_CDF(
+            data_err[k],
+            data_min=data_min,
+            data_max=data_max,
+            step=step,
+            dec=3,
+            no_empty_bins=False,
+        )
         CDF_dict[k] = CDF_tmp
-    
-        list_null_count = [idx for idx in range(len(CDF_tmp)) if\
-                           CDF_tmp['count'][idx]==0]
-        
-        list_low_idx = [j for j in list_null_count if j < len(CDF_tmp)/2]
+
+        list_null_count = [
+            idx for idx in range(len(CDF_tmp)) if CDF_tmp["count"][idx] == 0
+        ]
+
+        list_low_idx = [j for j in list_null_count if j < len(CDF_tmp) / 2]
         if len(list_low_idx) > 0:
             max_low_idx_tmp = np.max(list_low_idx)
-        else: 
+        else:
             max_low_idx_tmp = 0
-    
-        list_up_idx = [j for j in list_null_count if j > len(CDF_tmp)/2]
+
+        list_up_idx = [j for j in list_null_count if j > len(CDF_tmp) / 2]
         if len(list_up_idx) > 0:
             min_up_idx_tmp = np.min(list_up_idx)
         else:
             min_up_idx_tmp = len(CDF_tmp) - 1
-        
-        if max_low_idx_tmp > max_low_idx:
-             max_low_idx = max_low_idx_tmp
-        
-        if min_up_idx_tmp < min_up_idx:
-             min_up_idx = min_up_idx_tmp 
-    
-    for k in CDF_dict.keys():
-        
-        CDF_tmp = CDF_dict[k] 
-          
-        nb_values = CDF_tmp['count'].sum()
-        
-        core_cdf = CDF_tmp.iloc[max_low_idx+1:min_up_idx, :]
-        
-        lower_bin_cdf = CDF_tmp.iloc[:max_low_idx+1, :]
-        
-        lower_bin_cdf_df = pd.DataFrame({
-                           'lower bound':np.min(lower_bin_cdf['lower bound']), 
-                           'upper bound':np.max(lower_bin_cdf['upper bound']), 
-                           'CDF': np.sum(lower_bin_cdf['count'])/nb_values, 
-                           'count':np.sum(lower_bin_cdf['count'])
-                           },
-                           index=[0])
-        
-        upper_bin_cdf = CDF_tmp.iloc[min_up_idx:, :]
-        
-        upper_bin_cdf_df = pd.DataFrame({
-                           'lower bound':np.min(upper_bin_cdf['lower bound']), 
-                           'upper bound':np.max(upper_bin_cdf['upper bound']), 
-                           'CDF': CDF_tmp['CDF'][min_up_idx-1]+\
-                                  np.sum(upper_bin_cdf['count'])/nb_values, 
-                           'count':np.sum(upper_bin_cdf['count'])
-                           },
-                           index=[min_up_idx])
-        
-        final_cdf = pd.concat([lower_bin_cdf_df, core_cdf, upper_bin_cdf_df], 
-                              ignore_index=True)
-    
-        CDF_dict[k] = final_cdf
-    
-    max_matching = final_cdf.iloc[-1]['lower bound'] 
-    min_matching = final_cdf.iloc[0]['upper bound']
 
-    print("Upper limit for CDF matching: ", round(max_matching,3))
-    print("Lower limit for CDF matching: ", round(min_matching,3))
-    
-    idx_to_cal = (data[measure_names[0]] < max_matching) &\
-                 (data[measure_names[1]] < max_matching) &\
-                 (data[measure_names[2]] < max_matching) &\
-                 (data[measure_names[0]] > min_matching) &\
-                 (data[measure_names[1]] > min_matching) &\
-                 (data[measure_names[2]] > min_matching)
-    
-    data_to_cal = {measure_names[i]:data[measure_names[i]][idx_to_cal] for\
-                   i in range(3)}
-    
+        if max_low_idx_tmp > max_low_idx:
+            max_low_idx = max_low_idx_tmp
+
+        if min_up_idx_tmp < min_up_idx:
+            min_up_idx = min_up_idx_tmp
+
+    for k in CDF_dict.keys():
+
+        CDF_tmp = CDF_dict[k]
+
+        nb_values = CDF_tmp["count"].sum()
+
+        core_cdf = CDF_tmp.iloc[max_low_idx + 1 : min_up_idx, :]
+
+        lower_bin_cdf = CDF_tmp.iloc[: max_low_idx + 1, :]
+
+        lower_bin_cdf_df = pd.DataFrame(
+            {
+                "lower bound": np.min(lower_bin_cdf["lower bound"]),
+                "upper bound": np.max(lower_bin_cdf["upper bound"]),
+                "CDF": np.sum(lower_bin_cdf["count"]) / nb_values,
+                "count": np.sum(lower_bin_cdf["count"]),
+            },
+            index=[0],
+        )
+
+        upper_bin_cdf = CDF_tmp.iloc[min_up_idx:, :]
+
+        upper_bin_cdf_df = pd.DataFrame(
+            {
+                "lower bound": np.min(upper_bin_cdf["lower bound"]),
+                "upper bound": np.max(upper_bin_cdf["upper bound"]),
+                "CDF": CDF_tmp["CDF"][min_up_idx - 1]
+                + np.sum(upper_bin_cdf["count"]) / nb_values,
+                "count": np.sum(upper_bin_cdf["count"]),
+            },
+            index=[min_up_idx],
+        )
+
+        final_cdf = pd.concat(
+            [lower_bin_cdf_df, core_cdf, upper_bin_cdf_df], ignore_index=True
+        )
+
+        CDF_dict[k] = final_cdf
+
+    max_matching = final_cdf.iloc[-1]["lower bound"]
+    min_matching = final_cdf.iloc[0]["upper bound"]
+
+    print("Upper limit for CDF matching: ", round(max_matching, 3))
+    print("Lower limit for CDF matching: ", round(min_matching, 3))
+
+    idx_to_cal = (
+        (data[measure_names[0]] < max_matching)
+        & (data[measure_names[1]] < max_matching)
+        & (data[measure_names[2]] < max_matching)
+        & (data[measure_names[0]] > min_matching)
+        & (data[measure_names[1]] > min_matching)
+        & (data[measure_names[2]] > min_matching)
+    )
+
+    data_to_cal = {
+        measure_names[i]: data[measure_names[i]][idx_to_cal] for i in range(3)
+    }
+
     data_cal = {}
-    
-    for name in measure_names: 
-    
-         if name == ref: 
-             data_cal[name] = data_to_cal[ref]
-    
-         else: 
-             data_cal[name] = CDF_matching_cal(data_to_cal[name], 
-                                               CDF_dict[name], 
-                                               CDF_dict[ref])
-    
-    # Remove values that would have exceeded the upper and lower 
+
+    for name in measure_names:
+
+        if name == ref:
+            data_cal[name] = data_to_cal[ref]
+
+        else:
+            data_cal[name] = CDF_matching_cal(
+                data_to_cal[name], CDF_dict[name], CDF_dict[ref]
+            )
+
+    # Remove values that would have exceeded the upper and lower
     # bounds after calibration
-    idx_cal = (data_cal[measure_names[0]] < max_matching) &\
-              (data_cal[measure_names[1]] < max_matching) &\
-              (data_cal[measure_names[2]] <= max_matching) &\
-              (data_cal[measure_names[0]] > min_matching) &\
-              (data_cal[measure_names[1]] > min_matching) &\
-              (data_cal[measure_names[2]] > min_matching)
-    
-    data_cal_final = {name:data_cal[name][idx_cal] for name in data_cal.keys()}
+    idx_cal = (
+        (data_cal[measure_names[0]] < max_matching)
+        & (data_cal[measure_names[1]] < max_matching)
+        & (data_cal[measure_names[2]] <= max_matching)
+        & (data_cal[measure_names[0]] > min_matching)
+        & (data_cal[measure_names[1]] > min_matching)
+        & (data_cal[measure_names[2]] > min_matching)
+    )
+
+    data_cal_final = {name: data_cal[name][idx_cal] for name in data_cal.keys()}
 
     return data_cal_final
-    
+
 
 def calibration_triplets_tc(data, ref, r2=0, return_cal_cst=False):
-    '''
+    """
     Calibrate A and B relatively to R using triple collocation calibration
     constant estimates, following Gruber et al., 2016 method.
-    
+
     data (dict of lists of floats): Dictionary of the data to calibrate.
     ref (string): Name of the reference data to use for calibration.
     r2 (float): Representativeness error
     cal_cst (bool): If True, returns a dictionary for the calibration
-                    constantes in addition to the calibrated data. 
+                    constantes in addition to the calibrated data.
 
     returns:
-    data_cal (dict of lists of floats): Dictionary of the calibrated 
+    data_cal (dict of lists of floats): Dictionary of the calibrated
                                         data series
-    '''
+    """
     R = data[ref]
 
     measure_names = list(data.keys())
@@ -521,83 +532,79 @@ def calibration_triplets_tc(data, ref, r2=0, return_cal_cst=False):
     else:
         print("Invalid reference. {} does not appear\
                in the keys of the input data dictionary.")
-   
-    c_AB = np.cov(A, B)[0, 1] 
+
+    c_AB = np.cov(A, B)[0, 1]
     c_RA = np.cov(R, A)[0, 1]
     c_RB = np.cov(R, B)[0, 1]
 
-    a_A = c_AB/c_RB
-    a_B = c_AB/(c_RA - r2)
+    a_A = c_AB / c_RB
+    a_B = c_AB / (c_RA - r2)
     a_R = 1.0
 
-    A_R = (a_R/a_A)*(A - np.mean(A)) + np.mean(R)
-    B_R = (a_R/a_B)*(B - np.mean(B)) + np.mean(R)
+    A_R = (a_R / a_A) * (A - np.mean(A)) + np.mean(R)
+    B_R = (a_R / a_B) * (B - np.mean(B)) + np.mean(R)
 
-    res = {idx_R:R, idx_A:A_R, idx_B:B_R}
-    res_cst = {idx_R:a_R, idx_A:a_A, idx_B:a_B}
-    
-    data_cal = {measure_names[i]:res[i] for i in range(3)}
-    cal_cst = {measure_names[i]:res_cst[i] for i in range(3)}
+    res = {idx_R: R, idx_A: A_R, idx_B: B_R}
+    res_cst = {idx_R: a_R, idx_A: a_A, idx_B: a_B}
 
-    if return_cal_cst==False:
+    data_cal = {measure_names[i]: res[i] for i in range(3)}
+    cal_cst = {measure_names[i]: res_cst[i] for i in range(3)}
+
+    if return_cal_cst == False:
         return data_cal
     else:
         return data_cal, cal_cst
 
 
 def least_squares_merging(data, tc_results=None, return_var=False, **kwargs):
-    '''
-    Merges the three data series given as input following the least 
-    squares merging method described in Yilmaz et al., 2012. 
+    """
+    Merges the three data series given as input following the least
+    squares merging method described in Yilmaz et al., 2012.
 
     data (dict of lists of floats): Dictionary of the data to calibrate.
     tc_results (pandas DataFrame): table of the results of triple collocation
-               for the given data. Must contain the variance. If None, the 
+               for the given data. Must contain the variance. If None, the
                triple collocation is performed using the data and kwargs given.
-    return_var (bool): If True, returns the variance of the error of the merged 
+    return_var (bool): If True, returns the variance of the error of the merged
                data in addition to the merged data.
 
     returns:
     least_squares_merge (numpy array): series of merged data
-    least_squares_var (float): variance of error of the merged data    
-    '''
+    least_squares_var (float): variance of error of the merged data
+    """
     measure_names = list(data.keys())
     data_0 = data[measure_names[0]]
     data_1 = data[measure_names[1]]
     data_2 = data[measure_names[2]]
 
     if tc_results is None:
-        r2 = kwargs.get('r2', 0)
-        ref = kwargs.get('ref', None)
-        dec = kwargs.get('dec', 3)
-        tc_results = triple_collocation(data, 
-                                        metrics=['var'],
-                                        r2=r2,
-                                        ref=ref,
-                                        dec=dec)
+        r2 = kwargs.get("r2", 0)
+        ref = kwargs.get("ref", None)
+        dec = kwargs.get("dec", 3)
+        tc_results = triple_collocation(data, metrics=["var"], r2=r2, ref=ref, dec=dec)
 
-    s_0_sq = tc_results['var'][measure_names[0]]
-    s_1_sq = tc_results['var'][measure_names[1]]
-    s_2_sq = tc_results['var'][measure_names[2]]
-    
+    s_0_sq = tc_results["var"][measure_names[0]]
+    s_1_sq = tc_results["var"][measure_names[1]]
+    s_2_sq = tc_results["var"][measure_names[2]]
+
     s_12 = s_1_sq * s_2_sq
     s_02 = s_0_sq * s_2_sq
     s_01 = s_0_sq * s_1_sq
-    w_0 = s_12/(s_01+s_02+s_12)
-    w_1 = s_02/(s_01+s_02+s_12)
-    w_2 = s_01/(s_01+s_02+s_12)
+    w_0 = s_12 / (s_01 + s_02 + s_12)
+    w_1 = s_02 / (s_01 + s_02 + s_12)
+    w_2 = s_01 / (s_01 + s_02 + s_12)
     least_squares_merge = np.array(w_0 * data_0 + w_1 * data_1 + w_2 * data_2)
     least_squares_var = w_0**2 * s_0_sq + w_1**2 * s_1_sq + w_2**2 * s_2_sq
 
-    if return_var==False:
+    if return_var == False:
         return least_squares_merge
-    else: 
+    else:
         return least_squares_merge, least_squares_var
-   
 
-def get_mean_spectra(ds, varname, fs, nsample,
-                     median_step=None, mode='average',
-                     window='hamming'):
+
+def get_mean_spectra(
+    ds, varname, fs, nsample, median_step=None, mode="average", window="hamming"
+):
     """
     Divides a given time series into sample of given size, applies a window to
     each sample and calculates the power spectra for each sample, using a Fast
@@ -624,21 +631,22 @@ def get_mean_spectra(ds, varname, fs, nsample,
     """
     from scipy.signal import periodogram
 
-    ds = ds.dropna(dim='time')
+    ds = ds.dropna(dim="time")
 
-    diff_time = ds.time.diff(dim='time').values
+    diff_time = ds.time.diff(dim="time").values
     if median_step == None:
-        median_step = np.timedelta64(np.nanmedian(diff_time),'ns')
+        median_step = np.timedelta64(np.nanmedian(diff_time), "ns")
     else:
-        median_step = np.timedelta64(median_step, 'ns')
+        median_step = np.timedelta64(median_step, "ns")
 
     # sample_period = nsample * median_step
 
-    run_sum_period = [np.sum(diff_time[i:i+nsample]) for\
-                      i in range(len(diff_time)-nsample)]
+    run_sum_period = [
+        np.sum(diff_time[i : i + nsample]) for i in range(len(diff_time) - nsample)
+    ]
 
-    up_condition = (nsample*median_step + 0.5*median_step > run_sum_period)
-    low_condition = (nsample*median_step - 0.5*median_step <= run_sum_period)
+    up_condition = nsample * median_step + 0.5 * median_step > run_sum_period
+    low_condition = nsample * median_step - 0.5 * median_step <= run_sum_period
     # condition = up_condition & low_condition
 
     idx_right_length = np.argwhere(up_condition & low_condition).flatten()
@@ -649,8 +657,7 @@ def get_mean_spectra(ds, varname, fs, nsample,
 
     while i < idx_right_length[-1] - nsample:
 
-
-        ds_tmp = ds.isel(time=range(i,i+nsample))
+        ds_tmp = ds.isel(time=range(i, i + nsample))
 
         sample_tmp = ds_tmp[varname].values
 
@@ -658,20 +665,20 @@ def get_mean_spectra(ds, varname, fs, nsample,
 
         list_PS.append(PS_tmp[1:])
 
-        i = idx_right_length[np.argwhere(idx_right_length >= i + nsample).\
-                             flatten()[0]]
+        i = idx_right_length[np.argwhere(idx_right_length >= i + nsample).flatten()[0]]
 
-    if mode == 'average':
+    if mode == "average":
         mean_PS = np.mean(np.array(list_PS), axis=0)
-        df_spectra = pd.DataFrame({'f':f[1:], 'spectra': mean_PS})
+        df_spectra = pd.DataFrame({"f": f[1:], "spectra": mean_PS})
         return df_spectra
     else:
-        df_spectra = pd.DataFrame({'f':f[1:], 
-                   **{'spectra_'+str(i):ps for i, ps in enumerate(list_PS)}})
+        df_spectra = pd.DataFrame(
+            {"f": f[1:], **{"spectra_" + str(i): ps for i, ps in enumerate(list_PS)}}
+        )
         return df_spectra
 
 
-def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq'):
+def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type="inv_freq"):
     """
     Estimates the representativeness error r2 by integrating the difference
     between the average power spectra of the model and the observations.
@@ -691,15 +698,15 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
     """
     freq_step = f[1] - f[0]
     diff_PS = PS_obs - PS_mod
-    weighted_diff_PS = freq_step*diff_PS
+    weighted_diff_PS = freq_step * diff_PS
 
-    if threshold_type == 'freq':
-        if threshold==0:
-            threshold=np.inf
+    if threshold_type == "freq":
+        if threshold == 0:
+            threshold = np.inf
         else:
-            threshold = 1/threshold
+            threshold = 1 / threshold
 
-    f_1 = [1/f[i] if f[i] != 0 else np.inf for i in range(len(f))]
+    f_1 = [1 / f[i] if f[i] != 0 else np.inf for i in range(len(f))]
     idx_threshold = np.argwhere(np.array(f_1) <= threshold)[0][0]
     r2 = np.sum(weighted_diff_PS[idx_threshold:])
 
@@ -708,18 +715,18 @@ def integrate_r2(PS_mod, PS_obs, f, threshold=np.inf, threshold_type='inv_freq')
 
 def _spatial_variance_single_r(time, data, period_meas, time_unit, f_max, r):
 
-    if time_unit == 'min':
-        time_unit_block = 'm'
+    if time_unit == "min":
+        time_unit_block = "m"
     else:
         time_unit_block = time_unit
-        
+
     elapsed_time = time - time[0]
     elapsed_time_num = elapsed_time / np.timedelta64(1, time_unit_block)
     block_ids = (elapsed_time_num // (r * period_meas)).astype(int)
     unique_blocks = np.unique(block_ids)
     block_vars = []
     block_counts = []
-    
+
     for block in unique_blocks:
         mask = block_ids == block
         block_data = data[mask]
@@ -729,185 +736,256 @@ def _spatial_variance_single_r(time, data, period_meas, time_unit, f_max, r):
         if count >= 2 and f_ratio <= f_max:
             block_vars.append(np.var(block_data, ddof=0))
             block_counts.append(count)
-    
+
     block_vars = np.array(block_vars)
     block_counts = np.array(block_counts)
     weights = block_counts / r
-    
+
     if np.sum(weights) == 0.0:
         mean_var = np.nan
     else:
         mean_var = np.average(block_vars, weights=weights)
-    
+
     count_used = np.sum(block_counts)
     count_tot = np.sum(~np.isnan(data))
     count_samples = len(block_vars)
     return (r, mean_var, count_tot, count_used, count_samples)
 
 
-def spatial_variance(ds, period_meas, varalias, n_max, time_unit, sd='1000-01-01', ed='3000-12-31', n_min=2, f_max=0.0, savepath=None, n_jobs=-1):
+def spatial_variance(
+    ds,
+    period_meas,
+    varalias,
+    n_max,
+    time_unit,
+    sd="1000-01-01",
+    ed="3000-12-31",
+    n_min=2,
+    f_max=0.0,
+    savepath=None,
+    n_jobs=-1,
+):
 
     ds = copy.deepcopy(ds[[varalias]])
     ds = ds.sel(time=slice(sd, ed))
-    ds = ds.assign_coords(time=('time', ds.time.dt.round(time_unit).values))
-    ds = ds.drop_duplicates('time')
+    ds = ds.assign_coords(time=("time", ds.time.dt.round(time_unit).values))
+    ds = ds.drop_duplicates("time")
 
-    time = ds['time'].values
+    time = ds["time"].values
     data = ds[varalias].values
 
-    r_iter = range(n_min, n_max+1)
+    r_iter = range(n_min, n_max + 1)
     total_tasks = len(list(r_iter))
     job_generator = Parallel(n_jobs=n_jobs, batch_size=1, return_as="generator")(
         delayed(_spatial_variance_single_r)(
             time, data, period_meas, time_unit, f_max, r
-        ) for r in r_iter
+        )
+        for r in r_iter
     )
 
     results = list(tqdm(job_generator, total=total_tasks, desc="Spatial variance"))
-   
-    # Unpack results
-    res_list, var_list, count_tot_list, count_used_list, count_samples_list = zip(*results)
 
-    df_spat_var = pd.DataFrame({'res':res_list, 
-                                'var':var_list,
-                                'nb_tot_val':count_tot_list,
-                                'nb_used_val':count_used_list,
-                                'nb_samples':count_samples_list})
+    # Unpack results
+    res_list, var_list, count_tot_list, count_used_list, count_samples_list = zip(
+        *results
+    )
+
+    df_spat_var = pd.DataFrame(
+        {
+            "res": res_list,
+            "var": var_list,
+            "nb_tot_val": count_tot_list,
+            "nb_used_val": count_used_list,
+            "nb_samples": count_samples_list,
+        }
+    )
 
     if savepath is not None:
-        os.makedirs('/'.join(savepath.split('/')[:-1]), exist_ok=True)
+        os.makedirs("/".join(savepath.split("/")[:-1]), exist_ok=True)
         df_spat_var.to_csv(savepath, index=False)
 
     return df_spat_var
 
 
 def merge_variance(path, list_filenames, res_max=None, res_factor=1.0):
-    
-    df = pd.read_csv(path + list_filenames[0])
-    df['var'] = 0 
-    df['nb_tot_val'] = 0
-    df['nb_used_val'] = 0
-    df['nb_samples'] = 0
-    df['var_cum'] = 0
 
-    if res_max!=None:
-        df = df[df['res'] <= res_max]
+    df = pd.read_csv(path + list_filenames[0])
+    df["var"] = 0
+    df["nb_tot_val"] = 0
+    df["nb_used_val"] = 0
+    df["nb_samples"] = 0
+    df["var_cum"] = 0
+
+    if res_max != None:
+        df = df[df["res"] <= res_max]
 
     for fn in list_filenames:
         df_tmp = pd.read_csv(path + fn)
-        
-        if res_max!=None:
-            df_tmp = copy.deepcopy(df_tmp[df_tmp['res'] <= res_max])
-            df_tmp['var'] = df_tmp['var'].astype('float')
-        
-        df['var_cum'] = df['var_cum'] + df_tmp['var']*df_tmp['nb_samples']
-        df['nb_tot_val'] = df['nb_tot_val'] + df_tmp['nb_tot_val']
-        df['nb_used_val'] = df['nb_used_val'] + df_tmp['nb_used_val']
-        df['nb_samples'] = df['nb_samples'] + df_tmp['nb_samples']
-    
-    df['var'] = df['var_cum']/df['nb_samples']
-    df['data_used'] = round(df['nb_used_val']/df['nb_tot_val'],3)
-    df['res'] = df['res']*res_factor
+
+        if res_max != None:
+            df_tmp = copy.deepcopy(df_tmp[df_tmp["res"] <= res_max])
+            df_tmp["var"] = df_tmp["var"].astype("float")
+
+        df["var_cum"] = df["var_cum"] + df_tmp["var"] * df_tmp["nb_samples"]
+        df["nb_tot_val"] = df["nb_tot_val"] + df_tmp["nb_tot_val"]
+        df["nb_used_val"] = df["nb_used_val"] + df_tmp["nb_used_val"]
+        df["nb_samples"] = df["nb_samples"] + df_tmp["nb_samples"]
+
+    df["var"] = df["var_cum"] / df["nb_samples"]
+    df["data_used"] = round(df["nb_used_val"] / df["nb_tot_val"], 3)
+    df["res"] = df["res"] * res_factor
 
     return df
 
 
 def poly_calculate(coefs, x, no_intercept=False):
 
-    res = 0 
+    res = 0
     deg = len(coefs) - 1
     for i, a in enumerate(coefs):
-        if no_intercept==True and i == deg:
+        if no_intercept == True and i == deg:
             continue
-        res = res + a * x**(deg-i)
+        res = res + a * x ** (deg - i)
 
-    return res 
+    return res
 
 
-def calculate_r2_spatial_variance(df_1, df_2, data_tc, ref_tc, name_1, name_2, n_iter, deg_fit=3, step_fit=0.1, print_steps=True):
+def calculate_r2_spatial_variance(
+    df_1,
+    df_2,
+    data_tc,
+    ref_tc,
+    name_1,
+    name_2,
+    n_iter,
+    deg_fit=3,
+    step_fit=0.1,
+    print_steps=True,
+):
 
-    r2=0
-    _, cal_cst = calibration_triplets_tc(data_tc, r2=r2, ref=ref_tc, return_cal_cst=True)
+    r2 = 0
+    _, cal_cst = calibration_triplets_tc(
+        data_tc, r2=r2, ref=ref_tc, return_cal_cst=True
+    )
 
-    res_max=np.min([df_1['res'].values[-1], df_2['res'].values[-1]])
-    res_min=np.max([df_1['res'].values[0], df_2['res'].values[0]]) 
-    
-    x = np.arange(res_min,res_max+step_fit,step_fit)
-    
-    coefs_1 = np.polyfit(df_1['res'], df_1['var'], deg=deg_fit)
+    res_max = np.min([df_1["res"].values[-1], df_2["res"].values[-1]])
+    res_min = np.max([df_1["res"].values[0], df_2["res"].values[0]])
+
+    x = np.arange(res_min, res_max + step_fit, step_fit)
+
+    coefs_1 = np.polyfit(df_1["res"], df_1["var"], deg=deg_fit)
     fit_1 = poly_calculate(coefs_1, x)
-    
-    coefs_2 = np.polyfit(df_2['res'], df_2['var'], deg=deg_fit)
+
+    coefs_2 = np.polyfit(df_2["res"], df_2["var"], deg=deg_fit)
     fit_2 = poly_calculate(coefs_2, x)
-    
-    df_fit = pd.DataFrame({'res':x, 'var_1':fit_1, 'var_2':fit_2})
-    df_fit['dV/dr_1'] = df_fit['var_1'].diff()/(df_fit['res']).diff()
-    df_fit['dV/dr_2'] = df_fit['var_2'].diff()/(df_fit['res']).diff()
-    df_fit['diff_1_2'] = (1/cal_cst[name_1]**2)*df_fit['dV/dr_1'] - (1/cal_cst[name_2]**2)*df_fit['dV/dr_2']
-    df_fit['r2'] = (1/cal_cst[name_1]**2)*df_fit['var_1'] - (1/cal_cst[name_2]**2)*df_fit['var_2']
 
-    argmin_res = df_fit.iloc[np.abs(df_fit['diff_1_2']).argmin(),:][['res','r2']]
+    df_fit = pd.DataFrame({"res": x, "var_1": fit_1, "var_2": fit_2})
+    df_fit["dV/dr_1"] = df_fit["var_1"].diff() / (df_fit["res"]).diff()
+    df_fit["dV/dr_2"] = df_fit["var_2"].diff() / (df_fit["res"]).diff()
+    df_fit["diff_1_2"] = (1 / cal_cst[name_1] ** 2) * df_fit["dV/dr_1"] - (
+        1 / cal_cst[name_2] ** 2
+    ) * df_fit["dV/dr_2"]
+    df_fit["r2"] = (1 / cal_cst[name_1] ** 2) * df_fit["var_1"] - (
+        1 / cal_cst[name_2] ** 2
+    ) * df_fit["var_2"]
 
-    r2 = argmin_res['r2']
-    s_z = argmin_res['res']
+    argmin_res = df_fit.iloc[np.abs(df_fit["diff_1_2"]).argmin(), :][["res", "r2"]]
 
-    if print_steps == True: 
+    r2 = argmin_res["r2"]
+    s_z = argmin_res["res"]
+
+    if print_steps == True:
         print("--- step 0 ---")
-        print(f"s_z: {s_z:.3f}, r2: {r2:.6f}".format(argmin_res['res']))
-    
+        print(f"s_z: {s_z:.3f}, r2: {r2:.6f}".format(argmin_res["res"]))
+
     for i in range(n_iter):
-    
-        _, cal_cst = calibration_triplets_tc(data_tc, r2=r2, ref=ref_tc, return_cal_cst=True)
-        
-        df_fit['diff_1_2'] = (1/cal_cst[name_1]**2)*df_fit['dV/dr_1'] - (1/cal_cst[name_2]**2)*df_fit['dV/dr_2']
-        df_fit['r2'] = (1/cal_cst[name_1]**2)*df_fit['var_1'] - (1/cal_cst[name_2]**2)*df_fit['var_2']
-        argmin_res = df_fit.iloc[np.abs(df_fit['diff_1_2']).argmin(),:][['res','r2']]
-        r2 = argmin_res['r2']
-        s_z = argmin_res['res']
-        if print_steps == True: 
-            print("--- step {} ---".format(i+1))
+
+        _, cal_cst = calibration_triplets_tc(
+            data_tc, r2=r2, ref=ref_tc, return_cal_cst=True
+        )
+
+        df_fit["diff_1_2"] = (1 / cal_cst[name_1] ** 2) * df_fit["dV/dr_1"] - (
+            1 / cal_cst[name_2] ** 2
+        ) * df_fit["dV/dr_2"]
+        df_fit["r2"] = (1 / cal_cst[name_1] ** 2) * df_fit["var_1"] - (
+            1 / cal_cst[name_2] ** 2
+        ) * df_fit["var_2"]
+        argmin_res = df_fit.iloc[np.abs(df_fit["diff_1_2"]).argmin(), :][["res", "r2"]]
+        r2 = argmin_res["r2"]
+        s_z = argmin_res["res"]
+        if print_steps == True:
+            print("--- step {} ---".format(i + 1))
             print(f"s_z: {s_z:.3f}, r2: {r2:.6f}")
-            
+
     return df_fit, r2, s_z, cal_cst
 
 
-def adjusted_r2(df_var_1, df_var_2, data_tc, cal_cst, s_z, name_1, name_2, df_fit, n_iter=5, step_fit=0.1, deg_fit=1):
+def adjusted_r2(
+    df_var_1,
+    df_var_2,
+    data_tc,
+    cal_cst,
+    s_z,
+    name_1,
+    name_2,
+    df_fit,
+    n_iter=5,
+    step_fit=0.1,
+    deg_fit=1,
+):
 
-    df = pd.merge(df_var_1, df_var_2, on='res', suffixes=('_1', '_2'))
-    
+    df = pd.merge(df_var_1, df_var_2, on="res", suffixes=("_1", "_2"))
+
     for i in range(n_iter):
 
-        df['diff_var'] = ((1/cal_cst[name_1]**2)*df['var_1'] - (1/cal_cst[name_2]**2)*df['var_2']).values
-        print('--- step {} ---'.format(i))
-     
-        x = np.arange(np.min(df['res']),np.max(df['res'])+step_fit,step_fit)
-        coefs_s_z = np.polyfit(df['res'][df['res']>=s_z], 
-                                   df['diff_var'][df['res']>=s_z], 
-                                   deg=deg_fit)
-        
-        df['var(e_1)-var(e_2)'] = poly_calculate(coefs_s_z, df['res'], no_intercept=True)
-        
-        df['r2_adjusted'] = df['diff_var'] - df['var(e_1)-var(e_2)']
-        
-        s_z = df['res'][np.argmin(np.abs(s_z - df['res']))]
-        
-        r2 = df['r2_adjusted'][df['res']==s_z].values[0]
-        
-        _, cal_cst = calibration_triplets_tc(data_tc, r2=r2, ref='in-situ', return_cal_cst=True)
-        
-        df_fit['diff_sat_mod'] = (1/cal_cst[name_1]**2)*df_fit['dV/dr_1'] - (1/cal_cst[name_2]**2)*df_fit['dV/dr_2']
-        s_z = df_fit.iloc[np.abs(df_fit['diff_sat_mod']).argmin(),:]['res']
+        df["diff_var"] = (
+            (1 / cal_cst[name_1] ** 2) * df["var_1"]
+            - (1 / cal_cst[name_2] ** 2) * df["var_2"]
+        ).values
+        print("--- step {} ---".format(i))
+
+        x = np.arange(np.min(df["res"]), np.max(df["res"]) + step_fit, step_fit)
+        coefs_s_z = np.polyfit(
+            df["res"][df["res"] >= s_z], df["diff_var"][df["res"] >= s_z], deg=deg_fit
+        )
+
+        df["var(e_1)-var(e_2)"] = poly_calculate(
+            coefs_s_z, df["res"], no_intercept=True
+        )
+
+        df["r2_adjusted"] = df["diff_var"] - df["var(e_1)-var(e_2)"]
+
+        s_z = df["res"][np.argmin(np.abs(s_z - df["res"]))]
+
+        r2 = df["r2_adjusted"][df["res"] == s_z].values[0]
+
+        _, cal_cst = calibration_triplets_tc(
+            data_tc, r2=r2, ref="in-situ", return_cal_cst=True
+        )
+
+        df_fit["diff_sat_mod"] = (1 / cal_cst[name_1] ** 2) * df_fit["dV/dr_1"] - (
+            1 / cal_cst[name_2] ** 2
+        ) * df_fit["dV/dr_2"]
+        s_z = df_fit.iloc[np.abs(df_fit["diff_sat_mod"]).argmin(), :]["res"]
 
         print(f"s_z: {s_z:.3f}, r2: {r2:.6f}")
-    
+
     return df_fit, df, r2, s_z, cal_cst
 
 
-def power_spectra(ds, varalias, period_meas, 
-                     time_unit, fs, nsample, 
-                     sd='1000-01-01', ed='3000-12-31',
-                     mode='average', window='hann',
-                     savepath=None):
+def power_spectra(
+    ds,
+    varalias,
+    period_meas,
+    time_unit,
+    fs,
+    nsample,
+    sd="1000-01-01",
+    ed="3000-12-31",
+    mode="average",
+    window="hann",
+    savepath=None,
+):
     """
     Divides a given time series into sample of given size, applies a window to
     each sample and calculates the power spectra for each sample, using a Fast
@@ -936,26 +1014,26 @@ def power_spectra(ds, varalias, period_meas,
 
     ds = copy.deepcopy(ds[[varalias]])
     ds = ds.sel(time=slice(sd, ed))
-    ds = ds.assign_coords(time=('time', ds.time.dt.round(time_unit).values))
-    ds = ds.drop_duplicates('time')
+    ds = ds.assign_coords(time=("time", ds.time.dt.round(time_unit).values))
+    ds = ds.drop_duplicates("time")
 
-    time = ds['time'].values
+    time = ds["time"].values
     data = ds[varalias].values
 
-    if time_unit == 'min':
-        time_unit_block = 'm'
+    if time_unit == "min":
+        time_unit_block = "m"
     else:
         time_unit_block = time_unit
 
     r = nsample
-    
+
     elapsed_time = time - time[0]
     elapsed_time_num = elapsed_time / np.timedelta64(1, time_unit_block)
     block_ids = (elapsed_time_num // (r * period_meas)).astype(int)
     unique_blocks = np.unique(block_ids)
     block_periodogram = []
     block_counts = []
-    
+
     for block in unique_blocks:
         mask = block_ids == block
         block_data = data[mask]
@@ -970,53 +1048,57 @@ def power_spectra(ds, varalias, period_meas,
     count_used = np.sum(block_counts)
     count_tot = np.sum(~np.isnan(data))
     count_samples = len(block_periodogram)
-    
-    if mode == 'average':
-        mean_PS = np.mean(np.array(block_periodogram), axis=0)
-        df_spectra = pd.DataFrame({'f':f[1:], 'spectra': mean_PS})
-    else:
-        df_spectra = pd.DataFrame({'f':f[1:], 
-                   **{'spectra_'+str(i):ps for i, ps in enumerate(block_periodogram)}})
 
-    df_spectra['nb_samples'] = count_samples
-    df_spectra['nb_used_val'] = count_used
-    df_spectra['nb_tot_val'] = count_tot
-    
-    if savepath is not None: 
-        os.makedirs('/'.join(savepath.split('/')[:-1]), exist_ok=True)
+    if mode == "average":
+        mean_PS = np.mean(np.array(block_periodogram), axis=0)
+        df_spectra = pd.DataFrame({"f": f[1:], "spectra": mean_PS})
+    else:
+        df_spectra = pd.DataFrame(
+            {
+                "f": f[1:],
+                **{"spectra_" + str(i): ps for i, ps in enumerate(block_periodogram)},
+            }
+        )
+
+    df_spectra["nb_samples"] = count_samples
+    df_spectra["nb_used_val"] = count_used
+    df_spectra["nb_tot_val"] = count_tot
+
+    if savepath is not None:
+        os.makedirs("/".join(savepath.split("/")[:-1]), exist_ok=True)
         df_spectra.to_csv(savepath, index=False)
 
     return df_spectra
 
 
 def merge_spectra(path, list_filenames, res_max=None, res_factor=1.0):
-    
-    df = pd.read_csv(path + list_filenames[0])
-    df['res'] = 1/df['f']
-    df['spectra'] = 0 
-    df['nb_tot_val'] = 0
-    df['nb_used_val'] = 0
-    df['nb_samples'] = 0
-    df['spectra_cum'] = 0
 
-    if res_max!=None:
-        df = df[df['res'] <= res_max]
+    df = pd.read_csv(path + list_filenames[0])
+    df["res"] = 1 / df["f"]
+    df["spectra"] = 0
+    df["nb_tot_val"] = 0
+    df["nb_used_val"] = 0
+    df["nb_samples"] = 0
+    df["spectra_cum"] = 0
+
+    if res_max != None:
+        df = df[df["res"] <= res_max]
 
     for fn in list_filenames:
         df_tmp = pd.read_csv(path + fn)
-        
-        if res_max!=None:
-            df_tmp = copy.deepcopy(df_tmp[df_tmp['res'] <= res_max])
-            df_tmp['var'] = df_tmp['var'].astype('float')
-        
-        df['spectra_cum'] = df['spectra_cum'] + df_tmp['spectra']*df_tmp['nb_samples']
-        df['nb_tot_val'] = df['nb_tot_val'] + df_tmp['nb_tot_val']
-        df['nb_used_val'] = df['nb_used_val'] + df_tmp['nb_used_val']
-        df['nb_samples'] = df['nb_samples'] + df_tmp['nb_samples']
-    
-    df['spectra'] = df['spectra_cum']/df['nb_samples']
-    df['data_used'] = round(df['nb_used_val']/df['nb_tot_val'],3)
-    df['res'] = df['res']*res_factor
+
+        if res_max != None:
+            df_tmp = copy.deepcopy(df_tmp[df_tmp["res"] <= res_max])
+            df_tmp["var"] = df_tmp["var"].astype("float")
+
+        df["spectra_cum"] = df["spectra_cum"] + df_tmp["spectra"] * df_tmp["nb_samples"]
+        df["nb_tot_val"] = df["nb_tot_val"] + df_tmp["nb_tot_val"]
+        df["nb_used_val"] = df["nb_used_val"] + df_tmp["nb_used_val"]
+        df["nb_samples"] = df["nb_samples"] + df_tmp["nb_samples"]
+
+    df["spectra"] = df["spectra_cum"] / df["nb_samples"]
+    df["data_used"] = round(df["nb_used_val"] / df["nb_tot_val"], 3)
+    df["res"] = df["res"] * res_factor
 
     return df
 
@@ -1026,27 +1108,27 @@ def spectra_to_variance_s(df, s):
     Calculates the spatial variance contribution at a chosen target scale 's'
     using the periodogram data stored in a DataFrame.
     """
-    
+
     # 1. Extract columns and handle frequency=0 to avoid division errors
-    k = df['f'].values
-    Pk = df['spectra'].values
-    
+    k = df["f"].values
+    Pk = df["spectra"].values
+
     k_safe = np.copy(k)
-    k_safe[k_safe == 0] = 1e-12 
-    
+    k_safe[k_safe == 0] = 1e-12
+
     # 2. Calculate dk (wavenumber spacing)
-    dk = k[1] - k[0] 
-    
+    dk = k[1] - k[0]
+
     # 3. Apply the Vogelzang filter: 1 - sinc^2(k * s)
     # np.sinc in NumPy inherently includes the pi factor: sin(pi*x)/(pi*x)
-    transfo_filter = 1.0 - (np.sinc(k_safe * s))**2
-    transfo_filter[k == 0] = 0.0 # Force DC component to zero
-    
-    # 4. Integrate the 2-sided spectrum 
+    transfo_filter = 1.0 - (np.sinc(k_safe * s)) ** 2
+    transfo_filter[k == 0] = 0.0  # Force DC component to zero
+
+    # 4. Integrate the 2-sided spectrum
     # Multiply by 2 because scipy's periodogram is 1-sided (positive frequencies only)
-    #variance_at_s = np.sum(2 * Pk * vogelzang_filter) * dk
+    # variance_at_s = np.sum(2 * Pk * vogelzang_filter) * dk
     variance_at_s = np.sum(Pk * transfo_filter) * dk
- 
+
     return variance_at_s
 
 
@@ -1054,28 +1136,34 @@ def calculate_r2_spectra(df_1, df_2, cal_cst, name_1, name_2, scale_list):
 
     var_df_1 = np.array([spectra_to_variance_s(df_1, s) for s in scale_list])
     var_df_2 = np.array([spectra_to_variance_s(df_2, s) for s in scale_list])
-    r2 = (1/cal_cst[name_1]**2)*np.array(var_df_1) - (1/cal_cst[name_2]**2)*np.array(var_df_2)
+    r2 = (1 / cal_cst[name_1] ** 2) * np.array(var_df_1) - (
+        1 / cal_cst[name_2] ** 2
+    ) * np.array(var_df_2)
 
-    result = pd.DataFrame({'res':scale_list, 'r2':r2})
+    result = pd.DataFrame({"res": scale_list, "r2": r2})
     return result
 
 
-def bin_tc(data, metric, vmin, vmax, step, ref_filter, ref_tc, transfo_func=None, cal=True):
+def bin_tc(
+    data, metric, vmin, vmax, step, ref_filter, ref_tc, transfo_func=None, cal=True
+):
 
-    interval_list = [[float(np.round(i,10)), 
-                      float(np.round(i+step,10))] for i in np.arange(vmin,vmax,step)]    
+    interval_list = [
+        [float(np.round(i, 10)), float(np.round(i + step, 10))]
+        for i in np.arange(vmin, vmax, step)
+    ]
 
     bin_tc_res = {}
     len_interval = []
-    
-    for intrvl in interval_list: 
+
+    for intrvl in interval_list:
         ubound = intrvl[1]
         lbound = intrvl[0]
-        data_intrvl = filter_values(data,  min=lbound, max=ubound, ref_data=ref_filter)
+        data_intrvl = filter_values(data, min=lbound, max=ubound, ref_data=ref_filter)
 
         if transfo_func is not None:
-            data_intrvl = {d:transfo_func(data_intrvl[d]) for d in data_intrvl.keys()}
-        
+            data_intrvl = {d: transfo_func(data_intrvl[d]) for d in data_intrvl.keys()}
+
         if cal == True:
             data_intrvl = calibration_triplets_tc(data_intrvl, ref_tc)
 
@@ -1084,11 +1172,24 @@ def bin_tc(data, metric, vmin, vmax, step, ref_filter, ref_tc, transfo_func=None
         len_interval.append(len(list(data_intrvl.values())[0]))
 
     df_tc_res = pd.DataFrame(bin_tc_res).transpose()
-    df_tc_res['count'] = len_interval
-    
+    df_tc_res["count"] = len_interval
+
     return df_tc_res
 
 
-def MARD(tc_res, tc_res_bin, metric='rmse'):
+def MARD(tc_res, tc_res_bin, metric="rmse"):
 
-    return pd.DataFrame({k:{'MARD':round(np.mean(np.abs(tc_res_bin.loc[:,k] - tc_res.loc[k,metric])/tc_res.loc[k,metric]),3)} for k in tc_res.index})
+    return pd.DataFrame(
+        {
+            k: {
+                "MARD": round(
+                    np.mean(
+                        np.abs(tc_res_bin.loc[:, k] - tc_res.loc[k, metric])
+                        / tc_res.loc[k, metric]
+                    ),
+                    3,
+                )
+            }
+            for k in tc_res.index
+        }
+    )
