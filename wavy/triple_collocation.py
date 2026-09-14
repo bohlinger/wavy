@@ -1060,7 +1060,7 @@ def calculate_r2_spectra(df_1, df_2, cal_cst, name_1, name_2, scale_list):
     return result
 
 
-def bin_tc(data, metric, vmin, vmax, step, ref_filter, ref_tc, transfo_func, cal=True):
+def bin_tc(data, metric, vmin, vmax, step, ref_filter, ref_tc, transfo_func=None, cal=True):
 
     interval_list = [[float(np.round(i,10)), 
                       float(np.round(i+step,10))] for i in np.arange(vmin,vmax,step)]    
