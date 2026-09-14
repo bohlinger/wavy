@@ -1058,3 +1058,37 @@ def calculate_r2_spectra(df_1, df_2, cal_cst, name_1, name_2, scale_list):
 
     result = pd.DataFrame({'res':scale_list, 'r2':r2})
     return result
+
+
+def bin_tc(data, metric, vmin, vmax, step, ref_filter, ref_tc, transfo_func, cal=True):
+
+    interval_list = [[float(np.round(i,10)), 
+                      float(np.round(i+step,10))] for i in np.arange(vmin,vmax,step)]    
+
+    bin_tc_res = {}
+    len_interval = []
+    
+    for intrvl in interval_list: 
+        ubound = intrvl[1]
+        lbound = intrvl[0]
+        data_intrvl = filter_values(data,  min=lbound, max=ubound, ref_data=ref_filter)
+
+        if transfo_func is not None:
+            data_intrvl = {d:transfo_func(data_intrvl[d]) for d in data_intrvl.keys()}
+        
+        if cal == True:
+            data_intrvl = calibration_triplets_tc(data_intrvl, ref_tc)
+
+        tc_res = triple_collocation(data_intrvl, ref=ref_tc)
+        bin_tc_res[str(intrvl)] = tc_res[metric]
+        len_interval.append(len(list(data_intrvl.values())[0]))
+
+    df_tc_res = pd.DataFrame(bin_tc_res).transpose()
+    df_tc_res['count'] = len_interval
+    
+    return df_tc_res
+
+
+def MARD(tc_res, tc_res_bin, metric='rmse'):
+
+    return pd.DataFrame({k:{'MARD':round(np.mean(np.abs(tc_res_bin.loc[:,k] - tc_res.loc[k,metric])/tc_res.loc[k,metric]),3)} for k in tc_res.index})
