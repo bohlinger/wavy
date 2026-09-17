@@ -116,7 +116,7 @@ class filter_class:
 
         provider = kwargs.get("provider", "Gshhg")
 
-        if provider is "None" or provider == "Gshhg":
+        if provider is None or provider == "Gshhg":
             provider = LandmaskProvider.Gshhg
         elif provider == "Osm":
             provider = LandmaskProvider.Osm
@@ -862,7 +862,7 @@ def apply_land_mask(longitudes: np.ndarray, latitudes: np.ndarray, **kwargs):
 
     provider = kwargs.get("provider", "Gshhg")
 
-    if provider is "None" or provider == "Gshhg":
+    if provider is None or provider == "Gshhg":
         provider = LandmaskProvider.Gshhg
     elif provider == "Osm":
         provider = LandmaskProvider.Osm
