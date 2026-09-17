@@ -73,3 +73,11 @@ include-package-data = true
 [tool.setuptools.package-data]
 "your_package_name" = ["config/*.yaml*"]  # Include all .py files in the config directory
 
+[project.optional-dependencies]
+dev = [
+    "black",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py312", "py313", "py314"]
