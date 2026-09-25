@@ -4,6 +4,10 @@
 [![Lint](https://github.com/bohlinger/wavy/actions/workflows/lint.yml/badge.svg)](https://github.com/bohlinger/wavy/actions/workflows/lint.yml)
 [![Coverage Status](https://coveralls.io/repos/github/bohlinger/wavy/badge.svg?branch=master)](https://coveralls.io/github/bohlinger/wavy?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/wavyopen/badge/?version=latest)](https://wavyopen.readthedocs.io/en/latest/?badge=latest)
+[![Python versions](https://img.shields.io/pypi/pyversions/wavyopen)](https://pypi.org/project/wavyopen/)
+[![PyPI version](https://img.shields.io/pypi/v/wavyopen)](https://pypi.org/project/wavyopen/)
+[![conda-forge](https://img.shields.io/conda/vn/conda-forge/wavyopen)](https://anaconda.org/conda-forge/wavyopen)
+[![License](https://img.shields.io/github/license/bohlinger/wavy)](https://github.com/bohlinger/wavy/blob/master/LICENSE)
 
 ### Core developers:
 - Patrik Bohlinger, Norwegian Meteorological Institute, patrikb@met.no
