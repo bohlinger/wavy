@@ -386,6 +386,7 @@ def linreg_deming(x, y, **kwargs):
     P = np.append(np.mean(slope), np.mean(intercept))
     return P
 
+
 def linreg_deming_homoscedastic(x, y, stdx=1.0, stdy=1.0):
     """
     Deming regression with a constant error standard deviation
@@ -410,23 +411,23 @@ def linreg_deming_homoscedastic(x, y, stdx=1.0, stdy=1.0):
     xbar = np.mean(x)
     ybar = np.mean(y)
 
-    Sxx = np.mean((x - xbar)**2)
-    Syy = np.mean((y - ybar)**2)
+    Sxx = np.mean((x - xbar) ** 2)
+    Syy = np.mean((y - ybar) ** 2)
     Sxy = np.mean((x - xbar) * (y - ybar))
 
-    delta = (stdy / stdx)**2
+    delta = (stdy / stdx) ** 2
 
     if np.isclose(Sxy, 0):
         raise ValueError("Cannot perform Deming regression when covariance is zero.")
 
     slope = (
-        Syy - delta * Sxx
-        + np.sqrt((Syy - delta * Sxx)**2 + 4 * delta * Sxy**2)
+        Syy - delta * Sxx + np.sqrt((Syy - delta * Sxx) ** 2 + 4 * delta * Sxy**2)
     ) / (2 * Sxy)
 
     intercept = ybar - slope * xbar
 
     return slope, intercept
+
 
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -476,29 +477,19 @@ def linreg_deming_heteroscedastic(x, y, stdx=1.0, stdy=1.0):
         stdy = np.full(n, stdy)
 
     if len(stdx) != n:
-        raise ValueError(
-            "stdx must be scalar or have the same length as x."
-        )
+        raise ValueError("stdx must be scalar or have the same length as x.")
 
     if len(stdy) != n:
-        raise ValueError(
-            "stdy must be scalar or have the same length as y."
-        )
+        raise ValueError("stdy must be scalar or have the same length as y.")
 
     if np.any(~np.isfinite(x)) or np.any(~np.isfinite(y)):
-        raise ValueError(
-            "x and y must contain only finite values."
-        )
+        raise ValueError("x and y must contain only finite values.")
 
     if np.any(~np.isfinite(stdx)) or np.any(~np.isfinite(stdy)):
-        raise ValueError(
-            "stdx and stdy must contain only finite values."
-        )
+        raise ValueError("stdx and stdy must contain only finite values.")
 
     if np.any(stdx <= 0) or np.any(stdy <= 0):
-        raise ValueError(
-            "All uncertainties must be positive."
-        )
+        raise ValueError("All uncertainties must be positive.")
 
     # Convert standard deviations to variances
     varx = stdx**2
@@ -514,25 +505,18 @@ def linreg_deming_heteroscedastic(x, y, stdx=1.0, stdy=1.0):
         weights = 1.0 / variance
 
         # Optimal intercept for this slope
-        intercept = np.sum(
-            weights * (y - slope * x)
-        ) / np.sum(weights)
+        intercept = np.sum(weights * (y - slope * x)) / np.sum(weights)
 
         residual = y - intercept - slope * x
 
-        return np.sum(
-            weights * residual**2
-        )
+        return np.sum(weights * residual**2)
 
     # Ordinary least-squares slope as initial estimate
     slope_ols, _ = np.polyfit(x, y, 1)
 
     # Use a bounded scalar optimization around a
     # sufficiently broad slope range.
-    slope_scale = max(
-        10.0 * abs(slope_ols),
-        1.0
-    )
+    slope_scale = max(10.0 * abs(slope_ols), 1.0)
 
     result = minimize_scalar(
         objective,
@@ -545,9 +529,7 @@ def linreg_deming_heteroscedastic(x, y, stdx=1.0, stdy=1.0):
     )
 
     if not result.success:
-        raise RuntimeError(
-            f"Deming regression failed: {result.message}"
-        )
+        raise RuntimeError(f"Deming regression failed: {result.message}")
 
     slope = result.x
 
@@ -555,11 +537,10 @@ def linreg_deming_heteroscedastic(x, y, stdx=1.0, stdy=1.0):
     variance = vary + slope**2 * varx
     weights = 1.0 / variance
 
-    intercept = np.sum(
-        weights * (y - slope * x)
-    ) / np.sum(weights)
+    intercept = np.sum(weights * (y - slope * x)) / np.sum(weights)
 
     return slope, intercept
+
 
 def deming_bootstrap(
     x,
@@ -601,9 +582,7 @@ def deming_bootstrap(
     n = len(x)
 
     if len(y) != n:
-        raise ValueError(
-            "x and y must have the same length."
-        )
+        raise ValueError("x and y must have the same length.")
 
     # Expand scalar uncertainties
     stdx = np.asarray(stdx, dtype=float)
@@ -616,9 +595,7 @@ def deming_bootstrap(
         stdy = np.full(n, stdy)
 
     if len(stdx) != n or len(stdy) != n:
-        raise ValueError(
-            "stdx and stdy must be scalar or have length n."
-        )
+        raise ValueError("stdx and stdy must be scalar or have length n.")
 
     rng = np.random.default_rng(random_state)
 
@@ -645,13 +622,11 @@ def deming_bootstrap(
         stdy_boot = stdy[idx]
 
         try:
-            slope_boot, intercept_boot = (
-                linreg_deming_heteroscedastic(
-                    x_boot,
-                    y_boot,
-                    stdx=stdx_boot,
-                    stdy=stdy_boot,
-                )
+            slope_boot, intercept_boot = linreg_deming_heteroscedastic(
+                x_boot,
+                y_boot,
+                stdx=stdx_boot,
+                stdy=stdy_boot,
             )
 
             slopes[i] = slope_boot
@@ -662,18 +637,13 @@ def deming_bootstrap(
             intercepts[i] = np.nan
 
     # Remove failed bootstrap fits
-    valid = (
-        np.isfinite(slopes)
-        & np.isfinite(intercepts)
-    )
+    valid = np.isfinite(slopes) & np.isfinite(intercepts)
 
     slopes = slopes[valid]
     intercepts = intercepts[valid]
 
     if len(slopes) == 0:
-        raise RuntimeError(
-            "All bootstrap fits failed."
-        )
+        raise RuntimeError("All bootstrap fits failed.")
 
     # 95% percentile confidence intervals
     slope_ci = np.percentile(
@@ -695,6 +665,7 @@ def deming_bootstrap(
         "intercept_ci": intercept_ci,
         "n_boot": len(slopes),
     }
+
 
 def linreg_std(x, y, **kwargs):
     slope, intercept, r, p, std_err = stats.linregress(x, y)
