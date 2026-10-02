@@ -27,6 +27,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           miniforge-version: latest
           miniforge-variant: Miniforge3
+          use-mamba: true
 
       - name: Lint with pylint
         run: |
