@@ -733,7 +733,7 @@ def _spatial_variance_single_r(time, data, period_meas, time_unit, f_max, r):
         block_data = block_data[~np.isnan(block_data)]
         count = len(block_data)
         f_ratio = (r - count) / (r + 1)
-        if count >= 2 and f_ratio <= f_max:
+        if count >= 2 and f_ratio <= f_max and f_ratio >= 0:
             block_vars.append(np.var(block_data, ddof=0))
             block_counts.append(count)
 
@@ -1040,7 +1040,7 @@ def power_spectra(
         block_data = block_data[~np.isnan(block_data)]
         count = len(block_data)
         f_ratio = (r - count) / (r + 1)
-        if count >= 2 and f_ratio <= 0:
+        if count >= 2 and f_ratio == 0:
             f, PS_tmp = periodogram(block_data, fs=fs, window=window)
             block_periodogram.append(PS_tmp[1:])
             block_counts.append(count)
