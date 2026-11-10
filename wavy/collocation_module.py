@@ -290,6 +290,7 @@ class collocation_class(qls):
         self.nmbr = kwargs.get("nmbr", 1)
         print(" ")
         print(" ### Collocation_class object initialized ###")
+        print(f"nID: {self.nID}, model: {self.model}, name: {self.name}")
 
     def populate(self, **kwargs):
         logger = logging.getLogger(__name__)
