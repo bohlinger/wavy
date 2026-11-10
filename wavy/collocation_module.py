@@ -402,13 +402,20 @@ class collocation_class(qls):
                     **{
                         "model_"
                         + v: xr.DataArray(
-                            data=results_dict["model_"+v] if not self.ensemble else 
-                                np.concatenate(results_dict["model_" + v], axis=1),
-                            dims=["ensemble","time"] if self.ensemble else ["time"],
-                            coords={"time": results_dict["obs_time"]} if not self.ensemble else {
+                            data=(
+                                results_dict["model_" + v]
+                                if not self.ensemble
+                                else np.concatenate(results_dict["model_" + v], axis=1)
+                            ),
+                            dims=["ensemble", "time"] if self.ensemble else ["time"],
+                            coords=(
+                                {"time": results_dict["obs_time"]}
+                                if not self.ensemble
+                                else {
                                     "ensemble": np.arange(self.nmbr),
                                     "time": results_dict["obs_time"],
-                                    },
+                                }
+                            ),
                             attrs=variable_def[v],
                         )
                         for v in self.varalias_mod
@@ -474,7 +481,7 @@ class collocation_class(qls):
             Mlons, Mlats = np.meshgrid(Mlons, Mlats)
             Mvars = {v: Mvars[v].squeeze() for v in Mvars.keys()}
             assert len(Mlons.shape) == 2
-        logger.info('Changing Mvars dimensions for compatibility w/ ensemble model')
+        logger.info("Changing Mvars dimensions for compatibility w/ ensemble model")
         for v in Mvars.keys():
             if Mvars[v].ndim < 3:
                 Mvars[v] = np.expand_dims(Mvars[v], axis=0)
@@ -514,7 +521,10 @@ class collocation_class(qls):
             "collocation_idx_x": list(idx_x),
             "collocation_idx_y": list(idx_y),
             "time": tmp_dict["time"][dist_idx],
-            **{"model_" + v: np.squeeze(Mvars[v][:, idx_x, idx_y]) for v in Mvars.keys()},
+            **{
+                "model_" + v: np.squeeze(Mvars[v][:, idx_x, idx_y])
+                for v in Mvars.keys()
+            },
             **{"obs_" + v: obs_vars[v][dist_idx] for v in self.varalias_obs},
         }
         return results_dict
@@ -862,14 +872,14 @@ class collocation_class(qls):
             # Standard deterministic validation
             validation_dict = validate_collocated_values(
                 dtime, obs, mods, sdate=sdate, edate=edate, **kwargs
-                )
-        elif np.array(mods).squeeze().ndim==2:
+            )
+        elif np.array(mods).squeeze().ndim == 2:
             # Do determinisitc validation on requested member
             validation_dict = validate_collocated_values(
-                    dtime, obs, mods[mbr,:], sdate=sdate, edate=edate, **kwargs
-                )
+                dtime, obs, mods[mbr, :], sdate=sdate, edate=edate, **kwargs
+            )
         return validation_dict
-                
+
     def validate_collocated_ensemble(self, **kwargs):
         varalias = kwargs.get("varalias", self.varalias[0])
         times = self.vars["time"]
@@ -918,7 +928,7 @@ def validate_collocated_values(dtime, obs, mods, **kwargs):
         twin = kwargs["twin"]
     idx = collocate_times(dtime, target_t=target_t, sdate=sdate, edate=edate, twin=twin)
     if np.array(mods).ndim == 2:
-        mods = np.array(mods)[:,idx]
+        mods = np.array(mods)[:, idx]
     else:
         mods = np.array(mods)[idx]
     obs = np.array(obs)[idx]
@@ -929,6 +939,7 @@ def validate_collocated_values(dtime, obs, mods, **kwargs):
     disp_validation(validation_dict)
 
     return validation_dict
+
 
 def validate_collocated_ensemble(dtime, obs, mods, **kwargs):
     target_t, sdate, edate, twin = None, None, None, None
@@ -948,7 +959,7 @@ def validate_collocated_ensemble(dtime, obs, mods, **kwargs):
         twin = kwargs["twin"]
     idx = collocate_times(dtime, target_t=target_t, sdate=sdate, edate=edate, twin=twin)
     if np.array(mods).ndim == 2:
-        mods = np.array(mods)[:,idx]
+        mods = np.array(mods)[:, idx]
     else:
         mods = np.array(mods)[idx]
     obs = np.array(obs)[idx]
