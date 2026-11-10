@@ -39,6 +39,7 @@ from wavy.gridder_module import gridder_class as gc
 from wavy.grid_stats import apply_metric
 from wavy.quicklookmod import quicklook_class_sat as qls
 from wavy.validationmod import validate, disp_validation
+from wavy.validationmod import validate_ens
 
 # ---------------------------------------------------------------------#
 
@@ -266,6 +267,7 @@ class collocation_class(qls):
         self.varalias_obs = oco.varalias
         if isinstance(self.varalias_obs, str):
             self.varalias_obs = [self.varalias_obs]
+        self.varalias_obs = oco.varalias
         self.varalias_mod = self.varalias
         self.model = model
         self.name = kwargs.get("name", None)
@@ -284,9 +286,10 @@ class collocation_class(qls):
         self.colloc_time_method = kwargs.get("colloc_time_method", "nearest")
         self.nproc = kwargs.get("nproc", 16)
         self.res = kwargs.get("res", (0.5, 0.5))
+        self.ensemble = kwargs.get("ensemble", False)
+        self.nmbr = kwargs.get("nmbr", 1)
         print(" ")
         print(" ### Collocation_class object initialized ###")
-        print(f"nID: {self.nID}, model: {self.model}, name: {self.name}")
 
     def populate(self, **kwargs):
         logger = logging.getLogger(__name__)
@@ -303,6 +306,8 @@ class collocation_class(qls):
             # build xarray dataset from results
             ds = new._build_xr_dataset(results_dict)
             ds = ds.assign_coords(time=ds.time.values)
+            if self.ensemble:
+                ds = ds.assign_coords(ensemble=ds.ensemble.values)
             new.vars = ds
 
             # Add extra variables from oco
@@ -339,7 +344,6 @@ class collocation_class(qls):
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
-
         try:
             ds = xr.Dataset(
                 {
@@ -398,9 +402,13 @@ class collocation_class(qls):
                     **{
                         "model_"
                         + v: xr.DataArray(
-                            data=results_dict["model_" + v],
-                            dims=["time"],
-                            coords={"time": results_dict["obs_time"]},
+                            data=results_dict["model_"+v] if not self.ensemble else 
+                                np.concatenate(results_dict["model_" + v], axis=1),
+                            dims=["ensemble","time"] if self.ensemble else ["time"],
+                            coords={"time": results_dict["obs_time"]} if not self.ensemble else {
+                                    "ensemble": np.arange(self.nmbr),
+                                    "time": results_dict["obs_time"],
+                                    },
                             attrs=variable_def[v],
                         )
                         for v in self.varalias_mod
@@ -441,14 +449,16 @@ class collocation_class(qls):
     def _collocate_field(self, mco, tmp_dict, **kwargs):
         """
         Some info
+        If self.ensemble=True, only collocate 0th ensemble member's variable(s),
+        because assuming that lons,lats are the same for all members.
         """
         logger = logging.getLogger(__name__)
         log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
-        Mlons = mco.vars.lons.data
-        Mlats = mco.vars.lats.data
-        Mvars = {v: mco.vars[v].data for v in self.varalias_mod}
+        Mlons = mco.vars.lons.values
+        Mlats = mco.vars.lats.values
+        Mvars = {v: mco.vars[v].values for v in self.varalias_mod}
 
         if len(Mlons.shape) > 2:
             Mlons = Mlons[0, :].squeeze()
@@ -464,6 +474,11 @@ class collocation_class(qls):
             Mlons, Mlats = np.meshgrid(Mlons, Mlats)
             Mvars = {v: Mvars[v].squeeze() for v in Mvars.keys()}
             assert len(Mlons.shape) == 2
+        logger.info('Changing Mvars dimensions for compatibility w/ ensemble model')
+        for v in Mvars.keys():
+            if Mvars[v].ndim < 3:
+                Mvars[v] = np.expand_dims(Mvars[v], axis=0)
+
         obs_vars = {v: tmp_dict[v] for v in self.varalias_obs}
         obs_lons = tmp_dict["lons"]
         obs_lats = tmp_dict["lats"]
@@ -479,11 +494,12 @@ class collocation_class(qls):
         )
         # caution: index_array_2d is tuple
         # impose distlim
+        # use 0th model variable
         dist_idx = np.where(
             (distance_array < self.distlim * 1000)
             & (
                 ~np.isnan(
-                    Mvars[self.varalias_mod[0]][index_array_2d[0], index_array_2d[1]]
+                    Mvars[self.varalias_mod[0]][0, index_array_2d[0], index_array_2d[1]]
                 )
             )
         )[0]
@@ -498,7 +514,7 @@ class collocation_class(qls):
             "collocation_idx_x": list(idx_x),
             "collocation_idx_y": list(idx_y),
             "time": tmp_dict["time"][dist_idx],
-            **{"model_" + v: Mvars[v][idx_x, idx_y] for v in Mvars.keys()},
+            **{"model_" + v: np.squeeze(Mvars[v][:, idx_x, idx_y]) for v in Mvars.keys()},
             **{"obs_" + v: obs_vars[v][dist_idx] for v in self.varalias_obs},
         }
         return results_dict
@@ -663,7 +679,10 @@ class collocation_class(qls):
         results_dict["collocation_idx_x"] = flatten(results_dict["collocation_idx_x"])
         results_dict["collocation_idx_y"] = flatten(results_dict["collocation_idx_y"])
         for v in self.varalias_mod:
-            results_dict["model_" + v] = flatten(results_dict["model_" + v])
+            if self.ensemble:
+                pass
+            else:
+                results_dict["model_" + v] = flatten(results_dict["model_" + v])
         for v in self.varalias_obs:
             results_dict["obs_" + v] = flatten(results_dict["obs_" + v])
 
@@ -815,6 +834,44 @@ class collocation_class(qls):
 
     def validate_collocated_values(self, **kwargs):
         varalias = kwargs.get("varalias", self.varalias[0])
+        # Specify ensemble member?
+        mbr = kwargs.get("mbr", 0)
+        times = self.vars["time"]
+        dtime = [parse_date(str(t.data)) for t in times]
+        list_vars = list(self.vars.variables)
+        assert "model_" + varalias in list_vars, (
+            "model_{}".format(varalias)
+            + " is missing in "
+            + "the dataset, if you would like to "
+            + "validate another variable, please "
+            + "specify with varalias."
+        )
+        assert "obs_" + varalias in list_vars, (
+            "obs_{}".format(varalias)
+            + " is missing in "
+            + "the dataset, if you would like to "
+            + "validate another variable, please "
+            + "specify with varalias."
+        )
+        print("Validating model_{} against obs_{}".format(varalias, varalias))
+        obs = self.vars["obs_" + varalias]
+        sdate = dtime[0]
+        edate = dtime[-1]
+        mods = self.vars["model_" + varalias]
+        if np.array(mods).squeeze().ndim == 1:
+            # Standard deterministic validation
+            validation_dict = validate_collocated_values(
+                dtime, obs, mods, sdate=sdate, edate=edate, **kwargs
+                )
+        elif np.array(mods).squeeze().ndim==2:
+            # Do determinisitc validation on requested member
+            validation_dict = validate_collocated_values(
+                    dtime, obs, mods[mbr,:], sdate=sdate, edate=edate, **kwargs
+                )
+        return validation_dict
+                
+    def validate_collocated_ensemble(self, **kwargs):
+        varalias = kwargs.get("varalias", self.varalias[0])
         times = self.vars["time"]
         dtime = [parse_date(str(t.data)) for t in times]
         list_vars = list(self.vars.variables)
@@ -837,7 +894,7 @@ class collocation_class(qls):
         obs = self.vars["obs_" + varalias]
         sdate = dtime[0]
         edate = dtime[-1]
-        validation_dict = validate_collocated_values(
+        validation_dict = validate_collocated_ensemble(
             dtime, obs, mods, sdate=sdate, edate=edate, **kwargs
         )
         return validation_dict
@@ -860,12 +917,45 @@ def validate_collocated_values(dtime, obs, mods, **kwargs):
     if "twin" in kwargs.keys():
         twin = kwargs["twin"]
     idx = collocate_times(dtime, target_t=target_t, sdate=sdate, edate=edate, twin=twin)
-    mods = np.array(mods)[idx]
+    if np.array(mods).ndim == 2:
+        mods = np.array(mods)[:,idx]
+    else:
+        mods = np.array(mods)[idx]
     obs = np.array(obs)[idx]
     results_dict = {"model_values": mods, "obs_values": obs}
 
     # validate
     validation_dict = validate(results_dict)
     disp_validation(validation_dict)
+
+    return validation_dict
+
+def validate_collocated_ensemble(dtime, obs, mods, **kwargs):
+    target_t, sdate, edate, twin = None, None, None, None
+    if "col_obj" in kwargs.keys() and kwargs["col_obj"] is not None:
+        col_obj = kwargs["col_obj"]
+        mods = col_obj.vars["model_values"]
+        obs = col_obj.vars["obs_values"]
+        dtime = col_obj.vars["time"]
+    # get idx for date and twin
+    if "target_t" in kwargs.keys():
+        target_t = kwargs["target_t"]
+    if "sdate" in kwargs.keys():
+        sdate = kwargs["sdate"]
+    if "edate" in kwargs.keys():
+        edate = kwargs["edate"]
+    if "twin" in kwargs.keys():
+        twin = kwargs["twin"]
+    idx = collocate_times(dtime, target_t=target_t, sdate=sdate, edate=edate, twin=twin)
+    if np.array(mods).ndim == 2:
+        mods = np.array(mods)[:,idx]
+    else:
+        mods = np.array(mods)[idx]
+    obs = np.array(obs)[idx]
+    results_dict = {"model_values": mods, "obs_values": obs}
+
+    # validate
+    validation_dict = validate_ens(results_dict)
+    # disp_validation(validation_dict)
 
     return validation_dict
