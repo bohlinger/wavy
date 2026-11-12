@@ -17,6 +17,7 @@ from tqdm import tqdm
 import importlib.util
 import dotenv
 import os
+from pathlib import Path
 import glob
 from copy import deepcopy
 
@@ -133,6 +134,7 @@ def read_model_nc_output_lru(filestr, lonsname, latsname, timename):
 
 # read yaml config files:
 model_dict = load_or_default("model_cfg.yaml")
+print("model module l. 131 model_dict:", model_dict)
 variable_def = load_or_default("variable_def.yaml")
 
 
@@ -290,7 +292,7 @@ class model_class(qls):
             h = int(init_times[h_idx[0][0]])
             return datetime(date.year, date.month, date.day, h)
         else:
-            logger.warning("leadtime for fc_date not available")
+            logger.warning(f"leadtime {leadtime} for fc_date {fc_date} not available")
             logger.warning("-> returning None")
             return None
 
@@ -404,6 +406,8 @@ class model_class(qls):
                     # check if file is accessible
                     if remoteHostName is not None:
                         filename = build_usr_pw_path(filename, remoteHostName, usr, pw)
+                    filename_path = Path(filename)
+                    ext = filename_path.suffix
                     switch = check_if_ncfile_accessible(filename, **kwargs)
                     if switch is False:
                         logger.warning(
@@ -589,7 +593,6 @@ class model_class(qls):
 
         # retrieve dataset
         ds = self.reader(**kwargs, **(vars(self)))
-
         self.vars = ds
         self.coords = list(self.vars.coords)
         return self

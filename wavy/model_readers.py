@@ -16,6 +16,7 @@ from functools import lru_cache
 import pandas as pd
 import gc
 import logging
+import xml.etree.ElementTree as ET
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -113,6 +114,66 @@ def read_meps(**kwargs):
         combine_attrs="override",
         join="override",
     )
+    logging.info(" ... done concatenating")
+
+    logging.info(" dataset ready!")
+
+    return combined
+
+
+def read_weps_ens(**kwargs):
+    """Reader for WEPS ensemble ncml files"""
+    logger = logging.getLogger(__name__)
+    log_level = str(kwargs.get("logging", "WARNING").upper())
+    logger.setLevel(getattr(logging, log_level, logging.WARNING))
+
+    pathlst = kwargs.get("pathlst")
+    nID = kwargs.get("nID")
+    fc_dates = kwargs.get("fc_dates")
+    varname = kwargs.get("varname")
+    if isinstance(varname, str):
+        varname = [varname]
+    ds_lst = []
+    # retrieve sliced data
+    for i in range(len(fc_dates)):
+        d = fc_dates[i]
+        p = pathlst[i]
+        # Parse ncml file contents
+        tree = ET.parse(p)
+        root = tree.getroot()
+        namespace = {"ncml": "http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"}
+        nc_elements = root.findall(".//ncml:netcdf", namespace)
+        nc_paths = [e.attrib["location"] for e in nc_elements]
+        # Open as multi-file dataset and aggregate over new "ensemble" dimension
+        ds = xr.open_mfdataset(
+            nc_paths,
+            concat_dim="ensemble",
+            combine="nested",
+            preprocess=lambda d: d.expand_dims("ensemble"),
+        )
+        ds_sliced = ds.sel({model_dict[nID]["vardef"]["time"]: d})
+        ds_sliced = ds_sliced[
+            varname
+            + [model_dict[nID]["vardef"]["lons"], model_dict[nID]["vardef"]["lats"]]
+        ]
+
+        ds_lst.append(ds_sliced)
+
+    logging.info(" Concatenate ncml ...")
+    combined = xr.concat(
+        ds_lst,
+        model_dict[nID]["vardef"]["time"],
+        # coords='minimal',
+        coords="all",
+        # data_vars='minimal',
+        data_vars="all",
+        compat="override",
+        combine_attrs="override",
+        join="override",
+    )
+    # Remove 'time' and 'ensemble' dimensions from lons,lats
+    combined["longitude"] = combined["longitude"].mean(dim=["time", "ensemble"])
+    combined["latitude"] = combined["latitude"].mean(dim=["time", "ensemble"])
     logging.info(" ... done concatenating")
 
     logging.info(" dataset ready!")
