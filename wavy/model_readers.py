@@ -511,6 +511,60 @@ def read_NORA3_wind(**kwargs):
 
     return combined
 
+def read_waef_gezani(**kwargs):
+    """
+    Read WAM ensemble NetCDF file.
+
+    Parameters
+    ----------
+    filename : str
+        Path to NetCDF file.
+    member : str or int, optional
+        Ensemble member to select. If None, read all members.
+
+    Returns
+    -------
+    xr.Dataset
+        Dataset with dimensions time, latitude, longitude, member.
+    """
+
+    filename = kwargs.get("pathlst")[0]
+    member = kwargs.get("member")
+
+    # Extract initialization time from filename
+    init_str = filename.name.split('_')[1:3]
+    init_time = pd.to_datetime(
+        ''.join(init_str),
+        format='%Y%m%d%H%M'
+    )
+
+    # Read dataset
+    ds = xr.open_dataset(filename)
+
+    # Calculate valid time
+    time = init_time + ds.step.values
+
+    # Replace step with time
+    ds = ds.assign_coords(time=('step', time))
+    ds = ds.swap_dims({'step': 'time'})
+    ds = ds.drop_vars('step')
+
+    # Select ensemble member if specified
+    if member is not None:
+        ds = ds.sel(member=str(member))
+
+    # Reorder dimensions
+    if member is None:
+        ds = ds.transpose(
+            'time', 'latitude', 'longitude', 'member'
+        )
+    else:
+        ds = ds.transpose(
+            'time', 'latitude', 'longitude'
+        )
+
+    return ds
+
 
 # import pyproj
 # import xarray as xr
