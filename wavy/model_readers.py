@@ -8,14 +8,17 @@ files for further use.
 
 # --- import libraries ------------------------------------------------#
 # standard library igports
+from __future__ import annotations
 import numpy as np
-from datetime import timedelta
+from datetime import timedelta, timezone
 import xarray as xr
 import netCDF4
 from functools import lru_cache
 import pandas as pd
 import gc
 import logging
+from pathlib import Path
+from typing import Any
 
 # own imports
 from wavy.wconfig import load_or_default
@@ -506,64 +509,309 @@ def read_NORA3_wind(**kwargs):
         join="override",
     )
     logging.info(" ... done concatenating")
-
     logging.info(" dataset ready!")
 
     return combined
 
-def read_waef_gezani(**kwargs):
+
+def select_member(ds: xr.Dataset, member: str | int | None) -> xr.Dataset:
+    """Return the dataset with a single member selected.
+
+    Args:
+        ds: The opened xarray dataset.
+        member: Either the member label (for example ``"1"``) or a zero-based index.
+
+    Returns:
+        Dataset with the ``member`` dimension removed.
+
+    Raises:
+        ValueError: If the file still contains a member dimension and no member was
+            provided, or if the requested member is absent.
     """
-    Read WAM ensemble NetCDF file.
+    if "member" not in ds.dims:
+        return ds
 
-    Parameters
-    ----------
-    filename : str
-        Path to NetCDF file.
-    member : str or int, optional
-        Ensemble member to select. If None, read all members.
+    if member is None:
+        raise ValueError(
+            "The dataset contains a member dimension; pass `member=` to select a single member."
+        )
 
-    Returns
-    -------
-    xr.Dataset
-        Dataset with dimensions time, latitude, longitude, member.
+    available_members = ds["member"].values.astype(str).tolist()
+    if isinstance(member, int):
+        if not 0 <= member < len(available_members):
+            raise ValueError(
+                f"member index {member} is out of range; available members are {available_members}."
+            )
+        member_value = available_members[member]
+    else:
+        member_value = str(member)
+        if member_value not in available_members:
+            raise ValueError(
+                f"member {member_value!r} was not found; available members are {available_members}."
+            )
+
+    return ds.sel(member=member_value)
+
+
+def read_waef(**kwargs: Any) -> xr.Dataset:
+    """Open a WAEF NetCDF file and return it in ``(time, latitude, longitude)`` form.
+
+    The source NetCDF stores data as ``(member, forecast_reference_time, step, latitude, longitude)``.
+    This function follows the repo convention by reading the file list from ``kwargs["pathlst"]`` and
+    collapsing the ensemble member selection before returning the final dataset.
+
+    Args:
+        **kwargs: Reader arguments including ``pathlst`` (preferred), ``member``,
+            ``varalias``, and optional model metadata.
+
+    Returns:
+        Dataset with dims ``time``, ``latitude``, ``longitude``.
     """
+    pathlst = kwargs.get("pathlst")
+    if pathlst is None:
+        path = kwargs.get("path")
+        if path is None:
+            raise ValueError("A file path or pathlst must be provided via kwargs.")
+        pathlst = [path]
+    elif isinstance(pathlst, (str, Path)):
+        pathlst = [pathlst]
 
-    filename = kwargs.get("pathlst")[0]
+    if not pathlst:
+        raise ValueError("The pathlst is empty.")
+    if len(pathlst) != 1:
+        raise ValueError(
+            f"Expected a single WAEF file, got {len(pathlst)} entries in pathlst."
+        )
+
+    path = pathlst[0]
+    member = kwargs.get("member")
+    forecast_reference_time_index = int(kwargs.get("forecast_reference_time_index", 0))
+
+    ds = xr.open_dataset(path)
+    ds = select_member(ds, member)
+    ds = ds.isel(forecast_reference_time=forecast_reference_time_index, drop=True)
+
+    if "step" not in ds.dims:
+        raise ValueError(
+            f"Expected a 'step' dimension in {path!s}, but none was found."
+        )
+
+    varname = kwargs.get("varname")
+    if isinstance(varname, (list, tuple)):
+        if len(varname) != 1:
+            raise ValueError(f"Expected a single varname, got {varname!r}.")
+        varname = varname[0]
+
+    if varname is None:
+        varalias = kwargs.get("varalias", kwargs.get("variable", "swh"))
+        if isinstance(varalias, (list, tuple)):
+            if len(varalias) != 1:
+                raise ValueError(f"Expected a single varalias, got {varalias!r}.")
+            varalias = varalias[0]
+
+        model_dict = kwargs.get("model_dict") or kwargs.get("model_cfg")
+        nID = kwargs.get("nID")
+        if nID is not None and isinstance(model_dict, dict):
+            vardef = model_dict.get(nID, {}).get("vardef", {})
+            if isinstance(vardef, dict) and varalias in vardef:
+                varname = vardef[varalias]
+            else:
+                varname = str(varalias)
+        else:
+            varname = str(varalias)
+
+    if varname not in ds:
+        raise ValueError(
+            f"Variable {varname!r} was not found in {path!s}. Available variables: {list(ds.data_vars)}"
+        )
+
+    time_values = np.asarray(ds["valid_time"].values)
+    if time_values.ndim == 2 and time_values.shape[0] == 1:
+        time_values = time_values[0]
+    if time_values.ndim != 1:
+        raise ValueError(
+            "After collapsing the reference time, the valid_time coordinate must be 1D along step."
+        )
+
+    target_time = None
+    target_sd = kwargs.get("sd")
+    if target_sd is not None:
+        parsed = parse_date(str(target_sd))
+        if hasattr(parsed, "tzinfo") and parsed.tzinfo is not None:
+            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        target_time = np.datetime64(parsed)
+    else:
+        fc_dates = kwargs.get("fc_dates")
+        if isinstance(fc_dates, (list, tuple, np.ndarray)) and len(fc_dates) == 1:
+            parsed = parse_date(str(fc_dates[0]))
+            if hasattr(parsed, "tzinfo") and parsed.tzinfo is not None:
+                parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+            target_time = np.datetime64(parsed)
+
+    if target_time is not None:
+        time_arr = np.asarray(time_values, dtype="datetime64[ns]")
+        step_idx = int(np.argmin(np.abs(time_arr - target_time)))
+        selected = ds[varname].isel(step=step_idx)
+        selected = selected.transpose("latitude", "longitude")
+        selected = selected.rename({"latitude": "lats", "longitude": "lons"})
+        selected = selected.assign_coords(
+            lats=("lats", ds["latitude"].values),
+            lons=("lons", ds["longitude"].values),
+        )
+        selected = selected.drop_vars(["member", "step", "valid_time"], errors="ignore")
+
+        time_coord = np.array([time_arr[step_idx]], dtype="datetime64[ns]")
+        selected = selected.expand_dims(time=time_coord)
+        selected = selected.transpose("time", "lats", "lons")
+        selected = selected.assign_coords(time=time_coord)
+
+        ds_out = selected.to_dataset(name=varname)
+        ds_out = ds_out.set_coords(["time", "lats", "lons"])
+        return ds_out
+
+    selected = (
+        ds[varname].transpose("step", "latitude", "longitude").rename({"step": "time"})
+    )
+    selected = selected.drop_vars(
+        ["member", "forecast_reference_time", "valid_time"], errors="ignore"
+    )
+    selected = selected.assign_coords(
+        time=("time", time_values),
+        latitude=ds["latitude"],
+        longitude=ds["longitude"],
+    )
+    selected = selected.drop_vars(["member"], errors="ignore")
+
+    ds_out = selected.to_dataset(name=varname)
+    ds_out = ds_out.drop_vars(["member"], errors="ignore")
+    return ds_out
+
+
+def read_waef_gezani(**kwargs: Any) -> xr.Dataset:
+    """Read the Gozani WAEF product with step-based forecast offsets.
+
+    This file schema differs from the original WAEF reader: there is no
+    ``forecast_reference_time`` or ``valid_time`` coordinate. Instead, each step is
+    a time offset relative to the forecast start time, and the data are shaped as
+    ``(member, step, latitude, longitude)``.
+
+    The returned dataset follows the same convention as the existing WAEF reader:
+    a single selected member and one time slice are collapsed to a plotting-ready
+    dataset with dims ``(time, lats, lons)`` and coordinate variables ``time``,
+    ``lats`` and ``lons``.
+    """
+    pathlst = kwargs.get("pathlst")
+    if pathlst is None:
+        path = kwargs.get("path")
+        if path is None:
+            raise ValueError("A file path or pathlst must be provided via kwargs.")
+        pathlst = [path]
+    elif isinstance(pathlst, (str, Path)):
+        pathlst = [pathlst]
+
+    if not pathlst:
+        raise ValueError("The pathlst is empty.")
+    if len(pathlst) != 1:
+        raise ValueError(
+            f"Expected a single WAEF file, got {len(pathlst)} entries in pathlst."
+        )
+
+    path = pathlst[0]
     member = kwargs.get("member")
 
-    # Extract initialization time from filename
-    init_str = filename.name.split('_')[1:3]
-    init_time = pd.to_datetime(
-        ''.join(init_str),
-        format='%Y%m%d%H%M'
+    ds = xr.open_dataset(path)
+    ds = select_member(ds, member)
+
+    if "step" not in ds.dims:
+        raise ValueError(
+            f"Expected a 'step' dimension in {path!s}, but none was found."
+        )
+
+    varname = kwargs.get("varname")
+    if isinstance(varname, (list, tuple)):
+        if len(varname) != 1:
+            raise ValueError(f"Expected a single varname, got {varname!r}.")
+        varname = varname[0]
+
+    if varname is None:
+        varalias = kwargs.get("varalias", kwargs.get("variable", "swh"))
+        if isinstance(varalias, (list, tuple)):
+            if len(varalias) != 1:
+                raise ValueError(f"Expected a single varalias, got {varalias!r}.")
+            varalias = varalias[0]
+
+        model_dict = kwargs.get("model_dict") or kwargs.get("model_cfg")
+        nID = kwargs.get("nID")
+        if nID is not None and isinstance(model_dict, dict):
+            vardef = model_dict.get(nID, {}).get("vardef", {})
+            if isinstance(vardef, dict) and varalias in vardef:
+                varname = vardef[varalias]
+            else:
+                varname = str(varalias)
+        else:
+            varname = str(varalias)
+
+    if varname not in ds:
+        raise ValueError(
+            f"Variable {varname!r} was not found in {path!s}. Available variables: {list(ds.data_vars)}"
+        )
+
+    target_sd = kwargs.get("sd")
+    if target_sd is not None:
+        parsed = parse_date(str(target_sd))
+        if hasattr(parsed, "tzinfo") and parsed.tzinfo is not None:
+            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        target_time = np.datetime64(parsed)
+    else:
+        fc_dates = kwargs.get("fc_dates")
+        if isinstance(fc_dates, (list, tuple, np.ndarray)) and len(fc_dates) == 1:
+            parsed = parse_date(str(fc_dates[0]))
+            if hasattr(parsed, "tzinfo") and parsed.tzinfo is not None:
+                parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+            target_time = np.datetime64(parsed)
+        else:
+            target_time = None
+
+    step_values = np.asarray(ds["step"].values, dtype="timedelta64[ns]")
+    if target_time is not None:
+        time_values = np.asarray(target_time + step_values, dtype="datetime64[ns]")
+    else:
+        time_values = np.asarray(
+            np.datetime64("1970-01-01") + step_values, dtype="datetime64[ns]"
+        )
+
+    if target_time is not None:
+        step_idx = int(np.argmin(np.abs(time_values - target_time)))
+        selected = ds[varname].isel(step=step_idx)
+        selected = selected.transpose("latitude", "longitude")
+        selected = selected.rename({"latitude": "lats", "longitude": "lons"})
+        selected = selected.assign_coords(
+            lats=("lats", ds["latitude"].values),
+            lons=("lons", ds["longitude"].values),
+        )
+        selected = selected.drop_vars(["member", "step"], errors="ignore")
+
+        time_coord = np.array([time_values[step_idx]], dtype="datetime64[ns]")
+        selected = selected.expand_dims(time=time_coord)
+        selected = selected.transpose("time", "lats", "lons")
+        selected = selected.assign_coords(time=time_coord)
+
+        ds_out = selected.to_dataset(name=varname)
+        ds_out = ds_out.set_coords(["time", "lats", "lons"])
+        return ds_out
+
+    selected = (
+        ds[varname].transpose("step", "latitude", "longitude").rename({"step": "time"})
+    )
+    selected = selected.drop_vars(["member"], errors="ignore")
+    selected = selected.assign_coords(
+        time=("time", time_values),
+        latitude=ds["latitude"],
+        longitude=ds["longitude"],
     )
 
-    # Read dataset
-    ds = xr.open_dataset(filename)
-
-    # Calculate valid time
-    time = init_time + ds.step.values
-
-    # Replace step with time
-    ds = ds.assign_coords(time=('step', time))
-    ds = ds.swap_dims({'step': 'time'})
-    ds = ds.drop_vars('step')
-
-    # Select ensemble member if specified
-    if member is not None:
-        ds = ds.sel(member=str(member))
-
-    # Reorder dimensions
-    if member is None:
-        ds = ds.transpose(
-            'time', 'latitude', 'longitude', 'member'
-        )
-    else:
-        ds = ds.transpose(
-            'time', 'latitude', 'longitude'
-        )
-
-    return ds
+    ds_out = selected.to_dataset(name=varname)
+    return ds_out
 
 
 # import pyproj

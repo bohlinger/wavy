@@ -639,36 +639,57 @@ class model_class(qls):
         log_level = str(kwargs.get("logging", "WARNING").upper())
         logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
-        logger.info(" changing variables to aliases")
-        # variables
+        logger.info("changing variables to aliases")
+
+        # --------------------------------------------------
+        # Variables
+        # --------------------------------------------------
         for v in self.varalias:
+
             ncvar = get_filevarname(
                 v, variable_def, vars(self.cfg), self.meta, **kwargs
             )
-            if v in list(self.vars.keys()):
-                logger.info(
-                    "  "
-                    + str(ncvar)
-                    + "is alreade named correctly and"
-                    + " therefore not adjusted"
-                )
-            else:
+
+            if v in self.vars.variables:
+                logger.info(f"{v} is already named correctly")
+
+            elif ncvar in self.vars.variables:
+                logger.info(f"Renaming {ncvar} to {v}")
                 self.vars = self.vars.rename({ncvar: v})
-        # coords
+
+            else:
+                logger.warning(f"Neither {v} nor {ncvar} found in dataset")
+
+        # --------------------------------------------------
+        # Coordinates
+        # --------------------------------------------------
         coords = ["time", "lons", "lats"]
+
         for c in coords:
+
             ncvar = get_filevarname(
                 c, variable_def, vars(self.cfg), self.meta, **kwargs
             )
-            if c in list(self.vars.keys()):
-                logger.info(
-                    "  "
-                    + str(c)
-                    + " is alreade named correctly and"
-                    + " therefore not adjusted"
-                )
+
+            if c in self.vars.coords:
+                logger.info(f"{c} is already present as a coordinate")
+
+            elif c in self.vars.variables:
+                logger.info(f"{c} is already present in dataset")
+
+            elif ncvar in self.vars.variables:
+                logger.info(f"Renaming coordinate {ncvar} to {c}")
+                self.vars = self.vars.rename({ncvar: c})
+
             else:
-                self.vars = self.vars.rename({ncvar: c}).set_index(time="time")
+                logger.warning(f"Neither coordinate {c} nor source {ncvar} found")
+
+        # --------------------------------------------------
+        # Set time index
+        # --------------------------------------------------
+        if "time" in self.vars.coords and "time" in self.vars.dims:
+            self.vars = self.vars.set_index(time="time")
+
         return self
 
     def _change_stdvarname_to_cfname(self, **kwargs):
