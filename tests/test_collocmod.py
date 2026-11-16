@@ -109,7 +109,7 @@ def test_poi_collocation():
 
     # init poi_class
     pco = pc(poi_dict)
-    print('pc.varalias:', pco.varalias)
+    print("pc.varalias:", pco.varalias)
 
     # collocate
     cco = cc(oco=pco, model="ww3_4km", leadtime="best").populate()
