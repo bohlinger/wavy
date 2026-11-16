@@ -134,7 +134,6 @@ def read_model_nc_output_lru(filestr, lonsname, latsname, timename):
 
 # read yaml config files:
 model_dict = load_or_default("model_cfg.yaml")
-print("model module l. 131 model_dict:", model_dict)
 variable_def = load_or_default("variable_def.yaml")
 
 
