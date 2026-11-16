@@ -19,6 +19,7 @@ import xarray as xr
 import numpy as np
 from datetime import datetime
 import os
+from pathlib import Path
 import sys
 from copy import deepcopy
 from functools import lru_cache
@@ -27,6 +28,7 @@ import zipfile
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import xml.etree.ElementTree as ET
 
 # from hidefix import xarray
 
@@ -56,9 +58,16 @@ def check_if_ncfile_accessible(fstr, **kwargs):
     logger.setLevel(getattr(logging, log_level, logging.WARNING))
 
     fstr_repl = fstr.replace("\\", "")
+    fstr_path = Path(fstr_repl)
+    fstr_ext = fstr_path.suffix
     try:
-        xr.open_dataset(fstr_repl, engine="netcdf4")
-        return True
+        if fstr_ext == ".nc":
+            xr.open_dataset(fstr_repl, engine="netcdf4")
+            return True
+        elif fstr_ext == ".ncml":
+            tree = ET.parse(fstr_repl)
+            return True
+
     except (OSError, FileNotFoundError) as e:
         logger.warning("Desired file not accessible")
         logger.warning(e)
@@ -761,8 +770,20 @@ def ncdumpMeta(pathtofile):
     # remove escape character because netCDF4 handles white spaces
     # but cannot handle escape characters (apparently)
     pathtofile = pathtofile.replace("\\", "")
-    # init netCDF4 instance
-    nc = netCDF4.Dataset(pathtofile, mode="r")
+    # If pathtofile is ncml, read first nc file in ncml
+    p = Path(pathtofile)
+    ext = p.suffix
+    if ext == ".ncml":
+        # Parse ncml file contents
+        tree = ET.parse(p)
+        root = tree.getroot()
+        namespace = {"ncml": "http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2"}
+        nc_elements = root.findall(".//ncml:netcdf", namespace)
+        nc_paths = [e.attrib["location"] for e in nc_elements]
+        nc = netCDF4.Dataset(nc_paths[0], mode="r")
+    else:
+        # init netCDF4 instance
+        nc = netCDF4.Dataset(pathtofile, mode="r")
     # init empty dict
     ncdict = {}
     # retrieve variable attributes

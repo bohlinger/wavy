@@ -26,7 +26,7 @@ def test_sat_collocation_and_validation(test_data, tmpdir):
 
     # collocate
     cco = cc(oco=sco, model=model, leadtime="best", distlim=6).populate()
-    assert len(vars(cco).keys()) == 22
+    assert len(vars(cco).keys()) == 24
     assert len(cco.vars.keys()) == 10
 
     # validate
@@ -51,7 +51,7 @@ def test_cco_multivar(test_data):
     cco = cc(
         oco=sco, model=model, leadtime="best", distlim=6, varalias=["Hs", "Tm01"]
     ).populate()
-    assert len(vars(cco).keys()) == 22
+    assert len(vars(cco).keys()) == 24
     assert len(cco.vars.keys()) == 11
 
 
@@ -72,7 +72,7 @@ def test_insitu_collocation_and_validation(test_data, tmpdir):
 
     # collocate
     cco = cc(oco=ico, model=model, leadtime="best", distlim=6).populate()
-    assert len(vars(cco).keys()) == 22
+    assert len(vars(cco).keys()) == 24
     assert len(cco.vars.keys()) == 10
 
     # validate
@@ -95,7 +95,7 @@ def test_insitu_collocation_leadtime(test_data, tmpdir):
 
     # collocate
     cco = cc(oco=ico, model=model, leadtime=10, twin=9).populate()
-    assert len(vars(cco).keys()) == 22
+    assert len(vars(cco).keys()) == 24
     assert len(cco.vars.keys()) == 10
     assert len(cco.vars.time) == 2
 
@@ -109,10 +109,11 @@ def test_poi_collocation():
 
     # init poi_class
     pco = pc(poi_dict)
+    print("pc.varalias:", pco.varalias)
 
     # collocate
     cco = cc(oco=pco, model="ww3_4km", leadtime="best").populate()
-    assert len(vars(cco).keys()) == 22
+    assert len(vars(cco).keys()) == 24
     assert len(cco.vars.keys()) == 10
 
 

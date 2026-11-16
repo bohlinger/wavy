@@ -251,6 +251,247 @@ def validate(results_dict, boot=None):
     return validation_dict
 
 
+def rank_histogram(obs, fc, bins=None, norm=True):
+    """
+    Calculate the rank histogram for an ensemble forecast.
+
+    Parameters:
+        obs (np.ndarray of shape (N,)): observations at times/locations N
+        fc (np.ndarray of shape (M,N)): M collocated ensemble forecasts
+        nbins (int): bins for the histogram (optional)
+        norm (bool): normalize counts by relative frequency
+    Returns:
+        np.ndarray: rank counts - array of shape (num_bins,)
+    """
+    M, N = fc.shape
+    bins = bins or np.arange(M + 1)
+    nbins = len(bins)
+
+    # Initialize counts for each rank
+    rank_counts = np.zeros(nbins, dtype=int)
+
+    for i in range(N):
+        # Combine forecasts and observation
+        combined = np.append(fc[:, i], obs[i])
+
+        # Get the rank of the observation in the sorted combined array
+        idx_sorted = np.argsort(combined)
+        # Observation is at index M in combined
+        obs_rank = np.where(idx_sorted == M)[0][0]
+
+        # Increment the count for the corresponding rank
+        rank_counts[obs_rank] += 1
+
+    if norm:
+        # Normalize counts to relative frequencies
+        rank_counts = rank_counts / N
+
+    return rank_counts, bins
+
+
+def crps_ens(obs, fc, method="fair", avg=True):
+    import numpy as np
+    import xarray as xr
+
+    """
+    Continuous Ranked Probability Score (CRPS) for ensemble forecast.
+
+    Uses efficient computation of the ensemble spread by sorting the ensemble
+    members, as originally proposed by Hersbach (2000). Decomposition of 
+    The Continuous Ranked Probability Score for Ensemble Prediction Systems. 
+    Weather and Forecasting, 15(5), 559–570.
+    https://doi.org/10.1175/1520-0434(2000)015<0559:dotcrp>2.0.co;2
+
+    The implementation is inspired by the crps_for_ensemble() function of
+    https://github.com/nci/scores/blob/develop/src/scores/probability/crps_impl.py
+
+    Parameters:
+        obs (np.ndarray of shape (N,)): observations at times/locations N
+        fc (np.ndarray of shape (M,N)): M collocated ensemble forecasts
+        method (str): one of ['ecdf', 'fair']
+        avg (bool): if True, returns mean CRPS over all observation times/locations
+    Returns:
+        np.ndarray: An array of shape (N,) containing the CRPS for each forecast.
+    """
+    M, N = fc.shape
+
+    # Compute 1st forecast-observation term of CRPS
+    fc_obs = np.mean(abs(fc - obs), axis=0)
+
+    # Sort forecasts by ensemble dimension for efficient summation
+    # Concept borrowed from
+    # https://github.com/nci/scores/blob/develop/src/scores/probability/crps_impl.py
+    fc_sorted = np.sort(fc, axis=1)
+
+    # Compute ensemble forecast spread term of CRPS by rewriting the double sum
+    # sum_{i=1}^M sum_{j=1}^M |x_i - x_j| = 2 sum_{i=1}^M (2i − M − 1)*x_i
+    # Define coefficient for efficient summation as in the 'scores' github repo
+    i = np.arange(M)
+    coeffs = 2 * i - M + 1
+    fc_spread_numerator = np.sum(2 * (fc_sorted.T * coeffs), axis=1)
+    if method == "ecdf":
+        # Standard CRPS definition
+        fc_spread = fc_spread_numerator / (2 * M**2)
+    elif method == "fair":
+        # Fair CRPS definition, adjusts for sampling variability of finite
+        # ensemble sizes
+        fc_spread = fc_spread_numerator / (2 * M * (M - 1))
+
+    # Compute CRPS
+    crps = fc_obs - fc_spread
+
+    # Average over observations?
+    if avg:
+        crps = np.mean(crps)
+
+    # Return np.array
+    return crps
+
+
+def tw_crps_ens(obs, fc, thresh, method="fair", tail="upper", avg=True):
+    import numpy as np
+
+    """
+    Threshold-weighted CRPS for ensemble forecast.
+
+    The implementation is inspired by the tw_crps_for_ensemble() function of
+    https://github.com/nci/scores/blob/develop/src/scores/probability/crps_impl.py
+
+    Parameters:
+        obs (np.ndarray of shape (N,)): observations at times/locations N
+        fc (np.ndarray of shape (M,N)): M collocated ensemble forecasts
+        thresh (list of int/floats): upper/lower threshold(s) - in list form
+        method (str): one of ['ecdf', 'fair']
+        tail (str): one of ['upper', 'lower', 'interval']
+        avg (bool): if True, returns mean CRPS over all observation times/locations
+    Returns:
+        np.ndarray: An array of shape (N,) containing the CRPS for each forecast.
+    """
+    if tail not in ["upper", "lower", "interval"]:
+        raise ValueError("´tail´ argument must be one of [´upper´,´lower´,´interval´]")
+    # Must input two thresholds if tail==´interval´
+    if tail == "interval":
+        if len(thresh) < 2:
+            raise ValueError("Must give two thresholds for tail==´interval´")
+        if thresh[0] >= thresh[1]:
+            raise ValueError("Lower threshold must be smaller than upper threshold")
+
+        # Define threshold-weighting function for obs. and fcst.
+        def chaining_func(x, threshold):
+            return np.min(np.max(x, threshold[0]), threshold[1])
+
+    elif tail == "upper":
+
+        def chaining_func(x, threshold):
+            return np.max(x, threshold[0])
+
+    else:
+
+        def chaining_func(x, threshold):
+            return np.min(x, threshold[0])
+
+    thresh = np.atleast_1d(thresh)
+    # Apply chaining function on observations and forecasts
+    obs = chaining_func(obs, thresh)
+    fc = chaining_func(fc, thresh)
+
+    # Compute CRPS with specified threshold weighting
+    result = crps_ens(obs=obs, fc=fc, method=method)
+
+    return result
+
+
+def rmse_ens(obs, fc):
+    """
+    Ensemble-mean RMSE computed as in
+    Fortin, V., M. Abaza, F. Anctil, and R. Turcotte. “Why Should Ensemble
+    Spread Match the RMSE of the Ensemble Mean?”
+    Journal of Hydrometeorology 15, no. 4 (2014): 1708–13.
+    https://doi.org/10.1175/JHM-D-14-0008.1.
+
+    Parameters:
+        obs (np.ndarray of shape (N,)): observations at times/locations N
+        fc (np.ndarray of shape (M,N)): M collocated ensemble forecasts
+    """
+    M, N = fc.shape  # M: no. of ensemble members, N: no. of obs.
+    # Fortin et al.:"The mean squared error (MSE) of the ensemble mean
+    # is defined as the average of the squared differences between the
+    # ensemble mean for each time t and the corresponding observation"
+    fc_mean = np.nanmean(fc, axis=0)
+    print("fc_mean.shape:", fc_mean.shape)
+    mse = np.nanmean((fc_mean - obs) ** 2)
+    rmse = np.sqrt(mse)
+
+    return rmse
+
+
+def spread_ens(obs, fc):
+    """
+    Ensemble spread computed following the recommendation of
+    Fortin, V., M. Abaza, F. Anctil, and R. Turcotte. “Why Should Ensemble
+    Spread Match the RMSE of the Ensemble Mean?”
+    Journal of Hydrometeorology 15, no. 4 (2014): 1708–13.
+    https://doi.org/10.1175/JHM-D-14-0008.1.
+
+    Parameters:
+        obs (np.ndarray of shape (N,)): observations at times/locations N
+        fc (np.ndarray of shape (M,N)): M collocated ensemble forecasts
+    """
+    M, N = fc.shape
+    # Compute unbiased ensemble spread variance St2 following Eq (9) of
+    # Fortin et al. (2014)
+    fc_mean = np.mean(fc, axis=0)  # Shape: (N,)
+    St2 = np.sum((fc - fc_mean) ** 2, axis=0) / (M - 1)
+    # Compute ensemble spread following Eq (15) of Fortin et al. (2014)
+    spread = np.sqrt((M + 1) / M) * np.sqrt(np.mean(St2))
+
+    return spread
+
+
+def validate_ens(results_dict, boot=None):
+    """
+    vars in dict: np.arrays with np.nan for invalids
+    """
+    # date_matches = results_dict['datetime']
+    if isinstance(results_dict["model_values"], list):
+        model_matches = np.array(results_dict["model_values"])
+    else:
+        model_matches = results_dict["model_values"]
+    if isinstance(results_dict["obs_values"], list):
+        obs_matches = np.array(results_dict["obs_values"])
+    else:
+        obs_matches = results_dict["obs_values"]
+
+    # Rank histogram counts & bins
+    rc, bins = rank_histogram(obs=obs_matches, fc=model_matches)
+    # Standard (ecdf) and fair CRPS, not averaged over observation points
+    crps = crps_ens(obs=obs_matches, fc=model_matches, method="ecdf", avg=False)
+    fcrps = crps_ens(obs=obs_matches, fc=model_matches, method="fair", avg=False)
+    # Save mean + std of crps metrics
+    crps_mean = np.nanmean(crps)
+    crps_std = np.nanstd(crps)
+    fcrps_mean = np.nanmean(fcrps)
+    fcrps_std = np.nanstd(fcrps)
+    # RMSE of ensemble mean and ensemble spread
+    rmse = rmse_ens(obs=obs_matches, fc=model_matches)
+    spread = spread_ens(obs=obs_matches, fc=model_matches)
+
+    # Construct output dictionary
+    validation_dict = {
+        "rank_counts": rc,
+        "rank_bins": bins,
+        "crps_mean": crps_mean,
+        "crps_std": crps_std,
+        "fcrps_mean": fcrps_mean,
+        "fcrps_std": fcrps_std,
+        "rmse": rmse,
+        "spread": spread,
+        "ssr": spread / rmse,  # spread-skill ratio
+    }
+
+    return validation_dict
+
+
 def linreg_evm(x, y, **kwargs):
     #  Linear regression by the maximum likelihood effective variance method.
     #
@@ -350,9 +591,9 @@ def linreg_ievm(x, y, **kwargs):
 
 
 def linreg_deming(x, y, **kwargs):
-    #  Deming regression
-    #  implemented by Patrik Bohlinger
-    #  can account for non-stationary error variances.
+    #  Informed effective variance method.
+    #  Extended evm by Patrik Bohlinger for accounting for
+    #  non-stationary error variances.
 
     data = pd.DataFrame({"x": x, "y": y})
 
@@ -385,286 +626,6 @@ def linreg_deming(x, y, **kwargs):
 
     P = np.append(np.mean(slope), np.mean(intercept))
     return P
-
-
-def linreg_deming_homoscedastic(x, y, stdx=1.0, stdy=1.0):
-    """
-    Deming regression with a constant error standard deviation
-    ratio stdy/stdx.
-
-    Returns
-    -------
-    slope, intercept
-    """
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-
-    if x.shape != y.shape:
-        raise ValueError("x and y must have the same shape.")
-
-    if x.size < 2:
-        raise ValueError("At least two observations are required.")
-
-    if stdx <= 0 or stdy <= 0:
-        raise ValueError("stdx and stdy must be positive.")
-
-    xbar = np.mean(x)
-    ybar = np.mean(y)
-
-    Sxx = np.mean((x - xbar) ** 2)
-    Syy = np.mean((y - ybar) ** 2)
-    Sxy = np.mean((x - xbar) * (y - ybar))
-
-    delta = (stdy / stdx) ** 2
-
-    if np.isclose(Sxy, 0):
-        raise ValueError("Cannot perform Deming regression when covariance is zero.")
-
-    slope = (
-        Syy - delta * Sxx + np.sqrt((Syy - delta * Sxx) ** 2 + 4 * delta * Sxy**2)
-    ) / (2 * Sxy)
-
-    intercept = ybar - slope * xbar
-
-    return slope, intercept
-
-
-import numpy as np
-from scipy.optimize import minimize_scalar
-
-
-def linreg_deming_heteroscedastic(x, y, stdx=1.0, stdy=1.0):
-    """
-    Heteroscedastic Deming regression.
-
-    Parameters
-    ----------
-    x, y : array-like
-        Observed x and y values.
-
-    stdx, stdy : float or array-like
-        1-sigma uncertainties in x and y.
-        Can be scalars or arrays with one value per observation.
-
-    Returns
-    -------
-    slope : float
-        Deming regression slope.
-
-    intercept : float
-        Deming regression intercept.
-    """
-
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-
-    if x.ndim != 1 or y.ndim != 1:
-        raise ValueError("x and y must be one-dimensional.")
-
-    if len(x) != len(y):
-        raise ValueError("x and y must have the same length.")
-
-    n = len(x)
-
-    # Convert uncertainties to arrays
-    stdx = np.asarray(stdx, dtype=float)
-    stdy = np.asarray(stdy, dtype=float)
-
-    if stdx.ndim == 0:
-        stdx = np.full(n, stdx)
-
-    if stdy.ndim == 0:
-        stdy = np.full(n, stdy)
-
-    if len(stdx) != n:
-        raise ValueError("stdx must be scalar or have the same length as x.")
-
-    if len(stdy) != n:
-        raise ValueError("stdy must be scalar or have the same length as y.")
-
-    if np.any(~np.isfinite(x)) or np.any(~np.isfinite(y)):
-        raise ValueError("x and y must contain only finite values.")
-
-    if np.any(~np.isfinite(stdx)) or np.any(~np.isfinite(stdy)):
-        raise ValueError("stdx and stdy must contain only finite values.")
-
-    if np.any(stdx <= 0) or np.any(stdy <= 0):
-        raise ValueError("All uncertainties must be positive.")
-
-    # Convert standard deviations to variances
-    varx = stdx**2
-    vary = stdy**2
-
-    def objective(slope):
-        """
-        Objective function after analytically minimizing
-        over the intercept.
-        """
-
-        variance = vary + slope**2 * varx
-        weights = 1.0 / variance
-
-        # Optimal intercept for this slope
-        intercept = np.sum(weights * (y - slope * x)) / np.sum(weights)
-
-        residual = y - intercept - slope * x
-
-        return np.sum(weights * residual**2)
-
-    # Ordinary least-squares slope as initial estimate
-    slope_ols, _ = np.polyfit(x, y, 1)
-
-    # Use a bounded scalar optimization around a
-    # sufficiently broad slope range.
-    slope_scale = max(10.0 * abs(slope_ols), 1.0)
-
-    result = minimize_scalar(
-        objective,
-        bounds=(-slope_scale, slope_scale),
-        method="bounded",
-        options={
-            "xatol": 1e-12,
-            "maxiter": 10000,
-        },
-    )
-
-    if not result.success:
-        raise RuntimeError(f"Deming regression failed: {result.message}")
-
-    slope = result.x
-
-    # Calculate final intercept
-    variance = vary + slope**2 * varx
-    weights = 1.0 / variance
-
-    intercept = np.sum(weights * (y - slope * x)) / np.sum(weights)
-
-    return slope, intercept
-
-
-def deming_bootstrap(
-    x,
-    y,
-    stdx=1.0,
-    stdy=1.0,
-    n_boot=2000,
-    random_state=None,
-):
-    """
-    Bootstrap uncertainty estimates for heteroscedastic
-    Deming regression.
-
-    Parameters
-    ----------
-    x, y : array-like
-        Observed x and y values.
-
-    stdx, stdy : float or array-like
-        1-sigma uncertainties for each observation.
-        Scalars or arrays of length n.
-
-    n_boot : int
-        Number of bootstrap replicates.
-
-    random_state : int or None
-        Random seed for reproducibility.
-
-    Returns
-    -------
-    result : dict
-        Dictionary containing the original fit, bootstrap
-        distributions, and percentile confidence intervals.
-    """
-
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-
-    n = len(x)
-
-    if len(y) != n:
-        raise ValueError("x and y must have the same length.")
-
-    # Expand scalar uncertainties
-    stdx = np.asarray(stdx, dtype=float)
-    stdy = np.asarray(stdy, dtype=float)
-
-    if stdx.ndim == 0:
-        stdx = np.full(n, stdx)
-
-    if stdy.ndim == 0:
-        stdy = np.full(n, stdy)
-
-    if len(stdx) != n or len(stdy) != n:
-        raise ValueError("stdx and stdy must be scalar or have length n.")
-
-    rng = np.random.default_rng(random_state)
-
-    # Fit original data
-    slope, intercept = linreg_deming_heteroscedastic(
-        x,
-        y,
-        stdx=stdx,
-        stdy=stdy,
-    )
-
-    slopes = np.empty(n_boot)
-    intercepts = np.empty(n_boot)
-
-    # Bootstrap
-    for i in range(n_boot):
-
-        # Resample observations together with their uncertainties
-        idx = rng.integers(0, n, size=n)
-
-        x_boot = x[idx]
-        y_boot = y[idx]
-        stdx_boot = stdx[idx]
-        stdy_boot = stdy[idx]
-
-        try:
-            slope_boot, intercept_boot = linreg_deming_heteroscedastic(
-                x_boot,
-                y_boot,
-                stdx=stdx_boot,
-                stdy=stdy_boot,
-            )
-
-            slopes[i] = slope_boot
-            intercepts[i] = intercept_boot
-
-        except RuntimeError:
-            slopes[i] = np.nan
-            intercepts[i] = np.nan
-
-    # Remove failed bootstrap fits
-    valid = np.isfinite(slopes) & np.isfinite(intercepts)
-
-    slopes = slopes[valid]
-    intercepts = intercepts[valid]
-
-    if len(slopes) == 0:
-        raise RuntimeError("All bootstrap fits failed.")
-
-    # 95% percentile confidence intervals
-    slope_ci = np.percentile(
-        slopes,
-        [2.5, 97.5],
-    )
-
-    intercept_ci = np.percentile(
-        intercepts,
-        [2.5, 97.5],
-    )
-
-    return {
-        "slope": slope,
-        "intercept": intercept,
-        "slope_bootstrap": slopes,
-        "intercept_bootstrap": intercepts,
-        "slope_ci": slope_ci,
-        "intercept_ci": intercept_ci,
-        "n_boot": len(slopes),
-    }
 
 
 def linreg_std(x, y, **kwargs):
