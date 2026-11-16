@@ -523,7 +523,8 @@ class collocation_class(qls):
             "collocation_idx_y": list(idx_y),
             "time": tmp_dict["time"][dist_idx],
             **{
-                "model_" + v: np.atleast_1d(np.squeeze(Mvars[v][:, idx_x, idx_y])).tolist()
+                "model_"
+                + v: np.atleast_1d(np.squeeze(Mvars[v][:, idx_x, idx_y])).tolist()
                 for v in Mvars.keys()
             },
             **{"obs_" + v: obs_vars[v][dist_idx] for v in self.varalias_obs},
